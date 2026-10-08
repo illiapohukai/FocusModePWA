@@ -1,0 +1,1763 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="de"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/><meta content="#05050a" name="theme-color"/><meta content="Focus Mode+ verbindet klare nächste Schritte, geschützte Fokus-Sitzungen und adaptive Focus Missions in einem interaktiven Prototyp." name="description"/><title>Focus Mode+ - Von der Aufgabe zur geschützten Fokus-Sitzung</title><script src="https://cdn.tailwindcss.com"></script><script>tailwind.config={darkMode:'class'}</script><script src="https://unpkg.com/lucide@latest"></script><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/><style>:root{--bg:#05050a;--fg:#f7f7fb;--muted:#9797aa;--line:rgba(255,255,255,.09)}*{box-sizing:border-box}html{scroll-behavior:smooth;background:var(--bg)}body{margin:0;background:var(--bg);color:var(--fg);font-family:Inter,sans-serif;overflow-x:hidden}body:before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 82% 22%,rgba(116,87,255,.17),transparent 28%),radial-gradient(circle at 12% 78%,rgba(82,57,190,.09),transparent 30%)}button,a{font:inherit}.topbar{position:fixed;z-index:100;top:16px;left:50%;transform:translateX(-50%);width:min(1180px,calc(100% - 28px));height:60px;padding:0 10px 0 17px;border:1px solid var(--line);border-radius:20px;background:rgba(9,9,15,.76);backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:space-between;box-shadow:0 20px 70px #0007}.brand{display:flex;align-items:center;gap:10px;color:white;text-decoration:none;font-weight:900}.logo{width:31px;height:31px;display:grid;place-items:center;border-radius:10px;background:linear-gradient(135deg,#6253ff,#a855f7)}nav{display:flex;gap:2px;padding:4px;background:#ffffff08;border-radius:13px}nav a{color:#8d8d9d;text-decoration:none;font-size:10px;font-weight:800;padding:9px 10px;border-radius:9px}nav a:hover,nav a.active{color:white;background:#ffffff0d}.top-actions{display:flex;gap:7px}.top-actions button{height:38px;border:1px solid var(--line);border-radius:12px;background:#ffffff0a;color:white;padding:0 13px;font-size:11px;font-weight:800}.top-actions .live{background:white;color:#09090d}.page{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(390px,46vw)}.chapter{min-height:100vh;padding:130px clamp(34px,7vw,105px) 90px;display:flex;align-items:center;border-bottom:1px solid #ffffff0b;opacity:.32;transition:opacity .65s}.chapter.active{opacity:1}.chapter>div{max-width:720px}.eyebrow{display:block;color:#927fff;font-weight:900;letter-spacing:.18em;margin-bottom:22px}h1{font-size:clamp(43px,5.4vw,82px);line-height:.98;letter-spacing:-.06em;margin:0 0 25px}.chapter p{max-width:650px;color:var(--muted);font-size:clamp(16px,1.5vw,21px);line-height:1.65;margin:0 0 34px}.actions{display:flex;gap:10px;flex-wrap:wrap}.actions button,.demo{border:1px solid var(--line);border-radius:14px;padding:14px 18px;background:#ffffff08;color:white;font-weight:800;font-size:12px;cursor:pointer}.actions .primary{background:white;color:#09090d}.facts{display:flex;gap:30px;margin-top:52px;color:#707081;font-size:10px}.facts span{display:flex;flex-direction:column;gap:4px}.facts b{color:white;font-size:18px}.cards{display:grid;grid-template-columns:1fr 1fr;gap:11px;max-width:560px}.cards article,.price{padding:20px;border:1px solid var(--line);border-radius:19px;background:#ffffff07}.cards small,.cards b{display:block}.cards small{color:var(--muted);margin-top:7px}.pills{display:flex;flex-wrap:wrap;gap:8px}.pills span{padding:10px 14px;border:1px solid var(--line);border-radius:999px;color:#cfcfde;font-size:11px}ol{padding:0;margin:0;list-style:none;max-width:540px;border-top:1px solid var(--line)}ol li{padding:18px 0;border-bottom:1px solid var(--line);font-weight:700}ol b{color:#8771ff;margin-right:22px;font-size:10px}.metrics{display:flex;max-width:560px;border:1px solid var(--line);border-radius:20px;overflow:hidden}.metrics span{flex:1;padding:19px;color:var(--muted);font-size:9px;border-right:1px solid var(--line)}.metrics span:last-child{border:0}.metrics b{display:block;color:white;font-size:24px;margin-bottom:4px}.price{max-width:430px;background:linear-gradient(145deg,#7657ff23,#ffffff05)}.price small{color:#a797ff;font-weight:900;letter-spacing:.13em}.price b{display:block;font-size:32px;margin:12px 0 5px}.price i{font-size:12px;color:var(--muted);font-style:normal}.price p{font-size:11px;margin:0}.phone-side{height:100vh;position:sticky;top:0;display:grid;place-items:center;overflow:hidden;border-left:1px solid var(--line)}.phone-side:before{content:"";position:absolute;width:510px;height:510px;border-radius:50%;background:#7457ff3b;filter:blur(120px)}.phone-wrap{position:relative;z-index:2;transform:scale(.88)}.preview-label{position:absolute;top:105px;color:#6e6e80;font-size:9px;font-weight:900;letter-spacing:.18em}.hint{position:absolute;bottom:28px;color:#6d6d7d;font-size:9px}.dots{position:fixed;z-index:90;left:17px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column}.dots a{width:38px;height:27px;color:#555568;text-decoration:none;font-size:7px;display:flex;align-items:center;gap:5px}.dots a:before{content:"";width:8px;height:1px;background:#555568;transition:.2s}.dots a.active:before{width:20px;background:#8c77ff}.modal{display:none;position:fixed;z-index:300;inset:0;background:#030307ee;backdrop-filter:blur(24px);align-items:center;justify-content:center}.modal.open{display:flex}.modal-content{display:flex;flex-direction:column;align-items:center;gap:12px}.tools{padding:6px;border:1px solid var(--line);border-radius:14px;background:#101018;display:flex;gap:5px;flex-wrap:wrap;justify-content:center}.tools button{border:0;border-radius:8px;background:#ffffff0b;color:#bdbdcc;padding:8px 9px;font-size:8px;font-weight:900}.close{position:absolute;right:20px;top:20px;width:42px;height:42px;border:1px solid var(--line);border-radius:13px;background:#11111a;color:white;font-size:22px}.hide-scrollbar::-webkit-scrollbar,#appBody::-webkit-scrollbar{display:none}.hide-scrollbar,#appBody{scrollbar-width:none}#screenWrapper,#appBody{min-height:0}#appBody{overflow:hidden;overscroll-behavior:contain}#app-screen-score,#app-screen-premium,#chatMessages,#chat-locked-state{overflow-y:auto!important;min-height:0;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch}#iphoneFrame{touch-action:pan-y}@keyframes screenFadeIn{0%{opacity:0;transform:translateY(14px) scale(.985);filter:blur(5px)}55%{opacity:.82;filter:blur(1px)}100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}.app-screen:not(.hidden){animation:screenFadeIn .62s cubic-bezier(.16,1,.3,1);transform-origin:center;will-change:opacity,transform,filter}#appBody{isolation:isolate}@keyframes typingDots{0%,20%{transform:translateY(0);opacity:.5}50%{transform:translateY(-3px);opacity:1}80%,100%{transform:translateY(0);opacity:.5}}.typing-dot{animation:typingDots 1.4s infinite ease-in-out both}
+@media(max-width:980px){nav{display:none}body:before{z-index:-3;background:radial-gradient(circle at 50% 42%,rgba(116,87,255,.20),transparent 42%),linear-gradient(180deg,#05050a,#07070d)}.page{display:block;position:relative;z-index:1}.phone-side{display:grid;position:fixed;inset:0;width:100%;height:100svh;z-index:-1;border:0;pointer-events:none;overflow:hidden;place-items:center;background:transparent}.phone-side:before{width:112vw;height:112vw;max-width:640px;max-height:640px;background:rgba(100,73,255,.23);filter:blur(110px)}.phone-wrap{transform:translateY(4vh) scale(.79);opacity:.30;filter:blur(8px) saturate(1.2);transition:.8s cubic-bezier(.16,1,.3,1)}.preview-label,.hint{display:none}.dots{display:flex;left:7px;z-index:70;gap:1px;opacity:.72}.dots a{width:29px;height:24px;font-size:6px;color:#77778b}.dots a:before{width:6px;background:#626273}.dots a.active:before{width:15px;background:#9a88ff;box-shadow:0 0 12px #9179ffb3}.chapter{min-height:100svh;padding:118px 22px 82px 43px;opacity:.54;background:linear-gradient(90deg,rgba(5,5,10,.86),rgba(5,5,10,.68) 54%,rgba(5,5,10,.34));transition:opacity .65s,background .65s}.chapter.active{opacity:1;background:linear-gradient(90deg,rgba(5,5,10,.90),rgba(5,5,10,.71) 56%,rgba(5,5,10,.32))}.chapter:first-child{padding-top:150px}.chapter>div{position:relative;z-index:2}.eyebrow{display:inline-flex;align-items:center;min-height:28px;padding:0 10px;border:1px solid #927fff38;border-radius:999px;background:#7457ff14;backdrop-filter:blur(10px);font-size:9px;margin-bottom:20px}h1{font-size:clamp(42px,12vw,64px);text-wrap:balance;text-shadow:0 3px 28px #0007}.chapter p{font-size:16px;line-height:1.6;max-width:92%;color:#aaaabb;text-shadow:0 2px 18px #0008}.topbar{top:9px;width:calc(100% - 18px)}.brand>span:last-child{display:inline!important;font-size:13px}.facts{gap:20px}.modal{padding:65px 7px 8px;align-items:flex-start;overflow:auto;z-index:400}.modal-content{transform:scale(.82);transform-origin:top center}.modal #iphoneFrame{opacity:1;filter:none;pointer-events:auto}.close{top:12px;right:12px}}
+@media(max-width:540px){.cards{grid-template-columns:1fr}.top-actions button:first-child{display:none}.metrics span{padding:13px 9px}.metrics b{font-size:19px}.top-actions .live{padding:0 10px}.logo{width:29px;height:29px}.phone-wrap{transform:translateY(5vh) scale(.70);opacity:.28;filter:blur(8.5px) saturate(1.25)}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+/* === SLOGAN STYLE V3 === */.chapter>div{max-width:760px}.chapter .eyebrow{display:inline-flex;align-items:center;min-height:30px;padding:0 11px;color:#a493ff;font-size:10px;font-weight:900;letter-spacing:.18em;border:1px solid rgba(146,127,255,.24);border-radius:999px;background:linear-gradient(135deg,rgba(116,87,255,.14),rgba(168,85,247,.06));box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 12px 34px rgba(68,45,180,.12);margin-bottom:clamp(30px,4.2vh,46px)}.chapter>div>h1{position:relative;max-width:760px;margin:0 0 clamp(34px,5vh,54px);padding-left:clamp(18px,2vw,28px);font-family:Inter,"Arial Black",Arial,sans-serif!important;font-size:clamp(48px,5.8vw,88px)!important;font-weight:900!important;font-variation-settings:"wght" 900;font-synthesis:weight;line-height:.96!important;letter-spacing:-.06em!important;text-wrap:balance;color:#fff}.chapter>div>h1:before{content:"";position:absolute;left:0;top:.08em;width:3px;height:calc(100% - .12em);border-radius:999px;background:linear-gradient(180deg,#a792ff,#6d52ff 58%,rgba(109,82,255,.08));box-shadow:0 0 24px rgba(126,94,255,.42)}.chapter>div>p{max-width:620px;margin:0 0 38px;padding-left:clamp(18px,2vw,28px);color:var(--muted);font-size:clamp(15px,1.35vw,19px);line-height:1.72}@media(max-width:980px){.chapter .eyebrow{margin-bottom:34px}.chapter>div>h1{max-width:96%;margin-bottom:38px;padding-left:17px;font-size:clamp(44px,12.4vw,66px)!important;line-height:.98!important}.chapter>div>h1:before{width:2px}.chapter>div>p{max-width:91%;margin-bottom:36px;padding-left:17px;font-size:15px;line-height:1.68}}/* === END SLOGAN STYLE V3 === *//* === LANGUAGE SWITCHER === */.lang-picker{position:relative}.lang-toggle{min-width:58px!important;display:flex;align-items:center;justify-content:center;gap:6px}.lang-menu{position:absolute;right:0;top:46px;width:154px;padding:7px;border:1px solid var(--line);border-radius:14px;background:rgba(13,13,21,.96);backdrop-filter:blur(22px);box-shadow:0 20px 55px #0008;display:none}.lang-picker.open .lang-menu{display:block}.lang-option{width:100%;height:37px!important;padding:0 10px!important;display:flex;align-items:center;justify-content:space-between;border:0!important;background:transparent!important;color:#aaaabb!important;border-radius:9px!important}.lang-option:hover,.lang-option.active{background:#ffffff0d!important;color:#fff!important}.lang-option span{font-size:10px;color:#6f6f82}.lang-option.active span{color:#9d8cff}@media(max-width:540px){.lang-toggle{min-width:50px!important;padding:0 8px!important}.lang-menu{right:-2px}}/* === END LANGUAGE SWITCHER === */
+/* === PHONE HOME COSMETIC PATCH === */
+#app-screen-home [data-role="focus-streak-label"]{display:inline-block;line-height:1.05;transform:translateY(.5px)}
+#app-screen-home [data-lucide="flame"]{width:20px!important;height:20px!important;stroke-width:2.35;filter:drop-shadow(0 3px 5px rgba(249,115,22,.24))}
+#app-screen-home .text-3xs.font-semibold.text-orange-500{column-gap:7px!important;align-items:center!important;font-size:9px!important;line-height:1.1!important}
+html[lang="ru"] #app-screen-home [data-role="welcome-label"]{display:block;max-width:145px;white-space:nowrap;font-size:7.5px!important;line-height:1!important;letter-spacing:.035em!important}
+html[lang="ru"] #app-screen-home>div:first-child{row-gap:16px!important}
+html[lang="ru"] #app-screen-home>div:first-child>.space-y-6>:not([hidden])~:not([hidden]){margin-top:16px!important}
+html[lang="ru"] #app-screen-home{row-gap:14px!important}
+html[lang="ru"] #app-screen-home>button:last-child{margin-top:auto!important;flex-shrink:0!important}
+/* === END PHONE HOME COSMETIC PATCH === */
+/* === OVERFLOW AND MOBILE LANGUAGE PATCH === */
+html,body{width:100%;max-width:100%;overflow-x:clip!important;overscroll-behavior-x:none}
+.page,.page>div,.chapter,.chapter>div{min-width:0;max-width:100%}
+.chapter{border-bottom:0!important;overflow:hidden}
+.chapter>div>h1{max-width:100%!important;overflow-wrap:anywhere;word-break:normal;hyphens:auto;-webkit-hyphens:auto}
+.chapter>div>p,.chapter button,.chapter span,.chapter article{overflow-wrap:anywhere;word-break:normal;hyphens:auto;-webkit-hyphens:auto}
+/* === END OVERFLOW AND MOBILE LANGUAGE PATCH === */
+/* === DESKTOP STICKY PHONE RESTORE === */
+.page{overflow:visible!important;align-items:start}
+.phone-side{position:-webkit-sticky!important;position:sticky!important;top:0!important;align-self:start!important;height:100vh!important;height:100dvh!important;overflow:hidden!important}
+/* === END DESKTOP STICKY PHONE RESTORE === */
+@media(max-width:980px){
+ html,body{overflow-x:hidden!important;touch-action:pan-y}
+ .topbar{overflow:visible!important}.top-actions{min-width:0;flex-shrink:0}
+ .lang-picker{display:block!important;flex-shrink:0;z-index:130}.lang-picker .lang-toggle{display:flex!important;visibility:visible!important;opacity:1!important}.lang-menu{z-index:140}
+ .chapter{width:100%;max-width:100vw}.chapter>div{width:100%;max-width:100%}
+ .chapter>div>h1{width:100%;max-width:100%!important;padding-right:6px;font-size:clamp(38px,10.8vw,61px)!important;line-height:1!important}
+ .phone-side{position:fixed!important;inset:0!important;top:0!important;width:100%!important;height:100svh!important;align-self:auto!important}
+}
+@media(max-width:540px){
+ .top-actions>button:first-of-type{display:none!important}.lang-picker .lang-toggle{display:flex!important;min-width:48px!important;padding:0 7px!important}
+ .brand{min-width:0}.brand>span:last-child{white-space:nowrap}.chapter>div>h1{font-size:clamp(36px,10.3vw,54px)!important;letter-spacing:-.048em!important}
+}
+/* === FINAL ICON TRANSITION LANGUAGE PATCH === */.logo.app-brand-icon{width:38px!important;height:38px!important;min-width:38px;border-radius:12px!important;padding:0!important;overflow:hidden;background:#24173f!important;border:1px solid rgba(151,111,255,.34);box-shadow:0 0 22px rgba(124,82,255,.35),inset 0 1px 0 rgba(255,255,255,.08)}.logo.app-brand-icon img{display:block;width:100%;height:100%;object-fit:cover;border-radius:inherit}.top-actions .lang-menu .lang-option{display:flex!important;visibility:visible!important;opacity:1!important}#appBody{will-change:opacity,transform,filter;transform:translateZ(0);backface-visibility:hidden}@media(max-width:980px){.phone-wrap{opacity:.34;filter:blur(7px) saturate(1.28)}}@media(max-width:540px){.logo.app-brand-icon{width:35px!important;height:35px!important;min-width:35px;border-radius:11px!important}.top-actions .lang-menu button.lang-option:first-child{display:flex!important}.phone-wrap{opacity:.32;filter:blur(7.5px) saturate(1.3)}}/* === END FINAL ICON TRANSITION LANGUAGE PATCH === */
+/* === LEARNING FLOW EXPERIMENT === */
+.flow-screen{overflow-y:auto!important;min-height:0;overscroll-behavior:contain;scrollbar-width:none}.flow-screen::-webkit-scrollbar{display:none}
+.flow-glass{background:linear-gradient(145deg,rgba(255,255,255,.98),rgba(248,250,252,.92));border:1px solid rgba(148,163,184,.20);box-shadow:0 16px 40px rgba(15,23,42,.07)}
+.flow-chip{border:1px solid #e2e8f0;background:#fff;color:#64748b;transition:.2s}.flow-chip.active{border-color:#c7d2fe;background:#eef2ff;color:#4338ca;box-shadow:0 0 0 2px rgba(99,102,241,.08)}
+.flow-file{transition:.25s}.flow-file.selected{border-color:#a5b4fc;background:linear-gradient(145deg,#eef2ff,#fff);box-shadow:0 10px 26px rgba(79,70,229,.10)}
+.flow-step-line{position:relative}.flow-step-line:after{content:"";position:absolute;left:13px;top:29px;width:1px;height:calc(100% - 16px);background:#e2e8f0}.flow-step-line:last-child:after{display:none}
+@keyframes flowPulse{0%,100%{opacity:.48;transform:scale(.94)}50%{opacity:1;transform:scale(1)}}.flow-loader-dot{animation:flowPulse 1.15s infinite ease-in-out}.flow-loader-dot:nth-child(2){animation-delay:.15s}.flow-loader-dot:nth-child(3){animation-delay:.3s}
+@keyframes flowCheck{0%{opacity:0;transform:translateY(5px)}100%{opacity:1;transform:none}}.analysis-row.done{animation:flowCheck .35s ease forwards}
+
+
+#focusChoiceOverlay .focus-choice-backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(15,23,42,.34);
+  -webkit-backdrop-filter:blur(12px) saturate(.82);
+  backdrop-filter:blur(12px) saturate(.82);
+}
+
+.focus-choice-enter{animation:focusChoiceEnter .48s cubic-bezier(.16,1,.3,1) both}
+.focus-choice-leave{animation:focusChoiceLeave .25s ease both}
+@keyframes focusChoiceEnter{from{opacity:0}to{opacity:1}}
+@keyframes focusChoiceLeave{from{opacity:1}to{opacity:0}}
+#focusChoiceOverlay>div:last-child{animation:focusSheetUp .55s cubic-bezier(.16,1,.3,1) both}
+@keyframes focusSheetUp{from{transform:translateY(105%);opacity:.6}to{transform:translateY(0);opacity:1}}
+#app-screen-feedbackprocessing,#app-screen-update{position:absolute;inset:0;z-index:70;min-height:100%;background:linear-gradient(160deg,#0f172a 0%,#17143a 48%,#312e81 100%)!important}
+
+
+/* Strong full-phone focus-choice blur */
+#screenWrapper.focus-choice-open #appBody{
+  filter:blur(15px) saturate(.72) brightness(.80);
+  transform:scale(1.055);
+  transition:filter .38s ease,transform .45s cubic-bezier(.16,1,.3,1);
+  pointer-events:none;
+}
+#appBody{transition:filter .32s ease,transform .42s cubic-bezier(.16,1,.3,1),background-color .3s ease!important}
+#screenWrapper.focus-choice-open #statusBar,
+#screenWrapper.focus-choice-open #homeBar{
+  background:rgba(241,245,249,.58)!important;
+  -webkit-backdrop-filter:blur(18px) saturate(.75);
+  backdrop-filter:blur(18px) saturate(.75);
+  transition:background .3s ease,backdrop-filter .3s ease;
+}
+#screenWrapper.focus-choice-open #statusBar{
+  position:relative;
+  z-index:91!important;
+  box-shadow:0 8px 28px rgba(15,23,42,.06);
+}
+#screenWrapper.focus-choice-open #statusBar>*{
+  position:relative;
+  z-index:2;
+  filter:none!important;
+}
+#screenWrapper.focus-choice-open #homeBar{
+  position:relative;
+  z-index:91!important;
+}
+#screenWrapper.focus-choice-open #homeBar>div{
+  position:relative;
+  z-index:2;
+  filter:none!important;
+}
+#focusChoiceOverlay{
+  z-index:90!important;
+}
+#focusChoiceOverlay .focus-choice-backdrop{
+  background:rgba(15,23,42,.42)!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+}
+
+
+/* v6: one continuous blur across the complete phone surface */
+#screenWrapper.focus-choice-open #appBody{
+  filter:none!important;
+  transform:none!important;
+  pointer-events:none;
+}
+#focusChoiceOverlay{
+  z-index:90!important;
+  pointer-events:none;
+}
+#focusChoiceOverlay .focus-choice-backdrop{
+  position:absolute;
+  inset:0;
+  z-index:0;
+  pointer-events:auto;
+  background:rgba(15,23,42,.28)!important;
+  -webkit-backdrop-filter:blur(17px) saturate(.72) brightness(.78)!important;
+  backdrop-filter:blur(17px) saturate(.72) brightness(.78)!important;
+}
+#focusChoiceOverlay .focus-choice-sheet{
+  position:relative;
+  z-index:110;
+  pointer-events:auto;
+}
+#screenWrapper.focus-choice-open #dynamicIsland{
+  z-index:105!important;
+  opacity:1!important;
+  visibility:visible!important;
+  filter:none!important;
+}
+#screenWrapper.focus-choice-open #statusBar,
+#screenWrapper.focus-choice-open #homeBar{
+  z-index:100!important;
+  background:transparent!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+  box-shadow:none!important;
+  border:0!important;
+}
+#screenWrapper.focus-choice-open #statusBar::before,
+#screenWrapper.focus-choice-open #homeBar::before{
+  content:none!important;
+}
+#screenWrapper.focus-choice-open #statusBar > *,
+#screenWrapper.focus-choice-open #homeBar > *{
+  position:relative;
+  z-index:2;
+  filter:none!important;
+  opacity:1!important;
+}
+
+
+/* v7: reliable blur with crisp replicated system chrome */
+#screenWrapper.focus-choice-open #appBody{
+  filter:blur(14px) saturate(.68) brightness(.78)!important;
+  transform:scale(1.045)!important;
+  transform-origin:center center;
+  pointer-events:none;
+}
+#screenWrapper.focus-choice-open #statusBar,
+#screenWrapper.focus-choice-open #homeBar{
+  z-index:40!important;
+  background:transparent!important;
+  opacity:0!important;
+  box-shadow:none!important;
+}
+#focusChoiceOverlay{z-index:90!important}
+#focusChoiceOverlay .focus-choice-backdrop{
+  z-index:0!important;
+  background:rgba(15,23,42,.34)!important;
+  -webkit-backdrop-filter:blur(10px) saturate(.72)!important;
+  backdrop-filter:blur(10px) saturate(.72)!important;
+}
+#focusChoiceChrome{z-index:105}
+#focusChoiceChrome .choice-status{
+  position:absolute;left:0;right:0;top:0;height:44px;padding:0 28px 6px;
+  display:flex;align-items:flex-end;justify-content:space-between;
+  color:#0f172a;font-size:12px;font-weight:600;
+}
+#focusChoiceChrome .choice-status-icons{display:flex;align-items:center;gap:6px}
+#focusChoiceChrome .choice-status-icons svg{width:14px;height:14px;stroke-width:2}
+#focusChoiceChrome .choice-battery{width:20px;height:10px;border:1px solid #0f172a;border-radius:2px;padding:2px;display:flex;align-items:center}
+#focusChoiceChrome .choice-battery>span{width:100%;height:100%;background:#0f172a;border-radius:1px}
+#focusChoiceChrome .choice-home-indicator{position:absolute;left:50%;bottom:7px;transform:translateX(-50%);width:112px;height:4px;border-radius:999px;background:rgba(15,23,42,.80)}
+#screenWrapper.focus-choice-open #dynamicIsland{z-index:120!important;opacity:1!important;visibility:visible!important}
+#focusChoiceOverlay .focus-choice-sheet{z-index:115!important}
+
+/* Full-phone AI surfaces: no white bands on top or bottom */
+#screenWrapper.ai-immersive{
+  background:linear-gradient(160deg,#0f172a 0%,#17143a 48%,#312e81 100%)!important;
+}
+#screenWrapper.ai-immersive #appBody{
+  background:transparent!important;
+}
+#screenWrapper.ai-immersive #statusBar,
+#screenWrapper.ai-immersive #homeBar{
+  background:transparent!important;
+  color:white!important;
+  box-shadow:none!important;
+  border:0!important;
+}
+#screenWrapper.ai-immersive #statusBar svg{color:white!important;stroke:white!important}
+#screenWrapper.ai-immersive #statusBar .border-slate-800{border-color:white!important}
+#screenWrapper.ai-immersive #statusBar .bg-slate-800{background:white!important}
+#screenWrapper.ai-immersive #homeBar>div{background:rgba(255,255,255,.72)!important}
+#screenWrapper.ai-immersive #app-screen-analyzing,
+#screenWrapper.ai-immersive #app-screen-feedbackprocessing,
+#screenWrapper.ai-immersive #app-screen-update{
+  background:transparent!important;
+  min-height:100%;
+}
+
+/* === END LEARNING FLOW EXPERIMENT === */
+
+/* === FOCUS MISSION PRODUCT UPDATE === */
+#app-screen-home{gap:14px!important}
+#app-screen-home>div:first-child{min-height:0}
+#app-screen-home button{cursor:pointer}
+#activeMissionCard{isolation:isolate}
+#planStreakToast{animation:missionToastIn .4s cubic-bezier(.16,1,.3,1) both}
+@keyframes missionToastIn{from{opacity:0;transform:translateY(18px) scale(.96);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
+/* === END FOCUS MISSION PRODUCT UPDATE === */
+
+/* === CLEAN HOME + SCROLL FIX === */
+#app-screen-home{overflow-y:auto!important;min-height:0!important;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:0!important;gap:0!important}
+#app-screen-home::-webkit-scrollbar{display:none}
+#app-screen-home .home-scroll-content{flex:0 0 auto}
+#app-screen-home .home-start-wrap{margin-top:2px}
+#app-screen-home button{cursor:pointer}
+#activeMissionCard.hidden,#emptyMissionCard.hidden{display:none!important}
+/* === END CLEAN HOME + SCROLL FIX === */
+
+/* === COSMETIC + INTERACTION REFINEMENTS === */
+.focus-tooltip{position:absolute;left:50%;top:-4px;transform:translate(-50%,-100%) translateY(4px);opacity:0;pointer-events:none;white-space:nowrap;padding:4px 6px;border-radius:7px;background:#0f172a;color:white;font-size:7px;font-weight:800;box-shadow:0 8px 20px rgba(15,23,42,.18);transition:.2s}
+.focus-day:hover .focus-tooltip{opacity:1;transform:translate(-50%,-100%) translateY(0)}
+#confidenceRatingButtons .flow-chip.active{border-color:#c7d2fe;background:#eef2ff;color:#4338ca;box-shadow:0 0 0 2px rgba(99,102,241,.08)}
+#missionPlanButton:disabled{box-shadow:none!important}
+/* === END COSMETIC + INTERACTION REFINEMENTS === */
+
+/* === V4 POLISH === */
+#app-screen-stats{overflow:hidden!important}
+#app-screen-stats .focus-tooltip{z-index:5}
+#app-screen-home .home-metric{min-height:65px}
+#app-screen-home .metric-label{min-height:15px;overflow:visible!important;white-space:normal!important}
+#app-screen-home .metric-icon{stroke-width:2.35;filter:drop-shadow(0 2px 4px currentColor)}
+#app-screen-home .home-metric:nth-child(3) .metric-icon{width:15px!important;height:15px!important}
+/* === END V4 POLISH === */
+
+/* === NEW PRODUCT STORY V5 === */
+nav{max-width:720px;overflow:hidden}nav a{padding:9px 7px;font-size:8px;white-space:nowrap}
+.brand-line{margin-top:24px;padding-left:clamp(18px,2vw,28px);color:#77778b;font-size:10px;font-weight:800;letter-spacing:.04em}
+.mode-cards article{min-height:120px}.mode-cards b{font-size:18px}.mode-cards small{line-height:1.6}
+.workflow-list li{display:flex;align-items:flex-start;gap:0}.workflow-list li>span{display:flex;flex-direction:column;gap:5px}.workflow-list strong{font-size:14px}.workflow-list small{color:var(--muted);font-size:10px;font-weight:500;line-height:1.45}
+.coach-note,.vision-line{max-width:620px;margin:0 0 24px;padding:16px 18px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(135deg,#7657ff18,#ffffff05);color:#b8b8ca;font-size:11px;line-height:1.6}.vision-line{display:flex;flex-direction:column;gap:5px}.vision-line strong{color:#a997ff;font-size:9px;text-transform:uppercase;letter-spacing:.14em}
+.validation-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;max-width:680px;margin-bottom:22px}.validation-grid article{padding:15px;border:1px solid var(--line);border-radius:16px;background:#ffffff06}.validation-grid b,.validation-grid small{display:block}.validation-grid b{font-size:11px;line-height:1.35}.validation-grid small{margin-top:7px;color:var(--muted);font-size:9px;line-height:1.45}
+@media(max-width:1180px){nav a:nth-child(3),nav a:nth-child(8),nav a:nth-child(10){display:none}}
+@media(max-width:980px){.validation-grid{grid-template-columns:1fr}.workflow-list li{padding:14px 0}.brand-line{padding-left:17px}.chapter[id="future"]{padding-bottom:110px}}
+/* === END NEW PRODUCT STORY V5 === */
+
+/* === V6 CHOICE OVERLAY FIX === */
+#focusChoiceOverlay:not(.hidden){display:flex!important;opacity:1!important;visibility:visible!important}
+#focusChoiceOverlay:not(.hidden) .focus-choice-sheet{display:block!important;opacity:1;visibility:visible;transform:translateY(0)}
+/* === END V6 CHOICE OVERLAY FIX === */
+
+/* === MOBILE HOME CTA: BOTTOM POSITION ONLY === */
+@media(max-width:980px){
+  #app-screen-home{
+    position:relative!important;
+  }
+  #app-screen-home .home-scroll-content{
+    padding-bottom:86px!important;
+  }
+  #app-screen-home .home-start-wrap{
+    position:absolute!important;
+    left:20px!important;
+    right:20px!important;
+    bottom:7px!important;
+    z-index:20!important;
+    margin:0!important;
+    padding:8px 0 0!important;
+    background:linear-gradient(180deg,rgba(248,250,252,0),rgba(248,250,252,.96) 30%,#f8fafc 100%)!important;
+    -webkit-backdrop-filter:none!important;
+    backdrop-filter:none!important;
+    transform:none!important;
+  }
+}
+/* === END MOBILE HOME CTA: BOTTOM POSITION ONLY === */
+
+/* === V8 FOCUS PROTECTION FLOW === */
+.quick-option{padding:10px 4px;border:1px solid #e2e8f0;border-radius:12px;background:#fff;color:#64748b;font-size:9px;font-weight:800;transition:.2s}.quick-option.active{border-color:#818cf8;background:#eef2ff;color:#4338ca;box-shadow:0 0 0 2px rgba(99,102,241,.08)}
+.distraction-row{width:100%;display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid #e2e8f0;border-radius:14px;background:#fff;color:#334155;font-size:10px;font-weight:700;text-align:left}.distraction-row>span:nth-child(2){flex:1}.distraction-row>svg{width:15px;height:15px;color:transparent}.distraction-row.selected{border-color:#fecdd3;background:#fff1f2}.distraction-row.selected>svg{color:#e11d48}.app-dot{width:28px;height:28px;border-radius:9px;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900}.app-dot svg{width:14px;height:14px}
+/* === END V8 FOCUS PROTECTION FLOW === */
+
+/* === V11 STRICT QUICK SETUP + TIMER === */
+#quickPhoneNote{margin-top:-3px!important;margin-bottom:12px!important}
+#app-screen-timer{overflow:hidden!important}
+.timer-main-card{background:linear-gradient(145deg,#080b16 0%,#11162b 52%,#251b4b 100%);box-shadow:0 20px 45px rgba(15,23,42,.20);isolation:isolate}
+.timer-main-card:after{content:"";position:absolute;inset:0;border:1px solid rgba(255,255,255,.08);border-radius:inherit;pointer-events:none}
+.timer-glow{position:absolute;border-radius:999px;filter:blur(44px);pointer-events:none}
+.timer-glow-a{width:150px;height:150px;right:-35px;top:-45px;background:rgba(99,102,241,.34)}
+.timer-glow-b{width:120px;height:120px;left:-35px;bottom:-45px;background:rgba(168,85,247,.18)}
+.timer-info-tile{padding:10px;border:1px solid rgba(255,255,255,.09);border-radius:15px;background:rgba(255,255,255,.055);min-width:0}
+.timer-info-label{display:flex;align-items:center;gap:4px;color:#737c91;font-size:7px;font-weight:900;text-transform:uppercase;letter-spacing:.08em}
+.timer-info-label svg{width:11px;height:11px}
+.timer-info-value{margin-top:5px;color:#fff;font-size:9px;font-weight:800}
+.timer-blocked-value{color:#fda4af;font-size:9px;font-weight:800}
+/* === END V11 STRICT QUICK SETUP + TIMER === */
+
+/* === V12 FOCUS ORBIT === */
+#distractionSaveButton{margin-top:10px!important;flex-shrink:0!important}
+.orbit-card{min-height:360px}
+.orbit-stars{position:absolute;inset:0;opacity:.36;background-image:radial-gradient(circle at 18% 28%,rgba(255,255,255,.45) 0 1px,transparent 1.5px),radial-gradient(circle at 78% 22%,rgba(196,181,253,.45) 0 1px,transparent 1.5px),radial-gradient(circle at 84% 64%,rgba(255,255,255,.28) 0 1px,transparent 1.5px),radial-gradient(circle at 29% 74%,rgba(167,139,250,.38) 0 1px,transparent 1.5px)}
+.focus-orbit-stage{position:relative;width:240px;height:210px;margin-top:2px;perspective:700px;transform-style:preserve-3d}
+.main-orbit-svg,.front-orbit-svg{position:absolute;left:0;top:16px;width:240px;height:176px;overflow:visible}
+.main-orbit-svg{z-index:1;filter:drop-shadow(0 0 9px rgba(139,92,246,.22))}
+.front-orbit-svg{z-index:5;pointer-events:none}
+.orbit-sphere{position:absolute;z-index:3;left:50%;top:50%;width:132px;height:132px;transform:translate(-50%,-52%);border-radius:50%;overflow:hidden;background:radial-gradient(circle at 34% 25%,rgba(151,124,255,.38),transparent 25%),radial-gradient(circle at 45% 40%,#222452 0%,#151733 48%,#090b18 100%);box-shadow:inset -20px -22px 35px rgba(0,0,0,.42),inset 10px 10px 22px rgba(144,118,255,.12),0 18px 45px rgba(2,4,16,.56),0 0 34px rgba(124,92,255,.24);border:1px solid rgba(210,198,255,.14)}
+.orbit-sphere:after{content:"";position:absolute;inset:5px;border-radius:50%;border:1px solid rgba(255,255,255,.035)}
+.orbit-sphere-shine{position:absolute;left:19px;top:13px;width:66px;height:31px;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,0));filter:blur(4px);transform:rotate(-18deg)}
+.orbit-sphere-core{position:absolute;inset:20%;border-radius:50%;background:radial-gradient(circle,rgba(111,88,255,.18),transparent 68%);filter:blur(5px);animation:orbitCoreBreath 7s ease-in-out infinite}
+.orbit-time-wrap{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+#timerDigits{font-size:28px;line-height:1;font-weight:900;letter-spacing:-.045em;font-variant-numeric:tabular-nums;text-shadow:0 2px 18px rgba(0,0,0,.45);white-space:nowrap}
+#timerCaption{margin-top:8px;color:#959db3;font-size:7px;font-weight:800;letter-spacing:.15em;text-transform:uppercase}
+.orbit-halo{position:absolute;left:50%;top:50%;border-radius:50%;border:1px solid rgba(167,139,250,.18);transform-style:preserve-3d;pointer-events:none}
+.orbit-halo-one{z-index:0;width:208px;height:88px;transform:translate(-50%,-50%) rotate(28deg);animation:orbitHaloDrift 32s linear infinite}
+.orbit-halo-two{z-index:0;width:190px;height:72px;border-color:rgba(129,140,248,.13);transform:translate(-50%,-50%) rotate(-34deg);animation:orbitHaloDriftReverse 42s linear infinite}
+.orbit-particle{position:absolute;z-index:6;width:4px;height:4px;border-radius:50%;background:#d8c7ff;box-shadow:0 0 6px #a78bfa,0 0 14px rgba(139,92,246,.65);pointer-events:none}
+.orbit-particle-a{left:24px;top:84px;animation:orbitParticleFloat 9s ease-in-out infinite}
+.orbit-particle-b{right:31px;top:57px;width:3px;height:3px;opacity:.7;animation:orbitParticleFloat 11s ease-in-out -3s infinite}
+#orbitProgressDot{transition:cx .9s linear,cy .9s linear,r .3s ease}
+#app-screen-timer:not(.hidden) .orbit-sphere{animation:orbitSphereEnter 1.05s cubic-bezier(.16,1,.3,1) both}
+#app-screen-timer:not(.hidden) .main-orbit-svg,#app-screen-timer:not(.hidden) .front-orbit-svg{animation:orbitLineEnter 1.2s .12s cubic-bezier(.16,1,.3,1) both}
+@keyframes orbitSphereEnter{from{opacity:0;transform:translate(-50%,-52%) scale(.82);filter:blur(8px)}to{opacity:1;transform:translate(-50%,-52%) scale(1);filter:blur(0)}}
+@keyframes orbitLineEnter{from{opacity:0;transform:scale(.72) rotate(-8deg);filter:blur(6px)}to{opacity:1;transform:scale(1) rotate(0);filter:blur(0)}}
+@keyframes orbitCoreBreath{0%,100%{transform:scale(.94);opacity:.55}50%{transform:scale(1.08);opacity:.9}}
+@keyframes orbitHaloDrift{to{transform:translate(-50%,-50%) rotate(388deg)}}
+@keyframes orbitHaloDriftReverse{to{transform:translate(-50%,-50%) rotate(-394deg)}}
+@keyframes orbitParticleFloat{0%,100%{transform:translate3d(0,0,0);opacity:.35}50%{transform:translate3d(8px,-5px,0);opacity:.9}}
+@media(prefers-reduced-motion:reduce){.orbit-halo,.orbit-particle,.orbit-sphere-core{animation:none!important}}
+/* === END V12 FOCUS ORBIT === */
+
+/* === FOCUS MODE+ PWA STANDALONE MODE === */
+html,body{width:100%;height:100%;margin:0;overflow:hidden!important;background:#f8fafc}
+body:before,.topbar,.dots,main.page>div:first-child,.preview-label,.hint,.modal{display:none!important}
+main.page{display:block!important;width:100%!important;height:100%!important;min-height:100%!important}
+.phone-side{position:fixed!important;inset:0!important;width:100%!important;height:100dvh!important;display:block!important;border:0!important;overflow:hidden!important;background:#f8fafc!important}
+.phone-side:before{display:none!important}
+.phone-wrap,#mainMount{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;transform:none!important;opacity:1!important;filter:none!important}
+#iphoneFrame{width:100%!important;height:100%!important;border:0!important;border-radius:0!important;box-shadow:none!important}
+#screenWrapper{width:100%!important;height:100%!important;border-radius:0!important}
+#dynamicIsland,#statusBar,#homeBar{display:none!important}
+#appBody{height:100%!important;flex:1 1 auto!important;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+.app-screen{width:100%!important}
+#focusChoiceOverlay{padding-bottom:calc(20px + env(safe-area-inset-bottom))!important}
+#pwaInstallHelp{position:fixed;inset:0;z-index:9999;background:rgba(3,5,12,.72);backdrop-filter:blur(18px);display:none;align-items:flex-end;padding:16px 16px calc(16px + env(safe-area-inset-bottom))}
+#pwaInstallHelp.open{display:flex}
+#pwaInstallCard{width:100%;padding:20px;border-radius:26px;background:#fff;color:#0f172a;box-shadow:0 25px 80px rgba(0,0,0,.3)}
+#pwaInstallCard h2{margin:0;font-size:20px;font-weight:900}#pwaInstallCard p{margin:8px 0 16px;color:#64748b;font-size:13px;line-height:1.55}
+#pwaInstallCard ol{border:0;margin:0;padding-left:20px;list-style:decimal}#pwaInstallCard li{border:0;padding:6px 0;font-size:13px;font-weight:650}
+#pwaInstallCard button{width:100%;margin-top:14px;padding:13px;border:0;border-radius:14px;background:#4f46e5;color:#fff;font-weight:800}
+@media(min-width:700px){.phone-side{background:#080811!important;display:grid!important;place-items:center!important}.phone-wrap,#mainMount{position:relative!important;width:430px!important;height:min(900px,100dvh)!important;inset:auto!important}.phone-wrap{box-shadow:0 30px 100px rgba(0,0,0,.45)}#iphoneFrame,#screenWrapper{border-radius:34px!important;overflow:hidden!important}#pwaInstallHelp{align-items:center;justify-content:center}#pwaInstallCard{max-width:390px}}
+</style>
+<link rel="manifest" href="./manifest.webmanifest"/>
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="Focus Mode+"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="application-name" content="Focus Mode+"/>
+</head><body><header class="topbar"><a class="brand" href="#hero"><span class="logo app-brand-icon"><img alt="" aria-hidden="true" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAACgCAYAAACLz2ctAAAr/UlEQVR42u19eZhc1XXn79z7Xu3VmxpJaMeADGK3hcFgaBZjHAdje0IpmbHHZLEhCXacz1mcxXZbcTKZL9vnyXwfzmTiSTLjJaZZDDZgYxa1ACEwO1JLQjsS2nurrvW9d++ZP15VdS2v1l6lrhL9NV316r777vu98zvnd889lzBrr37R1wexefNfOMxc/EFkWWffeV2dPedLorU+k9YwybMkG4tMnwhHOyMGs5YAqPANIjAX/V30InDZ+wyu1S1utP/cwjWX9kVX6XMj5xFua6yLjqHJi2N3eLi4FRaAEiRtgCc066OOze+w1juSmeSut3ft2BnH0MjkkBKuv/7rxuDgRg1AzxYqaKbbjyEm7uP7NBHlR0ecs/imizsji240DbqeSF4KYCWB/MwMZoZmBa0VmDVIiCr3iBsGDdf8mBtoheufh6faRu12uJkHgRiUu7WCBKSUMAwThmnAMEwIIZQ05BECXtUOPz0+Ovb0y/se2pb/eiwWkwMD6xjYqE9XAFIMMXE/3a/y1m5Fd9/FZ/UsjpmGeRsRX06QwnYs2HYWjmNDsXLR594FAtz/KizdggVf49dcfH3MbsM63wiBpBTC7/MjFIwgHArDMKQjhfGyUuqHB/bveXDf6PPvAEB/f7/YuBGYSSDOAABjkiaBZ16w4vbbosHw56UUNzHDn7VSyFoZKK0UASASREQ02Zcaw83N0CFPGXwNQYd5Ko9BQ+00DUCvQ2mSol2m0ay11swMwzBkONSBjmgnfD5jVAgxMJaY+KeXdzzw2qRFHNAt+iGzBkDq7++njRs3agDiwlW3fboj1PUlAXp/1s4ik0nA0Y5DREKQIO9zTwf4ZsvyNQK+qVm+6QAf1/QvCUQAM7PSillr9vl8sqtzEcLBkGUYvh+Mj47/7S/2PrC9CIhq3gEwhpgcgNuxtUt/6Ze6urq/Ksm4Jp1JIp1NaDCzEFLUPl898M0n2p158DXl87UEvso2iAiaNSvH0VIYsrurF+FIR1KQuPfVvS/993h8aGS6reFUAUixWEwMDAyoIM5bcdHa9X9lGuZnM5kMUum4BghCkJgScNrga6mdlgCcj6eJwMxsK0cb0pC9PUsQCoV227b6yvPbvvdQ3tUCpm4N5VRkFcIgbx8a4rXLbvvVNSvOGyDQdeMTp9i2syyEFESNyw48DRLJmUK7LQGnZcGIq+JQSikAcHxiVGez2d5gMPSr5yy5/OyJE6nNaTyXicVicmhoiOfAAhbQH7zi3A1/HwwEfyeRHEcmk3aklEazA9j2+eaOduv8b4GalVKawejtXirCoegbo8mR33xr709enapf2LQFjCEmhzCgugMXrbzk3Fsf8pnmr4yOn9COctgQhpw+8LVpdz6AbzKIJhIkKJEad5SjlnVGun9taffafT9/9v5tOUs48wCMxWJyYGhAreq96X3nLH/vo6zV5aPjpxxBUuaklKkBh5u/CW2fb+o+XzMAltIQGSut0plUMBKOxJb0XBh/8tn7t/T394vBwcGZA2Af+ozHhh5Ta3o/3Ld8yYqfZK308onkqJLSMFrxW6YWQrV9vhnw+RpuUZAQSjs6mZ7gaKjzo8t7Lg5+/8F7f94KCBsCYAwx+RgeU+f1frhv6eLlj6QyE93J9ISSwpTTZrXatDvvaLeOZEMAkEiO63Cw47qzey7u+cFD9z7eLB03AMB+MYR79arem9539pIVj6YyE12pTCIHPm6DbwHQbrV2CERgQROpMRUJRT+4rPuCziefe+CnzYBQ1pVaaKPuDqxfec7ycx/PWqllk5ZvOsE3e7SLNu1OC/gKfxLywYmKRrquXdyx1nnq+QcH+/r6jIMHD9adQ64lElN/P8C8Inj+qrU/VMo+J5GMKymMGQDf7EktPA/AN7PTa7MHvqJ3iEjIE8OHlWkaf3nJmo/fOTg46MRisboMSzUj3oEBdfm5sX8K+oN3D48ed6SQ0xdwtGn3tAUfV5EvmJmllOjtPtsaTSdufvudx58H+kWtbBqqFnQMYEBdsOz2X1vU0/OD4dHjDoHa4FvgPl8t8OXhpLWjg4Gw6OroPbDv0MGrTyS3nsil4uhGKVjcx/fpnuAHVnR1dv7jRGKMwSymF3xtqeW09fnqHC+EIVLphEqnU2vWLF/1vwFCLBajasauAoD9/f0gIj5n+Zq/Y63PymRTmgppye3ptVYs35ng87HnJbLn96Q05Wj8hAPoj19x7qe+MDAwoGKxmKhLwXnqXbv0Yx/tXdT7+MjoSUVE7em1Nu02bY+ZNUsh+axFy5Oj8fEr3z7yxC7G1yv8wWJU0rr+dQzA19nR9ZeZdArMui21tGm3hZcrVNuOxclUPNoZ7fgHBqO/v4YFzFu/i1d98jPRcMf/Gxk7rt0k0jbttqWWFvsCgqMdtbR3pXRs547X9j/8QHHycjEAiZlBROZV7/0vL2Wt7KXpbJIFtZNJ21LLFNoAoFnrgD9EPR1n7Tg4vvfKI0deTudm8bhAwTHEBBHxxSs+9ctCyMvS2UQbfLPl83GtNk5v8AGAICnS6QTbyl63Irr6TiLi4oBEAEDO90MgGLzbsrIAM08dfG2pZSH5fLX+EkIgPjHMQsgvrzurL5JbU0I5AMbkxo0b9Xk9H11nSLohlUnkFxC1fb621NKkz1dtRSiJTDbFStnnhbsW3QGgYAVFX98JAoBQRyjGDL/SjsaUV6+10+hbA998o92pg69QRkQInkiOs2HKuwHkV9aR2LRpUAGQQX/o9qyVQiGxecZoFwtbapkS450utFv5riAh05kkbMe+6pI1H7vW/TAmBBF4RXffhWB1SdbKQHgWY5lO2uV2VssZJbU06tESmLXKZrPUGe36NADEYrkgpKdj8XUgYWqtFFqqWLDwaPfM9Pl4hsCXD0akSGUmYDvZj/XgvI6BgQElACDoD1zrOHZbamlLLTMEvnwwIoRlZ7RSasXadeuvycswPs32pbayQBUOYFtqaUst0wO+ybFlbVkWiPQtACB6o1etZuLVjmOD3KJBbanlDKbd2fP5qoygEJTJpmA71lUAhFjasWqtINGhtcNouERaW2pp+3zNXw+70bCw7AwcW69b2nXjShGO+M91LSNzTeBw2+dbyD4fTwP48q6gUooZurunM3ihYMIq7aZdcXvReNvnm45rrokFJgDMWjmwnOSFhu2kegXL/CftaPcMpN1WgTNdtOtx/1lpjYAZOF9orZdoduW/NvgWAu3OJfgmaVhrBySMxcIg3xJmXbG5QVtqadPuDIEPAKC1gtRysRCGCOjCthNtqaUttcw0+LiwwYkQImq4vl/ZXght2j2DfL6Zn+FoCnzIbcDhYsM0MO/34Zg/4COiwgYw4FLOmPyzhdVrnk3Wu2ZdkTc8HVILZhh8JXeNII2KUWz7fB7AEwAYlpOG41iTh1Lz1pM8zB2XHlD/QQBBCgNSmBDCAIGgdSuF62dKamm4DTK4+MGlFk94Bls+QRIZOwEC4eyetVh91kU4q3M1QoEowMLdgYgru1ze9RJrxaWfc3E3uezq3EkCONpGxk4gmRnGePoYxpKHMZY6glR2FForGDIAQ/pz59KYVz5f1QcbZIgFHHDUHyBCyhrH2mVX48NX3InzV1yBUGBynb5tAYUkIq4EUsXvOp9VALjK8VoDWVthInMcx8Z24cDJX2D/ya04NXEAAMNvhAESReu65x/4ChbQ0xmZQfDhtKFdQtZK4iOX343br/kcDB+QSgFj4wpaMYp3tasNJG4coLkv1gMnmEAk0BVchkXhZbho+Y1IZBM4cOIlvPHOj7Dv5FYobcNvRgHWZeM1P8CX/9RYaJavgauBIImUNY6bL/0c7uj7HFKWRmIUObQJEOU2RyWAuOx30aPMRREew+PYit9cvU1Gblst5DZxZNhsw3I0GIApQli3/CZccPZNOHDqZWzZ/X+w9+QWmDIAKXxgVvMOfEUAbNNuccCRtZNYs/gyfPzqu5C2FbJJF3Sg2tRY+ptLfb1WLF/Z5XDZMBETQBLEgGaFtGUDIKzpXY+VPevx5qFHMLjzfyKRPYWAGYVmZx6Ar8RpJtEGX+VLs4O+iz+DYIiQTU+Gu42CD9MNPi46d3H7JccQiCQIAhnbgq1sXLHqdnzmmn/FqkXvR9oahcjVmZpb8JWxDVd1/OYOfFIKV3PL/YBQ8rf3T06eqLmkub684agsFkVW4r0rP4CsBWjlSjD1wFc8Jswez0QL4Kt6k+u0SXD3hUxZGXQGV2DDlffi4hWfRMoaA0jOG/ABVI2C5w58zIyx0Qn4/T4ISQ1OjbkjrzXDyloIR0KF5aVNaXQEOCqLpd3noyMcQsbSAFNloFHD8nlGsWjd8pW2xU0EMwCRhO1kQSRx26XfhCECeO3QfyBodsFNQJlL8FX1AeeWdpmBP/jzz+HGW66G3++flG6LbmiFNcq96SgLTz6+Bf/y7e+WrW9uNDoX0FqjJ7IMhgHotAbD9bGaBh+mTrtTAR8XzKGAZg1bWbj1oj9H1klg6OijCJqdJT7hXICPmcloiqhmUGqRUmJsNI7f+t0N+IM/+63mhHwGWAOagfVXr8PxYyfxH9/9ETq7OqCU03hDuV8BX7iyix7+HGqBjyu+5gk+1KDdyTaaA1+56SUQNGs4ysGtF30dY+nDODb+FnxGuK5WOFPgK/iADX9lxheNu4/6h/rWQymNdNqGbWlYWY1sRiOb1sikNdIpjXRSI5XQSCY1khMaiYRGIqkRH7ehlcb6q6/I6W+tJRYQyBWNi60uULE7BdcDH5cFEB6WrzxQ8dQR61J5qeXz6gdBwNEOTBHArRf2w29EchaQ5gh87qCIhoAzS9EuEUEaBqQUkEKAyP0RQuSU/aIZhTIaLrlJzVrqGlktxZSfb5ubAV8d2kVVYE+K2BWRcD3arQJkIoGsk8aSjvNw9Tl3wXKSqNxPfHYsX74No26W7CxLLYVBL5tflRLwB0qL9ZcDkllASOClF14BUQMDwNWey9L2K4ahKdA1Fu1yxd/clPRTTtOFNsseFIJExs7i0hUbsOPY4ziZ2AVTBkvmj2cHfAQiYmP+6HzeX2HtqpXxeAr79xyCIAHNXDHIDIZyLDz50+fxkx/9DJFoBEqppnxUrjpUNaxTiz4falpAbiKYKbV8FW2W6ACc0zkV/EYI71/1WTy2/SuYnL+ZPctXfyZk1kVmj9w2BpTWCAYEtr+5C796228jHAnlUo8qL8lxHNiWjUg03BLtUpnOxp7UXgN8ntJLbdrlRoBdQyOsR7teFpIgkHWyeE/vDVgcuRCnkrthCj909czYGQFfdQDO5QxHlchQK0Y2Y8EwDU8ACgKCoQDC4RAcx2nR5+OKyy+Zg60HvvLpsqmAr5kZlyoW2nta0KVjzQ4CZhhrl9yK43u2wZRBIK8NzhL4AMAgEM+W1NJIx8spDOSmH3V0RnHdjVcjGPJD68m7rQEQuQL0zqE9yKQzMH2mR5Xh5urzMTdoneCVrVLtgpqwfFWiXs8Zlxr9KPENS7iG4CiFNT3X4xfmdyYj4lkEX6UFnA9zu1waZBAJZNPAuovPx4M/+3ZlFMyTGSIvbdmOez7/x0jEE5CGLAJh62s4CpktDYKPi0xgo8c2Q7v1o2+uEphwqewDgq2y6A6uRm9kLY6MvQpThsElW7rNLPh0iQ44zxILyqNCpYBUUiOZZKRyP8kkI5VyfybiCh+66SLcePN1SCaTrnTTKvjK5Z1mwJd7IloCH9e2gK2DzyPCZoBZwRAmlkYvg9LO5HqXGQZf8epDQ0OX8t0cg69iIr9o0NxEUC6lyNzgOo6CsgQi0fAkRbew/RWhXBjmMh+wlvTCDfp6dWiXm5jua9Dy5R+kcsFaM3BW5AIIkkX3ZmYtX5kOOL8sn5cPpjVgGIRwVFY8RnmpRgiJ+LjGKy+9jkDAX3WKqamhq2P5PI3rVGi3Zptct616gUuFfw0BrRU6AsthlGmBMwU+9gbgfAFfpZ6lNcM0CEePDOOZp7bAMAywLo9WGZaVxc8e24zt23YgEPK7kfIU1u2WAIKqOfilc3SelgzNBzPg5ny+UpeluiUsD0YAQLGDoNEDv4wi44xBkFGDOqcTfAQCuDIKnkvLV4Y/zqVY+QKE3W8fwBfv/hOEQ2ForUtS3/Nd8PkNhEJBsKpXF4Abuh6uI594lYVp1fIxVztPY/5kVfAVTecVwFc03aNZw5Qh+IwQ0vaI627MGPga1QHnxPJx1dkB1oBpGujp7kY4XClE55031hpa6aZ8vqpD1bAF5CnTbsW8dsPg48IsUE2fz1OXZDC7G5kLMiGFPxcBk8fjOjPgqwnAuUqj56p+IEM5CkopbwBOY6GgciYkriaSc9X1GnX9xhqaYTPgq+n7oez44vtS1AaByiLgmaBdNA7AOV3DUYOSqgfp01yrpfj8uZVpXA183Kg2yDVByWWPQONtNaL7sWdia+HhZg1mXTG8M2n5qgJwrhcQMRfrVPkol2uccpp3Gi97CMotYPPg47oWsLStqYOvVFssOwbFxzAACUen4HA2JwvzrIEP8EhInTvwufVNRkfHQUSwbQWlNGzbgTQII8NjUI7TUKp9y/X5KhRg1E+raoJ2vZMJ4BmdNgI+VIt2i6WbsvtSnCuZp19bpUpyA2eadj0BONfbXzEzTJ+Jh+57DJmUxqLFPkQ7BHoX+5BMKNz3vYcgpTEt02uen3NlwFE+E9FI1QLvIAFoaHUc12qTq0gvVQKQGsdPprBpECRS1ggsZwJEsjQjZhp0vtptMIz5QLtALu0qHMSLL7yCT3/q93D7r9yMjs4enDpxAj9+6Cm89uobCEeCpVWgZrA+X0k6FqF6QulUgoRy8E23z1cOPi61gqwZwjARzxyCozMwjchkRswM0u7kkUTGfKjVUrhPWiMUCuDFra/guc0vQgiXln1+E6FQaBJ80+nzVUuBK8I41VrB1sQMB0/B56snMlcFXxk1l7fJAE4ldjWwQm56wdeQDjgb4CvvmNaMcDgEilAJPWutpsXnqAU+Kruqws2l2lIHc3X/sbZMwk1Y0eo+n/dcMZdG1R7hhbsQP41jiTchhFFnJKfD52tSiJ6rchneOh9mnHaL+8sVN722BWx+7S7XmbqbHtotHFMGVs0ahvBjJLUPw8m3YYhAw+XcpsPyVYmC5x58NduZpa0QSur51a3T4hUMNLgoHdWonJvKcqkKvnJLXpRexqwhyY93Rp9DVo273tgsgo9rArC9FYL3pXC1hOFmqxZUabMJqaVetFtO3+VyDEEi44xj7/DPIMlXY6329NMu17SA7Z3GS0ToaoLxVEtmVOiBdaSTVsHHZXPDyJVyM2UEB0YGcSq5003Fgp4hqcVLfClEnUV2t4GM6AWzFQKjIiWKPbozVfBNVedDI+DjSiGaIGCpCbx59Ltu+hU3a/mmRrvFZaNEozdzIW1/xbUIgcumC+cQfFwHfPCoLaPYgU92YPux+3AyuQ2GDDW8DmQ6wFcZhHDb56sXh3GVxd5Tol14ZKlMJ/gKjykXFTd34JMRHJ94C68d+Q5MGSmLfGfe5yt5R9SKgqfR8jX65BABQoiKeiVTyWoRIl9bhqYFfMWJElMqmVE8uh6zFFMGX8XxGoJ8sJwENu//JmyVKst+bsTy8RTBV9mGoWueePZoVwhCNmPBsmxIKRAM+kEkoAqaYHPWUwgBrTRSqTSU1vD5TPj8vpqCdjHHVlSqmoaAo/r0Gzc189FQwFF8vFYgkhAk8dS+fpxMboff6MwVLp8t2vXasRAwqOoWwbNHu0RAYiKJVWuWY+WqZYjHJ7BraB9sJ4tQOAitVNPgSyZS8Pv9uPjyCxAKh3Ho4BEcPnQY4XDIY9G6t7JScNqpNJWp1aoFqCGLeOp2VSSYmu5BWdSutQNJbqHPZ/Z+HftHnkTAaKxC6vTSrvcBxkyBj5uwfImJFH7z7g34w6/ehc6uKBxb4dVfbMNX//gfsP2NnYhEQ1BKNwy+RDyJKz/4PvT/9e/jwnXvhTQEJuJx/PU3vo3v/fsAIpFwQ1nV3nOqzVVLrVkyo55uV2dx+eT3PWiXGZoVfDKCtD2OTfu+joMjm+A3mwUfT7/l4xo64Gz7fNmMhdVrluFrf/UldHZFYdsaRAIfuOYyfO+Bb2HNe1Yinc6W5QFWAR8JpFMZrLvkvfi3+76F9115IZQjkEkpdHZ14E/6fx/LV5wNy7I82vPeSqt0TrX1ApFVwYcGabRi2o1Ljp8EH0OxAkEiYHTj2MTr+PGOz+Pg6Gb4za4maXdmwVcBwNmWWogIVtbCe85bBZ/fgG3rXABCSKdsnLWkG1/95pdgWRaEoIaiXeUofOVrX0J3TxBjww5A7prh5IRGNOrH6jUrYWWtxmpIe1UtmEKByBJfEkVztWUga8Xn06xc/5YkAkYXbJ3C1ne+hUd33IPx9H4EjI659/k80o1ymxVSA3URpl9qyZ9PSlnIzs0PtGmasLIat3zsQ/jgte/Hiy+8VkadpeCTQiA+kcQ1112JvpvXIzGuYZhGifopBCCkaKgsR3GCQPFSxeq1nWuDz2PmzoNe3eRDLgRCVEid51xKTh7InN+CK7c/iCnCEGQgYZ3AjuEHse3oDzGa2Qe/jMIQwXnj85WToOGCrygdeA5mOBilJdDyN08rhs8vcPcXP4utz79aWjfDozkiwt1f+HWYPkImzRCitMZLPcWfy+sCNlT5tL7lq/TPUAAEQeQWQlIu8xUl8wVuLiwVjhHkSkquhCLBrJGxx3AiuQ0HRjdj/8hTGM+8A4MCCOaCjUmtbz5YvtI3jIa5fgan1zxPw4CQElaG8eGPXoMPXrceW59/BZFoCFqVtiOkQDyewA03X4sbP/IBJOIaQojSbJWSkrveBTHJY+vkEgs4DQUiNTMIhIARgmbAVlkobYELlq/anK+GZgVHWcg6cSStExhLv4OTiSGcSAxhLHMQjsrAlEH4jS4gd/zsznA0B76qUfCMznAwqkqT5cUgwYDtaIQDEnd/4bN44bmXPU+pNcOQEr/9xd+AlIDSjPyGSdX2763bffYulVG+drfeovRi5GpmGMKEoy28deTHODjyHMbT78LW2bIv0aQ/XghWNLS2Yas0bJ2GrVLQ2gITIMkHKfwwzIC7O2ZFWv18od1KuBqzIbXUTSzgKvobAJ8pkU5q3HTr1bj2uiux5dlfuBWwcrKMkBLj43F89JdvwnU3XI6JcQ3TlNCq1lRakbfBddT6/LpgD/A1U7VAM0OSgUT2JB7f/qd4Z/RFCJKF/d0auWFu4OTOFJkiCMhgrl86ZyVVUxCbLanF62xF+YBMMym11Ld8ZaXoedISWpaNsbEEAMA0CHfdc2dFk1pr+P0+3HXPb7jfE8DocByOoyoiWK/Sb1ytr2XJqM0ViOQKny//enLnX+LgyAsI+xbBZ3TAlCEYwg+D/O7vwo+v7G8/JPlyvp+Ahs75d6qGejE/pJZa3xAz7vPVyGqhasDOHWBbCj8aeDw3s8G48SNX4UN9V2FiIgESAlJKxOMTuPVjN+GDH1qHxIRrrh687ycFP5E9MpibGqSKjWqar9HHrGGKAN4dex0Hh59H2LcIjrZd8LCeBG3hnwZX+Yfc560AZ659Pq9QV8y4z9fMBRQBRSsgFAngqSeexa4d++HzE6QBfP537wTlkhWUUgiFgrjrnl+HbTNCIWDbGzux6annEI4YUMrDR2vgEhnVLCC3tAhdQ0MQcDT+JhRbs74Vwnzx+TxnwmiWabeqLS2jSc0M0wROnRjBww88DtMHxMcc3HDLlbjuhquRTqWRTCZx2yc+gvVXnY+JuANfkHD/Dx/G+HgcUlZmNZdvo9DQYHMj9VoYJUsdq1jClDVcCqA5A9/0Z7U0Q7vFbYjZkloaqsmMUh1OO0Aw6Mcj9/8U8VELhhSQArjrnjuhtUY0GsHnfudOWFmG32/g3YMTePThnyEcDkGpMl/Oi4Y9BpLKXcGi2Yr6Oh+qzOOW1uqbO/DNvs9X74yi7mzUNPp85R+yl+xRBBilgUAwiF1v78HTP38BkajA+JiDGz78fly+/hLcdMv1uHz9GsTHHUQihJ/86AkcPvpuLu2qcqsFboZ8mqDdugUiubbxmD3wzb7PV+88xlTmUZr3+Wp8m+GxQswdfCLCwA8exi9/og9uESPgT776+4hEI8imGaYpMTbm4IH7HoFf+sDlG9mU+WfUgCWopk3WWjjumcFSZEkZ3PQIzR+fr/lot5HziFqHzerqtXILmHfglUY4FMLW51/G66/sQSQikJjQuPLqS/HeC9+DxIRGJCqw+ekXsf3NIQRDAWjNFbMfxRv3NXQ57JEJM4W1u7yAaLcZcyRmm3a9rR9Dl6zgB8BUoFEpJRKJBB4ceASmj6CURjbDsKycaKGB+77/QO6G5RIadKV/6bbXWNUmzz1/WwBf8XJLpe1SBfwMpd1muFDMJe2CAWkIDJ8agXLcQkTK0XCUm1pk24yR4VGAgEgkhIfvfxQ7h46hp8eAUhpKafQuNrD5mdexedPziETCIALGRseQzboitaMUlKPAmmFZwNjYGKQhq3eIPGq+oHXLl59K0ZqRdSbczbChF5TUUusYUa4Hzybtaq0QDAawc/tuPDf4Cjq6JEJhgXBIoqNbYtNTz2Hv7n3w+30QQmJ8LI4v3/Nn2LXzEMJhiXBIYsvm7fjzP/pGYTutQCCA3W/vxeZNW7D4bIlQyP1ZcrbElme3YveuPQgEAh4Z0VzVb2RurkBkeXIqEcHRFiYyRyGEXEBSS91+sDFrUkudjv3hPV/DXV/8r7j4snWAZrz2ylv453v/LwzDyIFVIxQO4Y1X38J/+thv4LLL18G2Hbz+6luwrKwLKqXdVCUh8LU/7seBfXfikssuBgBse2M7vvO//r1KZnWlJlka3XqDr5GqBcwMQQaS1knEM4chyazqBpzJ0W61l9GyzzcdWiHc+s+maWJsbBxf/8rfIBAKAAxk0hmEIyEY5mRV1DwIM+k0Nj39PIiAUCgwCb4cOEzTxMREAn/1jb9FMOAHAKQzGYTDIZhmOQBq99y1YFOpVKUhpQ8nJ3YiaZ2Czwh7VqFaeOBzacUojZSopQGY6qJxZoY0DHT3dBWKUAaD7m5H5dZCaw0pBaK5Tak1T+4NUrzA2zAkurs7C1QbCAY82qt+PfkAqHylWunUTTWfrxis7rjuG34ml59HC05qqfE5G003OlO1WpihCtMXyP1/9ai5Is3d45jiNirbq+w5FU2HpBKAY/PkzEgLxYKYGYYIYDS5HwdHnoXPCFVYv9PV8rVujrgiHasxyzeHtVoaChZa7YvH0UpZYF2Z5dJspSrNCobw4a2jP0TSOgVBZtmoLQyppVaPRUMK8QzQ7nSAr8lONHzWlDXiGe3WK5lRfLzSCn4jinfHXsP2Yw/Cb0RLEkYXktRSDr7SdCyeQ9qdIvi4xUGodjSDIUhiNHUQllKgotpNXKNkBpctn9SsIYWJrJ3A5r1/DaWzhRSyBSi1VLXV3JAQPQ/Bx9zAQLZg+ZgVDBnAqcQejKUOQQhjMpBolHa1goABAYmndvfjxMR2mHIy8j3zslpaA1/O12ZxZvh8U6fd/LuSDKTtUew6/lOYQkJrpyHaZTCUdmBKN9B4YuefYs+pJxAwJ4sALUipBY2mYy1gn6/4Xc0aPhnGa4e+j2Px3QiYESht5xaCl4JPw90+QrNr9YJmJ4aTe/HItt/G7lM/RcDoLCyNXMg+X7UXASzYc7/Q04F2p+7zVfMEhTCQdRJ4bNtXcCqxDyFfNFfI202v51zVAgkDPiOKgNGBtD2GrQfuxUNv/iaOTbxRUv5sftHu3Pl8XscYpXxLdWgXcwa+maTdSl/Q3UV8JLUf97/2W7hi5Wdxbu9NCPsWw6QANDEclUHCGsap5G68M7oF+4c3IZ55Fz4jnPP52rRbv6/MBoG54f6dobTrDUIHpgwi6ySwec/f4eWD/4rOwAr4DLesbVYlkMweR8oahs4dGzS7Cnvvtmm3gRiewUa13KAzVWpppg3NGkQGgkYXHJXBicSOgmUjEpBkwGeEQSB3SnBGdL75m0w6FfDl3zAAUnmVgUrX5My5zzebtFt9IN1Cj24FKqPkycjXbPHSE9u0W/M8TAQikG3YtpMoTlFaiD5fzYEsWqQyuct4rRba4GusDQIDWaGFdUSQLKlbvBB9vtrga9BvbPt8jbXB7JaZY44bpvQf1jkaoXlHu7Pr8809+E6vrJbWLJ/7EkKCSZ8yBPkOQtqtOb1nPO2e2eCbfdrNUy8zkYBy7BGRzmR2EIEFkZjLaLdNu2c47Rbg5/6SUiLrJPeIY8MHtjFjWLqLZXguwDeXUsv8AN+ZN8NRZ8xICImA9O8WI+m33gVhl2n4obnaVuWnV1bL6UW7Z7TOVzFmDGYhJBEZyUQSewQAFjC3+HwBsOdyrbbPdyb5fHNs+cDMbBo+EHDo4Mi+AwIAxuOnnhRCgKhsl8C2z9f2+aYRfACgWbPPDEIp6w3gcFoAwJ6Tb74AokOm4RNcWDXT9vnaPt/0gi+36QR8vgAEmc8DgIjFYhIYnlCO+knQH4ZmzQ0YwbbPd5r4fDxvwOciQAopCcI5OT7yDACIgQH3o9Hxke9KaegSOWYe+XyMts93euh81ceMWWu/LwwBfuP46Ms7mJkEMKCYQe+MPruVgReC/hA0azXffD6c1uDDrIMP8wx8yGUMBf1hMBs/BqBuuOEGdzuXDRQTAHQ2m/52wB8haKaZo92F5vMtPKmlyicshSmkkNkjp/YMAMDg4KAWADCAAc3MNHQ4/QDAQwF/iDRrPR8Xjbdp93Ty+SZfSisdDkSISD4zktgz1N/fLwDovOzCGzZsEMBgJpW1/j4U7CDNxekJbamlLbVMZcwIBKZgIIKJxNi3AWBo4xABRaviBgYGdH9/v9hx+NHvaeD1UCAiNCvdllraUstUx0yzo0PBKBHo1QMnXnycwTSAAV0CQAC80UVlNpGIfzUUjILA3LTVakstC1xq8XT/EA52UTKT/hsANmFDoSRM2czHgOrv7xe7jz/5qOOoB6Lhbqm0o9pSS1tqaXXMtHZUONQpiOnFvUeefcD1/Qb0JDlXvgSDeWnn5auX95778kRiuMdRDtecpmvT7jTS7uke7ZYdxVot7lkpJybit+w/sfVJICaBgYJR8yrNoTdggzg+/saBTDr9R53RXuKKLJm21NKWWmq/CIBStuqKLpZK8Q/2n9j6ZM76qfLjPF+xWEwODAyoy875xPfB+j+PxU8qKQ3Zzmpp026Dlk/7zCB1dyw+/va729anUoeOkLv6rcSYVa2ONTAwwMxMB/bvu8cwfLtCwajU2tElmG1LLW2pxbsNBsDdHYspmYh/IZ0+/O4G2iDKwVcTgAA00TdoHG+Nnhg9+plQMJowDR8xTxZkbvt8baml/CgCQSlH9XYtl3bW+sc9x7Y8EIvF5EAZ9eZftTetwCDHEJMvpH/2bsS//EBntOeOTDapWTOV7nfQpt027brgc5SlujqWGKYMbN528OefjcViGBgYqLozj6zX7BCGuK+vz3h12zNvdoVXZzvDi25JZOIaICLyqGbUBt8CBp+touFuGQ527tm9963bFU2Mbt8+RLVOIhtoHQcPHtSxWEwOvvDIs92RcwMdkc7rUyUgbPt8C9nny4MvHIzKaKT3+NHhw7eNZ/bsybl4Nfclk40O69DQEGKxmNz0wkM/7w2fH4lGuj6UzsQ1XBRS2/ItTJ1vEnwdsiNy1vDRkeO3nxh949UYYnIIQ7peCw0DMA/C/v5+cd8j//zEosh7zI5Id186m4RmzUSC2uBbkLTrRMJdRmdk0bGjI8c/cWLk1a0xVA86pgRAABgcHMxZwh891R1ePR4Nd9/qOJawVVZJkqJNuwtGaoFSttPVscQIBzv3HD116OMnRt94pRnwtQTAUjp+5IWIefabHdGem4UQkbSVckTZlF1bajnDZjgI0NrdyKy3e4X0G4Gnd+1981Pjmb27gZgcagJ8LQMwB0KOxWLy2V88OqSt8OOLuhZfGfAHV2aySWZmJhLUpt0zj3aVcpyAPygXdS0jrfGtbfuf+HUHE6Plc7yNvghTfBWZ3PAl53z8v5lC/F4yNY5UJqmElIIgireAboPvNAWf1o4mIurqWEx+M3QomRj78p5jL9xPRGDmutHutFvAYp0Q6BfAoHVi7O2fBn1nv9wR7rwi4A8ttuwMKe0oQYLcAqxtn+/08vkIWivNrDgc7BLdHYuJ4Pu3Pfu2ffpEYujFWCwmt2/f3tzQTbcFLG6rv7+fNm7cqAF0XrL64182DPEl27Y6E6kxKO0oIUSZRWxbvvnm81GufJp298ClUCAiwsEuSGE8F0/F/2L/0ed/nuO+lih3JgGI8o71Ri9du6x39ZcF4TOO44RTmThsx1JEBEFCuC4tVw5Fm3ZnFXwF0LFmZs1SmDIUiCIYCEGQ8VIqm/ofew5v/g8Aur+/X2zcuJGnYvVmGIBuu7FYTAwMuEBcGrl83eLeFZ8XUvwaK7U0Y6WRtVJQ2lEEACTyYja5TM2zDL7piHY93pl3lo9yxTHcKlXuSzODIYUh/b4gAr4IDMNIE+jpVDr1L3uPPvdjAMoF6R3TYvVmA4D5l4jFYpQHYhiLl6xeecUnTdN3B0NfQxohy8nCsjNwlA2tVOmTRbU72QD4qLHbPDdrOKgF8NXY256rPlKFrWA4PypCkgHDMOEzg/CZfhAJSwj5uuOoh0eHjz50LLF9x6R1vEPm0uh52i0VZudVAkQAOKvjivMWdy29QRryBgK/nzVWARzSWuf2X3OgtQYzt32+Fi0f5YQ7IgEpJIgEhJBwK6HJMWI6BOLXWfHmkeToc0eHX9k5iVkmog1ipoA32wAsnK8PfXITb1JEJTJhaHnXted3RMMXCCHOkxKrWculBslFJIWfASLO9dXNwCl8eXJvk6Iomzyvr4Vr1bXGrJGN9fLvEWrqFN73d3KMqlcbcD8hLnoucxmhzESktWJbax0noYaZ9VHL1geYnX3jieTOk/HX3gFgFZ0P119/vTE4OKhblVWaff1/PFnGsZQK/vAAAAAASUVORK5CYII="/></span><span>Focus Mode+</span></a><nav><a data-link="hero" href="#hero">Intro</a><a data-link="problem" href="#problem">Problem</a><a data-link="gap" href="#gap">Lücke</a><a data-link="modes" href="#modes">Modi</a><a data-link="mission" href="#mission">Mission</a><a data-link="workflow" href="#workflow">Workflow</a><a data-link="focus" href="#focus">Fokus</a><a data-link="adaptation" href="#adaptation">Anpassung</a><a data-link="progress" href="#progress">Fortschritt</a><a data-link="coach" href="#coach">Coach</a><a data-link="future" href="#future">Vision</a></nav><div class="top-actions"><div class="lang-picker" id="langPicker"><button aria-expanded="false" aria-haspopup="true" class="lang-toggle" id="langToggle" title="Sprache wählen" type="button"><i class="w-4 h-4" data-lucide="languages"></i><span id="langCode">DE</span></button><div class="lang-menu" id="langMenu" role="menu"><button class="lang-option" data-lang="de" type="button">Deutsch <span>DE</span></button><button class="lang-option" data-lang="en" type="button">English <span>EN</span></button></div></div><button onclick="go('mission')">Überblick</button><button class="live" onclick="openProto()">Live testen</button></div></header><div class="dots"><a data-dot="hero" href="#hero">01</a><a data-dot="problem" href="#problem">02</a><a data-dot="gap" href="#gap">03</a><a data-dot="modes" href="#modes">04</a><a data-dot="mission" href="#mission">05</a><a data-dot="workflow" href="#workflow">06</a><a data-dot="focus" href="#focus">07</a><a data-dot="adaptation" href="#adaptation">08</a><a data-dot="progress" href="#progress">09</a><a data-dot="coach" href="#coach">10</a><a data-dot="future" href="#future">11</a></div><main class="page"><div>
+<section class="chapter" data-demo="home" id="hero"><div>
+<small class="eyebrow">01 / INTRO</small>
+<h1>Aus „Ich sollte anfangen“ wird echte Fokuszeit.</h1>
+<p>Focus Mode+ hilft dir, wichtige Aufgaben zu beginnen, digitale Ablenkungen zu blockieren und Schritt für Schritt dranzubleiben.</p>
+<div class="actions"><button class="primary" onclick="go('problem')">Konzept entdecken</button><button onclick="openProto()">Prototyp testen</button></div>
+<div class="facts"><span><b>2</b> Fokusmodi</span><span><b>1</b> klarer nächster Schritt</span><span><b>0</b> unnötige Ablenkungen</span></div>
+<div class="brand-line">Trainiere deine Aufmerksamkeit. Nicht deine Ablenkung.</div>
+</div></section>
+<section class="chapter" data-demo="stats" id="problem"><div>
+<small class="eyebrow">02 / PROBLEM</small>
+<h1>Das Problem ist nicht nur die Ablenkung.</h1>
+<p>Viele Aufgaben scheitern schon vor der ersten Fokusminute: Das Ziel wirkt zu groß, der nächste Schritt ist unklar und das Smartphone bietet den einfacheren Ausweg.</p>
+<div class="cards"><article><b>Kein klarer Start</b><small>Die Aufgabe bleibt abstrakt</small></article><article><b>Sofortige Ablenkung</b><small>Der Feed ist nur einen Klick entfernt</small></article></div>
+</div></section>
+<section class="chapter" data-demo="choice" id="gap"><div>
+<small class="eyebrow">03 / LÜCKE</small>
+<h1>Ein Timer kennt dein Ziel nicht. Ein Plan schützt deinen Fokus nicht.</h1>
+<p>Timer messen Zeit. App-Blocker sperren Anwendungen. Planungstools erstellen Listen. Focus Mode+ verbindet Ziel, nächsten Schritt, geschützte Ausführung und Anpassung in einem Ablauf.</p>
+<div class="pills"><span>Ziel statt nur Zeit</span><span>Ausführung statt nur Planung</span><span>Anpassung statt statischer Liste</span></div>
+</div></section>
+<section class="chapter" data-demo="choice" id="modes"><div>
+<small class="eyebrow">04 / ZWEI MODI</small>
+<h1>Sofort fokussieren. Oder eine Mission verfolgen.</h1>
+<p>Nicht jede Aufgabe braucht Planung. Deshalb entscheidet der Nutzer selbst, wie viel Unterstützung gerade sinnvoll ist.</p>
+<div class="cards mode-cards"><article><b>Kurzer Fokus</b><small>25 Minuten · Apps blockieren · direkt beginnen</small></article><article><b>Focus Mission</b><small>Aufgabe strukturieren · Fokus-Schritte planen · Fortschritt anpassen</small></article></div>
+</div></section>
+<section class="chapter" data-demo="goal" id="mission"><div>
+<small class="eyebrow">05 / FOCUS MISSION</small>
+<h1>Aus einer großen Aufgabe wird ein machbarer nächster Schritt.</h1>
+<p>Der Nutzer beschreibt, was er schaffen möchte, fügt bei Bedarf Material hinzu und wählt den Kontext. Focus Mode+ erkennt Ziel und Frist, schätzt den Aufwand und erstellt realistische Fokus-Schritte.</p>
+<div class="pills"><span>Prüfung</span><span>Aufgabe</span><span>Projekt</span><span>Eigene Mission</span></div>
+</div></section>
+<section class="chapter" data-demo="plan" id="workflow"><div>
+<small class="eyebrow">06 / WORKFLOW</small>
+<h1>Planen. Fokussieren. Reflektieren. Anpassen.</h1>
+<p>Eine Focus Mission begleitet die Aufgabe nicht nur bis zum Plan, sondern durch die tatsächliche Ausführung und den nächsten realistischen Schritt.</p>
+<ol class="workflow-list"><li><b>01</b><span><strong>Ziel verstehen</strong><small>Aufgabe, Material und Frist erfassen</small></span></li><li><b>02</b><span><strong>Nächsten Schritt wählen</strong><small>Eine realistische Sitzung statt eines überwältigenden Plans</small></span></li><li><b>03</b><span><strong>Geschützt arbeiten</strong><small>Ablenkende Apps blockieren</small></span></li><li><b>04</b><span><strong>Ergebnis einschätzen</strong><small>Verständnis und Sicherheit bewerten</small></span></li><li><b>05</b><span><strong>Mission anpassen</strong><small>Dauer und nächste Schritte aktualisieren</small></span></li></ol>
+</div></section>
+<section class="chapter" data-demo="barrier" id="focus"><div>
+<small class="eyebrow">07 / GESCHÜTZTER FOKUS</small>
+<h1>Der Plan zählt erst, wenn die Arbeit beginnt.</h1>
+<p>Während der Sitzung schützt Focus Mode+ die gewählte Arbeitsumgebung. Beim Versuch, in eine Ablenkung zu wechseln, unterbricht eine bewusste Barriere den Automatismus.</p>
+<div class="pills"><span>Benötigte Werkzeuge bleiben verfügbar</span><span>Ablenkende Apps werden blockiert</span></div>
+<button class="demo" onclick="showLandingBarrier()">Barriere anzeigen ↗</button>
+</div></section>
+<section class="chapter" data-demo="update" id="adaptation"><div>
+<small class="eyebrow">08 / ANPASSUNG</small>
+<h1>Die Mission lernt aus jeder Sitzung.</h1>
+<p>Nach der Sitzung bewertet der Nutzer, wie sicher er sich mit dem Ergebnis fühlt. Focus Mode+ vergleicht Feedback und Planung, schätzt das persönliche Tempo neu und passt die nächste Sitzung an.</p>
+<div class="metrics"><span><b>3 / 5</b>Verständnis</span><span><b>25 → 35</b>Minuten Praxis</span><span><b>1</b>angepasster Schritt</span></div>
+</div></section>
+<section class="chapter" data-demo="score" id="progress"><div>
+<small class="eyebrow">09 / FORTSCHRITT</small>
+<h1>Zeit zeigt deinen Einsatz. Missionen zeigen deinen Fortschritt.</h1>
+<p>Fokuszeit bleibt eine reale persönliche Kennzahl. Mission-Fortschritt zeigt die Richtung. Die Plan-Serie belohnt den eigenen Rhythmus, nicht tägliche Aktivität um jeden Preis.</p>
+<div class="metrics"><span><b>42 Min.</b>Fokuszeit</span><span><b>3 Wochen</b>Plan-Serie</span><span><b>#12 Gold</b>Wochenliga</span></div>
+</div></section>
+<section class="chapter" data-demo="chat" id="coach"><div>
+<small class="eyebrow">10 / LANGZEIT-COACHING</small>
+<h1>Aus Fokusdaten werden bessere Routinen.</h1>
+<p>Während Focus Missions einzelne Aufgaben begleiten, erkennt der optionale AI Coach langfristige Muster: Wann sinkt die Konzentration? Welche Sitzungsdauer funktioniert? Welche Routine sollte angepasst werden?</p>
+<div class="coach-note">Erweiterte Langzeitstatistiken, Verhaltensanalyse und strengere Blockierungsmodi können Teil von Focus Mode+ Premium werden.</div>
+<button class="demo" onclick="openProto('chat')">AI Coach öffnen ↗</button>
+</div></section>
+<section class="chapter" data-demo="home" id="future"><div>
+<small class="eyebrow">11 / NEXT STEP</small>
+<h1>Ein starker Prototyp. Jetzt braucht es echte Nutzung.</h1>
+<p>Focus Mode+ ist aktuell ein interaktiver Concept Prototype. Der nächste Schritt ist nicht noch eine Funktion, sondern die Validierung mit echten Aufgaben und echten Nutzern.</p>
+<div class="validation-grid"><article><b>Verstehen Schüler den Mehrwert?</b><small>Problem und Zielgruppe prüfen</small></article><article><b>Kehren sie zurück?</b><small>Mehrere Sitzungen statt einmaliger Neugier</small></article><article><b>Verbessert der Ablauf die Ausführung?</b><small>Planung und Schutz gemeinsam testen</small></article></div>
+<div class="vision-line"><strong>Langfristige Vision</strong><span>Ein Fokus-System für selbstständige Arbeit über Smartphone, Mac und PC.</span></div>
+<div class="actions"><button class="primary" onclick="openProto()">Prototyp selbst testen</button><button onclick="scrollTo({top:0,behavior:'smooth'})">Nach oben</button></div>
+</div></section>
+</div><aside class="phone-side"><span class="preview-label">LIVE PRODUCT PREVIEW</span><div class="phone-wrap" id="mainMount"><div class="relative w-[340px] h-[640px] bg-slate-950 dark:bg-black rounded-[52px] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)] dark:shadow-[0_0_40px_rgba(168,85,247,0.15),0_25px_60px_-15px_rgba(0,0,0,0.7)] border-[12px] border-slate-900 dark:border-black ring-1 ring-black/5 dark:ring-white/15 select-none transition-all duration-500" id="iphoneFrame">
+<!-- Внутренний экран -->
+<div class="relative w-full h-full bg-slate-50 flex flex-col overflow-hidden rounded-[40px] isolate transition-colors duration-300" id="screenWrapper">
+<!-- Dynamic Island -->
+<div class="absolute top-3 left-1/2 -translate-x-1/2 w-28 h-7 bg-black rounded-full z-[60] flex items-center justify-between px-2.5 transition-all hover:w-36 cursor-pointer" id="dynamicIsland" onclick="if(timerInterval) setAppScreen('timer')">
+<div class="w-2.5 h-2.5 bg-slate-900 rounded-full"></div>
+<div class="text-[9px] text-indigo-400 font-bold hidden flex items-center gap-1" id="islandIndicator">
+<span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-ping"></span> Active
+             </div>
+<div class="w-4 h-1 bg-slate-900 rounded-full"></div>
+</div>
+<!-- StatusBar -->
+<div class="h-11 bg-white text-slate-800 px-7 flex items-end justify-between pb-1.5 text-xs font-semibold shrink-0 z-40 transition-colors duration-300" id="statusBar">
+<span id="statusBarTime">09:41</span>
+<div class="flex items-center gap-1.5">
+<i class="w-3.5 h-3.5" data-lucide="signal"></i>
+<i class="w-3.5 h-3.5" data-lucide="wifi"></i>
+<div class="w-5 h-2.5 border border-slate-800 rounded-sm p-0.5 flex items-center">
+<div class="h-full w-full bg-slate-800 rounded-2xs"></div>
+</div>
+</div>
+</div>
+<!-- ЭКРАНЫ ПРИЛОЖЕНИЯ -->
+<div class="flex-1 relative flex flex-col bg-slate-50 text-slate-900 transition-colors duration-300 hide-scrollbar" id="appBody">
+<!-- ЭКРАН 1: Startbildschirm (Home) -->
+<div class="app-screen p-5 flex flex-col justify-between flex-1 space-y-6" id="app-screen-home">
+<div class="home-scroll-content space-y-4 pb-3">
+<div class="flex items-center justify-between">
+<div>
+<span class="text-2xs text-slate-400 font-semibold uppercase tracking-wider">Willkommen bei</span>
+<h2 class="text-2xl font-black text-slate-950 tracking-tight">Focus Mode+</h2>
+</div>
+<div class="flex gap-2">
+<button class="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 hover:bg-indigo-100 transition" onclick="setAppScreen('chat')" title="AI Coach (Premium)"><i class="w-5 h-5" data-lucide="message-square"></i></button>
+<button class="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition" onclick="setAppScreen('settings')"><i class="w-5 h-5" data-lucide="user"></i></button>
+</div>
+</div>
+<section class="relative overflow-hidden p-4 rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-white shadow-xl" id="emptyMissionCard">
+<div class="absolute -right-10 -top-12 w-36 h-36 rounded-full bg-indigo-500/20 blur-2xl"></div>
+<div class="relative">
+<div class="inline-flex items-center gap-1.5 text-[8px] font-black uppercase tracking-[.16em] text-indigo-300"><i class="w-3 h-3" data-lucide="sparkles"></i> Bereit für heute?</div>
+<h3 class="text-[20px] leading-[1.08] font-black mt-2">Was möchtest du<br/>heute schaffen?</h3>
+<p class="text-[9px] leading-relaxed text-slate-400 mt-2 max-w-[240px]">Starte direkt oder verwandle eine wichtige Aufgabe in eine Focus Mission.</p>
+<button class="w-full py-2.5 mt-4 rounded-xl bg-white text-slate-950 text-[10px] font-black flex items-center justify-center gap-1.5" onclick="openGoalIntake()"><i class="w-3.5 h-3.5" data-lucide="target"></i> Focus Mission erstellen</button>
+</div>
+</section>
+<section class="hidden relative overflow-hidden p-4 rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-white shadow-xl" id="activeMissionCard">
+<div class="absolute -right-10 -top-12 w-36 h-36 rounded-full bg-indigo-500/20 blur-2xl"></div>
+<div class="relative">
+<div class="flex items-start justify-between gap-3">
+<div>
+<div class="inline-flex items-center gap-1.5 text-[8px] font-black uppercase tracking-[.16em] text-indigo-300"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Aktive Focus Mission</div>
+<h3 class="text-[17px] leading-tight font-black mt-1.5">Quadratische Gleichungen</h3>
+<p class="text-[9px] text-slate-400 mt-1">Mathematik · Klassenarbeit am Freitag</p>
+</div>
+<div class="w-9 h-9 rounded-2xl bg-white/10 flex items-center justify-center text-indigo-200 shrink-0"><i class="w-4 h-4" data-lucide="target"></i></div>
+</div>
+<button class="w-full mt-3 p-3 rounded-2xl bg-white/[.07] border border-white/10 text-left" onclick="setAppScreen('plan')">
+<div class="flex items-center justify-between gap-3">
+<div><div class="text-[8px] uppercase tracking-wider font-bold text-slate-500">Nächster Schritt</div><div class="text-[11px] font-bold mt-1" id="homeMissionNextStep">Schneller Wissenscheck</div><div class="text-[9px] text-slate-400 mt-0.5" id="homeMissionMeta">5 Aufgaben · ca. 10 Min.</div></div>
+<i class="w-4 h-4 text-indigo-300" data-lucide="chevron-right"></i>
+</div>
+</button>
+<div class="mt-3">
+<div class="flex items-center justify-between text-[8px] font-bold"><span class="text-slate-400">Mission-Fortschritt</span><span class="text-indigo-300" id="homeMissionPercent">0%</span></div>
+<div class="h-1.5 bg-white/10 rounded-full mt-1.5 overflow-hidden"><div class="h-full bg-gradient-to-r from-indigo-400 to-violet-400 rounded-full transition-all duration-700" id="homeMissionProgressBar" style="width:0%"></div></div>
+</div>
+<button class="w-full py-2.5 mt-3 rounded-xl bg-white text-slate-950 text-[10px] font-black flex items-center justify-center gap-1.5" onclick="setAppScreen('plan')"><i class="w-3.5 h-3.5" data-lucide="play"></i> Mission fortsetzen</button>
+</div>
+</section>
+<div class="grid grid-cols-3 gap-2">
+<button class="home-metric p-2.5 bg-white rounded-2xl border border-slate-200/70 text-left shadow-xs min-w-0" onclick="setAppScreen('stats')">
+<span class="metric-label text-[7px] font-black text-indigo-600 uppercase tracking-[.07em] flex items-center gap-1"><i class="metric-icon w-3.5 h-3.5 shrink-0" data-lucide="clock-3"></i><span>Fokuszeit</span></span>
+<div class="text-[15px] font-black text-slate-850 mt-1">42 <span class="text-[8px] font-semibold text-slate-400">Min.</span></div>
+</button>
+<button class="home-metric p-2.5 bg-white rounded-2xl border border-slate-200/70 text-left shadow-xs min-w-0" onclick="showPlanStreakInfo()">
+<span class="metric-label text-[7px] font-black text-orange-500 uppercase tracking-[.07em] flex items-start gap-1 leading-[1.05]"><i class="metric-icon w-3.5 h-3.5 shrink-0" data-lucide="flame"></i><span>Plan-<br/>Serie</span></span>
+<div class="text-[15px] font-black text-slate-850 mt-1">3 <span class="text-[8px] font-semibold text-slate-400">Wo.</span></div>
+</button>
+<button class="home-metric p-2.5 bg-white rounded-2xl border border-slate-200/70 text-left shadow-xs min-w-0" onclick="setAppScreen('score')">
+<span class="metric-label text-[7px] font-black text-amber-600 uppercase tracking-[.07em] flex items-center gap-1"><i class="metric-icon w-3.5 h-3.5 shrink-0" data-lucide="trophy"></i><span>Rang</span></span>
+<div class="text-[15px] font-black text-slate-850 mt-1">#12 <span class="text-[8px] font-semibold text-slate-400">Gold</span></div>
+</button>
+</div>
+<div class="p-3 bg-white rounded-2xl border border-slate-200/70 shadow-xs">
+<div class="flex items-center justify-between"><div><div class="text-[8px] font-bold uppercase tracking-wider text-slate-400">Diese Woche</div><div class="text-[10px] font-bold text-slate-800 mt-0.5">3 von 4 Sitzungen</div></div><div class="text-right"><div class="text-[11px] font-black text-indigo-600">4h 20m</div><div class="text-[8px] text-slate-400">Fokuszeit</div></div></div>
+<div class="h-1.5 bg-slate-100 rounded-full mt-2.5 overflow-hidden"><div class="h-full w-3/4 bg-indigo-600 rounded-full"></div></div>
+</div>
+</div>
+<div class="home-start-wrap pt-3 pb-1 bg-slate-50/95 backdrop-blur-sm sticky bottom-0 z-10">
+<button class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold text-sm tracking-tight transition shadow-lg shadow-indigo-100 flex items-center justify-center gap-2" onclick="openFocusChoice()"><i class="w-4 h-4 fill-white" data-lucide="sparkles"></i> Fokus starten</button>
+</div>
+</div>
+<!-- FOCUS CHOICE: Schnell oder adaptiv -->
+<!-- LEARNING FLOW: Zieleingabe -->
+<div class="app-screen flow-screen p-5 flex flex-col flex-1 hidden bg-slate-50" id="app-screen-quicksetup">
+<div class="flex items-center justify-between mb-4">
+<button class="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600" onclick="setAppScreen('home')"><i class="w-4 h-4" data-lucide="arrow-left"></i></button>
+<span class="text-[9px] font-black uppercase tracking-[.18em] text-indigo-500">Kurzer Fokus</span><div class="w-9"></div>
+</div>
+<div class="mb-4"><h3 class="text-[24px] leading-[1.06] font-black tracking-tight text-slate-950">Richte deine Sitzung ein.</h3><p class="text-[10px] leading-relaxed text-slate-500 mt-2">Wähle Dauer und Ablenkungen. Alle anderen Apps bleiben verfügbar.</p></div>
+<div class="space-y-3" id="quickPhoneNote">
+<label class="block"><span class="text-[8px] font-black uppercase tracking-wider text-slate-400">Woran arbeitest du?</span><input class="mt-2 w-full p-3 rounded-2xl bg-white border border-slate-200 text-[10px] text-slate-800 outline-none focus:border-indigo-300" id="quickTaskInput" value="Mathematikaufgaben lösen"/></label>
+<div><div class="text-[8px] font-black uppercase tracking-wider text-slate-400 mb-2">Dauer</div><div class="grid grid-cols-4 gap-1.5" id="quickDurationButtons"><button class="quick-option" onclick="selectQuickDuration(this,15)">15 Min.</button><button class="quick-option active" onclick="selectQuickDuration(this,25)">25 Min.</button><button class="quick-option" onclick="selectQuickDuration(this,35)">35 Min.</button><button class="quick-option" onclick="selectQuickDuration(this,50)">50 Min.</button></div><div class="text-[8px] text-slate-400 mt-1.5">25 Minuten empfohlen</div></div>
+<div><div class="text-[8px] font-black uppercase tracking-wider text-slate-400 mb-2">Pause danach</div><div class="grid grid-cols-3 gap-1.5" id="quickBreakButtons"><button class="quick-option" onclick="selectQuickBreak(this,0)">Keine</button><button class="quick-option active" onclick="selectQuickBreak(this,5)">5 Min.</button><button class="quick-option" onclick="selectQuickBreak(this,10)">10 Min.</button></div></div>
+<button class="w-full p-3.5 rounded-2xl bg-white border border-slate-200 text-left shadow-sm" onclick="openDistractionPicker('quicksetup')">
+<div class="flex items-center justify-between gap-3"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center"><i class="w-5 h-5" data-lucide="shield-off"></i></div><div><div class="text-[8px] font-black uppercase tracking-wider text-slate-400">Ablenkungen</div><div class="text-[11px] font-bold text-slate-800 mt-0.5"><span class="blockedCount">7</span> Apps blockiert</div><div class="text-[8px] text-slate-400 mt-0.5 blockedSummary">TikTok · Instagram · Spiele +4</div></div></div><i class="w-4 h-4 text-slate-300" data-lucide="chevron-right"></i></div>
+</button>
+<div class="p-3 rounded-2xl bg-emerald-50 border border-emerald-100 flex gap-2.5"><i class="w-4 h-4 text-emerald-600 shrink-0" data-lucide="smartphone"></i><p class="text-[9px] leading-relaxed text-emerald-800"><strong>Dein Smartphone bleibt nutzbar.</strong><br/>Nur die ausgewählten Ablenkungen werden blockiert.</p></div>
+</div>
+<button class="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold text-xs shadow-lg shadow-indigo-100 flex items-center justify-center gap-2 mt-auto" onclick="startConfiguredQuickFocus()"><i class="w-4 h-4" data-lucide="play"></i> Fokus starten</button>
+</div>
+<div class="app-screen flow-screen p-5 flex flex-col flex-1 hidden bg-slate-50" id="app-screen-distractions">
+<div class="flex items-center justify-between mb-4"><button class="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600" onclick="returnFromDistractionPicker()"><i class="w-4 h-4" data-lucide="arrow-left"></i></button><span class="text-[9px] font-black uppercase tracking-[.18em] text-indigo-500">Fokus-Schutz</span><div class="w-9"></div></div>
+<div class="mb-4"><h3 class="text-[24px] leading-[1.06] font-black tracking-tight text-slate-950">Was lenkt dich ab?</h3><p class="text-[10px] leading-relaxed text-slate-500 mt-2">Wähle nur die Apps, die während einer Sitzung blockiert werden sollen.</p></div>
+<div class="p-3 rounded-2xl bg-indigo-50 border border-indigo-100 mb-3 flex gap-2.5"><i class="w-4 h-4 text-indigo-600 shrink-0" data-lucide="shield-check"></i><p class="text-[9px] leading-relaxed text-indigo-800">In der echten iPhone-App öffnet sich hier die sichere Systemauswahl von Screen Time.</p></div>
+<div class="space-y-2" id="distractionList">
+<button class="distraction-row selected" data-name="TikTok" onclick="toggleDistraction(this)"><span class="app-dot bg-slate-950">T</span><span>TikTok</span><i data-lucide="check"></i></button>
+<button class="distraction-row selected" data-name="Instagram" onclick="toggleDistraction(this)"><span class="app-dot bg-gradient-to-br from-fuchsia-500 to-orange-400">I</span><span>Instagram</span><i data-lucide="check"></i></button>
+<button class="distraction-row selected" data-name="YouTube" onclick="toggleDistraction(this)"><span class="app-dot bg-red-500">Y</span><span>YouTube</span><i data-lucide="check"></i></button>
+<button class="distraction-row selected" data-name="Spiele" onclick="toggleDistraction(this)"><span class="app-dot bg-violet-500"><i data-lucide="gamepad-2"></i></span><span>Spiele</span><i data-lucide="check"></i></button>
+<button class="distraction-row selected" data-name="Reddit" onclick="toggleDistraction(this)"><span class="app-dot bg-orange-500">R</span><span>Reddit</span><i data-lucide="check"></i></button>
+<button class="distraction-row selected" data-name="Shopping" onclick="toggleDistraction(this)"><span class="app-dot bg-cyan-500"><i data-lucide="shopping-bag"></i></span><span>Shopping</span><i data-lucide="check"></i></button>
+<button class="distraction-row selected" data-name="News" onclick="toggleDistraction(this)"><span class="app-dot bg-blue-500"><i data-lucide="newspaper"></i></span><span>News</span><i data-lucide="check"></i></button>
+</div>
+<button class="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold text-xs mt-auto" id="distractionSaveButton" onclick="saveDistractions()">Auswahl speichern</button>
+</div>
+<div class="app-screen flow-screen p-5 flex flex-col flex-1 hidden bg-slate-50" id="app-screen-goal">
+<div class="flex items-center justify-between mb-5">
+<button class="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600" onclick="setAppScreen('home')"><i class="w-4 h-4" data-lucide="arrow-left"></i></button>
+<span class="text-[9px] font-black uppercase tracking-[.18em] text-indigo-500">Neue Focus Mission</span>
+<div class="w-9"></div>
+</div>
+<div class="mb-5">
+<span class="inline-flex items-center gap-1.5 text-[9px] font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full mb-3"><i class="w-3 h-3" data-lucide="sparkles"></i> Focus Mission</span>
+<h3 class="text-[25px] leading-[1.06] font-black tracking-tight text-slate-950">Was ist dein Ziel heute?</h3>
+<p class="text-[11px] leading-relaxed text-slate-500 mt-2">Beschreibe, was du schaffen möchtest, oder füge relevantes Material hinzu. Du kannst den Vorschlag später ändern.</p>
+</div>
+<div class="flow-glass rounded-3xl p-3.5 mb-3">
+<textarea aria-label="Lernziel" class="w-full resize-none bg-transparent outline-none text-[11px] leading-relaxed text-slate-700 placeholder:text-slate-300" id="goalPrompt" rows="5">Am Freitag schreibe ich eine Mathearbeit über quadratische Gleichungen. Ich muss die Seiten 42–58 wiederholen und die Aufgaben 1–20 lösen.</textarea>
+<div class="flex items-center justify-between pt-2.5 border-t border-slate-100">
+<div class="flex gap-1.5">
+<button class="w-8 h-8 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center" onclick="showDemoFilePicker()" title="Datei hinzufügen"><i class="w-3.5 h-3.5" data-lucide="paperclip"></i></button>
+<button class="w-8 h-8 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center" onclick="mockVoiceInput()" title="Diktieren"><i class="w-3.5 h-3.5" data-lucide="mic"></i></button>
+<button class="w-8 h-8 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center" onclick="showDemoFilePicker()" title="Foto hinzufügen"><i class="w-3.5 h-3.5" data-lucide="camera"></i></button>
+</div>
+<span class="text-[9px] text-slate-400">Antwort vorbereitet</span>
+</div>
+</div>
+<button class="flow-file hidden w-full p-3 rounded-2xl border text-left mb-3" id="selectedFileCard" onclick="showDemoFilePicker()">
+<div class="flex items-center gap-3">
+<div class="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-100 to-orange-50 text-amber-600 flex items-center justify-center"><i class="w-5 h-5" data-lucide="image"></i></div>
+<div class="min-w-0 flex-1"><div class="text-[10px] font-bold text-slate-800 truncate">Mathe_Arbeitsblatt.jpg</div><div class="text-[9px] text-slate-400 mt-0.5">2 Seiten · Aufgaben 1–20</div></div>
+<i class="w-4 h-4 text-emerald-500" data-lucide="check-circle-2"></i>
+</div>
+</button>
+<div class="mb-3"><div class="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-2">Mission-Typ</div><div class="flex gap-1.5 overflow-x-auto hide-scrollbar"><button class="flow-chip whitespace-nowrap rounded-xl px-2.5 py-2 text-[8px] font-bold" onclick="selectMissionType(this)">Prüfung</button><button class="flow-chip whitespace-nowrap rounded-xl px-2.5 py-2 text-[8px] font-bold" onclick="selectMissionType(this)">Aufgabe</button><button class="flow-chip whitespace-nowrap rounded-xl px-2.5 py-2 text-[8px] font-bold" onclick="selectMissionType(this)">Projekt</button><button class="flow-chip whitespace-nowrap rounded-xl px-2.5 py-2 text-[8px] font-bold" onclick="selectMissionType(this)">Eigene Mission</button></div></div><div class="mb-4">
+<div class="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-2">Wie sicher fühlst du dich?</div>
+<div class="grid grid-cols-3 gap-1.5">
+<button class="flow-chip rounded-xl px-1 py-2 text-[8px] font-bold" onclick="selectConfidence(this)">Unsicher</button>
+<button class="flow-chip rounded-xl px-1 py-2 text-[8px] font-bold" onclick="selectConfidence(this)">Teilweise sicher</button>
+<button class="flow-chip rounded-xl px-1 py-2 text-[8px] font-bold" onclick="selectConfidence(this)">Sicher</button>
+</div>
+</div>
+<button class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold text-xs shadow-lg shadow-indigo-100 flex items-center justify-center gap-2 mt-auto opacity-40 cursor-not-allowed" disabled="disabled" id="missionPlanButton" onclick="analyzeGoal()">Mission planen <i class="w-4 h-4" data-lucide="arrow-up"></i></button>
+</div>
+<!-- LEARNING FLOW: Mock-Dateiauswahl -->
+<div class="app-screen p-5 flex flex-col justify-end flex-1 hidden bg-slate-100" id="app-screen-filepicker">
+<div class="absolute inset-0 bg-slate-950/25 backdrop-blur-[2px]" onclick="setAppScreen('goal')"></div>
+<div class="relative bg-white rounded-[28px] p-4 shadow-2xl border border-white z-10">
+<div class="w-10 h-1 bg-slate-200 rounded-full mx-auto mb-4"></div>
+<div class="flex items-center justify-between mb-4"><div><div class="text-xs font-black text-slate-900">Material auswählen</div><div class="text-[9px] text-slate-400 mt-0.5">Vorbereitete Demo-Datei</div></div><button class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center" onclick="setAppScreen('goal')"><i class="w-4 h-4" data-lucide="x"></i></button></div>
+<button class="w-full rounded-2xl overflow-hidden border border-slate-200 text-left" onclick="selectDemoFile()">
+<div class="h-28 bg-[#f4ead7] p-4 relative overflow-hidden">
+<div class="absolute -right-5 -top-4 w-24 h-24 rounded-full bg-amber-200/40"></div>
+<div class="text-[8px] font-black text-slate-700 uppercase tracking-wider">Quadratische Gleichungen</div>
+<div class="mt-3 space-y-2"><div class="h-1.5 w-4/5 bg-slate-500/25 rounded"></div><div class="h-1.5 w-3/5 bg-slate-500/20 rounded"></div><div class="grid grid-cols-2 gap-2 mt-3"><div class="h-8 rounded border border-slate-400/30"></div><div class="h-8 rounded border border-slate-400/30"></div></div></div>
+</div>
+<div class="p-3 flex items-center justify-between"><div><div class="text-[10px] font-bold text-slate-800">Mathe_Arbeitsblatt.jpg</div><div class="text-[9px] text-slate-400">Foto · 2,4 MB</div></div><span class="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">Auswählen</span></div>
+</button>
+</div>
+</div>
+<!-- LEARNING FLOW: Analyse -->
+<div class="app-screen p-5 flex flex-col items-center justify-center flex-1 hidden bg-slate-950 text-white" id="app-screen-analyzing">
+<div class="w-16 h-16 rounded-3xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center shadow-[0_18px_45px_rgba(99,102,241,.38)] mb-6"><i class="w-7 h-7" data-lucide="sparkles"></i></div>
+<h3 class="text-xl font-black tracking-tight">Deine Mission wird geplant</h3>
+<p class="text-[10px] text-slate-400 text-center leading-relaxed mt-2 mb-7 max-w-[230px]">Focus Mode+ verbindet Ziel, Aufwand und deine bisherigen Fokus-Sitzungen.</p>
+<div class="w-full space-y-2.5" id="analysisRows">
+<div class="analysis-row opacity-40 p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-3"><span class="analysis-icon w-6 h-6 rounded-full bg-white/10 flex items-center justify-center"><span class="flow-loader-dot w-1.5 h-1.5 bg-indigo-300 rounded-full"></span></span><span class="text-[10px] text-slate-300">Ziel und Frist erkennen</span></div>
+<div class="analysis-row opacity-40 p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-3"><span class="analysis-icon w-6 h-6 rounded-full bg-white/10 flex items-center justify-center"><span class="flow-loader-dot w-1.5 h-1.5 bg-indigo-300 rounded-full"></span></span><span class="text-[10px] text-slate-300">Ziel in Missionsschritte teilen</span></div>
+<div class="analysis-row opacity-40 p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-3"><span class="analysis-icon w-6 h-6 rounded-full bg-white/10 flex items-center justify-center"><span class="flow-loader-dot w-1.5 h-1.5 bg-indigo-300 rounded-full"></span></span><span class="text-[10px] text-slate-300">Dauer und Lernumgebung anpassen</span></div>
+</div>
+</div>
+<!-- LEARNING FLOW: Generierter Plan -->
+<div class="app-screen flow-screen p-5 flex flex-col flex-1 hidden bg-slate-50" id="app-screen-plan">
+<div class="flex items-center justify-between mb-4"><button class="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600" onclick="setAppScreen('home')" title="Zurück zum Home"><i class="w-4 h-4" data-lucide="home"></i></button><span class="text-[9px] font-black uppercase tracking-[.18em] text-slate-400">Focus Mission</span><button class="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500" onclick="setAppScreen('goal')" title="Mission bearbeiten"><i class="w-4 h-4" data-lucide="pencil"></i></button></div>
+<div class="rounded-3xl p-4 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-white shadow-xl mb-4">
+<div class="flex justify-between items-start"><div><div class="text-[8px] font-bold text-indigo-300 uppercase tracking-wider">Mathematik · Klassenarbeit</div><h3 class="text-lg font-black leading-tight mt-1">Quadratische<br/>Gleichungen</h3></div><div class="w-11 h-11 rounded-2xl bg-white/10 flex items-center justify-center"><i class="w-5 h-5 text-indigo-300" data-lucide="function-square"></i></div></div>
+<div class="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-white/10"><div><div class="text-[8px] text-slate-400">Frist</div><div class="text-[10px] font-bold mt-0.5">Freitag</div></div><div><div class="text-[8px] text-slate-400">Gesamt</div><div class="text-[10px] font-bold mt-0.5">2h 10m</div></div><div><div class="text-[8px] text-slate-400">Sitzungen</div><div class="text-[10px] font-bold mt-0.5">4 empfohlen</div></div></div>
+</div>
+<div class="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-2">Deine Missionsschritte</div>
+<div class="space-y-0 mb-4">
+<div class="flow-step-line flex gap-3 pb-3"><div class="w-7 h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[9px] font-black shrink-0">1</div><div class="flex-1 pt-0.5"><div class="flex justify-between gap-2"><div class="text-[10px] font-bold text-slate-800">Schneller Wissenscheck</div><span class="text-[9px] font-bold text-indigo-600">10 Min.</span></div><div class="text-[9px] text-slate-400 mt-1">5 Diagnoseaufgaben · empfohlen</div></div></div>
+<div class="flow-step-line flex gap-3 pb-3"><div class="w-7 h-7 rounded-full bg-white border border-slate-200 text-slate-500 flex items-center justify-center text-[9px] font-black shrink-0">2</div><div class="flex-1 pt-0.5"><div class="flex justify-between gap-2"><div class="text-[10px] font-bold text-slate-700">Formeln verstehen</div><span class="text-[9px] text-slate-400">20 Min.</span></div><div class="text-[9px] text-slate-400 mt-1">Schlüsselwissen für die Aufgaben</div></div></div>
+<div class="flow-step-line flex gap-3 pb-3"><div class="w-7 h-7 rounded-full bg-white border border-slate-200 text-slate-500 flex items-center justify-center text-[9px] font-black shrink-0">3</div><div class="flex-1 pt-0.5"><div class="flex justify-between gap-2"><div class="text-[10px] font-bold text-slate-700">Aufgaben 1–10 lösen</div><span class="text-[9px] text-slate-400">35 Min.</span></div><div class="text-[9px] text-slate-400 mt-1">Praxisblock · hohe Relevanz</div></div></div>
+<div class="flow-step-line flex gap-3"><div class="w-7 h-7 rounded-full bg-white border border-slate-200 text-slate-500 flex items-center justify-center text-[9px] font-black shrink-0">4</div><div class="flex-1 pt-0.5"><div class="flex justify-between gap-2"><div class="text-[10px] font-bold text-slate-700">Üben &amp; selbst prüfen</div><span class="text-[9px] text-slate-400">65 Min.</span></div><div class="text-[9px] text-slate-400 mt-1">Aufgaben 11–20 + Kurztest</div></div></div>
+</div>
+<div class="p-3 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-start gap-2.5 mb-4"><i class="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" data-lucide="brain-circuit"></i><p class="text-[9px] leading-relaxed text-indigo-800"><strong>Warum so?</strong> Deine letzten Abendsitzungen waren nach 35 Minuten weniger erfolgreich. Deshalb starten wir kurz und passen danach an.</p></div>
+<button class="w-full p-3 rounded-2xl bg-white border border-slate-200 text-left mb-3 shadow-sm" id="missionProtectionCard" onclick="openDistractionPicker('plan')">
+<div class="flex items-center justify-between"><div class="flex items-center gap-2.5"><div class="w-9 h-9 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center"><i class="w-4 h-4" data-lucide="shield-off"></i></div><div><div class="text-[8px] font-black uppercase tracking-wider text-slate-400">Fokus-Schutz</div><div class="text-[10px] font-bold text-slate-800 mt-0.5"><span class="blockedCount">7</span> Ablenkungen blockiert</div><div class="text-[8px] text-slate-400 mt-0.5 blockedSummary">TikTok · Instagram · Spiele +4</div></div></div><i class="w-4 h-4 text-slate-300" data-lucide="chevron-right"></i></div>
+<div class="mt-2 pt-2 border-t border-slate-100 text-[8px] text-emerald-600 font-semibold">Alle anderen Apps bleiben verfügbar.</div>
+</button>
+<button class="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold text-xs shadow-lg shadow-indigo-100 flex items-center justify-center gap-2 mt-auto" onclick="prepareLearningSession()"><i class="w-4 h-4" data-lucide="play"></i> Ersten Schritt starten</button>
+<button class="w-full py-2.5 text-[10px] font-semibold text-slate-400" onclick="setAppScreen('goal')">Mission anpassen</button>
+</div>
+<!-- LEARNING FLOW: Ergebnis -->
+<div class="app-screen p-5 flex flex-col flex-1 hidden bg-slate-50" id="app-screen-result">
+<div class="flex items-center justify-between mb-6"><span class="text-[9px] font-black uppercase tracking-[.18em] text-slate-400">Sitzung beendet</span><button class="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center" onclick="setAppScreen('home')"><i class="w-4 h-4" data-lucide="x"></i></button></div>
+<div class="w-16 h-16 rounded-3xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-5"><i class="w-8 h-8" data-lucide="check"></i></div>
+<h3 class="text-2xl font-black tracking-tight text-slate-950 leading-tight">Wie sicher fühlst<br/>du dich jetzt?</h3>
+<p class="text-[11px] text-slate-500 leading-relaxed mt-2 mb-6">Bewerte von 1 bis 5, wie gut du die Aufgaben verstanden und selbstständig bearbeitet hast.</p>
+<div class="grid grid-cols-5 gap-2 mb-5" id="confidenceRatingButtons">
+<button class="flow-chip rounded-xl py-3 text-xs font-black" onclick="selectConfidenceRating(this,1)">1</button><button class="flow-chip rounded-xl py-3 text-xs font-black" onclick="selectConfidenceRating(this,2)">2</button><button class="flow-chip rounded-xl py-3 text-xs font-black active" onclick="selectConfidenceRating(this,3)">3</button><button class="flow-chip rounded-xl py-3 text-xs font-black" onclick="selectConfidenceRating(this,4)">4</button><button class="flow-chip rounded-xl py-3 text-xs font-black" onclick="selectConfidenceRating(this,5)">5</button>
+</div>
+<div class="p-3 rounded-2xl bg-white border border-slate-200 mb-6"><div class="flex items-center justify-between"><span class="text-[10px] text-slate-500">Deine Einschätzung</span><span class="text-[10px] font-bold text-amber-600" id="confidenceRatingLabel">Mittel verstanden</span></div></div>
+<button class="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold text-xs mt-auto" onclick="showPlanUpdate()">Ergebnis speichern</button>
+</div>
+<!-- LEARNING FLOW: Feedback wird ausgewertet -->
+<div class="app-screen p-5 flex flex-col items-center justify-center flex-1 hidden text-white" id="app-screen-feedbackprocessing">
+<div class="w-16 h-16 rounded-3xl bg-indigo-400/15 border border-indigo-300/20 flex items-center justify-center shadow-[0_20px_60px_rgba(79,70,229,.28)] mb-6">
+<i class="w-7 h-7 text-indigo-200" data-lucide="brain-circuit"></i>
+</div>
+<h3 class="text-xl font-black tracking-tight text-center">Feedback wird ausgewertet</h3>
+<p class="text-[10px] text-indigo-100/55 text-center leading-relaxed mt-2 mb-7 max-w-[235px]">Wir vergleichen dein Ergebnis mit der ursprünglichen Schätzung und passen die nächsten Lernschritte an.</p>
+<div class="w-full space-y-2.5" id="feedbackRows">
+<div class="feedback-row opacity-35 p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-3"><span class="feedback-icon w-6 h-6 rounded-full bg-white/10 flex items-center justify-center"><span class="flow-loader-dot w-1.5 h-1.5 bg-indigo-200 rounded-full"></span></span><span class="text-[10px] text-indigo-50/80">Ergebnis mit der Planung vergleichen</span></div>
+<div class="feedback-row opacity-35 p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-3"><span class="feedback-icon w-6 h-6 rounded-full bg-white/10 flex items-center justify-center"><span class="flow-loader-dot w-1.5 h-1.5 bg-indigo-200 rounded-full"></span></span><span class="text-[10px] text-indigo-50/80">Dein persönliches Tempo neu einschätzen</span></div>
+<div class="feedback-row opacity-35 p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-3"><span class="feedback-icon w-6 h-6 rounded-full bg-white/10 flex items-center justify-center"><span class="flow-loader-dot w-1.5 h-1.5 bg-indigo-200 rounded-full"></span></span><span class="text-[10px] text-indigo-50/80">Nächste Sitzung optimieren</span></div>
+</div>
+</div>
+<!-- LEARNING FLOW: Anpassung -->
+<div class="app-screen p-5 flex flex-col flex-1 hidden text-white overflow-hidden" id="app-screen-update">
+<div class="text-[9px] font-black uppercase tracking-[.18em] text-indigo-300 mb-6">Mission aktualisiert</div>
+<div class="w-16 h-16 rounded-3xl bg-indigo-500/20 border border-indigo-400/20 text-indigo-300 flex items-center justify-center mb-5"><i class="w-7 h-7" data-lucide="wand-sparkles"></i></div>
+<h3 class="text-2xl font-black tracking-tight leading-tight">Deine Mission passt sich<br/>deinem Tempo an.</h3>
+<p class="text-[10px] text-slate-400 leading-relaxed mt-3 mb-6">Du hast dein Verständnis mit 3 von 5 bewertet und bist noch nicht ganz sicher. Deshalb geben wir dir im nächsten Praxisblock mehr Zeit und passen die Mission realistischer an.</p>
+<div class="space-y-3">
+<div class="p-4 rounded-2xl bg-white/5 border border-white/10"><div class="text-[8px] uppercase tracking-wider text-slate-500 font-bold">Nächster Schritt</div><div class="flex justify-between items-end mt-1.5"><div><div class="text-[11px] font-bold">Formeln verstehen</div><div class="text-[9px] text-slate-400 mt-1">Seiten 42–47 · mit Beispielen</div></div><div class="text-lg font-black text-indigo-300">20 Min.</div></div></div>
+<div class="p-4 rounded-2xl bg-white/5 border border-white/10"><div class="flex justify-between items-center"><span class="text-[10px] text-slate-400">Praxisblock angepasst</span><span class="text-[10px] font-bold"><span class="line-through text-indigo-300 inline-flex items-center translate-y-[1px]">25</span> → 35 Min.</span></div></div>
+</div>
+<button class="w-full py-4 bg-white text-slate-950 rounded-2xl font-black text-xs mt-auto" onclick="finishLearningFlow()">Zum Dashboard</button>
+</div>
+<!-- ЭКРАН 2: Fokus-Sitzung -->
+<div class="app-screen p-4 flex flex-col flex-1 gap-3 hidden bg-slate-50" id="app-screen-timer">
+<div class="flex items-center justify-between px-1">
+<div class="min-w-0">
+<div class="text-[8px] font-black uppercase tracking-[.18em] text-indigo-500">Fokus-Sitzung</div>
+<div class="text-[10px] font-bold text-slate-700 mt-1 truncate max-w-[202px]" id="activeTaskLabel">Schneller Wissenscheck · 5 Aufgaben</div>
+</div>
+<span class="shrink-0 px-2.5 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-[8px] font-black uppercase text-indigo-600" id="currentFocusModeLabel">Mathematik</span>
+</div>
+
+<section class="timer-main-card orbit-card relative overflow-hidden rounded-[30px] text-white">
+<div class="timer-glow timer-glow-a"></div>
+<div class="timer-glow timer-glow-b"></div>
+<div aria-hidden="true" class="orbit-stars"></div>
+<div class="relative z-10 px-4 pt-4 pb-3 flex flex-col items-center">
+<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-400/10 border border-emerald-300/10 text-[8px] font-bold text-emerald-300">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+      Fokus-Schutz aktiv
+    </div>
+<div aria-label="Fokus-Timer" class="focus-orbit-stage">
+<div aria-hidden="true" class="orbit-halo orbit-halo-one"></div>
+<div aria-hidden="true" class="orbit-halo orbit-halo-two"></div>
+<svg aria-hidden="true" class="main-orbit-svg" viewbox="0 0 240 176">
+<defs>
+<lineargradient id="orbitProgressGradient" x1="0" x2="1" y1="0" y2="1">
+<stop offset="0" stop-color="#7c83ff"></stop>
+<stop offset=".5" stop-color="#a78bfa"></stop>
+<stop offset="1" stop-color="#e0c3ff"></stop>
+</lineargradient>
+<filter height="220%" id="orbitGlow" width="220%" x="-60%" y="-60%">
+<fegaussianblur result="blur" stddeviation="3.2"></fegaussianblur>
+<femerge><femergenode in="blur"></femergenode><femergenode in="SourceGraphic"></femergenode></femerge>
+</filter>
+<clippath id="orbitFrontHalf"><rect height="88" width="240" x="0" y="88"></rect></clippath>
+</defs>
+<ellipse cx="120" cy="88" fill="none" rx="105" ry="45" stroke="rgba(168,139,250,.13)" stroke-width="2"></ellipse>
+<ellipse cx="120" cy="88" fill="none" filter="url(#orbitGlow)" id="timerCircleProgress" rx="105" ry="45" stroke="url(#orbitProgressGradient)" stroke-dasharray="498" stroke-dashoffset="0" stroke-linecap="round" stroke-width="5"></ellipse>
+</svg>
+<div class="orbit-sphere">
+<div aria-hidden="true" class="orbit-sphere-shine"></div>
+<div aria-hidden="true" class="orbit-sphere-core"></div>
+<div class="orbit-time-wrap">
+<span id="timerDigits">25:00</span>
+<span id="timerCaption">Min. verbleibend</span>
+</div>
+</div>
+<svg aria-hidden="true" class="front-orbit-svg" viewbox="0 0 240 176">
+<ellipse clip-path="url(#orbitFrontHalf)" cx="120" cy="88" fill="none" rx="105" ry="45" stroke="rgba(216,180,254,.42)" stroke-width="2.2"></ellipse>
+<circle cx="120" cy="43" fill="#f4e8ff" filter="url(#orbitGlow)" id="orbitProgressDot" r="4.2"></circle>
+</svg>
+<div aria-hidden="true" class="orbit-particle orbit-particle-a"></div>
+<div aria-hidden="true" class="orbit-particle orbit-particle-b"></div>
+</div>
+<div class="grid grid-cols-[1.22fr_.78fr] gap-2 w-full -mt-1">
+<div class="timer-info-tile">
+<div class="timer-info-label"><i data-lucide="target"></i><span>Aufgabe</span></div>
+<div class="timer-info-value truncate" id="timerTaskValue">5 Aufgaben bearbeiten</div>
+</div>
+<button class="timer-info-tile text-left" onclick="showBlockedAppsPopup()">
+<div class="timer-info-label"><i data-lucide="shield-off"></i><span>Blockiert</span></div>
+<div class="flex items-center justify-between gap-1 mt-1">
+<span class="timer-blocked-value"><span class="blockedCount">7</span> Apps</span>
+<i class="w-3 h-3 text-slate-500" data-lucide="chevron-right"></i>
+</div>
+</button>
+</div>
+</div>
+</section>
+
+<div class="flex items-center gap-2.5 px-3 py-2.5 rounded-2xl bg-white border border-slate-200/70 shadow-xs">
+<div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0"><i class="w-4 h-4" data-lucide="smartphone"></i></div>
+<div>
+<div class="text-[9px] font-bold text-slate-800">Andere Apps bleiben verfügbar</div>
+<div class="text-[8px] text-slate-400 mt-0.5">Dein Smartphone bleibt für die Aufgabe nutzbar.</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-2.5 mt-auto">
+<button class="py-3 bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-bold rounded-xl transition flex items-center justify-center gap-1.5 shadow-sm" onclick="triggerAppAblenkung()"><i class="w-3.5 h-3.5" data-lucide="shield-alert"></i> Blockierung testen</button>
+<button class="py-3 bg-white border border-rose-100 hover:bg-rose-50 text-rose-600 text-[10px] font-bold rounded-xl transition flex items-center justify-center gap-1.5" onclick="completeLearningSession()"><i class="w-3.5 h-3.5 fill-rose-600" data-lucide="square"></i> Beenden</button>
+</div>
+</div>
+<!-- ЭКРАН 3: Statistik -->
+<div class="app-screen p-4 flex flex-col flex-1 hidden min-h-0" id="app-screen-stats">
+<div class="space-y-3">
+<div>
+<span class="text-2xs text-slate-400 font-semibold uppercase tracking-wider">Fortschritt</span>
+<h3 class="text-xl font-bold text-slate-900">Dein Fokusverlauf</h3>
+</div>
+<!-- График -->
+<div class="bg-white p-3.5 rounded-3xl border border-slate-200/60 space-y-2.5 shadow-xs">
+<div class="flex justify-between items-center">
+<span class="text-xs font-semibold text-slate-700">Wochenübersicht</span>
+</div>
+<div class="h-24 flex items-end justify-between gap-1.5 pt-3">
+<div class="focus-day group flex-1 flex flex-col items-center gap-1.5 h-full justify-end relative" data-time="48 Min."><div class="focus-tooltip">48 Min.</div><div class="w-full bg-indigo-200 rounded-t-lg" style="height:64%"></div><span class="text-[9px] text-slate-400">M</span></div>
+<div class="focus-day group flex-1 flex flex-col items-center gap-1.5 h-full justify-end relative" data-time="57 Min."><div class="focus-tooltip">57 Min.</div><div class="w-full bg-indigo-300 rounded-t-lg" style="height:78%"></div><span class="text-[9px] text-slate-400">D</span></div>
+<div class="focus-day group flex-1 flex flex-col items-center gap-1.5 h-full justify-end relative" data-time="42 Min."><div class="focus-tooltip">42 Min.</div><div class="w-full bg-indigo-600 rounded-t-lg" style="height:56%"></div><span class="text-[9px] text-indigo-600 font-semibold">M</span></div>
+<div class="focus-day flex-1 flex flex-col items-center gap-1.5 h-full justify-end"><div class="w-full bg-slate-100 rounded-t-lg h-0.5"></div><span class="text-[9px] text-slate-300">D</span></div>
+<div class="focus-day flex-1 flex flex-col items-center gap-1.5 h-full justify-end"><div class="w-full bg-slate-100 rounded-t-lg h-0.5"></div><span class="text-[9px] text-slate-300">F</span></div>
+<div class="focus-day flex-1 flex flex-col items-center gap-1.5 h-full justify-end"><div class="w-full bg-slate-100 rounded-t-lg h-0.5"></div><span class="text-[9px] text-slate-300">S</span></div>
+<div class="focus-day flex-1 flex flex-col items-center gap-1.5 h-full justify-end"><div class="w-full bg-slate-100 rounded-t-lg h-0.5"></div><span class="text-[9px] text-slate-300">S</span></div>
+</div>
+</div>
+<!-- Индикаторы -->
+<div class="space-y-2.5">
+<div class="p-2.5 bg-white border border-slate-200/60 rounded-2xl flex items-center justify-between text-xs">
+<span class="text-slate-500">Fokuszeit</span><span class="font-semibold text-slate-800">42 Min</span>
+</div>
+<div class="p-2.5 bg-white border border-slate-200/60 rounded-2xl flex items-center justify-between text-xs">
+<span class="text-slate-500">Mission-Schritte</span><span class="font-semibold text-amber-500">2 abgeschlossen</span>
+</div>
+</div>
+</div>
+<!-- Кнопки управления (в том числе возврат) -->
+<div class="grid grid-cols-2 gap-2 mt-2"><div class="p-2.5 bg-indigo-50 border border-indigo-100 rounded-2xl"><div class="text-[8px] uppercase tracking-wider font-bold text-indigo-400">Gesamte Fokuszeit</div><div class="text-[13px] font-black text-indigo-700 mt-1">117h 24m</div></div><div class="p-2.5 bg-emerald-50 border border-emerald-100 rounded-2xl"><div class="text-[8px] uppercase tracking-wider font-bold text-emerald-500">Sitzungen</div><div class="text-[13px] font-black text-emerald-700 mt-1">86% erfolgreich</div></div></div><div class="mt-auto space-y-1.5 pt-2">
+<button class="w-full py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-2xl transition flex items-center justify-center gap-2" onclick="setAppScreen('score')">
+                   Rangliste &amp; Erfolge
+                   <i class="w-4 h-4" data-lucide="arrow-right"></i>
+</button>
+<button class="w-full py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-2xl transition flex items-center justify-center gap-2" onclick="setAppScreen('home')">
+                   Zurück zum Home
+                 </button>
+</div>
+</div>
+<!-- ЭКРАН 4: Motivation & Leaderboard -->
+<div class="app-screen flex-1 hidden flex flex-col overflow-y-auto hide-scrollbar" id="app-screen-score">
+<div class="p-5 space-y-5 flex-1">
+<div><span class="text-2xs text-slate-400 font-semibold uppercase tracking-wider">Motivation</span><h3 class="text-xl font-bold text-slate-900">Weekly Focus League</h3></div>
+<section class="p-4 rounded-3xl bg-gradient-to-br from-amber-50 via-white to-indigo-50 border border-amber-200/60 shadow-xs">
+<div class="flex items-start justify-between"><div><div class="text-[8px] uppercase tracking-[.15em] font-black text-amber-600">Gold League</div><div class="text-xl font-black text-slate-900 mt-1">Platz 12</div><div class="text-[9px] text-slate-400 mt-1">684 Focus Score · diese Woche</div></div><div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-300 to-yellow-500 flex items-center justify-center text-white shadow-lg"><i class="w-5 h-5" data-lucide="trophy"></i></div></div>
+<div class="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-amber-100"><div><div class="text-[8px] text-slate-400">Aufstieg</div><div class="text-[9px] font-bold text-emerald-600 mt-0.5">Top 5</div></div><div><div class="text-[8px] text-slate-400">Verbleibend</div><div class="text-[9px] font-bold text-slate-700 mt-0.5">3 Tage</div></div></div>
+</section>
+<section class="space-y-2.5">
+<div class="flex items-center justify-between"><h4 class="text-xs font-bold text-slate-800 uppercase tracking-wide">Diese Woche</h4><span class="text-[8px] text-slate-400">Score statt Lifetime-Zeit</span></div>
+<div class="bg-white rounded-2xl border border-slate-200/70 overflow-hidden shadow-xs divide-y divide-slate-100">
+<div class="p-3 flex items-center justify-between bg-amber-50/40"><div class="flex items-center gap-3"><span class="w-6 text-center text-lg">🥇</span><span class="font-semibold text-xs text-slate-800">AnnaK</span></div><span class="text-xs font-black text-slate-700">926</span></div>
+<div class="p-3 flex items-center justify-between"><div class="flex items-center gap-3"><span class="w-6 text-center text-lg">🥈</span><span class="font-semibold text-xs text-slate-800">Max_Müller</span></div><span class="text-xs font-black text-slate-700">890</span></div>
+<div class="p-3 flex items-center justify-between"><div class="flex items-center gap-3"><span class="w-6 text-center text-lg">🥉</span><span class="font-semibold text-xs text-slate-800">StudyKing</span></div><span class="text-xs font-black text-slate-700">845</span></div>
+<div class="p-3 flex items-center justify-between bg-indigo-600 text-white"><div class="flex items-center gap-3"><span class="w-6 text-center text-[9px] font-black opacity-80">#12</span><span class="font-bold text-xs">👤 Du</span></div><span class="text-xs font-black">684</span></div>
+</div>
+</section>
+<section class="space-y-2.5">
+<h4 class="text-xs font-bold text-slate-800 uppercase tracking-wide">Erfolge</h4>
+<div class="grid grid-cols-2 gap-2.5">
+<div class="p-3 bg-white border border-slate-200/70 rounded-xl text-center"><div class="w-9 h-9 mx-auto rounded-full bg-indigo-50 flex items-center justify-center text-lg">🎯</div><div class="text-[9px] font-bold text-slate-800 mt-1.5">Mission Complete</div><div class="text-[8px] text-slate-400 mt-0.5">Erste Mission geschafft</div></div>
+<div class="p-3 bg-white border border-slate-200/70 rounded-xl text-center"><div class="w-9 h-9 mx-auto rounded-full bg-orange-50 flex items-center justify-center text-lg">🔥</div><div class="text-[9px] font-bold text-slate-800 mt-1.5">Im Rhythmus</div><div class="text-[8px] text-slate-400 mt-0.5">3 Plan-Wochen</div></div>
+<div class="p-3 bg-white border border-slate-200/70 rounded-xl text-center"><div class="w-9 h-9 mx-auto rounded-full bg-emerald-50 flex items-center justify-center text-lg">⏱️</div><div class="text-[9px] font-bold text-slate-800 mt-1.5">10 Stunden</div><div class="text-[8px] text-slate-400 mt-0.5">Zeit investiert</div></div>
+<div class="p-3 bg-slate-50 border border-slate-200/70 rounded-xl text-center opacity-60"><div class="w-9 h-9 mx-auto rounded-full bg-violet-50 flex items-center justify-center text-lg grayscale">↩️</div><div class="text-[9px] font-bold text-slate-800 mt-1.5">Comeback</div><div class="text-[8px] text-slate-400 mt-0.5">Nach Pause zurückkehren</div></div>
+</div>
+</section>
+</div>
+<div class="px-5 pb-6 mt-auto"><button class="w-full py-3.5 border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-2xl" onclick="setAppScreen('home')">Zurück zum Home</button></div>
+</div>
+<!-- ЭКРАН 5: Einstellungen -->
+<div class="app-screen p-5 flex flex-col justify-between flex-1 space-y-6 hidden" id="app-screen-settings">
+<div class="space-y-4">
+<div>
+<span class="text-2xs text-slate-400 font-semibold uppercase tracking-wider">Konfiguration</span>
+<h3 class="text-xl font-bold text-slate-900">Einstellungen</h3>
+</div>
+<div class="bg-white rounded-2xl border border-slate-200/60 overflow-hidden divide-y divide-slate-100">
+<div class="p-3.5 flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-7 h-7 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center"><i class="w-4 h-4" data-lucide="sliders"></i></div>
+<span class="text-xs font-medium text-slate-800">Fokus-Intensität</span>
+</div>
+<span class="text-xs text-slate-400 font-semibold flex items-center gap-1">Mittel <i class="w-3.5 h-3.5 text-slate-300" data-lucide="chevron-right"></i></span>
+</div>
+</div>
+<div class="p-4 bg-gradient-to-tr from-amber-500 to-amber-400 rounded-2xl text-white cursor-pointer shadow-sm relative overflow-hidden group" onclick="setAppScreen('premium')">
+<div class="absolute -right-3 -bottom-3 w-16 h-16 bg-white/10 rounded-full group-hover:scale-125 transition"></div>
+<h4 class="font-bold text-xs">Premium aktivieren</h4>
+<p class="text-3xs text-amber-100 mt-0.5">Schalte alle Pro-Features &amp; AI-Analysen frei.</p>
+</div>
+</div>
+<button class="w-full py-3.5 border border-slate-200 text-slate-600 text-xs font-semibold rounded-2xl transition" onclick="setAppScreen('home')">Zurück</button>
+</div>
+<!-- ЭКРАН 6: Premium Screen -->
+<div class="app-screen p-5 flex flex-col flex-1 hidden bg-slate-900 text-white overflow-y-auto hide-scrollbar" id="app-screen-premium">
+<div class="space-y-5 text-center pt-2 pb-6">
+<div class="inline-flex w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-400 items-center justify-center text-white shadow-lg mx-auto">
+<i class="w-6 h-6" data-lucide="crown"></i>
+</div>
+<div class="space-y-1">
+<h3 class="text-2xl font-black tracking-tight text-white">Focus Mode+ Premium</h3>
+<p class="text-xs text-slate-400">Das Upgrade für deine Aufmerksamkeit</p>
+</div>
+<!-- Блок покупки -->
+<div class="py-2.5 px-4 bg-white/5 border border-white/10 rounded-2xl inline-block mb-1">
+<span class="text-2xl font-extrabold text-amber-400">3,00 € <span class="text-xs font-normal text-slate-300">/ Monat</span></span>
+</div>
+<!-- ВОЗВРАЩЕННЫЙ СПИСОК ФИШЕК PRO-ВЕРСИИ -->
+<div class="text-left space-y-2.5 px-3 mb-2">
+<div class="flex items-start gap-2.5 text-xs">
+<i class="w-4 h-4 text-emerald-400 shrink-0" data-lucide="check"></i>
+<span class="text-slate-300 leading-tight">Detaillierte Langzeitstatistiken</span>
+</div>
+<div class="flex items-start gap-2.5 text-xs">
+<i class="w-4 h-4 text-emerald-400 shrink-0" data-lucide="check"></i>
+<span class="text-slate-300 leading-tight">Verhaltensanalyse auf Basis künstlicher Intelligenz</span>
+</div>
+<div class="flex items-start gap-2.5 text-xs">
+<i class="w-4 h-4 text-emerald-400 shrink-0" data-lucide="check"></i>
+<span class="text-slate-300 leading-tight">Erweiterte Blockierungs-Modi</span>
+</div>
+</div>
+<!-- ИЗМЕНЕНО: Вызов функции покупки премиума -->
+<button class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition mt-2" onclick="simulatePremiumPurchase()">
+                   Premium abonnieren
+                 </button>
+<!-- Разделитель -->
+<div class="flex items-center gap-3 my-4 opacity-50">
+<div class="h-px bg-white flex-1"></div>
+<span class="text-3xs uppercase tracking-widest font-bold">Oder kostenlos</span>
+<div class="h-px bg-white flex-1"></div>
+</div>
+<!-- Premium durch Leistung -->
+<div class="text-left space-y-3">
+<h4 class="text-xs font-bold text-white mb-2">Premium durch Leistung freischalten</h4>
+<!-- ИЗМЕНЕНО: Вызов функции покупки премиума через баллы -->
+<div class="p-3 bg-white/5 border border-white/10 rounded-xl flex items-center justify-between cursor-pointer hover:bg-white/10 transition" onclick="simulatePremiumPurchase()">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center"><i class="w-4 h-4" data-lucide="gift"></i></div>
+<div>
+<div class="text-xs font-bold text-white">1 Tag Premium</div>
+<div class="text-[9px] text-slate-400">Für 100 Min. Fokuszeit</div>
+</div>
+</div>
+<span class="text-xs font-bold text-amber-400">Einlösen</span>
+</div>
+<div class="p-3 bg-white/5 border border-white/10 rounded-xl flex items-center justify-between opacity-60">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 flex items-center justify-center"><i class="w-4 h-4" data-lucide="lock"></i></div>
+<div>
+<div class="text-xs font-bold text-white">3 Tage Premium</div>
+<div class="text-[9px] text-slate-400">Benötigt 10h Fokuszeit</div>
+</div>
+</div>
+</div>
+<div class="p-3 bg-white/5 border border-white/10 rounded-xl flex items-center justify-between opacity-60">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 flex items-center justify-center"><i class="w-4 h-4" data-lucide="lock"></i></div>
+<div>
+<div class="text-xs font-bold text-white">7 Tage Premium</div>
+<div class="text-[9px] text-slate-400">Benötigt 50h Fokuszeit</div>
+</div>
+</div>
+</div>
+</div>
+<button class="w-full py-3 mt-4 text-slate-400 hover:text-white text-3xs font-medium transition" onclick="setAppScreen('home')">
+                   Zurück zum Dashboard
+                 </button>
+</div>
+</div>
+<!-- ЭКРАН 7: Чат (AI Coach) -->
+<div class="app-screen flex flex-col flex-1 hidden bg-slate-50 relative overflow-hidden" id="app-screen-chat">
+<div class="px-5 pt-5 pb-3 bg-slate-50 border-b border-slate-200/80 shrink-0 z-10 flex items-center gap-3 shadow-sm">
+<button class="w-8 h-8 bg-white hover:bg-slate-100 border border-slate-200 rounded-full flex items-center justify-center text-slate-700 transition" onclick="setAppScreen('home')">
+<i class="w-4 h-4" data-lucide="arrow-left"></i>
+</button>
+<div>
+<h3 class="font-bold text-slate-900 text-sm">AI Coach</h3>
+<span class="text-[9px] text-emerald-500 font-bold uppercase tracking-wider flex items-center gap-1"><span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span> Online</span>
+</div>
+</div>
+<!-- СОСТОЯНИЕ 1: Заблокировано (Без Премиума) -->
+<div class="flex-1 overflow-y-auto hide-scrollbar space-y-4 px-5 pt-4 pb-4" id="chat-locked-state">
+<div class="flex gap-2.5">
+<div class="w-7 h-7 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+<i class="w-4 h-4" data-lucide="bot"></i>
+</div>
+<div class="bg-white p-3.5 rounded-2xl rounded-tl-none border border-slate-200/60 shadow-xs text-xs text-slate-600 leading-relaxed">
+                     Hallo! Ich bin dein AI Coach. Ich scanne, überprüfe und analysiere deine Fokus-Muster, um dir das beste Verhaltenstraining zu bieten.
+                   </div>
+</div>
+<div class="flex gap-2.5">
+<div class="w-7 h-7 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+<i class="w-4 h-4" data-lucide="bot"></i>
+</div>
+<div class="bg-indigo-50 border border-indigo-100 p-3.5 rounded-2xl rounded-tl-none shadow-xs text-xs text-indigo-900 leading-relaxed space-y-3">
+<p><strong>Premium erforderlich</strong></p>
+<p>Um diese personalisierte Analyse-Funktion zu nutzen, aktiviere bitte dein Premium-Abonnement.</p>
+<button class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition shadow-sm flex items-center justify-center gap-2 mt-2" onclick="setAppScreen('premium')">
+<i class="w-3.5 h-3.5" data-lucide="crown"></i> Zu Premium wechseln
+                     </button>
+</div>
+</div>
+</div>
+<!-- СОСТОЯНИЕ 2: Активно (С Премиумом) -->
+<div class="hidden flex-1 flex flex-col overflow-hidden bg-slate-50" id="chat-active-state">
+<div class="flex-1 overflow-y-auto hide-scrollbar space-y-4 px-5 pt-4 pb-20" id="chatMessages">
+<!-- Приветственное сообщение -->
+<div class="flex gap-2.5">
+<div class="w-7 h-7 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+<i class="w-4 h-4" data-lucide="bot"></i>
+</div>
+<div class="bg-white p-3.5 rounded-2xl rounded-tl-none border border-slate-200/60 shadow-xs text-xs text-slate-600 leading-relaxed">
+                       Willkommen im Premium-Modus! Ich habe deine bisherigen Sitzungen analysiert. Wie kann ich dir heute helfen?
+                     </div>
+</div>
+</div>
+<!-- Индикатор печати бота (скрыт по умолчанию) -->
+<div class="hidden px-5 pb-20 absolute bottom-0 left-0" id="typingIndicator">
+<div class="flex gap-2.5">
+<div class="w-7 h-7 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+<i class="w-4 h-4" data-lucide="bot"></i>
+</div>
+<div class="bg-white p-3.5 rounded-2xl rounded-tl-none border border-slate-200/60 shadow-xs flex items-center gap-1 w-16 h-10">
+<div class="w-1.5 h-1.5 bg-slate-400 rounded-full typing-dot"></div>
+<div class="w-1.5 h-1.5 bg-slate-400 rounded-full typing-dot"></div>
+<div class="w-1.5 h-1.5 bg-slate-400 rounded-full typing-dot"></div>
+</div>
+</div>
+</div>
+<!-- Поле ввода (прилеплено вниз) -->
+<div class="absolute bottom-6 left-0 right-0 px-4 z-20">
+<div class="bg-white border border-slate-200 rounded-full shadow-lg p-1.5 flex items-center gap-2">
+<button class="flex-1 text-left px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded-full text-xs font-medium text-indigo-700 transition truncate" id="chatPromptBtn" onclick="triggerChatAnalysis()">
+                       Was kannst du mir empfehlen?
+                     </button>
+<div class="w-9 h-9 bg-indigo-600 rounded-full flex items-center justify-center text-white shrink-0 cursor-pointer shadow-sm">
+<i class="w-4 h-4" data-lucide="arrow-up"></i>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Home Indicator -->
+<div class="h-5 bg-white flex items-center justify-center pb-2 shrink-0 z-40 transition-colors duration-300 cursor-pointer" id="homeBar" onclick="setAppScreen('home')">
+<div class="w-28 h-1 bg-slate-300 rounded-full"></div>
+</div><div class="hidden absolute inset-0 z-[80] flex flex-col justify-end p-5 overflow-hidden" id="focusChoiceOverlay">
+<div class="focus-choice-backdrop" onclick="closeFocusChoice()"></div><div class="absolute inset-0 pointer-events-none" id="focusChoiceChrome"><div class="choice-status"><span id="choiceStatusTime">09:41</span><div class="choice-status-icons"><i data-lucide="signal"></i><i data-lucide="wifi"></i><span class="choice-battery"><span></span></span></div></div><div class="choice-home-indicator"></div></div>
+<div class="relative z-10 bg-white rounded-[30px] p-4 shadow-2xl border border-white focus-choice-sheet">
+<div class="w-10 h-1 bg-slate-200 rounded-full mx-auto mb-4"></div>
+<div class="flex items-start justify-between gap-3 mb-4">
+<div><div class="text-[9px] font-black uppercase tracking-[.16em] text-indigo-500">Fokus starten</div><h3 class="text-lg font-black tracking-tight text-slate-950 mt-1">Wähle deinen Modus</h3><p class="text-[9px] leading-relaxed text-slate-400 mt-1">Sofort loslegen oder eine wichtige Aufgabe als Mission verfolgen.</p></div>
+<button class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center shrink-0" onclick="closeFocusChoice()"><i class="w-4 h-4" data-lucide="x"></i></button>
+</div>
+<div class="space-y-2.5">
+<button class="w-full p-3.5 rounded-2xl border border-slate-200 bg-white text-left flex items-center gap-3 shadow-sm hover:border-indigo-200 hover:bg-indigo-50/40 transition" onclick="openQuickSetupFromChoice()">
+<div class="w-11 h-11 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0"><i class="w-5 h-5" data-lucide="timer"></i></div>
+<div class="flex-1 min-w-0"><div class="flex items-center gap-2"><span class="text-[11px] font-black text-slate-900">Kurzer Fokus</span><span class="shrink-0 whitespace-nowrap text-[8px] leading-none font-bold px-2 py-1 rounded-full bg-slate-100 text-slate-500">Flexibel</span></div><div class="text-[9px] leading-relaxed text-slate-400 mt-1">Dauer, Pause und Ablenkungen selbst wählen.</div></div>
+<i class="w-4 h-4 text-slate-300" data-lucide="chevron-right"></i>
+</button>
+<button class="w-full p-3.5 rounded-2xl border border-slate-200 bg-white text-left flex items-center gap-3 shadow-sm hover:border-indigo-200 hover:bg-indigo-50/40 transition" onclick="continueMissionFromChoice()">
+<div class="w-11 h-11 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0"><i class="w-5 h-5" data-lucide="target"></i></div>
+<div class="flex-1 min-w-0"><div class="flex items-center gap-2"><span class="text-[11px] font-black text-slate-900">Focus Mission</span></div><div class="text-[9px] leading-relaxed text-slate-500 mt-1">Wichtige Aufgaben planen und fokussiert abschließen.</div></div>
+<i class="w-4 h-4 text-indigo-400" data-lucide="chevron-right"></i>
+</button>
+</div>
+<button class="w-full mt-3 py-2 text-[9px] font-bold text-slate-400 hover:text-indigo-600 transition" onclick="openNewMissionFromChoice()">+ Neue Focus Mission erstellen</button>
+</div>
+</div>
+<!-- POPUP: Успешная покупка (Apple Pay style) -->
+<div class="absolute inset-0 bg-slate-950/40 dark:bg-black/60 backdrop-blur-xl z-[80] flex items-center justify-center p-5 hidden transition-all duration-300 ease-out opacity-0" id="screen-popup-success">
+<div class="bg-white/90 dark:bg-neutral-800/90 backdrop-blur-md rounded-[32px] p-8 w-48 text-center flex flex-col items-center justify-center shadow-2xl transform transition-all duration-300 ease-out scale-90 opacity-0 border border-slate-100 dark:border-white/10" id="popupContentSuccess">
+<div class="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center text-white mb-4 shadow-lg shadow-emerald-500/30">
+<i class="w-8 h-8" data-lucide="check"></i>
+</div>
+<span class="text-slate-900 dark:text-white font-bold text-sm tracking-wide">Aktiviert</span>
+</div>
+</div>
+<!-- POPUP: Ablenkung -->
+<div class="absolute inset-0 bg-slate-950/40 dark:bg-black/60 backdrop-blur-xl z-50 flex items-center justify-center p-5 hidden transition-all duration-300 ease-out opacity-0" id="screen-popup-ablenkung">
+<div class="bg-white rounded-3xl p-6 w-full text-center space-y-5 shadow-2xl transform transition-all duration-300 ease-out scale-95 opacity-0" id="popupContentAblenkung">
+<div class="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-50 mx-auto animate-bounce">
+<i class="w-8 h-8 text-amber-500" data-lucide="alert-triangle"></i>
+</div>
+<div class="space-y-2">
+<h3 class="text-xl font-bold text-slate-900">Instagram ist blockiert</h3>
+<p class="text-xs text-slate-500 leading-relaxed">Du hast Instagram für diese Fokus-Sitzung als Ablenkung ausgewählt.</p>
+</div>
+<div class="space-y-2">
+<button class="w-full py-3 bg-indigo-600 text-white rounded-xl text-xs font-semibold hover:bg-indigo-700 transition" onclick="closePopup('ablenkung', true)">Zurück zum Fokus</button>
+<button class="w-full py-3 bg-slate-100 text-slate-600 rounded-xl text-xs font-semibold hover:bg-slate-200 transition" onclick="closePopup('ablenkung', false)">Trotzdem verlassen</button>
+</div>
+</div>
+</div>
+<!-- POPUP: Achievement -->
+<div class="absolute inset-0 bg-slate-950/60 dark:bg-black/80 backdrop-blur-xl z-[70] flex items-center justify-center p-5 hidden transition-all duration-300 ease-out opacity-0" id="screen-popup-achievement">
+<div class="bg-gradient-to-b from-amber-50 to-white dark:from-neutral-800 dark:to-neutral-900 rounded-3xl p-6 w-full text-center space-y-5 shadow-[0_0_50px_rgba(245,158,11,0.3)] transform transition-all duration-500 ease-out scale-90 opacity-0 border border-amber-200/50 dark:border-amber-500/20" id="popupContentAchievement">
+<div class="w-16 h-16 bg-gradient-to-tr from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center text-white mx-auto shadow-lg animate-[bounce_1.5s_infinite]">
+<i class="w-8 h-8" data-lucide="gift"></i>
+</div>
+<div class="space-y-2 pt-2">
+<span class="text-3xs font-black uppercase tracking-widest text-amber-500">Belohnung freigeschaltet</span>
+<h3 class="text-xl font-black text-slate-900 dark:text-white">Premium für 1 Tag</h3>
+<p class="text-xs text-slate-500 dark:text-neutral-400 leading-relaxed pt-1">
+                   Glückwunsch! Du hast über 100 Minuten fokussiert gearbeitet. Genieße alle Premium-Features.
+                 </p>
+</div>
+<div class="pt-2">
+<button class="w-full py-3.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-xs font-bold transition shadow-md" onclick="closePopup('achievement')">
+                   Awesome!
+                 </button>
+</div>
+</div>
+</div>
+<div class="absolute inset-0 bg-slate-950/40 backdrop-blur-xl z-[85] flex items-end p-4 hidden opacity-0 transition" id="blockedAppsPopup">
+<div class="w-full bg-white rounded-[28px] p-4 shadow-2xl translate-y-6 opacity-0 transition" id="blockedAppsPopupCard">
+<div class="w-10 h-1 bg-slate-200 rounded-full mx-auto mb-4"></div><div class="flex items-start justify-between"><div><div class="text-[9px] font-black uppercase tracking-wider text-rose-500">Fokus-Schutz aktiv</div><h3 class="text-lg font-black text-slate-950 mt-1">Blockierte Ablenkungen</h3></div><button class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center" onclick="hideBlockedAppsPopup()"><i class="w-4 h-4" data-lucide="x"></i></button></div>
+<div class="flex flex-wrap gap-1.5 mt-4" id="blockedAppsChips"></div><div class="p-3 rounded-2xl bg-emerald-50 border border-emerald-100 text-[9px] text-emerald-800 mt-4">Alle anderen Apps und wichtigen Telefonfunktionen bleiben verfügbar.</div>
+</div>
+</div>
+</div>
+</div></div><span class="hint">Scrollen, um den Prototyp zu steuern</span></aside></main><div class="modal" id="modal"><button class="close" onclick="closeProto()">×</button><div class="modal-content"><div class="tools"><button onclick="setAppScreen('home')">HOME</button><button onclick="openGoalIntake()">FOCUS MISSION</button><button onclick="setAppScreen('stats')">STATS</button><button onclick="setAppScreen('score')">SCORE</button><button onclick="setAppScreen('premium')">PREMIUM</button><button onclick="setAppScreen('chat')">AI COACH</button><button onclick="triggerAppAblenkung()">DISTRACTION</button></div><div id="modalMount"></div></div></div><script>
+   let currentSlide = 1;
+   const totalSlides = 11;
+   let timerInterval = null;
+   let timerDuration = 25 * 60; 
+   let originalDuration = 25 * 60;
+   
+   // НОВАЯ ПЕРЕМЕННАЯ: Статус премиума
+   let isPremiumUser = false;
+
+   document.addEventListener("DOMContentLoaded", () => {
+     lucide.createIcons();
+     updateStatusBarTime();
+     setInterval(updateStatusBarTime, 1000);
+     setAppScreen('home');
+   });
+
+   function updateStatusBarTime() {
+     const now = new Date();
+     let hours = now.getHours().toString().padStart(2, '0');
+     let minutes = now.getMinutes().toString().padStart(2, '0');
+     document.getElementById('statusBarTime').textContent = `${hours}:${minutes}`;
+     const choiceClock=document.getElementById('choiceStatusTime'); if(choiceClock) choiceClock.textContent=`${hours}:${minutes}`;
+   }
+
+   function changeSlide(directionOrNumber) {
+     let targetSlide = currentSlide;
+     if (typeof directionOrNumber === 'number') {
+       targetSlide = directionOrNumber;
+     } else if (directionOrNumber === 'next') {
+       targetSlide = currentSlide < totalSlides ? currentSlide + 1 : totalSlides;
+     } else if (directionOrNumber === 'prev') {
+       targetSlide = currentSlide > 1 ? currentSlide - 1 : 1;
+     }
+
+     for (let i = 1; i <= totalSlides; i++) {
+       const slide = document.getElementById(`slide-${i}`);
+       if (slide) slide.classList.add('hidden');
+     }
+
+     const targetElement = document.getElementById(`slide-${targetSlide}`);
+     if (targetElement) targetElement.classList.remove('hidden');
+
+     currentSlide = targetSlide;
+     document.getElementById('slideCounter').textContent = `${currentSlide} / ${totalSlides}`;
+     syncIphoneWithSlide(currentSlide);
+   }
+
+   function nextSlide() { changeSlide('next'); }
+   function prevSlide() { changeSlide('prev'); }
+
+   function syncIphoneWithSlide(slideNumber) {
+     if (document.body.classList.contains('zen-active')) {
+       exitZenMode();
+     }
+
+     switch(slideNumber) {
+       case 1: setAppScreen('home'); break;
+       case 2: setAppScreen('stats'); break;
+       case 3: setAppScreen('home'); break;
+       case 4: startFocusSession(false); break;
+       case 5: 
+         startFocusSession(false);
+         setTimeout(() => triggerAppAblenkung(), 400);
+         break;
+       case 6: setAppScreen('score'); break;
+       case 7: setAppScreen('premium'); break;
+       case 8: setAppScreen('settings'); break;
+       case 9: setAppScreen('home'); break;
+     }
+   }
+
+   function applyAppScreenImmediately(screenName) {
+     const screens = document.querySelectorAll('.app-screen');
+     screens.forEach(s => s.classList.add('hidden'));
+
+     const target = document.getElementById(`app-screen-${screenName}`);
+     if (target) {
+         target.classList.remove('hidden');
+         
+         // ЛОГИКА ДЛЯ ЧАТА
+         if (screenName === 'chat') {
+           const lockedState = document.getElementById('chat-locked-state');
+           const activeState = document.getElementById('chat-active-state');
+           if (isPremiumUser) {
+             lockedState.classList.add('hidden');
+             activeState.classList.remove('hidden');
+           } else {
+             lockedState.classList.remove('hidden');
+             activeState.classList.add('hidden');
+           }
+         }
+         lucide.createIcons();
+     }
+
+     const appBody = document.getElementById('appBody');
+     const statusBar = document.getElementById('statusBar');
+     const homeBar = document.getElementById('homeBar');
+     const screenWrapper = document.getElementById('screenWrapper');
+
+     const aiImmersiveScreens = ['analyzing','feedbackprocessing','update'];
+     if (screenWrapper) screenWrapper.classList.toggle('ai-immersive', aiImmersiveScreens.includes(screenName));
+
+     if (screenName === 'premium') {
+       appBody.classList.remove('bg-slate-50', 'text-slate-900');
+       appBody.classList.add('bg-slate-900', 'text-white');
+       statusBar.classList.remove('bg-white', 'text-slate-800');
+       statusBar.classList.add('bg-slate-900', 'text-white');
+       homeBar.classList.remove('bg-white');
+       homeBar.classList.add('bg-slate-900');
+       homeBar.querySelector('div').classList.add('bg-slate-700');
+       homeBar.querySelector('div').classList.remove('bg-slate-300');
+       if(screenWrapper) {
+         screenWrapper.classList.remove('bg-slate-50');
+         screenWrapper.classList.add('bg-slate-900');
+       }
+     } else {
+       appBody.classList.add('bg-slate-50', 'text-slate-900');
+       appBody.classList.remove('bg-slate-900', 'text-white');
+       statusBar.classList.add('bg-white', 'text-slate-800');
+       statusBar.classList.remove('bg-slate-900', 'text-white');
+       homeBar.classList.add('bg-white');
+       homeBar.classList.remove('bg-slate-900');
+       homeBar.querySelector('div').classList.remove('bg-slate-700');
+       homeBar.querySelector('div').classList.add('bg-slate-300');
+       if(screenWrapper) {
+         screenWrapper.classList.add('bg-slate-50');
+         screenWrapper.classList.remove('bg-slate-900');
+       }
+     }
+
+     const buttons = document.querySelectorAll('.app-nav-btn');
+     buttons.forEach(btn => {
+       btn.classList.remove('bg-indigo-600', 'text-white');
+       btn.classList.add('text-slate-600');
+     });
+
+     const map = { 'home': 0, 'timer': 1, 'stats': 2, 'score': 3, 'settings': 4, 'premium': 5, 'chat': -1 };
+     if (map[screenName] !== undefined && map[screenName] >= 0 && buttons[map[screenName]]) {
+       buttons[map[screenName]].classList.add('bg-indigo-600', 'text-white');
+       buttons[map[screenName]].classList.remove('text-slate-600', 'bg-slate-50', 'dark:bg-neutral-800');
+     }
+   }
+
+   /* =========================================
+      НОВАЯ ЛОГИКА: Покупка Премиума
+      ========================================= */
+   function simulatePremiumPurchase() {
+     const popup = document.getElementById('screen-popup-success');
+     const content = document.getElementById('popupContentSuccess');
+     
+     // Показываем поп-ап
+     popup.classList.remove('hidden');
+     requestAnimationFrame(() => {
+       popup.classList.add('opacity-100'); popup.classList.remove('opacity-0');
+       content.classList.add('scale-100', 'opacity-100'); content.classList.remove('scale-90', 'opacity-0');
+     });
+
+     // Через 1.5 секунды устанавливаем премиум и уходим на Home
+     setTimeout(() => {
+       isPremiumUser = true;
+       
+       // Скрываем поп-ап
+       popup.classList.add('opacity-0'); popup.classList.remove('opacity-100');
+       content.classList.add('scale-90', 'opacity-0'); content.classList.remove('scale-100', 'opacity-100');
+       
+       setTimeout(() => {
+         popup.classList.add('hidden');
+         setAppScreen('home'); // Переход на Home
+       }, 300);
+     }, 1800);
+   }
+
+   /* =========================================
+      НОВАЯ ЛОГИКА: AI Чат
+      ========================================= */
+   function triggerChatAnalysis() {
+     const chatMessages = document.getElementById('chatMessages');
+     const promptBtn = document.getElementById('chatPromptBtn');
+     
+     // Отключаем кнопку, чтобы не нажать дважды
+     promptBtn.disabled = true;
+     promptBtn.classList.add('opacity-50');
+
+     // 1. Добавляем сообщение пользователя
+     const userMsgHtml = `
+       <div class="flex justify-end mb-4">
+         <div class="bg-indigo-600 text-white p-3.5 rounded-2xl rounded-tr-none shadow-xs text-xs leading-relaxed max-w-[85%]">
+           Was kannst du mir empfehlen?
+         </div>
+       </div>
+     `;
+     chatMessages.insertAdjacentHTML('beforeend', userMsgHtml);
+     scrollToBottom();
+
+     // Функция задержки
+     const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+     // Секвенция ответов бота
+     const runSequence = async () => {
+       // --- Сообщение 1 ---
+       showTyping();
+       await wait(1500);
+       hideTyping();
+       const botMsg1 = `
+         <div class="flex gap-2.5 mb-4">
+           <div class="w-7 h-7 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+             <i data-lucide="bot" class="w-4 h-4"></i>
+           </div>
+           <div class="bg-white p-3.5 rounded-2xl rounded-tl-none border border-slate-200/60 shadow-xs text-xs text-slate-600 leading-relaxed w-full">
+             <p class="mb-2">Basierend auf deinen Daten habe ich folgendes Muster erkannt:</p>
+             <p class="font-bold text-slate-800">Du verlierst deinen Fokus meistens zwischen 18:00 und 20:00 Uhr.</p>
+             
+             <!-- ГРАФИК -->
+             <div class="mt-3 bg-slate-50 rounded-xl p-3 border border-slate-100 flex items-end gap-1.5 h-24 relative overflow-hidden">
+               <div class="flex-1 bg-indigo-200 h-[80%] rounded-t-sm transition-all"></div>
+               <div class="flex-1 bg-indigo-400 h-[90%] rounded-t-sm transition-all"></div>
+               <div class="flex-1 bg-rose-400 h-[30%] rounded-t-sm relative transition-all">
+                 <div class="absolute -top-5 left-1/2 -translate-x-1/2 text-[8px] bg-rose-100 text-rose-600 px-1 rounded font-bold">18:00</div>
+               </div>
+               <div class="flex-1 bg-rose-400 h-[20%] rounded-t-sm relative transition-all">
+                 <div class="absolute -top-5 left-1/2 -translate-x-1/2 text-[8px] bg-rose-100 text-rose-600 px-1 rounded font-bold">20:00</div>
+               </div>
+               <div class="flex-1 bg-indigo-300 h-[70%] rounded-t-sm transition-all"></div>
+             </div>
+             <p class="text-[9px] text-slate-400 mt-1 text-center">Fokus-Niveau im Tagesverlauf</p>
+           </div>
+         </div>
+       `;
+       chatMessages.insertAdjacentHTML('beforeend', botMsg1);
+       lucide.createIcons();
+       scrollToBottom();
+
+       // --- Сообщение 2 ---
+       showTyping();
+       await wait(2000);
+       hideTyping();
+       const botMsg2 = `
+         <div class="flex gap-2.5 mb-4">
+           <div class="w-7 h-7 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+             <i data-lucide="bot" class="w-4 h-4"></i>
+           </div>
+           <div class="bg-white p-3.5 rounded-2xl rounded-tl-none border border-slate-200/60 shadow-xs text-xs text-slate-600 leading-relaxed">
+             Deine erfolgreichsten Sitzungen dauern exakt <strong class="text-indigo-600">35 Minuten</strong>. 
+             <br><br>
+             💡 <strong>Mein Tipp:</strong> Versuche kürzere Pausen nach intensiven Lernphasen einzuplanen und reduziere die Sitzungsdauer am Abend.
+           </div>
+         </div>
+       `;
+       chatMessages.insertAdjacentHTML('beforeend', botMsg2);
+       lucide.createIcons();
+       scrollToBottom();
+     };
+
+     runSequence();
+   }
+
+   function showTyping() {
+     const typingIndicator = document.getElementById('typingIndicator');
+     typingIndicator.classList.remove('hidden');
+     scrollToBottom();
+   }
+
+   function hideTyping() {
+     const typingIndicator = document.getElementById('typingIndicator');
+     typingIndicator.classList.add('hidden');
+   }
+
+   function scrollToBottom() {
+     const chatMessages = document.getElementById('chatMessages');
+     chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
+   }
+
+
+   /* =========================================
+      Существующие функции
+      ========================================= */
+   let learningFlowActive = false;
+let selectedTaskCount = 3;
+function openFocusChoice(){
+  learningFlowActive=false;
+  const overlay=document.getElementById('focusChoiceOverlay');
+  overlay.classList.remove('hidden','focus-choice-leave');
+  overlay.classList.add('focus-choice-enter');
+  document.getElementById('screenWrapper').classList.add('focus-choice-open');
+  lucide.createIcons();
+}
+function closeFocusChoice(){
+  const overlay=document.getElementById('focusChoiceOverlay');
+  overlay.classList.remove('focus-choice-enter');
+  overlay.classList.add('focus-choice-leave');
+  document.getElementById('screenWrapper').classList.remove('focus-choice-open');
+  setTimeout(()=>overlay.classList.add('hidden'),240);
+}
+function startQuickFocusFromChoice(){ closeFocusChoice(); setTimeout(()=>startQuickFocus(),180); }
+function openAdaptiveFromChoice(){ closeFocusChoice(); setTimeout(()=>openGoalIntake(),180); }
+function startQuickFocus(){
+  learningFlowActive=false;
+  startFocusSession(true);
+}
+function openGoalIntake(){ learningFlowActive=false; setAppScreen('goal'); }
+function showDemoFilePicker(){ setAppScreen('filepicker'); }
+function selectDemoFile(){
+  const card=document.getElementById('selectedFileCard');
+  if(card){ card.classList.remove('hidden'); card.classList.add('selected'); }
+  setAppScreen('goal',{immediate:true});
+  requestAnimationFrame(()=>lucide.createIcons());
+}
+function mockVoiceInput(){
+  const area=document.getElementById('goalPrompt'); area.focus();
+  const old=area.value; area.value=''; let i=0;
+  const t=setInterval(()=>{ area.value=old.slice(0,++i); if(i>=old.length) clearInterval(t); },8);
+}
+function selectConfidence(btn){ btn.parentElement.querySelectorAll('.flow-chip').forEach(x=>x.classList.remove('active')); btn.classList.add('active'); selectedMissionConfidenceValue=btn.textContent.trim(); updateMissionPlanButton(); }
+function analyzeGoal(){
+  if(!selectedMissionTypeValue||!selectedMissionConfidenceValue) return;
+  setAppScreen('analyzing');
+  const rows=[...document.querySelectorAll('#analysisRows .analysis-row')];
+  const analysisTimes=[650,1750,3750];
+  rows.forEach((r,i)=>setTimeout(()=>{
+    r.classList.remove('opacity-40'); r.classList.add('done');
+    const icon=r.querySelector('.analysis-icon'); icon.innerHTML='<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i>'; lucide.createIcons();
+  },analysisTimes[i]));
+  setTimeout(()=>{ revealCreatedMission(); setAppScreen('plan'); },5350);
+}
+function prepareLearningSession(){
+  learningFlowActive=true;
+  if(timerInterval) clearInterval(timerInterval);
+  timerDuration=10*60; originalDuration=10*60;
+  const mode=document.getElementById('currentFocusModeLabel'),task=document.getElementById('activeTaskLabel');
+  if(mode) mode.textContent='Mathematik'; if(task) task.textContent='Schneller Wissenscheck · 5 Aufgaben'; const timerTask=document.getElementById('timerTaskValue'); if(timerTask) timerTask.textContent='5 Diagnoseaufgaben bearbeiten';
+  setAppScreen('timer'); document.getElementById('islandIndicator').classList.remove('hidden'); updateTimerUI();
+  timerInterval=setInterval(()=>{if(timerDuration>0){timerDuration--;updateTimerUI()}else{completeLearningSession()}},1000);
+}
+function completeLearningSession(){
+  if(timerInterval) clearInterval(timerInterval); timerInterval=null;
+  document.getElementById('islandIndicator').classList.add('hidden');
+  if(learningFlowActive){
+    timerDuration=0;
+    updateTimerUI();
+    setAppScreen('result');
+  } else {
+    setAppScreen('home');
+  }
+}
+function selectTaskCount(btn,count){ selectedTaskCount=count; document.querySelectorAll('#taskCountButtons .flow-chip').forEach(x=>x.classList.remove('active')); btn.classList.add('active'); }
+function showPlanUpdate(){
+  setAppScreen('feedbackprocessing');
+  const rows=[...document.querySelectorAll('#feedbackRows .feedback-row')];
+  const feedbackTimes=[650,1800,3300];
+  rows.forEach((r,i)=>setTimeout(()=>{
+    r.classList.remove('opacity-35'); r.classList.add('done');
+    const icon=r.querySelector('.feedback-icon');
+    icon.innerHTML='<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-300"></i>';
+    lucide.createIcons();
+  },feedbackTimes[i]));
+  setTimeout(()=>setAppScreen('update'),4700);
+}
+function finishLearningFlow(){
+  updateHomeAfterMissionSession();
+  learningFlowActive=false;
+  const homeBtn=document.querySelector('#app-screen-home > button:last-child');
+  if(homeBtn) homeBtn.innerHTML='<i class="w-4 h-4" data-lucide="play"></i> Nächste Mission fortsetzen';
+  setAppScreen('home'); lucide.createIcons();
+}
+function startFocusSession(forceRestart = true) {
+     setAppScreen('timer');
+     document.getElementById('islandIndicator').classList.remove('hidden');
+     if (!forceRestart && timerInterval) return; 
+     if (timerInterval) clearInterval(timerInterval);
+     timerDuration = 25 * 60; 
+     updateTimerUI();
+     timerInterval = setInterval(() => {
+       if (timerDuration > 0) { timerDuration--; updateTimerUI(); } 
+       else { stopFocusSession(); }
+     }, 1000);
+   }
+
+   function stopFocusSession() {
+     if (timerInterval) clearInterval(timerInterval);
+     timerInterval = null; 
+     document.getElementById('islandIndicator').classList.add('hidden');
+     setAppScreen('home');
+   }
+
+   function updateTimerUI() {
+     const totalSeconds=Math.max(0,timerDuration);
+     const hours=Math.floor(totalSeconds/3600);
+     const min=Math.floor((totalSeconds%3600)/60).toString().padStart(2,'0');
+     const sec=(totalSeconds%60).toString().padStart(2,'0');
+     document.getElementById('timerDigits').textContent=hours>0?`${hours}:${min}:${sec}`:`${min}:${sec}`;
+     const ratio=originalDuration>0?Math.max(0,Math.min(1,timerDuration/originalDuration)):0;
+     const orbit=document.getElementById('timerCircleProgress');
+     if(orbit) orbit.style.strokeDashoffset=498-(ratio*498);
+     const dot=document.getElementById('orbitProgressDot');
+     if(dot){
+       const angle=(-Math.PI/2)+(Math.PI*2*(1-ratio));
+       dot.setAttribute('cx',(120+105*Math.cos(angle)).toFixed(2));
+       dot.setAttribute('cy',(88+45*Math.sin(angle)).toFixed(2));
+     }
+   }
+
+   function triggerAppAblenkung() {
+     const popup = document.getElementById('screen-popup-ablenkung');
+     const content = document.getElementById('popupContentAblenkung');
+     popup.classList.remove('hidden');
+     requestAnimationFrame(() => {
+       popup.classList.add('opacity-100'); popup.classList.remove('opacity-0');
+       content.classList.add('scale-100', 'opacity-100'); content.classList.remove('scale-95', 'opacity-0');
+     });
+   }
+
+   function triggerAchievementPopup() {
+     const popup = document.getElementById('screen-popup-achievement');
+     const content = document.getElementById('popupContentAchievement');
+     popup.classList.remove('hidden');
+     requestAnimationFrame(() => {
+       popup.classList.add('opacity-100'); popup.classList.remove('opacity-0');
+       content.classList.add('scale-100', 'opacity-100'); content.classList.remove('scale-90', 'opacity-0');
+     });
+   }
+
+   function closePopup(type, returnToTimer = false) {
+     const popup = document.getElementById(`screen-popup-${type}`);
+     const content = document.getElementById(type === 'ablenkung' ? 'popupContentAblenkung' : 'popupContentAchievement');
+     
+     popup.classList.add('opacity-0'); popup.classList.remove('opacity-100');
+     content.classList.add(type === 'ablenkung' ? 'scale-95' : 'scale-90', 'opacity-0'); 
+     content.classList.remove('scale-100', 'opacity-100');
+     
+     setTimeout(() => {
+       popup.classList.add('hidden');
+       if (type === 'ablenkung') {
+         if (returnToTimer) setAppScreen('timer');
+         else stopFocusSession();
+       }
+     }, 300);
+   }
+
+   function toggleTheme() {
+     document.documentElement.classList.toggle('dark');
+   }
+
+   function enterZenMode() {
+     document.body.classList.add('zen-active');
+     setAppScreen('home');
+   }
+
+   function exitZenMode() {
+     document.body.classList.remove('zen-active');
+   }
+ </script><script>const chapters=[...document.querySelectorAll('.chapter')],mainMount=document.getElementById('mainMount'),modalMount=document.getElementById('modalMount'),device=document.getElementById('iphoneFrame');let last='home';
+function dismissDistractionPopup(){const p=document.getElementById('screen-popup-ablenkung'),c=document.getElementById('popupContentAblenkung');if(!p||p.classList.contains('hidden'))return;p.classList.add('opacity-0');p.classList.remove('opacity-100');if(c){c.classList.add('scale-95','opacity-0');c.classList.remove('scale-100','opacity-100')}setTimeout(()=>p.classList.add('hidden'),300)}
+function resetLandingDemo(){
+ const overlay=document.getElementById('focusChoiceOverlay');
+ const wrapper=document.getElementById('screenWrapper');
+ if(overlay){
+   overlay.classList.add('hidden');
+   overlay.classList.remove('focus-choice-enter','focus-choice-leave');
+ }
+ if(wrapper) wrapper.classList.remove('focus-choice-open');
+ dismissDistractionPopup();
+}
+function syncLandingDemo(s){
+ const mode=s.dataset.demo||'home';
+ resetLandingDemo();
+ last=(mode==='choice'||mode==='barrier')?'home':mode;
+ if(mode==='choice'){
+   setAppScreen('home',{immediate:true});
+   requestAnimationFrame(()=>requestAnimationFrame(()=>openFocusChoice()));
+   return;
+ }
+ if(mode==='barrier'){learningFlowActive=false;startFocusSession(false);setTimeout(()=>triggerAppAblenkung(),420);return}
+ if(mode==='chat'){isPremiumUser=true;setAppScreen('chat');return}
+ if(mode==='update'){setAppScreen('update');return}
+ setAppScreen(mode);
+}
+function showLandingBarrier(){learningFlowActive=false;startFocusSession(false);setTimeout(()=>triggerAppAblenkung(),220)}
+function activate(s){chapters.forEach(x=>x.classList.toggle('active',x===s));document.querySelectorAll('[data-link],[data-dot]').forEach(a=>a.classList.toggle('active',(a.dataset.link||a.dataset.dot)===s.id));syncLandingDemo(s)}
+let activeChapterIndex=-1;
+let chapterUpdateQueued=false;
+function updateActiveChapter(){
+ chapterUpdateQueued=false;
+ const focusLine=window.scrollY+(window.innerHeight*.52);
+ let nextIndex=0;
+ for(let i=0;i<chapters.length;i++){
+  const top=chapters[i].offsetTop;
+  const bottom=top+chapters[i].offsetHeight;
+  if(focusLine>=top&&focusLine<bottom){nextIndex=i;break}
+  if(focusLine>=bottom)nextIndex=Math.min(i+1,chapters.length-1);
+ }
+ if(nextIndex===activeChapterIndex)return;
+ activeChapterIndex=nextIndex;
+ activate(chapters[nextIndex]);
+}
+function queueChapterUpdate(){
+ if(chapterUpdateQueued)return;
+ chapterUpdateQueued=true;
+ requestAnimationFrame(updateActiveChapter);
+}
+window.addEventListener('scroll',queueChapterUpdate,{passive:true});
+window.addEventListener('resize',queueChapterUpdate,{passive:true});
+queueChapterUpdate();
+function openProto(screen='home'){modalMount.appendChild(device);document.getElementById('modal').classList.add('open');document.body.style.overflow='hidden';device.style.opacity='1';device.style.filter='none';if(screen==='chat')isPremiumUser=true;setAppScreen(screen);lucide.createIcons()}
+function closeProto(){mainMount.appendChild(device);device.style.opacity='';device.style.filter='';document.getElementById('modal').classList.remove('open');document.body.style.overflow='';setAppScreen(last)}
+function go(id){document.getElementById(id).scrollIntoView({behavior:'smooth'})}
+function keepPhoneScrollInside(e){const s=e.target.closest('#app-screen-score,#app-screen-premium,#chatMessages,#chat-locked-state,.flow-screen');if(!s||s.scrollHeight<=s.clientHeight+1)return;const top=s.scrollTop<=0,bottom=s.scrollTop+s.clientHeight>=s.scrollHeight-1;if((e.deltaY<0&&!top)||(e.deltaY>0&&!bottom))e.stopPropagation()}
+document.addEventListener('wheel',keepPhoneScrollInside,{passive:true});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeProto()});lucide.createIcons();
+</script><script id="realTimeScreenTransitions">let appScreenTransitionToken=0,appScreenAnimation=null;function getAppTransitionDuration(){if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return 0;return window.matchMedia('(max-width: 980px)').matches?760:520}function animateAppBody(frames,duration,easing){const body=document.getElementById('appBody');if(!body||duration===0)return Promise.resolve();if(appScreenAnimation)appScreenAnimation.cancel();appScreenAnimation=body.animate(frames,{duration,easing,fill:'forwards'});return appScreenAnimation.finished.catch(()=>{})}async function setAppScreen(screenName,options={}){const target=document.getElementById(`app-screen-${screenName}`);if(!target)return;const token=++appScreenTransitionToken,duration=options.immediate?0:getAppTransitionDuration(),visible=document.querySelector('.app-screen:not(.hidden)'),current=visible?.id?.replace('app-screen-','');if(duration===0||!visible||current===screenName){if(appScreenAnimation)appScreenAnimation.cancel();applyAppScreenImmediately(screenName);const body=document.getElementById('appBody');if(body){body.style.opacity='';body.style.transform='';body.style.filter=''}return}const out=Math.round(duration*.44),inside=duration-out;await animateAppBody([{opacity:1,transform:'translate3d(0,0,0) scale(1)',filter:'blur(0px)'},{opacity:.18,transform:'translate3d(0,-10px,0) scale(.992)',filter:'blur(5px)'}],out,'cubic-bezier(.4,0,.6,1)');if(token!==appScreenTransitionToken)return;applyAppScreenImmediately(screenName);await animateAppBody([{opacity:.18,transform:'translate3d(0,12px,0) scale(.992)',filter:'blur(5px)'},{opacity:1,transform:'translate3d(0,0,0) scale(1)',filter:'blur(0px)'}],inside,'cubic-bezier(.16,1,.3,1)');if(token!==appScreenTransitionToken)return;const body=document.getElementById('appBody');if(body){body.style.opacity='';body.style.transform='';body.style.filter=''}}</script><script id="i18nScript">const I18N={en:{"Intro": "Intro", "Problem": "Problem", "Loesung": "Solution", "Workflow": "How it works", "Kernfunktion": "Core feature", "Motivation": "Motivation", "Überblick": "Overview", "Live testen": "Live demo", "01 / INTRO": "01 / INTRO", "Trainiere deine Aufmerksamkeit. Nicht deine Ablenkung.": "Train your attention. Not your distraction.", "Ein interaktives Konzept für nachhaltige Konzentration, digitale Selbstkontrolle und messbaren Fortschritt.": "An interactive concept for sustainable focus, digital self-control, and measurable progress.", "Konzept entdecken": "Explore the concept", "Prototyp testen": "Test the prototype", "Kapitel": "Chapters", "Prototyp": "Prototype", "Mission": "Mission", "02 / PROBLEM": "02 / PROBLEM", "Dein Smartphone gewinnt zu oft.": "Your smartphone wins too often.", "Der Wechsel von Arbeit zu Ablenkung dauert nur Sekunden. Focus Mode+ macht diesen Moment sichtbar und setzt genau dort eine bewusste Barriere.": "It takes only seconds to switch from work to distraction. Focus Mode+ makes that moment visible and places a conscious barrier exactly where it matters.", "2 Sekunden": "2 seconds", "bis zur nächsten Ablenkung": "until the next distraction", "Kein Widerstand": "No resistance", "zwischen Fokus und Feed": "between focus and the feed", "03 / LOESUNG": "03 / SOLUTION", "Willenskraft wird zum System.": "Willpower becomes a system.", "Fokus-Sitzungen, Verhaltensdaten und adaptive Hürden werden zu einem persönlichen Training für Aufmerksamkeit.": "Focus sessions, behavioral data, and adaptive barriers become personal training for your attention.", "Adaptive Sitzungen": "Adaptive sessions", "Digitale Barrieren": "Digital barriers", "Messbarer Fortschritt": "Measurable progress", "04 / WORKFLOW": "04 / HOW IT WORKS", "Starten. Erkennen. Dranbleiben.": "Start. Recognize. Stay focused.", "Eine Sitzung beginnt bewusst, kritische Wechsel werden erkannt und jede fokussierte Minute fließt in deinen Fortschritt ein.": "Every session starts intentionally, critical switches are detected, and every focused minute contributes to your progress.", "Sitzung starten": "Start a session", "Ablenkung erkennen": "Detect distraction", "Fortschritt sichern": "Save progress", "05 / KERNFUNKTION": "05 / CORE FEATURE", "Die Pause vor der Ablenkung.": "The pause before distraction.", "Eine klare Entscheidungsebene unterbricht den Automatismus, ohne aggressives Lock-in.": "A clear decision layer interrupts the automatic impulse without aggressive lock-in.", "Barriere anzeigen ↗": "Show the barrier ↗", "06 / MOTIVATION": "06 / MOTIVATION", "Fortschritt, den du sehen kannst.": "Progress you can see.", "Focus Score, Streaks, Erfolge und Ranglisten übersetzen Konzentration in verständliche Signale.": "Focus Score, streaks, achievements, and leaderboards turn concentration into clear signals.", "Tage Streak": "day streak", "Fokuszeit": "Focus time", "07 / PREMIUM": "07 / PREMIUM", "Leistung kann Premium freischalten.": "Performance can unlock Premium.", "Premium ist als Abo verfügbar, kann aber auch durch echte Fokuszeit verdient werden.": "Premium is available as a subscription, but it can also be earned through real focus time.", "/ Monat": "/ month", "Oder durch aktive Fokuszeit freischalten.": "Or unlock it through active focus time.", "08 / AI COACH": "08 / AI COACH", "Aus Daten werden Empfehlungen.": "Data becomes guidance.", "Der AI Coach erkennt Muster und formuliert konkrete Vorschläge für bessere Routinen.": "The AI Coach identifies patterns and turns them into practical recommendations for better routines.", "AI Coach öffnen ↗": "Open AI Coach ↗", "09 / VISION": "09 / VISION", "Ein Fokus-System über alle Geräte.": "One focus system across every device.", "Der nächste Schritt ist eine nahtlose Verbindung zwischen Smartphone, Mac und PC.": "The next step is a seamless connection across smartphone, Mac, and PC.", "App selbst testen": "Try the app", "Nach oben": "Back to top", "Willkommen bei": "Welcome to", "Heute gesammelt": "Collected today", "Minuten": "minutes", "Status": "Status", "Bereit": "Ready", "Fokus-Serie": "Focus streak", "Diese Woche": "This week", "Verhaltens-Schutz aktiv": "Behavior protection active", "Digitale Barrieren greifen sofort": "Digital barriers activate instantly", "Fokus starten": "Start focus", "Lernmodus": "Study mode", "Fokus aktiv": "Focus active", "Sitzungsdauer": "Session duration", "Intensität": "Intensity", "Mittel": "Medium", "App-Blockierung": "App blocking", "Aktiviert": "Enabled", "Ablenkung": "Distraction", "Beenden": "End session", "Fortschritt": "Progress", "Täglicher Fokus": "Daily focus", "Wochenübersicht": "Weekly overview", "Soll: 60 min/Tag": "Goal: 60 min/day", "Ablenkungen": "Distractions", "1 blockiert": "1 blocked", "Rangliste & Erfolge": "Leaderboard & achievements", "Zurück zum Home": "Back to Home", "Serie": "Streak", "Tage": "days", "Top Fokus-User": "Top focus users", "👤 Du": "👤 You", "Erfolge": "Achievements", "Erste Stunde": "First hour", "60 Min. erreicht": "60 min reached", "Fokus Starter": "Focus starter", "5 Tage aktiv": "5 active days", "Meister": "Master", "100h Fokus": "100h focus", "Unaufhaltsam": "Unstoppable", "30 Tage Streak": "30-day streak", "Konfiguration": "Configuration", "Einstellungen": "Settings", "Fokus-Intensität": "Focus intensity", "Premium aktivieren": "Activate Premium", "Schalte alle Pro-Features & AI-Analysen frei.": "Unlock all Pro features and AI insights.", "Zurück": "Back", "Das Upgrade für deine Aufmerksamkeit": "The upgrade for your attention", "Detaillierte Langzeitstatistiken": "Detailed long-term statistics", "Verhaltensanalyse auf Basis künstlicher Intelligenz": "AI-powered behavioral analysis", "Erweiterte Blockierungs-Modi": "Advanced blocking modes", "Premium abonnieren": "Subscribe to Premium", "Oder kostenlos": "Or for free", "Premium durch Leistung freischalten": "Unlock Premium through performance", "1 Tag Premium": "1 day of Premium", "Für 100 Min. Fokuszeit": "For 100 min of focus time", "Einlösen": "Redeem", "3 Tage Premium": "3 days of Premium", "Benötigt 10h Fokuszeit": "Requires 10h focus time", "7 Tage Premium": "7 days of Premium", "Benötigt 50h Fokuszeit": "Requires 50h focus time", "Zurück zum Dashboard": "Back to dashboard", "Hallo! Ich bin dein AI Coach. Ich scanne, überprüfe und analysiere deine Fokus-Muster, um dir das beste Verhaltenstraining zu bieten.": "Hi! I am your AI Coach. I analyze your focus patterns to provide the most effective attention training.", "Premium erforderlich": "Premium required", "Um diese personalisierte Analyse-Funktion zu nutzen, aktiviere bitte dein Premium-Abonnement.": "Activate Premium to use this personalized analysis feature.", "Zu Premium wechseln": "Go to Premium", "Willkommen im Premium-Modus! Ich habe deine bisherigen Sitzungen analysiert. Wie kann ich dir heute helfen?": "Welcome to Premium! I have analyzed your previous sessions. How can I help you today?", "Was kannst du mir empfehlen?": "What would you recommend?", "Ablenkung erkannt": "Distraction detected", "Möchtest du wirklich die Fokus-Sitzung verlassen und deinen Streak verlieren?": "Do you really want to leave the focus session and lose your streak?", "Zurück zum Fokus": "Return to focus", "Trotzdem verlassen": "Leave anyway", "Belohnung freigeschaltet": "Reward unlocked", "Premium für 1 Tag": "Premium for 1 day", "Glückwunsch! Du hast über 100 Minuten fokussiert gearbeitet. Genieße alle Premium-Features.": "Congratulations! You focused for more than 100 minutes. Enjoy all Premium features.", "Scrollen, um den Prototyp zu steuern": "Scroll to control the prototype", "DISTRACTION": "DISTRACTION", "Basierend auf deinen Daten habe ich folgendes Muster erkannt:": "Based on your data, I identified the following pattern:", "Du verlierst deinen Fokus meistens zwischen 18:00 und 20:00 Uhr.": "You usually lose focus between 6:00 PM and 8:00 PM.", "Fokus-Niveau im Tagesverlauf": "Focus level throughout the day", "Deine erfolgreichsten Sitzungen dauern exakt": "Your most successful sessions last exactly", "Mein Tipp:": "My tip:", "Versuche kürzere Pausen nach intensiven Lernphasen einzuplanen und reduziere die Sitzungsdauer am Abend.": "Try scheduling shorter breaks after intense study periods and reduce session length in the evening."},ru:{"Intro": "Введение", "Problem": "Проблема", "Loesung": "Решение", "Workflow": "Как это работает", "Kernfunktion": "Главная функция", "Motivation": "Мотивация", "Überblick": "Обзор", "Live testen": "Демо", "01 / INTRO": "01 / ВВЕДЕНИЕ", "Trainiere deine Aufmerksamkeit. Nicht deine Ablenkung.": "Тренируй внимание, а не отвлечение.", "Ein interaktives Konzept für nachhaltige Konzentration, digitale Selbstkontrolle und messbaren Fortschritt.": "Интерактивная концепция для устойчивой концентрации, цифрового самоконтроля и измеримого прогресса.", "Konzept entdecken": "Изучить концепцию", "Prototyp testen": "Открыть прототип", "Kapitel": "Разделов", "Prototyp": "Прототип", "Mission": "Цель", "02 / PROBLEM": "02 / ПРОБЛЕМА", "Dein Smartphone gewinnt zu oft.": "Смартфон слишком часто побеждает.", "Der Wechsel von Arbeit zu Ablenkung dauert nur Sekunden. Focus Mode+ macht diesen Moment sichtbar und setzt genau dort eine bewusste Barriere.": "Переход от работы к отвлечению занимает всего несколько секунд. Focus Mode+ делает этот момент заметным и создаёт осознанный барьер именно там, где он нужен.", "2 Sekunden": "2 секунды", "bis zur nächsten Ablenkung": "до следующего отвлечения", "Kein Widerstand": "Никакого сопротивления", "zwischen Fokus und Feed": "между фокусом и лентой", "03 / LOESUNG": "03 / РЕШЕНИЕ", "Willenskraft wird zum System.": "Сила воли становится системой.", "Fokus-Sitzungen, Verhaltensdaten und adaptive Hürden werden zu einem persönlichen Training für Aufmerksamkeit.": "Фокус-сессии, поведенческие данные и адаптивные барьеры превращаются в персональную тренировку внимания.", "Adaptive Sitzungen": "Адаптивные сессии", "Digitale Barrieren": "Цифровые барьеры", "Messbarer Fortschritt": "Измеримый прогресс", "04 / WORKFLOW": "04 / КАК ЭТО РАБОТАЕТ", "Starten. Erkennen. Dranbleiben.": "Начать. Заметить. Не отвлекаться.", "Eine Sitzung beginnt bewusst, kritische Wechsel werden erkannt und jede fokussierte Minute fließt in deinen Fortschritt ein.": "Каждая сессия начинается осознанно, критические переключения распознаются, а каждая минута концентрации учитывается в прогрессе.", "Sitzung starten": "Начать сессию", "Ablenkung erkennen": "Распознать отвлечение", "Fortschritt sichern": "Сохранить прогресс", "05 / KERNFUNKTION": "05 / ГЛАВНАЯ ФУНКЦИЯ", "Die Pause vor der Ablenkung.": "Пауза перед отвлечением.", "Eine klare Entscheidungsebene unterbricht den Automatismus, ohne aggressives Lock-in.": "Понятный экран выбора прерывает автоматическое действие без жёсткой блокировки.", "Barriere anzeigen ↗": "Показать барьер ↗", "06 / MOTIVATION": "06 / МОТИВАЦИЯ", "Fortschritt, den du sehen kannst.": "Прогресс, который видно.", "Focus Score, Streaks, Erfolge und Ranglisten übersetzen Konzentration in verständliche Signale.": "Focus Score, серии, достижения и рейтинг превращают концентрацию в понятные показатели.", "Tage Streak": "дней серии", "Fokuszeit": "Время фокуса", "07 / PREMIUM": "07 / PREMIUM", "Leistung kann Premium freischalten.": "Результат может открыть Premium.", "Premium ist als Abo verfügbar, kann aber auch durch echte Fokuszeit verdient werden.": "Premium доступен по подписке, но его также можно получить за реальное время концентрации.", "/ Monat": "/ месяц", "Oder durch aktive Fokuszeit freischalten.": "Или открой его за активное время фокуса.", "08 / AI COACH": "08 / AI-КОУЧ", "Aus Daten werden Empfehlungen.": "Данные становятся рекомендациями.", "Der AI Coach erkennt Muster und formuliert konkrete Vorschläge für bessere Routinen.": "AI-коуч распознаёт закономерности и предлагает конкретные способы улучшить привычки.", "AI Coach öffnen ↗": "Открыть AI-коуча ↗", "09 / VISION": "09 / ВИДЕНИЕ", "Ein Fokus-System über alle Geräte.": "Единая система фокуса на всех устройствах.", "Der nächste Schritt ist eine nahtlose Verbindung zwischen Smartphone, Mac und PC.": "Следующий шаг — бесшовная связь между смартфоном, Mac и PC.", "App selbst testen": "Попробовать приложение", "Nach oben": "Наверх", "Willkommen bei": "Добро пожаловать в", "Heute gesammelt": "Сегодня собрано", "Minuten": "минут", "Status": "Статус", "Bereit": "Готово", "Fokus-Serie": "Серия фокуса", "Diese Woche": "На этой неделе", "Verhaltens-Schutz aktiv": "Защита поведения активна", "Digitale Barrieren greifen sofort": "Цифровые барьеры включаются сразу", "Fokus starten": "Начать фокус", "Lernmodus": "Учебный режим", "Fokus aktiv": "Фокус активен", "Sitzungsdauer": "Длительность сессии", "Intensität": "Интенсивность", "Mittel": "Средняя", "App-Blockierung": "Блокировка приложений", "Aktiviert": "Включено", "Ablenkung": "Отвлечение", "Beenden": "Завершить", "Fortschritt": "Прогресс", "Täglicher Fokus": "Фокус за день", "Wochenübersicht": "Обзор недели", "Soll: 60 min/Tag": "Цель: 60 мин/день", "Ablenkungen": "Отвлечения", "1 blockiert": "1 заблокировано", "Rangliste & Erfolge": "Рейтинг и достижения", "Zurück zum Home": "Вернуться на главную", "Serie": "Серия", "Tage": "дней", "Top Fokus-User": "Лучшие пользователи", "👤 Du": "👤 Вы", "Erfolge": "Достижения", "Erste Stunde": "Первый час", "60 Min. erreicht": "Достигнуто 60 мин", "Fokus Starter": "Начало фокуса", "5 Tage aktiv": "5 активных дней", "Meister": "Мастер", "100h Fokus": "100 ч фокуса", "Unaufhaltsam": "Неудержимый", "30 Tage Streak": "Серия 30 дней", "Konfiguration": "Настройка", "Einstellungen": "Настройки", "Fokus-Intensität": "Интенсивность фокуса", "Premium aktivieren": "Активировать Premium", "Schalte alle Pro-Features & AI-Analysen frei.": "Откройте все Pro-функции и AI-анализ.", "Zurück": "Назад", "Das Upgrade für deine Aufmerksamkeit": "Апгрейд для вашего внимания", "Detaillierte Langzeitstatistiken": "Подробная долгосрочная статистика", "Verhaltensanalyse auf Basis künstlicher Intelligenz": "Анализ поведения на основе ИИ", "Erweiterte Blockierungs-Modi": "Расширенные режимы блокировки", "Premium abonnieren": "Оформить Premium", "Oder kostenlos": "Или бесплатно", "Premium durch Leistung freischalten": "Открыть Premium за результат", "1 Tag Premium": "1 день Premium", "Für 100 Min. Fokuszeit": "За 100 мин фокуса", "Einlösen": "Получить", "3 Tage Premium": "3 дня Premium", "Benötigt 10h Fokuszeit": "Нужно 10 ч фокуса", "7 Tage Premium": "7 дней Premium", "Benötigt 50h Fokuszeit": "Нужно 50 ч фокуса", "Zurück zum Dashboard": "Вернуться на главную", "Hallo! Ich bin dein AI Coach. Ich scanne, überprüfe und analysiere deine Fokus-Muster, um dir das beste Verhaltenstraining zu bieten.": "Привет! Я ваш AI-коуч. Я анализирую паттерны концентрации, чтобы предложить наиболее эффективную тренировку внимания.", "Premium erforderlich": "Требуется Premium", "Um diese personalisierte Analyse-Funktion zu nutzen, aktiviere bitte dein Premium-Abonnement.": "Активируйте Premium, чтобы использовать персонализированный анализ.", "Zu Premium wechseln": "Перейти к Premium", "Willkommen im Premium-Modus! Ich habe deine bisherigen Sitzungen analysiert. Wie kann ich dir heute helfen?": "Добро пожаловать в Premium! Я проанализировал ваши предыдущие сессии. Чем могу помочь сегодня?", "Was kannst du mir empfehlen?": "Что вы можете порекомендовать?", "Ablenkung erkannt": "Обнаружено отвлечение", "Möchtest du wirklich die Fokus-Sitzung verlassen und deinen Streak verlieren?": "Вы действительно хотите выйти из фокус-сессии и потерять серию?", "Zurück zum Fokus": "Вернуться к фокусу", "Trotzdem verlassen": "Всё равно выйти", "Belohnung freigeschaltet": "Награда открыта", "Premium für 1 Tag": "Premium на 1 день", "Glückwunsch! Du hast über 100 Minuten fokussiert gearbeitet. Genieße alle Premium-Features.": "Поздравляем! Вы работали сосредоточенно более 100 минут. Пользуйтесь всеми функциями Premium.", "Scrollen, um den Prototyp zu steuern": "Прокручивайте страницу, чтобы управлять прототипом", "DISTRACTION": "ОТВЛЕЧЕНИЕ", "Basierend auf deinen Daten habe ich folgendes Muster erkannt:": "На основе ваших данных я заметил следующую закономерность:", "Du verlierst deinen Fokus meistens zwischen 18:00 und 20:00 Uhr.": "Чаще всего вы теряете концентрацию между 18:00 и 20:00.", "Fokus-Niveau im Tagesverlauf": "Уровень концентрации в течение дня", "Deine erfolgreichsten Sitzungen dauern exakt": "Ваши самые успешные сессии длятся ровно", "Mein Tipp:": "Мой совет:", "Versuche kürzere Pausen nach intensiven Lernphasen einzuplanen und reduziere die Sitzungsdauer am Abend.": "Попробуйте делать короткие перерывы после интенсивной учёбы и уменьшить длительность вечерних сессий."}};let currentLanguage='de';function normalizeText(v){return v.replace(/\s+/g,' ').trim()}function translateNode(node,lang){if(node.nodeType!==Node.TEXT_NODE)return;const clean=normalizeText(node.nodeValue);if(!clean)return;if(!node.__deOriginal)node.__deOriginal=clean;const original=node.__deOriginal;const value=lang==='de'?original:(I18N[lang][original]||original);const lead=node.nodeValue.match(/^\s*/)[0],trail=node.nodeValue.match(/\s*$/)[0];node.nodeValue=lead+value+trail}function translateTree(root,lang){const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode(n){return ['SCRIPT','STYLE'].includes(n.parentElement?.tagName)?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT}});const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);nodes.forEach(n=>translateNode(n,lang));document.querySelectorAll('[title]').forEach(el=>{if(!el.dataset.deTitle)el.dataset.deTitle=el.title;el.title=lang==='de'?el.dataset.deTitle:(I18N[lang][el.dataset.deTitle]||el.dataset.deTitle)})}function setLanguage(lang,save=true){if(!['de','en','ru'].includes(lang))lang='de';currentLanguage=lang;translateTree(document.body,lang);document.documentElement.lang=lang;document.getElementById('langCode').textContent=lang.toUpperCase();document.querySelectorAll('.lang-option').forEach(b=>b.classList.toggle('active',b.dataset.lang===lang));document.title={de:'Focus Mode+ - Von der Aufgabe zur Fokus-Sitzung',en:'Focus Mode+ - From task to focused execution',ru:'Focus Mode+'}[lang];if(save)localStorage.setItem('focus-mode-language',lang);document.getElementById('langPicker').classList.remove('open');document.getElementById('langToggle').setAttribute('aria-expanded','false')}function detectLanguage(){const saved=localStorage.getItem('focus-mode-language');if(saved)return saved;const langs=navigator.languages||[navigator.language||'de'];for(const item of langs){const code=item.toLowerCase().split('-')[0];if(['de','en','ru'].includes(code))return code}return'en'}document.addEventListener('DOMContentLoaded',()=>{const picker=document.getElementById('langPicker'),toggle=document.getElementById('langToggle');toggle.addEventListener('click',e=>{e.stopPropagation();picker.classList.toggle('open');toggle.setAttribute('aria-expanded',picker.classList.contains('open'))});document.querySelectorAll('.lang-option').forEach(b=>b.addEventListener('click',()=>setLanguage(b.dataset.lang)));document.addEventListener('click',()=>picker.classList.remove('open'));setLanguage(detectLanguage(),false);new MutationObserver(records=>{for(const record of records)for(const node of record.addedNodes){if(node.nodeType===Node.TEXT_NODE)translateNode(node,currentLanguage);else if(node.nodeType===Node.ELEMENT_NODE)translateTree(node,currentLanguage)}}).observe(document.body,{childList:true,subtree:true});lucide.createIcons()});</script><script id="newLandingTranslations">Object.assign(I18N.en,{"Lücke": "Product Gap", "Modi": "Modes", "Mission": "Mission", "Fokus": "Focus", "Anpassung": "Adaptation", "Fortschritt": "Progress", "Coach": "Coach", "Vision": "Vision", "Aus „Ich sollte anfangen“ wird echte Fokuszeit.": "Turn “I should start” into real focus.", "Focus Mode+ hilft dir, wichtige Aufgaben zu beginnen, digitale Ablenkungen zu blockieren und Schritt für Schritt dranzubleiben.": "Focus Mode+ helps you begin important tasks, block digital distractions, and keep moving forward one focused step at a time.", "2 Fokusmodi": "2 focus modes", "1 klarer nächster Schritt": "1 clear next step", "0 unnötige Ablenkungen": "0 unnecessary distractions", "Das Problem ist nicht nur die Ablenkung.": "Distraction is only part of the problem.", "Viele Aufgaben scheitern schon vor der ersten Fokusminute: Das Ziel wirkt zu groß, der nächste Schritt ist unklar und das Smartphone bietet den einfacheren Ausweg.": "Many tasks fail before the first focused minute: the goal feels too large, the next step is unclear, and the smartphone offers an easier escape.", "Kein klarer Start": "No clear starting point", "Die Aufgabe bleibt abstrakt": "The task remains abstract", "Sofortige Ablenkung": "Instant distraction", "Der Feed ist nur einen Klick entfernt": "The feed is only one tap away", "03 / LÜCKE": "03 / PRODUCT GAP", "Ein Timer kennt dein Ziel nicht. Ein Plan schützt deinen Fokus nicht.": "A timer does not understand your goal. A plan does not protect your focus.", "Timer messen Zeit. App-Blocker sperren Anwendungen. Planungstools erstellen Listen. Focus Mode+ verbindet Ziel, nächsten Schritt, geschützte Ausführung und Anpassung in einem Ablauf.": "Timers measure time. App blockers restrict applications. Planning tools create lists. Focus Mode+ connects the goal, the next step, protected execution, and adaptation in one flow.", "Ziel statt nur Zeit": "Goals, not only time", "Ausführung statt nur Planung": "Execution, not only planning", "Anpassung statt statischer Liste": "Adaptation, not static lists", "04 / ZWEI MODI": "04 / TWO MODES", "Sofort fokussieren. Oder eine Mission verfolgen.": "Focus immediately. Or follow a mission.", "Nicht jede Aufgabe braucht Planung. Deshalb entscheidet der Nutzer selbst, wie viel Unterstützung gerade sinnvoll ist.": "Not every task requires a plan. Users decide how much support is useful in the current situation.", "Kurzer Fokus": "Quick Focus", "25 Minuten · Apps blockieren · direkt beginnen": "25 minutes · block distracting apps · start immediately", "Aufgabe strukturieren · Fokus-Schritte planen · Fortschritt anpassen": "Structure the task · plan focus steps · adapt progress", "Aus einer großen Aufgabe wird ein machbarer nächster Schritt.": "Turn a large task into one achievable next step.", "Der Nutzer beschreibt, was er schaffen möchte, fügt bei Bedarf Material hinzu und wählt den Kontext. Focus Mode+ erkennt Ziel und Frist, schätzt den Aufwand und erstellt realistische Fokus-Schritte.": "Users describe what they want to complete, optionally add relevant material, and select the context. Focus Mode+ identifies the goal and deadline, estimates the effort, and creates realistic focus steps.", "Prüfung": "Exam", "Aufgabe": "Task", "Projekt": "Project", "Eigene Mission": "Custom mission", "Planen. Fokussieren. Reflektieren. Anpassen.": "Plan. Focus. Reflect. Adapt.", "Eine Focus Mission begleitet die Aufgabe nicht nur bis zum Plan, sondern durch die tatsächliche Ausführung und den nächsten realistischen Schritt.": "A Focus Mission guides the task beyond planning, through actual execution and toward the next realistic step.", "Ziel verstehen": "Understand the goal", "Aufgabe, Material und Frist erfassen": "Capture the task, material, and deadline", "Nächsten Schritt wählen": "Choose the next step", "Eine realistische Sitzung statt eines überwältigenden Plans": "One realistic session instead of one overwhelming plan", "Geschützt arbeiten": "Work in a protected environment", "Ablenkende Apps blockieren": "Block distracting apps", "Ergebnis einschätzen": "Reflect on the result", "Verständnis und Sicherheit bewerten": "Assess understanding and confidence", "Mission anpassen": "Adapt the mission", "Dauer und nächste Schritte aktualisieren": "Update duration and next steps", "07 / GESCHÜTZTER FOKUS": "07 / PROTECTED FOCUS", "Der Plan zählt erst, wenn die Arbeit beginnt.": "A plan only matters when the work begins.", "Während der Sitzung schützt Focus Mode+ die gewählte Arbeitsumgebung. Beim Versuch, in eine Ablenkung zu wechseln, unterbricht eine bewusste Barriere den Automatismus.": "During the session, Focus Mode+ protects the selected working environment. When the user attempts to switch to a distraction, a conscious barrier interrupts the automatic impulse.", "Benötigte Werkzeuge bleiben verfügbar": "Required tools remain available", "Ablenkende Apps werden blockiert": "Distracting apps are blocked", "08 / ANPASSUNG": "08 / ADAPTATION", "Die Mission lernt aus jeder Sitzung.": "The mission learns from every session.", "Nach der Sitzung bewertet der Nutzer, wie sicher er sich mit dem Ergebnis fühlt. Focus Mode+ vergleicht Feedback und Planung, schätzt das persönliche Tempo neu und passt die nächste Sitzung an.": "After each session, users assess how confident they feel about the result. Focus Mode+ compares feedback with the original plan, reassesses the personal pace, and adapts the next session.", "Verständnis": "Understanding", "Minuten Praxis": "Practice minutes", "angepasster Schritt": "adapted step", "09 / FORTSCHRITT": "09 / PROGRESS", "Zeit zeigt deinen Einsatz. Missionen zeigen deinen Fortschritt.": "Time shows your effort. Missions show your progress.", "Fokuszeit bleibt eine reale persönliche Kennzahl. Mission-Fortschritt zeigt die Richtung. Die Plan-Serie belohnt den eigenen Rhythmus, nicht tägliche Aktivität um jeden Preis.": "Focus time remains a real personal metric. Mission progress shows direction. The Plan Streak rewards the user’s own rhythm, not daily activity at any cost.", "Plan-Serie": "Plan Streak", "Wochenliga": "Weekly League", "10 / LANGZEIT-COACHING": "10 / LONG-TERM COACHING", "Aus Fokusdaten werden bessere Routinen.": "Turn focus data into better routines.", "Während Focus Missions einzelne Aufgaben begleiten, erkennt der optionale AI Coach langfristige Muster: Wann sinkt die Konzentration? Welche Sitzungsdauer funktioniert? Welche Routine sollte angepasst werden?": "While Focus Missions guide individual tasks, the optional AI Coach identifies long-term patterns: When does concentration decrease? Which session length works best? Which routine should be adjusted?", "Erweiterte Langzeitstatistiken, Verhaltensanalyse und strengere Blockierungsmodi können Teil von Focus Mode+ Premium werden.": "Advanced long-term statistics, behavioral analysis, and stricter blocking modes may become part of Focus Mode+ Premium.", "AI Coach öffnen ↗": "Open AI Coach ↗", "11 / NEXT STEP": "11 / NEXT STEP", "Ein starker Prototyp. Jetzt braucht es echte Nutzung.": "A strong prototype. Now it needs real usage.", "Focus Mode+ ist aktuell ein interaktiver Concept Prototype. Der nächste Schritt ist nicht noch eine Funktion, sondern die Validierung mit echten Aufgaben und echten Nutzern.": "Focus Mode+ is currently an interactive concept prototype. The next step is not another feature, but validation with real tasks and real users.", "Verstehen Schüler den Mehrwert?": "Do students understand the value?", "Problem und Zielgruppe prüfen": "Test the problem and target group", "Kehren sie zurück?": "Do they return?", "Mehrere Sitzungen statt einmaliger Neugier": "Multiple sessions instead of one-time curiosity", "Verbessert der Ablauf die Ausführung?": "Does the flow improve execution?", "Planung und Schutz gemeinsam testen": "Test planning and protection together", "Langfristige Vision": "Long-term vision", "Ein Fokus-System für selbstständige Arbeit über Smartphone, Mac und PC.": "One focus system for independent work across smartphones, Macs, and PCs.", "Prototyp selbst testen": "Test the prototype", "Nach oben": "Back to top", "01 / INTRO": "01 / INTRO", "02 / PROBLEM": "02 / PROBLEM", "05 / FOCUS MISSION": "05 / FOCUS MISSION", "06 / WORKFLOW": "06 / WORKFLOW", "Konzept entdecken": "Explore the concept", "Prototyp testen": "Test the prototype", "Barriere anzeigen ↗": "Show the barrier ↗", "Trainiere deine Aufmerksamkeit. Nicht deine Ablenkung.": "Train your attention. Not your distraction."}); localStorage.getItem("focus-mode-language")==="ru"&&localStorage.setItem("focus-mode-language","de");</script>
+<script id="focusMissionProductLogic">
+function continueMissionFromChoice(){
+  closeFocusChoice();
+  setTimeout(()=>focusMissionCreated ? setAppScreen('plan') : openGoalIntake(),180);
+}
+function openNewMissionFromChoice(){
+  closeFocusChoice();
+  setTimeout(()=>openGoalIntake(),180);
+}
+function selectMissionType(btn){
+  btn.parentElement.querySelectorAll('.flow-chip').forEach(x=>x.classList.remove('active'));
+  btn.classList.add('active');
+  selectedMissionTypeValue=btn.textContent.trim();
+  updateMissionPlanButton();
+}
+function showPlanStreakInfo(){
+  const existing=document.getElementById('planStreakToast');
+  if(existing) existing.remove();
+  const toast=document.createElement('div');
+  toast.id='planStreakToast';
+  toast.className='absolute left-4 right-4 bottom-6 z-[75] p-3.5 rounded-2xl bg-slate-950 text-white shadow-2xl border border-white/10';
+  toast.innerHTML='<div class="flex gap-2.5"><div class="w-8 h-8 rounded-xl bg-orange-500/15 text-orange-300 flex items-center justify-center shrink-0"><i data-lucide="flame" class="w-4 h-4"></i></div><div><div class="text-[10px] font-black">3 Wochen Plan-Serie</div><div class="text-[9px] text-slate-400 leading-relaxed mt-1">Freie Tage unterbrechen deine Serie nicht. Sie wächst, wenn du deinen geplanten Fokus-Rhythmus einhältst.</div></div></div>';
+  document.getElementById('screenWrapper').appendChild(toast);
+  lucide.createIcons();
+  setTimeout(()=>toast.remove(),3800);
+}
+function updateHomeAfterMissionSession(){
+  revealCreatedMission();
+  const percent=document.getElementById('homeMissionPercent');
+  const bar=document.getElementById('homeMissionProgressBar');
+  const next=document.getElementById('homeMissionNextStep');
+  const meta=document.getElementById('homeMissionMeta');
+  if(percent) percent.textContent='52%';
+  if(bar) bar.style.width='52%';
+  if(next) next.textContent='Aufgaben 1–10 lösen';
+  if(meta) meta.textContent='Praxisblock · ca. 35 Min.';
+}
+</script>
+<script id="cleanMissionHomeLogic">
+let focusMissionCreated=false;
+function revealCreatedMission(){
+  focusMissionCreated=true;
+  const empty=document.getElementById('emptyMissionCard');
+  const active=document.getElementById('activeMissionCard');
+  if(empty) empty.classList.add('hidden');
+  if(active) active.classList.remove('hidden');
+  lucide.createIcons();
+}
+</script>
+<script id="missionInputAndConfidenceLogic">
+let selectedMissionTypeValue=null;
+let selectedMissionConfidenceValue=null;
+let selectedConfidenceRating=3;
+function updateMissionPlanButton(){
+  const btn=document.getElementById('missionPlanButton');
+  if(!btn) return;
+  const ready=Boolean(selectedMissionTypeValue&&selectedMissionConfidenceValue);
+  btn.disabled=!ready;
+  btn.classList.toggle('opacity-40',!ready);
+  btn.classList.toggle('cursor-not-allowed',!ready);
+}
+function selectConfidenceRating(btn,value){
+  selectedConfidenceRating=value;
+  document.querySelectorAll('#confidenceRatingButtons .flow-chip').forEach(x=>x.classList.remove('active'));
+  btn.classList.add('active');
+  const label=document.getElementById('confidenceRatingLabel');
+  const states={
+    1:{text:'Gar nichts verstanden',classes:['text-rose-600']},
+    2:{text:'Sehr wenig verstanden',classes:['text-rose-500']},
+    3:{text:'Mittel verstanden',classes:['text-amber-600']},
+    4:{text:'Ziemlich gut verstanden',classes:['text-emerald-600']},
+    5:{text:'Vollständig verstanden',classes:['text-indigo-600']}
+  };
+  const state=states[value];
+  label.textContent=state.text;
+  label.className='text-[10px] font-bold '+state.classes.join(' ');
+}
+</script>
+<script id="focusProtectionLogic">
+let quickDuration=25, quickBreak=5, distractionReturnScreen='quicksetup';
+function openQuickSetupFromChoice(){closeFocusChoice();setTimeout(()=>setAppScreen('quicksetup'),180)}
+function selectQuickDuration(btn,value){quickDuration=value;document.querySelectorAll('#quickDurationButtons .quick-option').forEach(x=>x.classList.remove('active'));btn.classList.add('active')}
+function selectQuickBreak(btn,value){quickBreak=value;document.querySelectorAll('#quickBreakButtons .quick-option').forEach(x=>x.classList.remove('active'));btn.classList.add('active')}
+function openDistractionPicker(returnScreen){distractionReturnScreen=returnScreen||'quicksetup';setAppScreen('distractions')}
+function returnFromDistractionPicker(){setAppScreen(distractionReturnScreen)}
+function toggleDistraction(row){row.classList.toggle('selected');lucide.createIcons()}
+function getSelectedDistractions(){return [...document.querySelectorAll('#distractionList .distraction-row.selected')].map(x=>x.dataset.name)}
+function updateProtectionSummary(){
+ const apps=getSelectedDistractions(),count=apps.length;
+ document.querySelectorAll('.blockedCount').forEach(x=>x.textContent=count);
+ const shown=apps.slice(0,3).join(' · '),rest=Math.max(0,count-3);
+ document.querySelectorAll('.blockedSummary').forEach(x=>x.textContent=shown+(rest?' +'+rest:''));
+}
+function saveDistractions(){updateProtectionSummary();setAppScreen(distractionReturnScreen)}
+function startConfiguredQuickFocus(){
+ learningFlowActive=false;
+ const task=(document.getElementById('quickTaskInput').value||'Kurzer Fokus').trim();
+ timerDuration=quickDuration*60;originalDuration=timerDuration;
+ document.getElementById('currentFocusModeLabel').textContent='Kurzer Fokus';
+ document.getElementById('activeTaskLabel').textContent=task+' · '+quickDuration+' Min.';
+ document.getElementById('timerTaskValue').textContent=task;
+ if(timerInterval)clearInterval(timerInterval);
+ setAppScreen('timer');document.getElementById('islandIndicator').classList.remove('hidden');updateTimerUI();
+ timerInterval=setInterval(()=>{if(timerDuration>0){timerDuration--;updateTimerUI()}else{completeLearningSession()}},1000);
+}
+function showBlockedAppsPopup(){
+ const popup=document.getElementById('blockedAppsPopup'),card=document.getElementById('blockedAppsPopupCard'),box=document.getElementById('blockedAppsChips');
+ box.innerHTML=getSelectedDistractions().map(x=>'<span class="px-2.5 py-1.5 rounded-full bg-rose-50 text-rose-600 text-[9px] font-bold">'+x+'</span>').join('');
+ popup.classList.remove('hidden');requestAnimationFrame(()=>{popup.classList.remove('opacity-0');card.classList.remove('translate-y-6','opacity-0')});
+}
+function hideBlockedAppsPopup(){const popup=document.getElementById('blockedAppsPopup'),card=document.getElementById('blockedAppsPopupCard');popup.classList.add('opacity-0');card.classList.add('translate-y-6','opacity-0');setTimeout(()=>popup.classList.add('hidden'),250)}
+</script>
+
+<div id="pwaInstallHelp" aria-hidden="true">
+  <div id="pwaInstallCard" role="dialog" aria-modal="true" aria-labelledby="pwaInstallTitle">
+    <h2 id="pwaInstallTitle">Focus Mode+ installieren</h2>
+    <p>Öffne diese Seite in Safari und füge sie als App zu deinem Home-Bildschirm hinzu.</p>
+    <ol>
+      <li>Tippe unten auf „Teilen“.</li>
+      <li>Wähle „Zum Home-Bildschirm“.</li>
+      <li>Tippe oben rechts auf „Hinzufügen“.</li>
+    </ol>
+    <button type="button" id="pwaInstallClose">Verstanden</button>
+  </div>
+</div>
+
+<script id="pwaBoot">
+(function(){
+  const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  document.addEventListener('DOMContentLoaded', function(){
+    document.body.classList.add('pwa-app');
+    if (typeof setAppScreen === 'function') setAppScreen('home',{immediate:true});
+    const help=document.getElementById('pwaInstallHelp');
+    const close=document.getElementById('pwaInstallClose');
+    const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
+    const dismissed=localStorage.getItem('focus-pwa-install-help-dismissed')==='1';
+    if(isIOS && !standalone && !dismissed){setTimeout(()=>{help.classList.add('open');help.setAttribute('aria-hidden','false')},900)}
+    close.addEventListener('click',()=>{help.classList.remove('open');help.setAttribute('aria-hidden','true');localStorage.setItem('focus-pwa-install-help-dismissed','1')});
+  });
+  if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(console.error))}
+})();
+</script>
+</body></html>
