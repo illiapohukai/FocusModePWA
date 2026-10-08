@@ -2,30 +2,22 @@
   "id": "./",
   "name": "Focus Mode+",
   "short_name": "Focus Mode+",
-  "description": "Focus Missions, geschützte Fokus-Sitzungen und adaptive Lernschritte.",
-  "lang": "de",
-  "start_url": "./index.html?source=pwa",
+  "start_url": "./index.html?v=2",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#f8fafc",
   "theme_color": "#f8fafc",
-  "categories": [
-    "productivity",
-    "education"
-  ],
   "icons": [
     {
       "src": "./icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
+      "type": "image/png"
     },
     {
       "src": "./icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
+      "type": "image/png"
     },
     {
       "src": "./icons/icon-maskable-512.png",
