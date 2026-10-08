@@ -4,7 +4,7 @@
   "short_name": "Focus Mode+",
   "description": "Focus Missions und geschützte Fokus-Sitzungen.",
   "lang": "de",
-  "start_url": "./index.html?v=3",
+  "start_url": "./index.html?v=4",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
