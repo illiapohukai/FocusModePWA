@@ -2,30 +2,12 @@
   "id": "./",
   "name": "Focus Mode+",
   "short_name": "Focus Mode+",
-  "description": "Focus Missions mit AI-Analyse und geschützten Fokus-Sitzungen.",
+  "description": "Adaptive AI Focus Missions",
   "lang": "de",
-  "start_url": "./index.html?v=6",
+  "start_url": "./index.html?v=7",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#f8fafc",
-  "theme_color": "#f8fafc",
-  "icons": [
-    {
-      "src": "./icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "./icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    },
-    {
-      "src": "./icons/icon-maskable-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
-    }
-  ]
+  "theme_color": "#f8fafc"
 }
