@@ -1838,7 +1838,7 @@ async function analyzeGoal(){
   [450,950].forEach((t,i)=>setTimeout(()=>completeAnalysisRow(i),t));
   const button=document.getElementById('missionPlanButton');button?.classList.add('ai-loading');
   aiRequestController?.abort();aiRequestController=new AbortController();
-  const timeout=setTimeout(()=>aiRequestController.abort(),45000);
+  const timeout=setTimeout(()=>aiRequestController.abort(),120000);
   try{
     const form=new FormData();form.append('goalText',goalText);form.append('missionType',missionTypeForAPI());form.append('confidence',confidenceForAPI());if(missionImageFile)form.append('image',missionImageFile,missionImageFile.name);
     const response=await fetch(FOCUS_AI_ENDPOINT,{method:'POST',body:form,signal:aiRequestController.signal});
