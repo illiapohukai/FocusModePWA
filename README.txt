@@ -1,1 +1,1 @@
-Replace index.html, service-worker.js and manifest.webmanifest in FocusModePWA. Worker must report version v3-adaptation at /health. Keep any existing icons folder unchanged.
+Replace index.html, manifest.webmanifest and service-worker.js in FocusModePWA. Keep icons unchanged. Open with ?v=8. Worker remains v3-adaptation.
