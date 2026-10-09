@@ -4,12 +4,12 @@
   "short_name": "Focus Mode+",
   "description": "Adaptive AI Focus Missions",
   "lang": "de",
-  "start_url": "./index.html?v=8",
+  "start_url": "./index.html?v=8.1",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#f8fafc",
-  "theme_color": "#f8fafc",
+  "background_color": "#0f1328",
+  "theme_color": "#0f1328",
   "icons": [
     {
       "src": "./icons/icon-192.png",

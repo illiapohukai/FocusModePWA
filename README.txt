@@ -1,1 +1,1 @@
-Replace index.html, manifest.webmanifest and service-worker.js in FocusModePWA. Keep icons unchanged. Open with ?v=8. Worker remains v3-adaptation.
+Replace index.html, manifest.webmanifest, service-worker.js. Keep icons unchanged. Worker stays v3-adaptation. Open ?v=8.1.
