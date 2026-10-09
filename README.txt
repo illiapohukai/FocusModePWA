@@ -1,0 +1,1 @@
+Replace only index.html, manifest.webmanifest and service-worker.js in FocusModePWA. Keep the existing icons folder unchanged. Worker endpoint: https://focusmodedemoai.illia-pohukai.workers.dev/create-mission
