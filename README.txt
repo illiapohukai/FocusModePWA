@@ -1,1 +1,1 @@
-Replace index.html, manifest.webmanifest, service-worker.js. Keep icons unchanged. Worker stays v3-adaptation. Open ?v=8.1.
+Replace index.html, manifest.webmanifest, service-worker.js. Keep icons unchanged. Worker stays v4-resilient-retry. Open ?v=9.1.
