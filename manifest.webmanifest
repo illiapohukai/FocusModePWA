@@ -3,7 +3,7 @@
   "name": "Focus Mode+",
   "short_name": "Focus Mode+",
   "lang": "de",
-  "start_url": "./index.html?v=11.1",
+  "start_url": "./index.html?v=11.1.1",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
