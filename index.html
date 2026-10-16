@@ -2602,10 +2602,11 @@ function resolveInitialAppStateV112(){
  setAppScreen('home',{immediate:true});
 }
 function resumeRecoveredSession(){
- const stored=readRecoveryCandidate();if(!stored)return resolveInitialAppStateV112();
+ const stored=readRecoveryCandidate();if(!stored){releaseRecoveryNavigationV112();return resolveInitialAppStateV112()}releaseRecoveryNavigationV112();
  const resumed={...stored,lifecycleState:'running',lastActiveAt:Date.now(),lastCheckpointAt:Date.now()};setActiveSession(resumed);sessionRecoveryCandidate=null;currentSessionStartedAt=resumed.startedAt;currentSessionPlannedMinutes=resumed.plannedMinutes;currentSessionActualMinutes=Math.floor(resumed.elapsedMs/60000);renderSession(resumed);setAppScreen('timer',{immediate:true});startSessionRuntime();recoveryLog('active_session_resumed',{sessionId:resumed.id,type:resumed.type});
 }
 function discardRecoveredSession(){
+ releaseRecoveryNavigationV112();
  const id=activeSession?.id||sessionRecoveryCandidate?.id||null;stopSessionRuntime();setActiveSession(null);sessionRecoveryCandidate=null;recoveryLog('active_session_discarded',{sessionId:id});setAppScreen('home',{immediate:true});
 }
 function buildFinalSessionV112(s,outcome,reason){
@@ -2620,7 +2621,8 @@ function saveFinalSessionOnceV112(final){
 function finishRecoveredSession(){
  const s=activeSession||sessionRecoveryCandidate;if(!s)return;
  const minutes=Math.floor(sessionElapsedMs(s,s.lifecycleState==='running')/60000);if(minutes<1)return;
- if(s.type==='mission'){openRecoveredMissionReview(s);return}
+ if(s.type==='mission'){releaseRecoveryNavigationV112();openRecoveredMissionReview(s);return}
+ releaseRecoveryNavigationV112();
  const final=buildFinalSessionV112(s,'completed','recovery_confirmed');if(!saveFinalSessionOnceV112(final))return;stopSessionRuntime();setActiveSession(null);sessionRecoveryCandidate=null;setAppScreen('home',{immediate:true});
 }
 function openRecoveredMissionReview(source=activeSession){
@@ -2664,7 +2666,23 @@ showPlanUpdate=async function(){
 window.addEventListener('pagehide',()=>{if(activeSession?.lifecycleState==='running')checkpointActiveSession('pagehide',true)},{capture:true});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&activeSession?.lifecycleState==='running')checkpointActiveSession('visibility_hidden',true)},{capture:true});
 
-// Read before DOMContentLoaded listeners run, so legacy PWA boot cannot force Home.
+// Read before DOMContentLoaded listeners run, so legacy startup handlers cannot force Home.
 readRecoveryCandidate();
+let recoveryNavigationLockedV112=Boolean(sessionRecoveryCandidate);
+const setAppScreenBeforeRecoveryPriorityV112=setAppScreen;
+setAppScreen=function(screenName,options={}){
+ if(recoveryNavigationLockedV112&&screenName!=='session-recovery'){
+  recoveryLog('startup_navigation_blocked',{screen:screenName});
+  return Promise.resolve(false);
+ }
+ return setAppScreenBeforeRecoveryPriorityV112.apply(this,arguments);
+};
+function releaseRecoveryNavigationV112(){
+ recoveryNavigationLockedV112=false;
+ ++appScreenTransitionToken;
+ if(appScreenAnimation){appScreenAnimation.cancel();appScreenAnimation=null}
+ const body=document.getElementById('appBody');
+ if(body){body.style.opacity='';body.style.transform='';body.style.filter=''}
+}
 document.addEventListener('DOMContentLoaded',()=>setTimeout(resolveInitialAppStateV112,120),{once:true});
 </script></body></html>
