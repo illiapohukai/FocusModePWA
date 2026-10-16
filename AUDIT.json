@@ -1,0 +1,14 @@
+{
+  "version": "v11.5.1 Session Recovery Hotfix",
+  "syntaxErrors": [],
+  "duplicateIds": {},
+  "checks": {
+    "secondaryHomeCardRemoved": true,
+    "planSwitcherPreserved": true,
+    "atomicResumeOverride": true,
+    "resumeRollback": true,
+    "existingSessionRouting": true,
+    "whiteRecoveryMarkupUntouched": true,
+    "timerDesignUntouched": true
+  }
+}
