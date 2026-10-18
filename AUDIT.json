@@ -1,14 +1,19 @@
 {
-  "version": "v11.5.1 Session Recovery Hotfix",
+  "version": "v11.6 Multi-Mission Home",
   "syntaxErrors": [],
   "duplicateIds": {},
   "checks": {
-    "secondaryHomeCardRemoved": true,
-    "planSwitcherPreserved": true,
-    "atomicResumeOverride": true,
-    "resumeRollback": true,
-    "existingSessionRouting": true,
-    "whiteRecoveryMarkupUntouched": true,
-    "timerDesignUntouched": true
+    "homeCarousel": true,
+    "focusMissionList": true,
+    "managementScreen": true,
+    "repositoryRename": true,
+    "repositoryRestore": true,
+    "primaryAction": true,
+    "archiveAction": true,
+    "deletePreservesHistory": true,
+    "recoveryHotfixPreserved": true,
+    "whiteRecoveryPreserved": true,
+    "aiEndpointsPreserved": true,
+    "historyKeyPreserved": true
   }
 }
