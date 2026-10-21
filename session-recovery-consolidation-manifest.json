@@ -1,0 +1,46 @@
+{
+  "version": "v13.2.1 Session Recovery Consolidation",
+  "sourceSha256": "226a2aa73e0dc51169b36922dfa88a11f5ed016ae9a85b90027a8d6ac8118f09",
+  "outputSha256": "fb6687a781fee0686091c2c544b1b9114a7fa8d9be8b9e33d96130f83c5ca049",
+  "checks": {
+    "source_is_v132": true,
+    "title_updated": true,
+    "controller_once": true,
+    "syntax_ok": true,
+    "controller_after_runtime_ownership": true,
+    "repository_preserved": true,
+    "recovery_router_preserved": true,
+    "finalized_guard_preserved": true,
+    "clean_index_name_ready": true,
+    "storage_keys_preserved": true
+  },
+  "publicOwner": "FocusModeApp.core.sessionRecovery",
+  "redirectedGlobals": [
+    "startSession",
+    "checkpointActiveSession",
+    "endSessionByUser",
+    "completeLearningSession",
+    "stopFocusSession",
+    "startSessionRuntime",
+    "stopSessionRuntime",
+    "readRecoveryCandidate",
+    "getRecoverableSessionV1151",
+    "resumeRecoveredSession",
+    "discardRecoveredSession",
+    "finishRecoveredSession",
+    "renderSessionRecovery",
+    "routeExistingSessionV1151"
+  ],
+  "preserved": [
+    "v13.1.4 authoritative Recovery routing",
+    "v13.1.5 finalized-session cleanup",
+    "Session Repository persistence",
+    "existing storage keys and schemas",
+    "timer and UI behavior"
+  ],
+  "deferred": [
+    "physical deletion of legacy implementations",
+    "Mission adaptation consolidation",
+    "startup-listener deletion after browser regression testing"
+  ]
+}
