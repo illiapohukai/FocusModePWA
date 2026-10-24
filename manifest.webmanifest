@@ -3,7 +3,7 @@
   "name": "Focus Mode+",
   "short_name": "Focus Mode+",
   "lang": "de",
-  "start_url": "./index.html?v=10.6",
+  "start_url": "./index.html?v=11.8.1",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
@@ -25,6 +25,11 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    },
+    {
+      "src": "./icons/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
     }
   ]
 }
