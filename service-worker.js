@@ -1,4 +1,4 @@
-const CACHE = "focus-mode-plus-v16-data-stability-v1";
+const CACHE = "focus-mode-plus-v17-navigation-clarity-v1";
 const CORE = [
   "./",
   "./index.html",
@@ -13,6 +13,7 @@ const CORE = [
   "./styles/quick-focus.css",
   "./styles/missions.css",
   "./styles/data-management.css",
+  "./styles/navigation.css",
   "./src/core/architecture-shell.js",
   "./src/services/storage-service.js",
   "./src/data/schema-versions.js",

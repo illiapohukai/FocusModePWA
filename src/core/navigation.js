@@ -296,9 +296,9 @@ function closeFocusChoice(){
   setTimeout(()=>overlay.classList.add('hidden'),240);
 }
 function startQuickFocusFromChoice(){ closeFocusChoice(); setTimeout(()=>startQuickFocus(),180); }
-function openAdaptiveFromChoice(){ closeFocusChoice(); setTimeout(()=>openGoalIntake(),180); }
-function openGoalIntake(){ learningFlowActive=false; setAppScreen('goal'); }
-function showDemoFilePicker(){ setAppScreen('filepicker'); }
+function openAdaptiveFromChoice(){ closeFocusChoice(); setTimeout(()=>openGoalIntake({parent:'home',rootSection:'home',reopenFocusChoice:true}),180); }
+function openGoalIntake(context={}){ learningFlowActive=false; if(typeof navigateForward==='function') navigateForward('goal',context); else setAppScreen('goal'); }
+function showDemoFilePicker(){ if(typeof navigateForward==='function') navigateForward('filepicker',{parent:'goal'}); else setAppScreen('filepicker'); }
 function selectDemoFile(){
   const card=document.getElementById('selectedFileCard');
   if(card){ card.classList.remove('hidden'); card.classList.add('selected'); }
@@ -519,3 +519,414 @@ const oldApplyUc=applyAppScreenImmediately;applyAppScreenImmediately=function(sc
 
 
 document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();else if(!document.getElementById('app-screen-timer')?.classList.contains('hidden')){if(ucEndsAt&&timerInterval){timerDuration=Math.max(0,Math.ceil((ucEndsAt-Date.now())/1000));updateTimerUI();if(timerDuration<=0)finishSession({status:'completed',reason:'timer_finished'})}startUc()}});window.addEventListener('resize',()=>{if(ucActive)requestAnimationFrame(initUc)},{passive:true});
+
+/* =========================================
+   V17 NAVIGATION CLARITY CONTROLLER
+   ========================================= */
+(function installNavigationControllerV17(global) {
+  'use strict';
+
+  const ROOT_SECTIONS = Object.freeze(['home', 'missions', 'history', 'settings']);
+  const SCREEN_TO_ROOT_SECTION = Object.freeze({
+    home: 'home',
+    missions: 'missions',
+    plan: 'missions',
+    history: 'history',
+    stats: 'history',
+    settings: 'settings',
+    data: 'settings',
+    score: 'history'
+  });
+
+  const LOGICAL_PARENT_MAP = Object.freeze({
+    data: 'settings',
+    stats: 'history',
+    plan: 'missions',
+    confirm: 'goal',
+    filepicker: 'goal',
+    distractions: 'quicksetup',
+    quicksetup: 'home',
+    goal: 'home',
+    score: 'home',
+    chat: 'home',
+    premium: 'settings'
+  });
+
+  const navState = {
+    currentScreen: 'home',
+    currentRootSection: 'home',
+    previousScreen: null,
+    navigationStack: [],
+    activeBottomNavigationSection: 'home'
+  };
+
+  function getVisibleScreenName() {
+    const visible = global.document?.querySelector('.app-screen:not(.hidden)');
+    if (!visible || !visible.id) return navState.currentScreen || 'home';
+    return visible.id.replace('app-screen-', '');
+  }
+
+  function isCriticalModalOrSheetOpen() {
+    const doc = global.document;
+    if (!doc) return false;
+    const wrapper = doc.getElementById('screenWrapper');
+    const choiceOverlay = doc.getElementById('focusChoiceOverlay');
+    if (wrapper?.classList.contains('focus-choice-open') || (choiceOverlay && !choiceOverlay.classList.contains('hidden'))) {
+      return true;
+    }
+    const missionSheet = doc.getElementById('missionSheetV116');
+    if (missionSheet?.classList.contains('open')) {
+      return true;
+    }
+    const dataScreen = doc.getElementById('app-screen-data');
+    if (dataScreen && !dataScreen.classList.contains('hidden')) {
+      const importPreview = doc.getElementById('dataImportPreviewCard');
+      const resetConfirm = doc.getElementById('dataResetConfirmCard');
+      if ((importPreview && !importPreview.classList.contains('hidden')) ||
+          (resetConfirm && !resetConfirm.classList.contains('hidden'))) {
+        return true;
+      }
+    }
+    const popups = [
+      'blockedAppsPopup',
+      'screen-popup-ablenkung',
+      'screen-popup-achievement',
+      'screen-popup-success'
+    ];
+    for (const id of popups) {
+      const el = doc.getElementById(id);
+      if (el && !el.classList.contains('hidden')) return true;
+    }
+    const ucTask = doc.getElementById('ucTaskPopup');
+    if (ucTask?.classList.contains('open')) return true;
+    return false;
+  }
+
+  function showBottomNavigation(activeSection = navState.currentRootSection || 'home') {
+    const resolvedSection = ROOT_SECTIONS.includes(activeSection) ? activeSection : 'home';
+    navState.activeBottomNavigationSection = resolvedSection;
+
+    const doc = global.document;
+    const nav = doc?.getElementById('bottomNavigationV17');
+    const wrapper = doc?.getElementById('screenWrapper');
+    if (wrapper) wrapper.classList.add('has-bottom-nav');
+    doc?.body?.classList.add('has-bottom-nav');
+
+    if (!nav) return;
+    nav.classList.remove('hidden');
+    nav.removeAttribute('aria-hidden');
+    nav.removeAttribute('inert');
+
+    nav.querySelectorAll('.fm-nav-item').forEach(btn => {
+      const isMatch = btn.dataset.navSection === resolvedSection;
+      btn.classList.toggle('active', isMatch);
+      if (isMatch) {
+        btn.setAttribute('aria-current', 'page');
+      } else {
+        btn.removeAttribute('aria-current');
+      }
+    });
+  }
+
+  function hideBottomNavigation() {
+    const doc = global.document;
+    const nav = doc?.getElementById('bottomNavigationV17');
+    const wrapper = doc?.getElementById('screenWrapper');
+    if (wrapper) wrapper.classList.remove('has-bottom-nav');
+    doc?.body?.classList.remove('has-bottom-nav');
+
+    if (!nav) return;
+    nav.classList.add('hidden');
+    nav.setAttribute('aria-hidden', 'true');
+    nav.setAttribute('inert', '');
+  }
+
+  function resolveActiveRootForScreen(screen) {
+    if (screen === 'score') {
+      return navState.currentRootSection === 'history' ? 'history' : 'home';
+    }
+    return SCREEN_TO_ROOT_SECTION[screen] || null;
+  }
+
+  function syncBottomNavigationForScreen(screen) {
+    const actualScreen = screen || getVisibleScreenName();
+    navState.currentScreen = actualScreen;
+
+    if (isCriticalModalOrSheetOpen()) {
+      hideBottomNavigation();
+      return false;
+    }
+
+    const activeSection = resolveActiveRootForScreen(actualScreen);
+    if (!activeSection) {
+      hideBottomNavigation();
+      return false;
+    }
+
+    navState.currentRootSection = activeSection;
+    showBottomNavigation(activeSection);
+    return true;
+  }
+
+  function hasRunningFocusSessionOnTimer() {
+    const s = global.activeSession;
+    return Boolean(s && s.status === 'running' && (getVisibleScreenName() === 'timer' || navState.pendingScreen === 'timer'));
+  }
+
+  function navigateToRoot(section) {
+    if (!ROOT_SECTIONS.includes(section)) return false;
+    if (hasRunningFocusSessionOnTimer()) {
+      return false;
+    }
+
+    const choiceOverlay = global.document?.getElementById('focusChoiceOverlay');
+    if (choiceOverlay && !choiceOverlay.classList.contains('hidden') && typeof global.closeFocusChoice === 'function') {
+      global.closeFocusChoice();
+    }
+    if (typeof global.closeMissionSheetV116 === 'function') {
+      global.closeMissionSheetV116();
+    }
+
+    if (section === 'missions') {
+      if (typeof global.ensureMissionManagementScreenV116 === 'function') {
+        global.ensureMissionManagementScreenV116();
+      }
+      if (typeof global.renderMissionManagementV116 === 'function') {
+        global.renderMissionManagementV116();
+      }
+    }
+
+    const fromScreen = getVisibleScreenName();
+    navState.previousScreen = fromScreen;
+    navState.currentRootSection = section;
+    navState.activeBottomNavigationSection = section;
+    navState.navigationStack = [];
+
+    if (fromScreen === section) {
+      syncBottomNavigationForScreen(section);
+      return true;
+    }
+
+    global.setAppScreen(section, { immediate: true, __fromNavController: true });
+    syncBottomNavigationForScreen(section);
+    return true;
+  }
+
+  function navigateForward(screen, context = {}) {
+    if (!screen) return false;
+    const fromScreen = context.parent || getVisibleScreenName();
+    const rootSection = context.rootSection || resolveActiveRootForScreen(screen) || navState.currentRootSection || 'home';
+
+    if (fromScreen && fromScreen !== screen) {
+      const top = navState.navigationStack[navState.navigationStack.length - 1];
+      if (!top || top.screen !== fromScreen) {
+        navState.navigationStack.push({
+          screen: fromScreen,
+          rootSection: navState.currentRootSection || 'home',
+          reopenFocusChoice: Boolean(context.reopenFocusChoice)
+        });
+      }
+      navState.previousScreen = fromScreen;
+    }
+
+    if (ROOT_SECTIONS.includes(rootSection)) {
+      navState.currentRootSection = rootSection;
+    }
+
+    if (screen === 'missions') {
+      global.ensureMissionManagementScreenV116?.();
+      global.renderMissionManagementV116?.();
+    }
+
+    const options = { immediate: true, ...(context.options || {}), __fromNavController: true };
+    global.setAppScreen(screen, options);
+    return true;
+  }
+
+  function replaceScreen(screen, context = {}) {
+    if (!screen) return false;
+    const rootSection = context.rootSection || resolveActiveRootForScreen(screen) || navState.currentRootSection || 'home';
+    if (ROOT_SECTIONS.includes(rootSection)) {
+      navState.currentRootSection = rootSection;
+    }
+    const options = { immediate: true, ...(context.options || {}), __fromNavController: true };
+    global.setAppScreen(screen, options);
+    return true;
+  }
+
+  function navigateBack() {
+    const current = getVisibleScreenName();
+
+    // Active session guard: never silently leave the running timer
+    if (current === 'timer') {
+      if (global.activeSession?.status === 'running') {
+        if (typeof global.triggerAppAblenkung === 'function') {
+          global.triggerAppAblenkung();
+        }
+        return false;
+      }
+      return navigateToRoot('home');
+    }
+
+    // Root screens do not use Back navigation
+    if (ROOT_SECTIONS.includes(current)) {
+      return false;
+    }
+
+    // Explicit logical parent contracts (Section 11)
+    if (current === 'data') {
+      if (typeof global.cancelPendingDataImport === 'function') global.cancelPendingDataImport();
+      if (typeof global.hideResetConfirmCard === 'function') global.hideResetConfirmCard();
+      return navigateToRoot('settings');
+    }
+
+    if (current === 'stats') {
+      return navigateToRoot('history');
+    }
+
+    if (current === 'confirm' || current === 'filepicker') {
+      global.setAppScreen('goal', { immediate: true, __fromNavController: true });
+      return true;
+    }
+
+    if (current === 'distractions') {
+      if (typeof global.returnFromDistractionPicker === 'function') {
+        global.returnFromDistractionPicker();
+        return true;
+      }
+      global.setAppScreen('quicksetup', { immediate: true, __fromNavController: true });
+      return true;
+    }
+
+    if (current === 'quicksetup') {
+      navState.navigationStack = [];
+      global.setAppScreen('home', { immediate: true, __fromNavController: true });
+      setTimeout(() => {
+        if (typeof global.openFocusChoice === 'function') {
+          global.openFocusChoice();
+        }
+      }, 30);
+      return true;
+    }
+
+    if (current === 'plan') {
+      return navigateToRoot('missions');
+    }
+
+    // Stack-based return for goal, score, premium, chat, etc.
+    if (navState.navigationStack.length > 0) {
+      const prevEntry = navState.navigationStack.pop();
+      if (prevEntry && prevEntry.screen) {
+        navState.previousScreen = current;
+        if (ROOT_SECTIONS.includes(prevEntry.rootSection)) {
+          navState.currentRootSection = prevEntry.rootSection;
+        }
+        if (prevEntry.screen === 'missions') {
+          return navigateToRoot('missions');
+        }
+        global.setAppScreen(prevEntry.screen, { immediate: true, __fromNavController: true });
+        if (prevEntry.reopenFocusChoice && prevEntry.screen === 'home') {
+          setTimeout(() => global.openFocusChoice?.(), 30);
+        }
+        return true;
+      }
+    }
+
+    const fallbackParent = LOGICAL_PARENT_MAP[current] || 'home';
+    if (ROOT_SECTIONS.includes(fallbackParent)) {
+      return navigateToRoot(fallbackParent);
+    }
+    global.setAppScreen(fallbackParent, { immediate: true, __fromNavController: true });
+    return true;
+  }
+
+  function wrapApplyScreenV17() {
+    const currentApply = global.applyAppScreenImmediately;
+    if (typeof currentApply === 'function' && !currentApply.__v17NavWrapped) {
+      function applyWithNavSyncV17(screenName) {
+        const prevVisible = getVisibleScreenName();
+        const result = currentApply.apply(this, arguments);
+        const actualScreen = getVisibleScreenName();
+        if (prevVisible && prevVisible !== actualScreen) {
+          navState.previousScreen = prevVisible;
+        }
+        navState.currentScreen = actualScreen;
+        navState.pendingScreen = null;
+        syncBottomNavigationForScreen(actualScreen);
+        return result;
+      }
+      applyWithNavSyncV17.__v17NavWrapped = true;
+      global.applyAppScreenImmediately = applyWithNavSyncV17;
+    }
+
+    const currentSet = global.setAppScreen;
+    if (typeof currentSet === 'function' && !currentSet.__v17SetWrapped) {
+      function setAppScreenWithNavV17(screenName, options = {}) {
+        navState.pendingScreen = screenName;
+        if (!resolveActiveRootForScreen(screenName)) {
+          hideBottomNavigation();
+        }
+        return currentSet.apply(this, arguments);
+      }
+      setAppScreenWithNavV17.__v17SetWrapped = true;
+      global.setAppScreen = setAppScreenWithNavV17;
+    }
+
+    const currentOpenQuick = global.openQuickSetupFromChoice;
+    if (typeof currentOpenQuick === 'function' && !currentOpenQuick.__v17QuickWrapped) {
+      function openQuickSetupFromChoiceV17() {
+        navState.pendingScreen = 'quicksetup';
+        hideBottomNavigation();
+        global.closeFocusChoice?.();
+        setTimeout(() => {
+          navigateForward('quicksetup', {
+            parent: 'home',
+            rootSection: 'home',
+            reopenFocusChoice: true,
+            options: { immediate: true }
+          });
+        }, 180);
+      }
+      openQuickSetupFromChoiceV17.__v17QuickWrapped = true;
+      global.openQuickSetupFromChoice = openQuickSetupFromChoiceV17;
+    }
+  }
+
+  wrapApplyScreenV17();
+
+  // Wrap openFocusChoice and closeFocusChoice to hide/restore bottom navigation
+  const origOpenChoice = global.openFocusChoice;
+  if (typeof origOpenChoice === 'function') {
+    global.openFocusChoice = function openFocusChoiceWithNavV17() {
+      const res = origOpenChoice.apply(this, arguments);
+      hideBottomNavigation();
+      return res;
+    };
+  }
+
+  const origCloseChoice = global.closeFocusChoice;
+  if (typeof origCloseChoice === 'function') {
+    global.closeFocusChoice = function closeFocusChoiceWithNavV17() {
+      const res = origCloseChoice.apply(this, arguments);
+      setTimeout(() => {
+        if (navState.pendingScreen && !resolveActiveRootForScreen(navState.pendingScreen)) {
+          hideBottomNavigation();
+          return;
+        }
+        syncBottomNavigationForScreen(getVisibleScreenName());
+      }, 250);
+      return res;
+    };
+  }
+
+  global.navigateToRoot = navigateToRoot;
+  global.navigateForward = navigateForward;
+  global.navigateBack = navigateBack;
+  global.replaceScreen = replaceScreen;
+  global.showBottomNavigation = showBottomNavigation;
+  global.hideBottomNavigation = hideBottomNavigation;
+  global.syncBottomNavigationForScreen = syncBottomNavigationForScreen;
+  global.installNavApplyHookV17 = wrapApplyScreenV17;
+  global.__navigationStateV17 = navState;
+})(window);
+

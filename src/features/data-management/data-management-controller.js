@@ -129,7 +129,7 @@
     const versionBadge = global.document.getElementById('dataAppVersionBadge');
 
     if (versionBadge) {
-      versionBadge.textContent = schema.applicationVersion;
+      versionBadge.textContent = App.version || schema.applicationVersion;
     }
 
     if (activeMissionsEl) {
@@ -179,7 +179,11 @@
     hideImportPreviewCard();
     hideResetConfirmCard();
     refreshDataManagementUI();
-    global.setAppScreen('data', { immediate: true });
+    if (typeof global.navigateForward === 'function') {
+      global.navigateForward('data', { parent: 'settings', rootSection: 'settings', options: { immediate: true } });
+    } else {
+      global.setAppScreen('data', { immediate: true });
+    }
   }
 
   function handleDataExportClick() {
@@ -232,11 +236,17 @@
         '<div><span>' + escapeHTML(t('Bundle-Version', 'Bundle version')) + '</span><strong id="importPreviewVersion">v' + escapeHTML(preview.bundleVersion) + ' (Schema v' + escapeHTML(preview.schemaVersion) + ')</strong></div>';
     }
     card.classList.remove('hidden');
+    if (typeof global.hideBottomNavigation === 'function') {
+      global.hideBottomNavigation();
+    }
   }
 
   function hideImportPreviewCard() {
     const card = global.document?.getElementById('dataImportPreviewCard');
     if (card) card.classList.add('hidden');
+    if (typeof global.syncBottomNavigationForScreen === 'function') {
+      global.syncBottomNavigationForScreen();
+    }
   }
 
   async function handleDataImportFileChange(event) {
@@ -299,11 +309,17 @@
     hideImportPreviewCard();
     const card = global.document?.getElementById('dataResetConfirmCard');
     if (card) card.classList.remove('hidden');
+    if (typeof global.hideBottomNavigation === 'function') {
+      global.hideBottomNavigation();
+    }
   }
 
   function hideResetConfirmCard() {
     const card = global.document?.getElementById('dataResetConfirmCard');
     if (card) card.classList.add('hidden');
+    if (typeof global.syncBottomNavigationForScreen === 'function') {
+      global.syncBottomNavigationForScreen();
+    }
   }
 
   function confirmSafeDataReset() {

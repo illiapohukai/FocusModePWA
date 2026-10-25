@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 
-<html class="dark" lang="de"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/><meta content="#05050a" name="theme-color"/><meta content="Focus Mode+ verbindet klare nächste Schritte, geschützte Fokus-Sitzungen und adaptive Focus Missions in einem interaktiven Prototyp." name="description"/><title>v16 Data Stability</title><script src="https://cdn.tailwindcss.com"></script><script>tailwind.config={darkMode:'class'}</script><script src="https://unpkg.com/lucide@latest"></script><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>  <link rel="stylesheet" href="./styles/app.css" />
+<html class="dark" lang="de"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/><meta content="#05050a" name="theme-color"/><meta content="Focus Mode+ verbindet klare nächste Schritte, geschützte Fokus-Sitzungen und adaptive Focus Missions in einem interaktiven Prototyp." name="description"/><title>v17 Navigation Clarity</title><script src="https://cdn.tailwindcss.com"></script><script>tailwind.config={darkMode:'class'}</script><script src="https://unpkg.com/lucide@latest"></script><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>  <link rel="stylesheet" href="./styles/app.css" />
   <link rel="stylesheet" href="./styles/timer.css" />
   <link rel="stylesheet" href="./styles/recovery.css" />
   <link rel="stylesheet" href="./styles/quick-focus.css" />
   <link rel="stylesheet" href="./styles/missions.css" />
-  <link rel="stylesheet" href="./styles/data-management.css" /><link rel="manifest" href="./manifest.webmanifest"/><link rel="icon" type="image/png" href="./icon-192.png"/><link rel="apple-touch-icon" href="./apple-touch-icon.png"/><meta name="apple-mobile-web-app-capable" content="yes"/><meta id="appleStatusBarStyle" name="apple-mobile-web-app-status-bar-style" content="black-translucent"/><meta name="apple-mobile-web-app-title" content="Focus Mode+"/>
+  <link rel="stylesheet" href="./styles/data-management.css" />
+  <link rel="stylesheet" href="./styles/navigation.css" /><link rel="manifest" href="./manifest.webmanifest"/><link rel="icon" type="image/png" href="./icon-192.png"/><link rel="apple-touch-icon" href="./apple-touch-icon.png"/><meta name="apple-mobile-web-app-capable" content="yes"/><meta id="appleStatusBarStyle" name="apple-mobile-web-app-status-bar-style" content="black-translucent"/><meta name="apple-mobile-web-app-title" content="Focus Mode+"/>
 
 </head><body>
 <script id="architectureShellV122" src="./src/core/architecture-shell.js"></script>
@@ -161,7 +162,7 @@
 </div>
 </section>
 <div class="grid grid-cols-3 gap-2">
-<button class="home-metric p-2.5 bg-white rounded-2xl border border-slate-200/70 text-left shadow-xs min-w-0" onclick="setAppScreen('history')">
+<button class="home-metric p-2.5 bg-white rounded-2xl border border-slate-200/70 text-left shadow-xs min-w-0" onclick="navigateToRoot('history')">
 <span class="metric-label text-[7px] font-black text-indigo-600 uppercase tracking-[.07em] flex items-center gap-1"><i class="metric-icon w-3.5 h-3.5 shrink-0" data-lucide="clock-3"></i><span>Fokuszeit</span></span>
 <div class="text-[15px] font-black text-slate-850 mt-1" id="homeTodayFocus">0 <span class="text-[8px] font-semibold text-slate-400">Min.</span></div>
 </button>
@@ -169,7 +170,7 @@
 <span class="metric-label text-[7px] font-black text-orange-500 uppercase tracking-[.07em] flex items-start gap-1 leading-[1.05]"><i class="metric-icon w-3.5 h-3.5 shrink-0" data-lucide="flame"></i><span>Plan-<br/>Serie</span></span>
 <div class="text-[15px] font-black text-slate-850 mt-1">3 <span class="text-[8px] font-semibold text-slate-400">Wo.</span></div>
 </button>
-<button class="home-metric p-2.5 bg-white rounded-2xl border border-slate-200/70 text-left shadow-xs min-w-0" onclick="setAppScreen('score')">
+<button class="home-metric p-2.5 bg-white rounded-2xl border border-slate-200/70 text-left shadow-xs min-w-0" onclick="navigateForward('score',{parent:'home',rootSection:'home'})">
 <span class="metric-label text-[7px] font-black text-amber-600 uppercase tracking-[.07em] flex items-center gap-1"><i class="metric-icon w-3.5 h-3.5 shrink-0" data-lucide="trophy"></i><span>Rang</span></span>
 <div class="text-[15px] font-black text-slate-850 mt-1">#12 <span class="text-[8px] font-semibold text-slate-400">Gold</span></div>
 </button>
@@ -185,8 +186,8 @@
 </div>
 <!-- FOCUS CHOICE: Schnell oder adaptiv -->
 <!-- LEARNING FLOW: Zieleingabe -->
-<div class="app-screen flow-screen qb hidden" id="app-screen-quicksetup"><div class="qb-main"><div class="qb-top"><button onclick="setAppScreen('home')"><i data-lucide="arrow-left"></i></button><b>Quick Focus</b><span></span></div><header><h3>Richte deine Sitzung ein.</h3><p>Wähle Dauer und Ablenkungen. Alle anderen Apps bleiben verfügbar.</p></header><section><h4>Woran arbeitest du?</h4><label class="qb-task"><span>🎯</span><input id="quickTaskInput" value="" placeholder="Hier eingeben…" autocomplete="off"><i data-lucide="pencil"></i></label></section><section class="qb-duration"><h4>Dauer</h4><div class="qb-time"><div class="qb-ring"><svg viewBox="0 0 180 180"><defs><linearGradient id="qbg"><stop stop-color="#38bdf8"/><stop offset=".52" stop-color="#c084fc"/><stop offset="1" stop-color="#4f46e5"/></linearGradient></defs><circle class="track" cx="90" cy="90" r="69"/><circle id="quickRingProgress" class="progress" cx="90" cy="90" r="69"/></svg><div><strong id="quickMinuteValue">25</strong><span>Min.</span></div></div><aside><button onclick="adjustQuickDuration(5)">+</button><button onclick="adjustQuickDuration(-5)">−</button></aside></div><div class="qb-presets" id="quickDurationButtons"><button class="quick-option" onclick="selectQuickDuration(this,15)">15 Min.</button><button class="quick-option active" onclick="selectQuickDuration(this,25)">25 Min.</button><button class="quick-option" onclick="selectQuickDuration(this,35)">35 Min.</button><button class="quick-option" onclick="selectQuickDuration(this,50)">50 Min.</button></div></section><button class="qb-app" onclick="openDistractionPicker('quicksetup')"><span class="qb-visual"><span class="qb-icons" id="quickSelectedAppIcons"></span><span class="qb-shield"><i data-lucide="shield-off"></i></span></span><span class="qb-copy"><small>Distractions</small><strong><span class="blockedCount">7</span> Apps blockiert</strong><em class="blockedSummary">TikTok · Instagram · YouTube +4</em></span><i data-lucide="chevron-right"></i></button><div class="qb-info"><span><i data-lucide="smartphone"></i></span><p><strong>Dein Smartphone bleibt nutzbar.</strong><br>Nur die ausgewählten Ablenkungen werden blockiert.</p></div></div><div class="qb-bottom"><button onclick="startConfiguredQuickFocus()"><i data-lucide="play"></i> Start focus</button></div></div><div class="app-screen flow-screen p-5 flex flex-col flex-1 hidden bg-slate-50" id="app-screen-distractions">
-<div class="flex items-center justify-between mb-4"><button class="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600" onclick="returnFromDistractionPicker()"><i class="w-4 h-4" data-lucide="arrow-left"></i></button><span class="text-[9px] font-black uppercase tracking-[.18em] text-indigo-500">Fokus-Schutz</span><div class="w-9"></div></div>
+<div class="app-screen flow-screen qb hidden" id="app-screen-quicksetup"><div class="qb-main"><div class="qb-top"><button onclick="navigateBack()" aria-label="Zurück" title="Zurück" type="button"><i data-lucide="arrow-left"></i></button><b>Quick Focus</b><span></span></div><header><h3>Richte deine Sitzung ein.</h3><p>Wähle Dauer und Ablenkungen. Alle anderen Apps bleiben verfügbar.</p></header><section><h4>Woran arbeitest du?</h4><label class="qb-task"><span>🎯</span><input id="quickTaskInput" value="" placeholder="Hier eingeben…" autocomplete="off"><i data-lucide="pencil"></i></label></section><section class="qb-duration"><h4>Dauer</h4><div class="qb-time"><div class="qb-ring"><svg viewBox="0 0 180 180"><defs><linearGradient id="qbg"><stop stop-color="#38bdf8"/><stop offset=".52" stop-color="#c084fc"/><stop offset="1" stop-color="#4f46e5"/></linearGradient></defs><circle class="track" cx="90" cy="90" r="69"/><circle id="quickRingProgress" class="progress" cx="90" cy="90" r="69"/></svg><div><strong id="quickMinuteValue">25</strong><span>Min.</span></div></div><aside><button onclick="adjustQuickDuration(5)">+</button><button onclick="adjustQuickDuration(-5)">−</button></aside></div><div class="qb-presets" id="quickDurationButtons"><button class="quick-option" onclick="selectQuickDuration(this,15)">15 Min.</button><button class="quick-option active" onclick="selectQuickDuration(this,25)">25 Min.</button><button class="quick-option" onclick="selectQuickDuration(this,35)">35 Min.</button><button class="quick-option" onclick="selectQuickDuration(this,50)">50 Min.</button></div></section><button class="qb-app" onclick="openDistractionPicker('quicksetup')"><span class="qb-visual"><span class="qb-icons" id="quickSelectedAppIcons"></span><span class="qb-shield"><i data-lucide="shield-off"></i></span></span><span class="qb-copy"><small>Ablenkungen</small><strong><span class="blockedCount">7</span> Apps blockiert</strong><em class="blockedSummary">TikTok · Instagram · YouTube +4</em></span><i data-lucide="chevron-right"></i></button><div class="qb-info"><span><i data-lucide="smartphone"></i></span><p><strong>Dein Smartphone bleibt nutzbar.</strong><br>Nur die ausgewählten Ablenkungen werden blockiert.</p></div></div><div class="qb-bottom"><button onclick="startConfiguredQuickFocus()"><i data-lucide="play"></i> Fokus starten</button></div></div><div class="app-screen flow-screen p-5 flex flex-col flex-1 hidden bg-slate-50" id="app-screen-distractions">
+<div class="flex items-center justify-between mb-4"><button class="fm-top-back-btn w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600" onclick="returnFromDistractionPicker()" aria-label="Zurück" title="Zurück" type="button"><i class="w-4 h-4" data-lucide="arrow-left"></i></button><span class="text-[9px] font-black uppercase tracking-[.18em] text-indigo-500">Fokus-Schutz</span><div class="w-9"></div></div>
 <div class="mb-4"><h3 class="text-[24px] leading-[1.06] font-black tracking-tight text-slate-950">Was lenkt dich ab?</h3><p class="text-[10px] leading-relaxed text-slate-500 mt-2">Wähle nur die Apps, die während einer Sitzung blockiert werden sollen.</p></div>
 <div class="p-3 rounded-2xl bg-indigo-50 border border-indigo-100 mb-3 flex gap-2.5"><i class="w-4 h-4 text-indigo-600 shrink-0" data-lucide="shield-check"></i><p class="text-[9px] leading-relaxed text-indigo-800">In der echten iPhone-App öffnet sich hier die sichere Systemauswahl von Screen Time.</p></div>
 <div class="space-y-2" id="distractionList">
@@ -203,7 +204,7 @@
 <div class="app-screen flow-screen hidden" id="app-screen-goal">
   <div class="mission-goal-shell">
     <div class="mg-topbar">
-      <button class="mg-back" onclick="setAppScreen('home')" aria-label="Zurück"><i data-lucide="arrow-left"></i></button>
+      <button class="mg-back" onclick="navigateBack()" aria-label="Zurück" title="Zurück" type="button"><i data-lucide="arrow-left"></i></button>
       <span class="mg-badge mg-top-badge"><i data-lucide="sparkles"></i> Focus Mission</span><div></div>
     </div>
     <div class="mg-intro">
@@ -272,15 +273,15 @@
 </div>
 <!-- REAL AI: Erkannte Angaben bestätigen -->
 <div class="app-screen flow-screen p-5 flex flex-col flex-1 hidden bg-slate-50" id="app-screen-confirm">
-  <div class="flex items-center justify-between mb-5"><button class="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600" onclick="setAppScreen('goal')"><i class="w-4 h-4" data-lucide="arrow-left"></i></button><span class="text-[9px] font-black uppercase tracking-[.18em] text-indigo-500">AI-Analyse prüfen</span><div class="w-9"></div></div>
+  <div class="flex items-center justify-between mb-5"><button class="fm-top-back-btn w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600" onclick="navigateBack()" aria-label="Zurück" title="Zurück" type="button"><i class="w-4 h-4" data-lucide="arrow-left"></i></button><span class="text-[9px] font-black uppercase tracking-[.18em] text-indigo-500">AI-Analyse prüfen</span><div class="w-9"></div></div>
   <div class="mb-4"><h3 class="text-[24px] leading-[1.06] font-black tracking-tight text-slate-950">Haben wir alles richtig erkannt?</h3><p class="text-[10px] leading-relaxed text-slate-500 mt-2">Prüfe die Angaben, bevor deine Focus Mission erstellt wird.</p></div>
   <div class="space-y-2.5" id="aiConfirmFields"></div>
   <div id="aiMissingInfo" class="hidden mt-3 p-3 rounded-2xl bg-amber-50 border border-amber-100 text-[9px] leading-relaxed text-amber-800"></div>
-  <div class="mt-auto pt-4 space-y-2"><button class="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold text-xs shadow-lg shadow-indigo-100" onclick="confirmAIPlan()">Plan übernehmen</button><button class="w-full py-3 text-[10px] font-semibold text-slate-500" onclick="setAppScreen('goal')">Angaben ändern</button></div>
+  <div class="mt-auto pt-4 space-y-2"><button class="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold text-xs shadow-lg shadow-indigo-100" onclick="confirmAIPlan()">Plan übernehmen</button><button class="w-full py-3 text-[10px] font-semibold text-slate-500" onclick="navigateBack()">Angaben ändern</button></div>
 </div>
 <!-- LEARNING FLOW: Generierter Plan -->
 <div class="app-screen flow-screen p-5 flex flex-col flex-1 hidden bg-slate-50" id="app-screen-plan">
-<div class="flex items-center justify-between mb-4"><button class="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600" onclick="setAppScreen('home')" title="Zurück zum Home"><i class="w-4 h-4" data-lucide="home"></i></button><span class="text-[9px] font-black uppercase tracking-[.18em] text-slate-400">Focus Mission</span><button class="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500" onclick="setAppScreen('goal')" title="Mission bearbeiten"><i class="w-4 h-4" data-lucide="pencil"></i></button></div>
+<div class="flex items-center justify-between mb-4"><button class="fm-top-back-btn w-10 h-10 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-600" onclick="navigateBack()" title="Zurück" aria-label="Zurück" type="button"><i class="w-4 h-4" data-lucide="arrow-left"></i></button><span class="text-[9px] font-black uppercase tracking-[.18em] text-slate-400">Focus Mission</span><button class="w-10 h-10 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-500" onclick="navigateForward('goal',{parent:'plan',rootSection:'missions'})" title="Mission bearbeiten" aria-label="Mission bearbeiten" type="button"><i class="w-4 h-4" data-lucide="pencil"></i></button></div>
 <div class="rounded-3xl p-4 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-white shadow-xl mb-4">
 <div class="flex justify-between items-start"><div><div class="text-[8px] font-bold text-indigo-300 uppercase tracking-wider" id="aiPlanEyebrow">Mathematik · Mission</div><h3 class="text-lg font-black leading-tight mt-1" id="aiPlanTitle">Deine Focus Mission</h3></div><div class="w-11 h-11 rounded-2xl bg-white/10 flex items-center justify-center"><i class="w-5 h-5 text-indigo-300" data-lucide="function-square"></i></div></div>
 <div class="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-white/10"><div><div class="text-[8px] text-slate-400">Frist</div><div class="text-[10px] font-bold mt-0.5" id="aiPlanDeadline">Nicht angegeben</div></div><div><div class="text-[8px] text-slate-400">Gesamt</div><div class="text-[10px] font-bold mt-0.5" id="aiPlanTotal">–</div></div><div><div class="text-[8px] text-slate-400">Sitzungen</div><div class="text-[10px] font-bold mt-0.5" id="aiPlanSessionCount">–</div></div></div>
@@ -298,7 +299,7 @@
 <div class="mt-2 pt-2 border-t border-slate-100 text-[8px] text-emerald-600 font-semibold">Alle anderen Apps bleiben verfügbar.</div>
 </button>
 <button class="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold text-xs shadow-lg shadow-indigo-100 flex items-center justify-center gap-2 mt-auto" id="missionStartButton" onclick="prepareLearningSession()"><i class="w-4 h-4" data-lucide="play"></i> Aktuellen Schritt starten</button>
-<button class="w-full py-2.5 text-[10px] font-semibold text-slate-400" onclick="setAppScreen('goal')">Mission anpassen</button>
+<button class="w-full py-2.5 text-[10px] font-semibold text-slate-400" onclick="navigateForward('goal',{parent:'plan',rootSection:'missions'})" type="button">Mission anpassen</button>
 </div>
 <!-- LEARNING FLOW: Ergebnis -->
 <div class="app-screen flow-screen p-5 flex flex-col flex-1 hidden bg-slate-50" id="app-screen-result">
@@ -401,9 +402,8 @@
 <!-- V11.1: Lokaler Sitzungsverlauf -->
 <div class="app-screen hidden flex flex-col flex-1 min-h-0" id="app-screen-history">
   <div class="flex items-center justify-between mb-4 shrink-0">
-    <button class="w-10 h-10 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-600" onclick="setAppScreen('home')" aria-label="Zurück"><i class="w-4 h-4" data-lucide="arrow-left"></i></button>
-    <div class="text-center"><div class="text-[8px] font-black uppercase tracking-[.16em] text-indigo-500">Sitzungsverlauf</div><h3 class="text-[19px] font-black text-slate-950 mt-0.5">Deine Fokuszeit</h3></div>
-    <button class="w-10 h-10 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-500" onclick="setAppScreen('stats')" aria-label="Statistik"><i class="w-4 h-4" data-lucide="chart-no-axes-column-increasing"></i></button>
+    <div><div class="text-[8px] font-black uppercase tracking-[.16em] text-indigo-500">Sitzungsverlauf</div><h3 class="text-[19px] font-black text-slate-950 mt-0.5">Deine Fokuszeit</h3></div>
+    <button class="w-11 h-11 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition" onclick="navigateForward('stats',{parent:'history',rootSection:'history'})" aria-label="Statistik" title="Statistik" type="button"><i class="w-4 h-4" data-lucide="chart-no-axes-column-increasing"></i></button>
   </div>
   <div class="grid grid-cols-3 gap-2 mb-4 shrink-0" id="historyFilters">
     <button class="history-filter active" data-filter="today" onclick="setHistoryFilter('today',this)">Heute</button>
@@ -416,9 +416,12 @@
 <!-- ЭКРАН 3: Statistik -->
 <div class="app-screen p-4 flex flex-col flex-1 hidden min-h-0" id="app-screen-stats">
 <div class="space-y-3">
+<div class="flex items-center gap-3">
+<button class="fm-top-back-btn" onclick="navigateBack()" aria-label="Zurück" title="Zurück" type="button"><i class="w-4 h-4" data-lucide="arrow-left"></i></button>
 <div>
-<span class="text-2xs text-slate-400 font-semibold uppercase tracking-wider">Fortschritt</span>
+<span class="text-2xs text-slate-400 font-semibold uppercase tracking-wider block">Fortschritt</span>
 <h3 class="text-xl font-bold text-slate-900">Dein Fokusverlauf</h3>
+</div>
 </div>
 <!-- График -->
 <div class="bg-white p-3.5 rounded-3xl border border-slate-200/60 space-y-2.5 shadow-xs">
@@ -447,19 +450,16 @@
 </div>
 <!-- Кнопки управления (в том числе возврат) -->
 <div class="grid grid-cols-2 gap-2 mt-2"><div class="p-2.5 bg-indigo-50 border border-indigo-100 rounded-2xl"><div class="text-[8px] uppercase tracking-wider font-bold text-indigo-400">Gesamte Fokuszeit</div><div class="text-[13px] font-black text-indigo-700 mt-1" id="statsTotalFocus">0 Min.</div></div><div class="p-2.5 bg-emerald-50 border border-emerald-100 rounded-2xl"><div class="text-[8px] uppercase tracking-wider font-bold text-emerald-500">Sitzungen</div><div class="text-[13px] font-black text-emerald-700 mt-1" id="statsCompletedSessions">0 abgeschlossen</div></div></div><div class="mt-auto space-y-1.5 pt-2">
-<button class="w-full py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-2xl transition flex items-center justify-center gap-2" onclick="setAppScreen('score')">
+<button class="w-full py-2.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-2xl transition flex items-center justify-center gap-2" onclick="navigateForward('score',{parent:'stats',rootSection:'history'})" type="button">
                    Rangliste &amp; Erfolge
                    <i class="w-4 h-4" data-lucide="arrow-right"></i>
 </button>
-<button class="w-full py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-2xl transition flex items-center justify-center gap-2" onclick="setAppScreen('home')">
-                   Zurück zum Home
-                 </button>
 </div>
 </div>
 <!-- ЭКРАН 4: Motivation & Leaderboard -->
 <div class="app-screen flex-1 hidden flex flex-col overflow-y-auto hide-scrollbar" id="app-screen-score">
 <div class="p-5 space-y-5 flex-1">
-<div><span class="text-2xs text-slate-400 font-semibold uppercase tracking-wider">Motivation</span><h3 class="text-xl font-bold text-slate-900">Weekly Focus League</h3></div>
+<div class="flex items-center gap-3"><button class="fm-top-back-btn" onclick="navigateBack()" aria-label="Zurück" title="Zurück" type="button"><i class="w-4 h-4" data-lucide="arrow-left"></i></button><div><span class="text-2xs text-slate-400 font-semibold uppercase tracking-wider block">Motivation</span><h3 class="text-xl font-bold text-slate-900">Weekly Focus League</h3></div></div>
 <section class="p-4 rounded-3xl bg-gradient-to-br from-amber-50 via-white to-indigo-50 border border-amber-200/60 shadow-xs">
 <div class="flex items-start justify-between"><div><div class="text-[8px] uppercase tracking-[.15em] font-black text-amber-600">Gold League</div><div class="text-xl font-black text-slate-900 mt-1">Platz 12</div><div class="text-[9px] text-slate-400 mt-1">684 Focus Score · diese Woche</div></div><div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-300 to-yellow-500 flex items-center justify-center text-white shadow-lg"><i class="w-5 h-5" data-lucide="trophy"></i></div></div>
 <div class="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-amber-100"><div><div class="text-[8px] text-slate-400">Aufstieg</div><div class="text-[9px] font-bold text-emerald-600 mt-0.5">Top 5</div></div><div><div class="text-[8px] text-slate-400">Verbleibend</div><div class="text-[9px] font-bold text-slate-700 mt-0.5">3 Tage</div></div></div>
@@ -483,54 +483,72 @@
 </div>
 </section>
 </div>
-<div class="px-5 pb-6 mt-auto"><button class="w-full py-3.5 border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-2xl" onclick="setAppScreen('home')">Zurück zum Home</button></div>
 </div>
 <!-- ЭКРАН 5: Einstellungen -->
-<div class="app-screen p-5 flex flex-col justify-between flex-1 space-y-6 hidden" id="app-screen-settings">
+<div class="app-screen p-5 flex flex-col justify-start flex-1 space-y-5 hidden" id="app-screen-settings">
 <div class="space-y-4">
 <div>
 <span class="text-2xs text-slate-400 font-semibold uppercase tracking-wider">Konfiguration</span>
 <h3 class="text-xl font-bold text-slate-900">Einstellungen</h3>
 </div>
-<div class="bg-white rounded-2xl border border-slate-200/60 overflow-hidden divide-y divide-slate-100">
-<div class="p-3.5 flex items-center justify-between">
-<div class="flex items-center gap-2.5">
-<div class="w-7 h-7 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center"><i class="w-4 h-4" data-lucide="sliders"></i></div>
-<span class="text-xs font-medium text-slate-800">Fokus-Intensität</span>
+<div class="bg-white rounded-2xl border border-slate-200/60 overflow-hidden divide-y divide-slate-100 shadow-xs">
+<button class="settings-nav-row w-full p-3.5 flex items-center justify-between text-left hover:bg-slate-50 transition" id="openMissionsFromSettingsBtn" onclick="openMissionManagementFromSettings()" type="button">
+<div class="flex items-center gap-2.5 min-w-0">
+<div class="w-8 h-8 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center shrink-0"><i class="w-4 h-4" data-lucide="target"></i></div>
+<div class="min-w-0">
+<div class="text-xs font-semibold text-slate-800">Missionen verwalten</div>
+<div class="text-[9px] text-slate-400">Aktive, archivierte und primäre Missionen</div>
 </div>
-<span class="text-xs text-slate-400 font-semibold flex items-center gap-1">Mittel <i class="w-3.5 h-3.5 text-slate-300" data-lucide="chevron-right"></i></span>
 </div>
-<button class="w-full p-3.5 flex items-center justify-between text-left hover:bg-slate-50 transition" id="openDataScreenBtn" onclick="openDataManagementScreen()" type="button">
-<div class="flex items-center gap-2.5">
-<div class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center"><i class="w-4 h-4" data-lucide="database"></i></div>
-<div>
+<i class="w-4 h-4 text-slate-300 shrink-0" data-lucide="chevron-right"></i>
+</button>
+<button class="settings-nav-row w-full p-3.5 flex items-center justify-between text-left hover:bg-slate-50 transition" id="openDataScreenBtn" onclick="openDataManagementScreen()" type="button">
+<div class="flex items-center gap-2.5 min-w-0">
+<div class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0"><i class="w-4 h-4" data-lucide="database"></i></div>
+<div class="min-w-0">
 <div class="text-xs font-semibold text-slate-800">Daten &amp; Backup</div>
 <div class="text-[9px] text-slate-400">Lokale Daten sichern, importieren oder zurücksetzen</div>
 </div>
 </div>
-<i class="w-3.5 h-3.5 text-slate-300 shrink-0" data-lucide="chevron-right"></i>
+<i class="w-4 h-4 text-slate-300 shrink-0" data-lucide="chevron-right"></i>
 </button>
+<div class="p-3.5 flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center shrink-0"><i class="w-4 h-4" data-lucide="languages"></i></div>
+<span class="text-xs font-semibold text-slate-800">Sprache</span>
 </div>
-<div class="p-4 bg-gradient-to-tr from-amber-500 to-amber-400 rounded-2xl text-white cursor-pointer shadow-sm relative overflow-hidden group" onclick="setAppScreen('premium')">
+<div class="settings-lang-pills" role="group" aria-label="Sprache">
+<button class="settings-lang-pill lang-option active" data-lang="de" onclick="setLanguage('de')" type="button">DE</button>
+<button class="settings-lang-pill lang-option" data-lang="en" onclick="setLanguage('en')" type="button">EN</button>
+</div>
+</div>
+<div class="p-3.5 flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center shrink-0"><i class="w-4 h-4" data-lucide="sliders"></i></div>
+<span class="text-xs font-semibold text-slate-800">Fokus-Intensität</span>
+</div>
+<span class="text-xs text-slate-400 font-semibold flex items-center gap-1">Mittel <i class="w-3.5 h-3.5 text-slate-300" data-lucide="chevron-right"></i></span>
+</div>
+</div>
+<div class="p-4 bg-gradient-to-tr from-amber-500 to-amber-400 rounded-2xl text-white cursor-pointer shadow-sm relative overflow-hidden group" onclick="navigateForward('premium',{parent:'settings',rootSection:'settings'})">
 <div class="absolute -right-3 -bottom-3 w-16 h-16 bg-white/10 rounded-full group-hover:scale-125 transition"></div>
 <h4 class="font-bold text-xs">Premium aktivieren</h4>
 <p class="text-3xs text-amber-100 mt-0.5">Schalte alle Pro-Features &amp; AI-Analysen frei.</p>
 </div>
 </div>
-<button class="w-full py-3.5 border border-slate-200 text-slate-600 text-xs font-semibold rounded-2xl transition" onclick="setAppScreen('home')">Zurück</button>
 </div>
 <!-- ЭКРАН 5B: Daten & Backup (v16 Data Stability) -->
 <div class="app-screen p-4 flex flex-col flex-1 hidden overflow-y-auto hide-scrollbar bg-slate-50" id="app-screen-data">
 <div class="data-screen-shell">
 <div class="flex items-center justify-between gap-2">
-<button class="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition shrink-0" onclick="setAppScreen('settings')" type="button">
+<button class="fm-top-back-btn w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition shrink-0" onclick="navigateBack()" aria-label="Zurück" title="Zurück" type="button">
 <i class="w-4 h-4" data-lucide="arrow-left"></i>
 </button>
 <div class="flex-1 min-w-0">
 <span class="text-[9px] font-black uppercase tracking-wider text-indigo-600 block">Lokale Datenstabilität</span>
 <h3 class="text-base font-black text-slate-900 truncate">Daten &amp; Backup</h3>
 </div>
-<span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100" id="dataAppVersionBadge">v16 Data Stability</span>
+<span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100" id="dataAppVersionBadge">v17 Navigation Clarity</span>
 </div>
 
 <div class="data-summary-card">
@@ -619,8 +637,6 @@
 <i class="w-4 h-4 text-rose-300 shrink-0" data-lucide="chevron-right"></i>
 </button>
 </div>
-
-<button class="w-full py-3 mt-auto border border-slate-200 bg-white text-slate-600 text-xs font-semibold rounded-2xl transition" onclick="setAppScreen('settings')" type="button">Zurück</button>
 </div>
 </div>
 <!-- ЭКРАН 6: Premium Screen -->
@@ -774,6 +790,31 @@
 </div>
 </div>
 </div>
+<!-- V17 Persistent Bottom Navigation -->
+<nav aria-label="Hauptnavigation" class="fm-bottom-nav" id="bottomNavigationV17">
+  <div class="fm-bottom-nav-inner">
+    <button aria-current="page" aria-label="Start" class="fm-nav-item active" data-nav-section="home" id="bottomNavHome" onclick="navigateToRoot('home')" type="button">
+      <span aria-hidden="true" class="fm-nav-indicator"></span>
+      <span aria-hidden="true" class="fm-nav-icon"><i data-lucide="home"></i></span>
+      <span class="fm-nav-label">Start</span>
+    </button>
+    <button aria-label="Missionen" class="fm-nav-item" data-nav-section="missions" id="bottomNavMissions" onclick="navigateToRoot('missions')" type="button">
+      <span aria-hidden="true" class="fm-nav-indicator"></span>
+      <span aria-hidden="true" class="fm-nav-icon"><i data-lucide="target"></i></span>
+      <span class="fm-nav-label">Missionen</span>
+    </button>
+    <button aria-label="Verlauf" class="fm-nav-item" data-nav-section="history" id="bottomNavHistory" onclick="navigateToRoot('history')" type="button">
+      <span aria-hidden="true" class="fm-nav-indicator"></span>
+      <span aria-hidden="true" class="fm-nav-icon"><i data-lucide="clock-3"></i></span>
+      <span class="fm-nav-label">Verlauf</span>
+    </button>
+    <button aria-label="Einstellungen" class="fm-nav-item" data-nav-section="settings" id="bottomNavSettings" onclick="navigateToRoot('settings')" type="button">
+      <span aria-hidden="true" class="fm-nav-indicator"></span>
+      <span aria-hidden="true" class="fm-nav-icon"><i data-lucide="settings"></i></span>
+      <span class="fm-nav-label">Einstellungen</span>
+    </button>
+  </div>
+</nav>
 <!-- Home Indicator -->
 <div class="h-5 bg-white flex items-center justify-center pb-2 shrink-0 z-40 transition-colors duration-300 cursor-pointer" id="homeBar" onclick="setAppScreen('home')">
 <div class="w-28 h-1 bg-slate-300 rounded-full"></div>

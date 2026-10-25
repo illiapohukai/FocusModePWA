@@ -28,7 +28,7 @@ function createHistoryEmpty(filter,allCount){
  else if(filter==='today'){title.textContent='Heute noch keine Sitzung';copy.textContent='Starte einen Quick Focus oder setze deine Mission fort.'}
  else if(filter==='week'){title.textContent='Diese Woche noch keine Sitzung';copy.textContent='Deine nächste abgeschlossene Sitzung erscheint hier.'}
  else{title.textContent='Keine Sitzung gefunden';copy.textContent='Für diesen Filter gibt es noch keine Einträge.'}
- const action=document.createElement('button');action.type='button';action.className='history-empty-action';action.textContent=allCount===0?'Erste Sitzung starten':'Fokus starten';action.onclick=()=>{setAppScreen('home',{immediate:true});setTimeout(openFocusChoice,80)};
+ const action=document.createElement('button');action.type='button';action.className='history-empty-action';action.textContent=allCount===0?'Erste Sitzung starten':'Fokus starten';action.onclick=()=>{if(typeof navigateToRoot==='function')navigateToRoot('home');else setAppScreen('home',{immediate:true});setTimeout(openFocusChoice,80)};
  wrap.append(icon,title,copy,action);return wrap;
 }
 function renderSessionHistory(filter=activeHistoryFilter){
