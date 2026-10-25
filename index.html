@@ -2099,84 +2099,9 @@ function go(id){document.getElementById(id).scrollIntoView({behavior:'smooth'})}
 function keepPhoneScrollInside(e){const s=e.target.closest('#app-screen-score,#app-screen-premium,#chatMessages,#chat-locked-state,.flow-screen');if(!s||s.scrollHeight<=s.clientHeight+1)return;const top=s.scrollTop<=0,bottom=s.scrollTop+s.clientHeight>=s.scrollHeight-1;if((e.deltaY<0&&!top)||(e.deltaY>0&&!bottom))e.stopPropagation()}
 document.addEventListener('wheel',keepPhoneScrollInside,{passive:true});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeProto()});lucide.createIcons();
 </script><script id="realTimeScreenTransitions">let appScreenTransitionToken=0,appScreenAnimation=null;function getAppTransitionDuration(){if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return 0;return window.matchMedia('(max-width: 980px)').matches?760:520}function animateAppBody(frames,duration,easing){const body=document.getElementById('appBody');if(!body||duration===0)return Promise.resolve();if(appScreenAnimation)appScreenAnimation.cancel();appScreenAnimation=body.animate(frames,{duration,easing,fill:'forwards'});return appScreenAnimation.finished.catch(()=>{})}async function setAppScreen(screenName,options={}){const target=document.getElementById(`app-screen-${screenName}`);if(!target)return;const token=++appScreenTransitionToken,duration=options.immediate?0:getAppTransitionDuration(),visible=document.querySelector('.app-screen:not(.hidden)'),current=visible?.id?.replace('app-screen-','');if(duration===0||!visible||current===screenName){if(appScreenAnimation)appScreenAnimation.cancel();applyAppScreenImmediately(screenName);const body=document.getElementById('appBody');if(body){body.style.opacity='';body.style.transform='';body.style.filter=''}return}const out=Math.round(duration*.44),inside=duration-out;await animateAppBody([{opacity:1,transform:'translate3d(0,0,0) scale(1)',filter:'blur(0px)'},{opacity:.18,transform:'translate3d(0,-10px,0) scale(.992)',filter:'blur(5px)'}],out,'cubic-bezier(.4,0,.6,1)');if(token!==appScreenTransitionToken)return;applyAppScreenImmediately(screenName);await animateAppBody([{opacity:.18,transform:'translate3d(0,12px,0) scale(.992)',filter:'blur(5px)'},{opacity:1,transform:'translate3d(0,0,0) scale(1)',filter:'blur(0px)'}],inside,'cubic-bezier(.16,1,.3,1)');if(token!==appScreenTransitionToken)return;const body=document.getElementById('appBody');if(body){body.style.opacity='';body.style.transform='';body.style.filter=''}}</script><script id="i18nScript">const I18N={en:{"Intro": "Intro", "Problem": "Problem", "Loesung": "Solution", "Workflow": "How it works", "Kernfunktion": "Core feature", "Motivation": "Motivation", "Überblick": "Overview", "Live testen": "Live demo", "01 / INTRO": "01 / INTRO", "Trainiere deine Aufmerksamkeit. Nicht deine Ablenkung.": "Train your attention. Not your distraction.", "Ein interaktives Konzept für nachhaltige Konzentration, digitale Selbstkontrolle und messbaren Fortschritt.": "An interactive concept for sustainable focus, digital self-control, and measurable progress.", "Konzept entdecken": "Explore the concept", "Prototyp testen": "Test the prototype", "Kapitel": "Chapters", "Prototyp": "Prototype", "Mission": "Mission", "02 / PROBLEM": "02 / PROBLEM", "Dein Smartphone gewinnt zu oft.": "Your smartphone wins too often.", "Der Wechsel von Arbeit zu Ablenkung dauert nur Sekunden. Focus Mode+ macht diesen Moment sichtbar und setzt genau dort eine bewusste Barriere.": "It takes only seconds to switch from work to distraction. Focus Mode+ makes that moment visible and places a conscious barrier exactly where it matters.", "2 Sekunden": "2 seconds", "bis zur nächsten Ablenkung": "until the next distraction", "Kein Widerstand": "No resistance", "zwischen Fokus und Feed": "between focus and the feed", "03 / LOESUNG": "03 / SOLUTION", "Willenskraft wird zum System.": "Willpower becomes a system.", "Fokus-Sitzungen, Verhaltensdaten und adaptive Hürden werden zu einem persönlichen Training für Aufmerksamkeit.": "Focus sessions, behavioral data, and adaptive barriers become personal training for your attention.", "Adaptive Sitzungen": "Adaptive sessions", "Digitale Barrieren": "Digital barriers", "Messbarer Fortschritt": "Measurable progress", "04 / WORKFLOW": "04 / HOW IT WORKS", "Starten. Erkennen. Dranbleiben.": "Start. Recognize. Stay focused.", "Eine Sitzung beginnt bewusst, kritische Wechsel werden erkannt und jede fokussierte Minute fließt in deinen Fortschritt ein.": "Every session starts intentionally, critical switches are detected, and every focused minute contributes to your progress.", "Sitzung starten": "Start a session", "Ablenkung erkennen": "Detect distraction", "Fortschritt sichern": "Save progress", "05 / KERNFUNKTION": "05 / CORE FEATURE", "Die Pause vor der Ablenkung.": "The pause before distraction.", "Eine klare Entscheidungsebene unterbricht den Automatismus, ohne aggressives Lock-in.": "A clear decision layer interrupts the automatic impulse without aggressive lock-in.", "Barriere anzeigen ↗": "Show the barrier ↗", "06 / MOTIVATION": "06 / MOTIVATION", "Fortschritt, den du sehen kannst.": "Progress you can see.", "Focus Score, Streaks, Erfolge und Ranglisten übersetzen Konzentration in verständliche Signale.": "Focus Score, streaks, achievements, and leaderboards turn concentration into clear signals.", "Tage Streak": "day streak", "Fokuszeit": "Focus time", "07 / PREMIUM": "07 / PREMIUM", "Leistung kann Premium freischalten.": "Performance can unlock Premium.", "Premium ist als Abo verfügbar, kann aber auch durch echte Fokuszeit verdient werden.": "Premium is available as a subscription, but it can also be earned through real focus time.", "/ Monat": "/ month", "Oder durch aktive Fokuszeit freischalten.": "Or unlock it through active focus time.", "08 / AI COACH": "08 / AI COACH", "Aus Daten werden Empfehlungen.": "Data becomes guidance.", "Der AI Coach erkennt Muster und formuliert konkrete Vorschläge für bessere Routinen.": "The AI Coach identifies patterns and turns them into practical recommendations for better routines.", "AI Coach öffnen ↗": "Open AI Coach ↗", "09 / VISION": "09 / VISION", "Ein Fokus-System über alle Geräte.": "One focus system across every device.", "Der nächste Schritt ist eine nahtlose Verbindung zwischen Smartphone, Mac und PC.": "The next step is a seamless connection across smartphone, Mac, and PC.", "App selbst testen": "Try the app", "Nach oben": "Back to top", "Willkommen bei": "Welcome to", "Heute gesammelt": "Collected today", "Minuten": "minutes", "Status": "Status", "Bereit": "Ready", "Fokus-Serie": "Focus streak", "Diese Woche": "This week", "Verhaltens-Schutz aktiv": "Behavior protection active", "Digitale Barrieren greifen sofort": "Digital barriers activate instantly", "Fokus starten": "Start focus", "Lernmodus": "Study mode", "Fokus aktiv": "Focus active", "Sitzungsdauer": "Session duration", "Intensität": "Intensity", "Mittel": "Medium", "App-Blockierung": "App blocking", "Aktiviert": "Enabled", "Ablenkung": "Distraction", "Beenden": "End session", "Fortschritt": "Progress", "Täglicher Fokus": "Daily focus", "Wochenübersicht": "Weekly overview", "Soll: 60 min/Tag": "Goal: 60 min/day", "Ablenkungen": "Distractions", "1 blockiert": "1 blocked", "Rangliste & Erfolge": "Leaderboard & achievements", "Zurück zum Home": "Back to Home", "Serie": "Streak", "Tage": "days", "Top Fokus-User": "Top focus users", "👤 Du": "👤 You", "Erfolge": "Achievements", "Erste Stunde": "First hour", "60 Min. erreicht": "60 min reached", "Fokus Starter": "Focus starter", "5 Tage aktiv": "5 active days", "Meister": "Master", "100h Fokus": "100h focus", "Unaufhaltsam": "Unstoppable", "30 Tage Streak": "30-day streak", "Konfiguration": "Configuration", "Einstellungen": "Settings", "Fokus-Intensität": "Focus intensity", "Premium aktivieren": "Activate Premium", "Schalte alle Pro-Features & AI-Analysen frei.": "Unlock all Pro features and AI insights.", "Zurück": "Back", "Das Upgrade für deine Aufmerksamkeit": "The upgrade for your attention", "Detaillierte Langzeitstatistiken": "Detailed long-term statistics", "Verhaltensanalyse auf Basis künstlicher Intelligenz": "AI-powered behavioral analysis", "Erweiterte Blockierungs-Modi": "Advanced blocking modes", "Premium abonnieren": "Subscribe to Premium", "Oder kostenlos": "Or for free", "Premium durch Leistung freischalten": "Unlock Premium through performance", "1 Tag Premium": "1 day of Premium", "Für 100 Min. Fokuszeit": "For 100 min of focus time", "Einlösen": "Redeem", "3 Tage Premium": "3 days of Premium", "Benötigt 10h Fokuszeit": "Requires 10h focus time", "7 Tage Premium": "7 days of Premium", "Benötigt 50h Fokuszeit": "Requires 50h focus time", "Zurück zum Dashboard": "Back to dashboard", "Hallo! Ich bin dein AI Coach. Ich scanne, überprüfe und analysiere deine Fokus-Muster, um dir das beste Verhaltenstraining zu bieten.": "Hi! I am your AI Coach. I analyze your focus patterns to provide the most effective attention training.", "Premium erforderlich": "Premium required", "Um diese personalisierte Analyse-Funktion zu nutzen, aktiviere bitte dein Premium-Abonnement.": "Activate Premium to use this personalized analysis feature.", "Zu Premium wechseln": "Go to Premium", "Willkommen im Premium-Modus! Ich habe deine bisherigen Sitzungen analysiert. Wie kann ich dir heute helfen?": "Welcome to Premium! I have analyzed your previous sessions. How can I help you today?", "Was kannst du mir empfehlen?": "What would you recommend?", "Ablenkung erkannt": "Distraction detected", "Möchtest du wirklich die Fokus-Sitzung verlassen und deinen Streak verlieren?": "Do you really want to leave the focus session and lose your streak?", "Zurück zum Fokus": "Return to focus", "Trotzdem verlassen": "Leave anyway", "Belohnung freigeschaltet": "Reward unlocked", "Premium für 1 Tag": "Premium for 1 day", "Glückwunsch! Du hast über 100 Minuten fokussiert gearbeitet. Genieße alle Premium-Features.": "Congratulations! You focused for more than 100 minutes. Enjoy all Premium features.", "Scrollen, um den Prototyp zu steuern": "Scroll to control the prototype", "DISTRACTION": "DISTRACTION", "Basierend auf deinen Daten habe ich folgendes Muster erkannt:": "Based on your data, I identified the following pattern:", "Du verlierst deinen Fokus meistens zwischen 18:00 und 20:00 Uhr.": "You usually lose focus between 6:00 PM and 8:00 PM.", "Fokus-Niveau im Tagesverlauf": "Focus level throughout the day", "Deine erfolgreichsten Sitzungen dauern exakt": "Your most successful sessions last exactly", "Mein Tipp:": "My tip:", "Versuche kürzere Pausen nach intensiven Lernphasen einzuplanen und reduziere die Sitzungsdauer am Abend.": "Try scheduling shorter breaks after intense study periods and reduce session length in the evening."},ru:{"Intro": "Введение", "Problem": "Проблема", "Loesung": "Решение", "Workflow": "Как это работает", "Kernfunktion": "Главная функция", "Motivation": "Мотивация", "Überblick": "Обзор", "Live testen": "Демо", "01 / INTRO": "01 / ВВЕДЕНИЕ", "Trainiere deine Aufmerksamkeit. Nicht deine Ablenkung.": "Тренируй внимание, а не отвлечение.", "Ein interaktives Konzept für nachhaltige Konzentration, digitale Selbstkontrolle und messbaren Fortschritt.": "Интерактивная концепция для устойчивой концентрации, цифрового самоконтроля и измеримого прогресса.", "Konzept entdecken": "Изучить концепцию", "Prototyp testen": "Открыть прототип", "Kapitel": "Разделов", "Prototyp": "Прототип", "Mission": "Цель", "02 / PROBLEM": "02 / ПРОБЛЕМА", "Dein Smartphone gewinnt zu oft.": "Смартфон слишком часто побеждает.", "Der Wechsel von Arbeit zu Ablenkung dauert nur Sekunden. Focus Mode+ macht diesen Moment sichtbar und setzt genau dort eine bewusste Barriere.": "Переход от работы к отвлечению занимает всего несколько секунд. Focus Mode+ делает этот момент заметным и создаёт осознанный барьер именно там, где он нужен.", "2 Sekunden": "2 секунды", "bis zur nächsten Ablenkung": "до следующего отвлечения", "Kein Widerstand": "Никакого сопротивления", "zwischen Fokus und Feed": "между фокусом и лентой", "03 / LOESUNG": "03 / РЕШЕНИЕ", "Willenskraft wird zum System.": "Сила воли становится системой.", "Fokus-Sitzungen, Verhaltensdaten und adaptive Hürden werden zu einem persönlichen Training für Aufmerksamkeit.": "Фокус-сессии, поведенческие данные и адаптивные барьеры превращаются в персональную тренировку внимания.", "Adaptive Sitzungen": "Адаптивные сессии", "Digitale Barrieren": "Цифровые барьеры", "Messbarer Fortschritt": "Измеримый прогресс", "04 / WORKFLOW": "04 / КАК ЭТО РАБОТАЕТ", "Starten. Erkennen. Dranbleiben.": "Начать. Заметить. Не отвлекаться.", "Eine Sitzung beginnt bewusst, kritische Wechsel werden erkannt und jede fokussierte Minute fließt in deinen Fortschritt ein.": "Каждая сессия начинается осознанно, критические переключения распознаются, а каждая минута концентрации учитывается в прогрессе.", "Sitzung starten": "Начать сессию", "Ablenkung erkennen": "Распознать отвлечение", "Fortschritt sichern": "Сохранить прогресс", "05 / KERNFUNKTION": "05 / ГЛАВНАЯ ФУНКЦИЯ", "Die Pause vor der Ablenkung.": "Пауза перед отвлечением.", "Eine klare Entscheidungsebene unterbricht den Automatismus, ohne aggressives Lock-in.": "Понятный экран выбора прерывает автоматическое действие без жёсткой блокировки.", "Barriere anzeigen ↗": "Показать барьер ↗", "06 / MOTIVATION": "06 / МОТИВАЦИЯ", "Fortschritt, den du sehen kannst.": "Прогресс, который видно.", "Focus Score, Streaks, Erfolge und Ranglisten übersetzen Konzentration in verständliche Signale.": "Focus Score, серии, достижения и рейтинг превращают концентрацию в понятные показатели.", "Tage Streak": "дней серии", "Fokuszeit": "Время фокуса", "07 / PREMIUM": "07 / PREMIUM", "Leistung kann Premium freischalten.": "Результат может открыть Premium.", "Premium ist als Abo verfügbar, kann aber auch durch echte Fokuszeit verdient werden.": "Premium доступен по подписке, но его также можно получить за реальное время концентрации.", "/ Monat": "/ месяц", "Oder durch aktive Fokuszeit freischalten.": "Или открой его за активное время фокуса.", "08 / AI COACH": "08 / AI-КОУЧ", "Aus Daten werden Empfehlungen.": "Данные становятся рекомендациями.", "Der AI Coach erkennt Muster und formuliert konkrete Vorschläge für bessere Routinen.": "AI-коуч распознаёт закономерности и предлагает конкретные способы улучшить привычки.", "AI Coach öffnen ↗": "Открыть AI-коуча ↗", "09 / VISION": "09 / ВИДЕНИЕ", "Ein Fokus-System über alle Geräte.": "Единая система фокуса на всех устройствах.", "Der nächste Schritt ist eine nahtlose Verbindung zwischen Smartphone, Mac und PC.": "Следующий шаг — бесшовная связь между смартфоном, Mac и PC.", "App selbst testen": "Попробовать приложение", "Nach oben": "Наверх", "Willkommen bei": "Добро пожаловать в", "Heute gesammelt": "Сегодня собрано", "Minuten": "минут", "Status": "Статус", "Bereit": "Готово", "Fokus-Serie": "Серия фокуса", "Diese Woche": "На этой неделе", "Verhaltens-Schutz aktiv": "Защита поведения активна", "Digitale Barrieren greifen sofort": "Цифровые барьеры включаются сразу", "Fokus starten": "Начать фокус", "Lernmodus": "Учебный режим", "Fokus aktiv": "Фокус активен", "Sitzungsdauer": "Длительность сессии", "Intensität": "Интенсивность", "Mittel": "Средняя", "App-Blockierung": "Блокировка приложений", "Aktiviert": "Включено", "Ablenkung": "Отвлечение", "Beenden": "Завершить", "Fortschritt": "Прогресс", "Täglicher Fokus": "Фокус за день", "Wochenübersicht": "Обзор недели", "Soll: 60 min/Tag": "Цель: 60 мин/день", "Ablenkungen": "Отвлечения", "1 blockiert": "1 заблокировано", "Rangliste & Erfolge": "Рейтинг и достижения", "Zurück zum Home": "Вернуться на главную", "Serie": "Серия", "Tage": "дней", "Top Fokus-User": "Лучшие пользователи", "👤 Du": "👤 Вы", "Erfolge": "Достижения", "Erste Stunde": "Первый час", "60 Min. erreicht": "Достигнуто 60 мин", "Fokus Starter": "Начало фокуса", "5 Tage aktiv": "5 активных дней", "Meister": "Мастер", "100h Fokus": "100 ч фокуса", "Unaufhaltsam": "Неудержимый", "30 Tage Streak": "Серия 30 дней", "Konfiguration": "Настройка", "Einstellungen": "Настройки", "Fokus-Intensität": "Интенсивность фокуса", "Premium aktivieren": "Активировать Premium", "Schalte alle Pro-Features & AI-Analysen frei.": "Откройте все Pro-функции и AI-анализ.", "Zurück": "Назад", "Das Upgrade für deine Aufmerksamkeit": "Апгрейд для вашего внимания", "Detaillierte Langzeitstatistiken": "Подробная долгосрочная статистика", "Verhaltensanalyse auf Basis künstlicher Intelligenz": "Анализ поведения на основе ИИ", "Erweiterte Blockierungs-Modi": "Расширенные режимы блокировки", "Premium abonnieren": "Оформить Premium", "Oder kostenlos": "Или бесплатно", "Premium durch Leistung freischalten": "Открыть Premium за результат", "1 Tag Premium": "1 день Premium", "Für 100 Min. Fokuszeit": "За 100 мин фокуса", "Einlösen": "Получить", "3 Tage Premium": "3 дня Premium", "Benötigt 10h Fokuszeit": "Нужно 10 ч фокуса", "7 Tage Premium": "7 дней Premium", "Benötigt 50h Fokuszeit": "Нужно 50 ч фокуса", "Zurück zum Dashboard": "Вернуться на главную", "Hallo! Ich bin dein AI Coach. Ich scanne, überprüfe und analysiere deine Fokus-Muster, um dir das beste Verhaltenstraining zu bieten.": "Привет! Я ваш AI-коуч. Я анализирую паттерны концентрации, чтобы предложить наиболее эффективную тренировку внимания.", "Premium erforderlich": "Требуется Premium", "Um diese personalisierte Analyse-Funktion zu nutzen, aktiviere bitte dein Premium-Abonnement.": "Активируйте Premium, чтобы использовать персонализированный анализ.", "Zu Premium wechseln": "Перейти к Premium", "Willkommen im Premium-Modus! Ich habe deine bisherigen Sitzungen analysiert. Wie kann ich dir heute helfen?": "Добро пожаловать в Premium! Я проанализировал ваши предыдущие сессии. Чем могу помочь сегодня?", "Was kannst du mir empfehlen?": "Что вы можете порекомендовать?", "Ablenkung erkannt": "Обнаружено отвлечение", "Möchtest du wirklich die Fokus-Sitzung verlassen und deinen Streak verlieren?": "Вы действительно хотите выйти из фокус-сессии и потерять серию?", "Zurück zum Fokus": "Вернуться к фокусу", "Trotzdem verlassen": "Всё равно выйти", "Belohnung freigeschaltet": "Награда открыта", "Premium für 1 Tag": "Premium на 1 день", "Glückwunsch! Du hast über 100 Minuten fokussiert gearbeitet. Genieße alle Premium-Features.": "Поздравляем! Вы работали сосредоточенно более 100 минут. Пользуйтесь всеми функциями Premium.", "Scrollen, um den Prototyp zu steuern": "Прокручивайте страницу, чтобы управлять прототипом", "DISTRACTION": "ОТВЛЕЧЕНИЕ", "Basierend auf deinen Daten habe ich folgendes Muster erkannt:": "На основе ваших данных я заметил следующую закономерность:", "Du verlierst deinen Fokus meistens zwischen 18:00 und 20:00 Uhr.": "Чаще всего вы теряете концентрацию между 18:00 и 20:00.", "Fokus-Niveau im Tagesverlauf": "Уровень концентрации в течение дня", "Deine erfolgreichsten Sitzungen dauern exakt": "Ваши самые успешные сессии длятся ровно", "Mein Tipp:": "Мой совет:", "Versuche kürzere Pausen nach intensiven Lernphasen einzuplanen und reduziere die Sitzungsdauer am Abend.": "Попробуйте делать короткие перерывы после интенсивной учёбы и уменьшить длительность вечерних сессий."}};let currentLanguage='de';function normalizeText(v){return v.replace(/\s+/g,' ').trim()}function translateNode(node,lang){if(node.nodeType!==Node.TEXT_NODE)return;const clean=normalizeText(node.nodeValue);if(!clean)return;if(!node.__deOriginal)node.__deOriginal=clean;const original=node.__deOriginal;const value=lang==='de'?original:(I18N[lang][original]||original);const lead=node.nodeValue.match(/^\s*/)[0],trail=node.nodeValue.match(/\s*$/)[0];node.nodeValue=lead+value+trail}function translateTree(root,lang){const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode(n){return ['SCRIPT','STYLE'].includes(n.parentElement?.tagName)?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT}});const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);nodes.forEach(n=>translateNode(n,lang));document.querySelectorAll('[title]').forEach(el=>{if(!el.dataset.deTitle)el.dataset.deTitle=el.title;el.title=lang==='de'?el.dataset.deTitle:(I18N[lang][el.dataset.deTitle]||el.dataset.deTitle)})}function setLanguage(lang,save=true){if(!['de','en'].includes(lang))lang='de';currentLanguage=lang;translateTree(document.body,lang);document.documentElement.lang=lang;document.getElementById('langCode').textContent=lang.toUpperCase();document.querySelectorAll('.lang-option').forEach(b=>b.classList.toggle('active',b.dataset.lang===lang));document.title='v14 Recovery Merge';if(save)window.FocusModeApp.services.storage.setText('focus-mode-language',lang);document.getElementById('langPicker').classList.remove('open');document.getElementById('langToggle').setAttribute('aria-expanded','false')}function detectLanguage(){const saved=window.FocusModeApp.services.storage.getText('focus-mode-language');if(saved)return saved;const langs=navigator.languages||[navigator.language||'de'];for(const item of langs){const code=item.toLowerCase().split('-')[0];if(['de','en'].includes(code))return code}return'en'}document.addEventListener('DOMContentLoaded',()=>{const picker=document.getElementById('langPicker'),toggle=document.getElementById('langToggle');toggle.addEventListener('click',e=>{e.stopPropagation();picker.classList.toggle('open');toggle.setAttribute('aria-expanded',picker.classList.contains('open'))});document.querySelectorAll('.lang-option').forEach(b=>b.addEventListener('click',()=>setLanguage(b.dataset.lang)));document.addEventListener('click',()=>picker.classList.remove('open'));setLanguage(detectLanguage(),false);new MutationObserver(records=>{for(const record of records)for(const node of record.addedNodes){if(node.nodeType===Node.TEXT_NODE)translateNode(node,currentLanguage);else if(node.nodeType===Node.ELEMENT_NODE)translateTree(node,currentLanguage)}}).observe(document.body,{childList:true,subtree:true});lucide.createIcons()});</script><script id="newLandingTranslations">Object.assign(I18N.en,{"Lücke": "Product Gap", "Modi": "Modes", "Mission": "Mission", "Fokus": "Focus", "Anpassung": "Adaptation", "Fortschritt": "Progress", "Coach": "Coach", "Vision": "Vision", "Aus „Ich sollte anfangen“ wird echte Fokuszeit.": "Turn “I should start” into real focus.", "Focus Mode+ hilft dir, wichtige Aufgaben zu beginnen, digitale Ablenkungen zu blockieren und Schritt für Schritt dranzubleiben.": "Focus Mode+ helps you begin important tasks, block digital distractions, and keep moving forward one focused step at a time.", "2 Fokusmodi": "2 focus modes", "1 klarer nächster Schritt": "1 clear next step", "0 unnötige Ablenkungen": "0 unnecessary distractions", "Das Problem ist nicht nur die Ablenkung.": "Distraction is only part of the problem.", "Viele Aufgaben scheitern schon vor der ersten Fokusminute: Das Ziel wirkt zu groß, der nächste Schritt ist unklar und das Smartphone bietet den einfacheren Ausweg.": "Many tasks fail before the first focused minute: the goal feels too large, the next step is unclear, and the smartphone offers an easier escape.", "Kein klarer Start": "No clear starting point", "Die Aufgabe bleibt abstrakt": "The task remains abstract", "Sofortige Ablenkung": "Instant distraction", "Der Feed ist nur einen Klick entfernt": "The feed is only one tap away", "03 / LÜCKE": "03 / PRODUCT GAP", "Ein Timer kennt dein Ziel nicht. Ein Plan schützt deinen Fokus nicht.": "A timer does not understand your goal. A plan does not protect your focus.", "Timer messen Zeit. App-Blocker sperren Anwendungen. Planungstools erstellen Listen. Focus Mode+ verbindet Ziel, nächsten Schritt, geschützte Ausführung und Anpassung in einem Ablauf.": "Timers measure time. App blockers restrict applications. Planning tools create lists. Focus Mode+ connects the goal, the next step, protected execution, and adaptation in one flow.", "Ziel statt nur Zeit": "Goals, not only time", "Ausführung statt nur Planung": "Execution, not only planning", "Anpassung statt statischer Liste": "Adaptation, not static lists", "04 / ZWEI MODI": "04 / TWO MODES", "Sofort fokussieren. Oder eine Mission verfolgen.": "Focus immediately. Or follow a mission.", "Nicht jede Aufgabe braucht Planung. Deshalb entscheidet der Nutzer selbst, wie viel Unterstützung gerade sinnvoll ist.": "Not every task requires a plan. Users decide how much support is useful in the current situation.", "Kurzer Fokus": "Quick Focus", "25 Minuten · Apps blockieren · direkt beginnen": "25 minutes · block distracting apps · start immediately", "Aufgabe strukturieren · Fokus-Schritte planen · Fortschritt anpassen": "Structure the task · plan focus steps · adapt progress", "Aus einer großen Aufgabe wird ein machbarer nächster Schritt.": "Turn a large task into one achievable next step.", "Der Nutzer beschreibt, was er schaffen möchte, fügt bei Bedarf Material hinzu und wählt den Kontext. Focus Mode+ erkennt Ziel und Frist, schätzt den Aufwand und erstellt realistische Fokus-Schritte.": "Users describe what they want to complete, optionally add relevant material, and select the context. Focus Mode+ identifies the goal and deadline, estimates the effort, and creates realistic focus steps.", "Prüfung": "Exam", "Aufgabe": "Task", "Projekt": "Project", "Eigene Mission": "Custom mission", "Planen. Fokussieren. Reflektieren. Anpassen.": "Plan. Focus. Reflect. Adapt.", "Eine Focus Mission begleitet die Aufgabe nicht nur bis zum Plan, sondern durch die tatsächliche Ausführung und den nächsten realistischen Schritt.": "A Focus Mission guides the task beyond planning, through actual execution and toward the next realistic step.", "Ziel verstehen": "Understand the goal", "Aufgabe, Material und Frist erfassen": "Capture the task, material, and deadline", "Nächsten Schritt wählen": "Choose the next step", "Eine realistische Sitzung statt eines überwältigenden Plans": "One realistic session instead of one overwhelming plan", "Geschützt arbeiten": "Work in a protected environment", "Ablenkende Apps blockieren": "Block distracting apps", "Ergebnis einschätzen": "Reflect on the result", "Verständnis und Sicherheit bewerten": "Assess understanding and confidence", "Mission anpassen": "Adapt the mission", "Dauer und nächste Schritte aktualisieren": "Update duration and next steps", "07 / GESCHÜTZTER FOKUS": "07 / PROTECTED FOCUS", "Der Plan zählt erst, wenn die Arbeit beginnt.": "A plan only matters when the work begins.", "Während der Sitzung schützt Focus Mode+ die gewählte Arbeitsumgebung. Beim Versuch, in eine Ablenkung zu wechseln, unterbricht eine bewusste Barriere den Automatismus.": "During the session, Focus Mode+ protects the selected working environment. When the user attempts to switch to a distraction, a conscious barrier interrupts the automatic impulse.", "Benötigte Werkzeuge bleiben verfügbar": "Required tools remain available", "Ablenkende Apps werden blockiert": "Distracting apps are blocked", "08 / ANPASSUNG": "08 / ADAPTATION", "Die Mission lernt aus jeder Sitzung.": "The mission learns from every session.", "Nach der Sitzung bewertet der Nutzer, wie sicher er sich mit dem Ergebnis fühlt. Focus Mode+ vergleicht Feedback und Planung, schätzt das persönliche Tempo neu und passt die nächste Sitzung an.": "After each session, users assess how confident they feel about the result. Focus Mode+ compares feedback with the original plan, reassesses the personal pace, and adapts the next session.", "Verständnis": "Understanding", "Minuten Praxis": "Practice minutes", "angepasster Schritt": "adapted step", "09 / FORTSCHRITT": "09 / PROGRESS", "Zeit zeigt deinen Einsatz. Missionen zeigen deinen Fortschritt.": "Time shows your effort. Missions show your progress.", "Fokuszeit bleibt eine reale persönliche Kennzahl. Mission-Fortschritt zeigt die Richtung. Die Plan-Serie belohnt den eigenen Rhythmus, nicht tägliche Aktivität um jeden Preis.": "Focus time remains a real personal metric. Mission progress shows direction. The Plan Streak rewards the user’s own rhythm, not daily activity at any cost.", "Plan-Serie": "Plan Streak", "Wochenliga": "Weekly League", "10 / LANGZEIT-COACHING": "10 / LONG-TERM COACHING", "Aus Fokusdaten werden bessere Routinen.": "Turn focus data into better routines.", "Während Focus Missions einzelne Aufgaben begleiten, erkennt der optionale AI Coach langfristige Muster: Wann sinkt die Konzentration? Welche Sitzungsdauer funktioniert? Welche Routine sollte angepasst werden?": "While Focus Missions guide individual tasks, the optional AI Coach identifies long-term patterns: When does concentration decrease? Which session length works best? Which routine should be adjusted?", "Erweiterte Langzeitstatistiken, Verhaltensanalyse und strengere Blockierungsmodi können Teil von Focus Mode+ Premium werden.": "Advanced long-term statistics, behavioral analysis, and stricter blocking modes may become part of Focus Mode+ Premium.", "AI Coach öffnen ↗": "Open AI Coach ↗", "11 / NEXT STEP": "11 / NEXT STEP", "Ein starker Prototyp. Jetzt braucht es echte Nutzung.": "A strong prototype. Now it needs real usage.", "Focus Mode+ ist aktuell ein interaktiver Concept Prototype. Der nächste Schritt ist nicht noch eine Funktion, sondern die Validierung mit echten Aufgaben und echten Nutzern.": "Focus Mode+ is currently an interactive concept prototype. The next step is not another feature, but validation with real tasks and real users.", "Verstehen Schüler den Mehrwert?": "Do students understand the value?", "Problem und Zielgruppe prüfen": "Test the problem and target group", "Kehren sie zurück?": "Do they return?", "Mehrere Sitzungen statt einmaliger Neugier": "Multiple sessions instead of one-time curiosity", "Verbessert der Ablauf die Ausführung?": "Does the flow improve execution?", "Planung und Schutz gemeinsam testen": "Test planning and protection together", "Langfristige Vision": "Long-term vision", "Ein Fokus-System für selbstständige Arbeit über Smartphone, Mac und PC.": "One focus system for independent work across smartphones, Macs, and PCs.", "Prototyp selbst testen": "Test the prototype", "Nach oben": "Back to top", "01 / INTRO": "01 / INTRO", "02 / PROBLEM": "02 / PROBLEM", "05 / FOCUS MISSION": "05 / FOCUS MISSION", "06 / WORKFLOW": "06 / WORKFLOW", "Konzept entdecken": "Explore the concept", "Prototyp testen": "Test the prototype", "Barriere anzeigen ↗": "Show the barrier ↗", "Trainiere deine Aufmerksamkeit. Nicht deine Ablenkung.": "Train your attention. Not your distraction."}); window.FocusModeApp.services.storage.getText("focus-mode-language")==="ru"&&window.FocusModeApp.services.storage.setText("focus-mode-language","de");</script>
-<script id="focusMissionProductLogic">
-function continueMissionFromChoice(){
-  closeFocusChoice();
-  setTimeout(()=>focusMissionCreated ? setAppScreen('plan') : openGoalIntake(),180);
-}
-function openNewMissionFromChoice(){
-  closeFocusChoice();
-  setTimeout(()=>openGoalIntake(),180);
-}
-function selectMissionType(btn){
-  btn.parentElement.querySelectorAll('.flow-chip').forEach(x=>x.classList.remove('active'));
-  btn.classList.add('active');
-  selectedMissionTypeValue=btn.textContent.trim();
-  updateMissionPlanButton();
-}
-function showPlanStreakInfo(){
-  const existing=document.getElementById('planStreakToast');
-  if(existing) existing.remove();
-  const toast=document.createElement('div');
-  toast.id='planStreakToast';
-  toast.className='absolute left-4 right-4 bottom-6 z-[75] p-3.5 rounded-2xl bg-slate-950 text-white shadow-2xl border border-white/10';
-  toast.innerHTML='<div class="flex gap-2.5"><div class="w-8 h-8 rounded-xl bg-orange-500/15 text-orange-300 flex items-center justify-center shrink-0"><i data-lucide="flame" class="w-4 h-4"></i></div><div><div class="text-[10px] font-black">3 Wochen Plan-Serie</div><div class="text-[9px] text-slate-400 leading-relaxed mt-1">Freie Tage unterbrechen deine Serie nicht. Sie wächst, wenn du deinen geplanten Fokus-Rhythmus einhältst.</div></div></div>';
-  document.getElementById('screenWrapper').appendChild(toast);
-  lucide.createIcons();
-  setTimeout(()=>toast.remove(),3800);
-}
-function updateHomeAfterMissionSession(){
-  revealCreatedMission();
-  const percent=document.getElementById('homeMissionPercent');
-  const bar=document.getElementById('homeMissionProgressBar');
-  const next=document.getElementById('homeMissionNextStep');
-  const meta=document.getElementById('homeMissionMeta');
-  if(percent) percent.textContent='52%';
-  if(bar) bar.style.width='52%';
-  if(next) next.textContent='Aufgaben 1–10 lösen';
-  if(meta) meta.textContent='Praxisblock · ca. 35 Min.';
-}
-</script>
-<script id="cleanMissionHomeLogic">
-let focusMissionCreated=false;
-function revealCreatedMission(){
-  focusMissionCreated=true;
-  const empty=document.getElementById('emptyMissionCard');
-  const active=document.getElementById('activeMissionCard');
-  if(empty) empty.classList.add('hidden');
-  if(active) active.classList.remove('hidden');
-  lucide.createIcons();
-}
-</script>
-<script id="missionInputAndConfidenceLogic">
-let selectedMissionTypeValue=null;
-let selectedMissionConfidenceValue=null;
-let selectedConfidenceRating=3;
-function updateMissionPlanButton(){
-  const btn=document.getElementById('missionPlanButton');
-  if(!btn) return;
-  const ready=Boolean(selectedMissionTypeValue&&selectedMissionConfidenceValue);
-  btn.disabled=!ready;
-  btn.classList.toggle('opacity-40',!ready);
-  btn.classList.toggle('cursor-not-allowed',!ready);
-}
-function selectConfidenceRating(btn,value){
-  selectedConfidenceRating=value;
-  document.querySelectorAll('#confidenceRatingButtons .flow-chip').forEach(x=>x.classList.remove('active'));
-  btn.classList.add('active');
-  const label=document.getElementById('confidenceRatingLabel');
-  const states={
-    1:{text:'Gar nichts verstanden',classes:['text-rose-600']},
-    2:{text:'Sehr wenig verstanden',classes:['text-rose-500']},
-    3:{text:'Mittel verstanden',classes:['text-amber-600']},
-    4:{text:'Ziemlich gut verstanden',classes:['text-emerald-600']},
-    5:{text:'Vollständig verstanden',classes:['text-indigo-600']}
-  };
-  const state=states[value];
-  label.textContent=state.text;
-  label.className='text-[10px] font-bold '+state.classes.join(' ');
-}
-</script>
+
+
+
 <script src="./src/features/quick-focus/quick-focus.js"></script>
 <div id="pwaInstallHelp"><div id="pwaInstallCard"><h2>Focus Mode+ installieren</h2><p>Öffne diese Seite in Safari und füge sie zum Home-Bildschirm hinzu.</p><ol><li>Tippe auf „Teilen“.</li><li>Wähle „Zum Home-Bildschirm“.</li><li>Tippe auf „Hinzufügen“.</li></ol><button id="pwaInstallClose">Verstanden</button></div></div><script id="pwaBoot">(function(){
 const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
@@ -2199,237 +2124,11 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 if('serviceWorker'in navigator)addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js'));
 })();</script>
-<script id="realAIMissionV6">
-let missionImageFile=null;
-let missionImagePreviewUrl=null;
-let pendingAIPlan=null;
-let activeAIPlan=null;
-
-function openRealFilePicker(cameraPreferred){
-  const input=document.getElementById('missionFileInput');
-  if(!input)return;
-  if(cameraPreferred)input.setAttribute('capture','environment'); else input.removeAttribute('capture');
-  input.value='';
-  input.click();
-}
-
-async function handleMissionFile(event){
-  clearMissionError();
-  const original=event.target.files&&event.target.files[0];
-  if(!original)return;
-  if(!['image/jpeg','image/png','image/webp'].includes(original.type))return showMissionError('Bitte wähle ein JPEG-, PNG- oder WEBP-Bild aus.');
-  try{
-    missionImageFile=await compressMissionImage(original);
-    if(missionImagePreviewUrl)URL.revokeObjectURL(missionImagePreviewUrl);
-    missionImagePreviewUrl=URL.createObjectURL(missionImageFile);
-    const card=document.getElementById('selectedFileCard');
-    card.classList.remove('hidden');card.classList.add('selected');
-    document.getElementById('selectedFileName').textContent=original.name||'Foto.jpg';
-    document.getElementById('selectedFileMeta').textContent=formatBytes(missionImageFile.size)+' · bereit für AI-Analyse';
-    const iconBox=card.querySelector('.w-11.h-11');
-    if(iconBox)iconBox.innerHTML='<img src="'+missionImagePreviewUrl+'" alt="Ausgewähltes Lernmaterial">';
-    document.getElementById('goalInputHint').textContent='Foto hinzugefügt';
-    lucide.createIcons();
-  }catch(err){showMissionError('Das Foto konnte nicht vorbereitet werden. Bitte versuche ein anderes Bild.');}
-}
-
-async function compressMissionImage(file){
-  if(file.size<=1800000)return file;
-  const bitmap=await createImageBitmap(file);
-  const maxSide=1800,scale=Math.min(1,maxSide/Math.max(bitmap.width,bitmap.height));
-  const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(bitmap.width*scale));canvas.height=Math.max(1,Math.round(bitmap.height*scale));
-  canvas.getContext('2d',{alpha:false}).drawImage(bitmap,0,0,canvas.width,canvas.height);
-  const blob=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('compression failed')),'image/jpeg',.82));
-  bitmap.close?.();
-  return new File([blob],(file.name||'material').replace(/\.[^.]+$/, '')+'.jpg',{type:'image/jpeg',lastModified:Date.now()});
-}
-function formatBytes(bytes){return bytes<1048576?Math.max(1,Math.round(bytes/1024))+' KB':(bytes/1048576).toFixed(1).replace('.',',')+' MB'}
-function showMissionError(message){const box=document.getElementById('missionError');if(!box)return;box.textContent=message;box.classList.remove('hidden');setAppScreen('goal',{immediate:true});}
-function clearMissionError(){const box=document.getElementById('missionError');if(box){box.textContent='';box.classList.add('hidden')}}
-function resetAnalysisRows(){document.querySelectorAll('#analysisRows .analysis-row').forEach(row=>{row.classList.add('opacity-40');row.classList.remove('done');const icon=row.querySelector('.analysis-icon');if(icon)icon.innerHTML='<span class="flow-loader-dot w-1.5 h-1.5 bg-indigo-300 rounded-full"></span>'});}
-function completeAnalysisRow(index){const row=document.querySelectorAll('#analysisRows .analysis-row')[index];if(!row)return;row.classList.remove('opacity-40');row.classList.add('done');const icon=row.querySelector('.analysis-icon');if(icon)icon.innerHTML='<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i>';lucide.createIcons();}
-
-async function analyzeGoal(){
-  if(!selectedMissionTypeValue||!selectedMissionConfidenceValue)return;
-  const goalText=(document.getElementById('goalPrompt').value||'').trim();
-  if(!goalText&&!missionImageFile)return showMissionError('Beschreibe dein Ziel oder füge ein Foto hinzu.');
-  clearMissionError();resetAnalysisRows();setAppScreen('analyzing');
-  [450,950].forEach((t,i)=>setTimeout(()=>completeAnalysisRow(i),t));
-  const button=document.getElementById('missionPlanButton');button?.classList.add('ai-loading');
-  try{
-    pendingAIPlan=await createMissionPlan({goalText,missionType:missionTypeForAPI(),confidence:confidenceForAPI(),imageFile:missionImageFile});
-    completeAnalysisRow(2);renderAIConfirmation(pendingAIPlan);
-    window.FocusModeApp.services.storage.setJSON('focus-mode-last-ai-plan',pendingAIPlan);
-    setTimeout(()=>setAppScreen('confirm'),500);
-  }catch(error){
-    console.error('Focus AI request failed',error);
-    const message=error.name==='AbortError'?'Die Analyse hat zu lange gedauert. Bitte versuche es erneut.':'AI-Analyse nicht verfügbar: '+(error.message||'Unbekannter Fehler');
-    showMissionError(message);
-  }finally{button?.classList.remove('ai-loading')}
-}
-
-function escapeHTML(value){return String(value).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
-function renderAIConfirmation(plan){
-  const rows=[['Fach',plan.goal.subject],['Thema',plan.goal.title],['Frist',plan.goal.deadlineText||'Nicht angegeben'],['Erkannte Aufgaben',plan.sourceAnalysis.detectedTasks||'Nicht eindeutig erkannt'],['Erkannte Seiten',plan.sourceAnalysis.detectedPages||'Nicht eindeutig erkannt'],['Geschätzter Aufwand',formatMinutes(plan.estimate.totalMinutes)+' · '+plan.sessions.length+' Sitzungen']];
-  document.getElementById('aiConfirmFields').innerHTML=rows.map(([l,v])=>'<div class="ai-confirm-row"><div class="ai-confirm-label">'+escapeHTML(l)+'</div><div class="ai-confirm-value">'+escapeHTML(v)+'</div></div>').join('');
-  const missing=document.getElementById('aiMissingInfo');if(plan.sourceAnalysis.missingInformation.length){missing.innerHTML='<strong>Bitte prüfen:</strong><br>'+plan.sourceAnalysis.missingInformation.map(escapeHTML).join('<br>');missing.classList.remove('hidden')}else missing.classList.add('hidden');
-  lucide.createIcons();
-}
-function confirmAIPlan(){if(!pendingAIPlan)return;activeAIPlan=pendingAIPlan;renderAIPlan(activeAIPlan);revealCreatedMission();window.FocusModeApp.services.storage.setJSON('focus-mode-active-mission',activeAIPlan);setAppScreen('plan');}
-function formatMinutes(total){const m=Math.max(0,Math.round(Number(total)||0)),h=Math.floor(m/60),r=m%60;return h?(h+'h'+(r?' '+r+'m':'')):(r+' Min.')}
-function missionTypeLabel(type){return({exam:'Prüfung',assignment:'Aufgabe',project:'Projekt',custom:'Mission'})[type]||'Mission'}
-function renderAIPlan(plan){
-  document.getElementById('aiPlanEyebrow').textContent=plan.goal.subject+' · '+missionTypeLabel(plan.goal.type);
-  document.getElementById('aiPlanTitle').textContent=plan.goal.title;
-  document.getElementById('aiPlanDeadline').textContent=plan.goal.deadlineText||'Nicht angegeben';
-  document.getElementById('aiPlanTotal').textContent=formatMinutes(plan.estimate.totalMinutes);
-  document.getElementById('aiPlanSessionCount').textContent=plan.sessions.length+' empfohlen';
-  document.getElementById('aiPlanExplanation').innerHTML='<strong>Warum so?</strong> '+escapeHTML(plan.estimate.explanation);
-  document.getElementById('aiPlanSteps').innerHTML=plan.sessions.map((s,i)=>'<div class="flow-step-line flex gap-3 '+(i<plan.sessions.length-1?'pb-3':'')+'"><div class="w-7 h-7 rounded-full '+(i===0?'bg-indigo-600 text-white':'bg-white border border-slate-200 text-slate-500')+' flex items-center justify-center text-[9px] font-black shrink-0">'+(i+1)+'</div><div class="flex-1 pt-0.5"><div class="flex justify-between gap-2"><div class="text-[10px] font-bold text-slate-800">'+escapeHTML(s.title)+'</div><span class="text-[9px] font-bold '+(i===0?'text-indigo-600':'text-slate-400')+'">'+s.durationMinutes+' Min.</span></div><div class="text-[9px] text-slate-400 mt-1">'+escapeHTML(s.task||s.reason)+'</div></div></div>').join('');
-  const homeTitle=document.querySelector('#activeMissionCard h3');if(homeTitle)homeTitle.textContent=plan.goal.title;
-  const homeMeta=document.querySelector('#activeMissionCard h3 + p');if(homeMeta)homeMeta.textContent=plan.goal.subject+' · '+(plan.goal.deadlineText||'ohne Frist');
-  document.getElementById('homeMissionNextStep').textContent=plan.sessions[0].title;
-  document.getElementById('homeMissionMeta').textContent=plan.sessions[0].task+' · ca. '+plan.sessions[0].durationMinutes+' Min.';
-  lucide.createIcons();
-}
 
 
-document.addEventListener('DOMContentLoaded',()=>{
-  const saved=window.FocusModeApp.services.storage.getJSON('focus-mode-active-mission',null,{removeCorrupt:true});
-  if(saved){try{activeAIPlan=normalizeAIPlan(saved);pendingAIPlan=activeAIPlan;renderAIPlan(activeAIPlan);revealCreatedMission()}catch(e){window.FocusModeApp.services.storage.remove('focus-mode-active-mission')}}
-  const prompt=document.getElementById('goalPrompt');prompt?.addEventListener('input',()=>{document.getElementById('goalInputHint').textContent=prompt.value.trim()?'Text bereit':'Text oder Foto hinzufügen'});
-});
-</script>
-
-<script id="adaptiveMissionV7">
-let missionProgress={currentSessionIndex:0,completedSessions:[],history:[],initialSessionCount:0};
-let currentSessionStartedAt=null;
-let currentSessionPlannedMinutes=0;
-let currentSessionActualMinutes=0;
-let selectedSessionStatus='partial';
-
-function loadMissionProgress(){
-  try{const saved=window.FocusModeApp.services.storage.getJSON('focus-mode-mission-progress-v7',null);if(saved&&typeof saved==='object')missionProgress={...missionProgress,...saved}}catch{}
-}
-function saveMissionState(){
-  if(activeAIPlan)window.FocusModeApp.services.storage.setJSON('focus-mode-active-mission',activeAIPlan);
-  window.FocusModeApp.services.storage.setJSON('focus-mode-mission-progress-v7',missionProgress);
-}
-function resetMissionProgress(plan){missionProgress={currentSessionIndex:0,completedSessions:[],history:[],initialSessionCount:plan?.sessions?.length||0};saveMissionState()}
-
-function confirmAIPlan(){
-  if(!pendingAIPlan)return;
-  activeAIPlan=pendingAIPlan;
-  resetMissionProgress(activeAIPlan);
-  renderAIPlan(activeAIPlan);revealCreatedMission();saveMissionState();setAppScreen('plan');
-}
-
-function getCurrentMissionSession(){return activeAIPlan?.sessions?.[missionProgress.currentSessionIndex]||null}
-function updateMissionHome(){
-  if(!activeAIPlan)return;
-  const current=getCurrentMissionSession();
-  const total=Math.max(missionProgress.initialSessionCount||activeAIPlan.sessions.length,missionProgress.completedSessions.length+activeAIPlan.sessions.length-missionProgress.currentSessionIndex);
-  const completed=missionProgress.completedSessions.length;
-  const percent=total?Math.min(100,Math.round(completed/total*100)):0;
-  document.getElementById('homeMissionPercent').textContent=percent+'%';
-  document.getElementById('homeMissionProgressBar').style.width=percent+'%';
-  document.getElementById('homeMissionNextStep').textContent=current?.title||(percent===100?'Mission abgeschlossen':'Kein weiterer Schritt');
-  document.getElementById('homeMissionMeta').textContent=current?((current.task||current.reason)+' · ca. '+current.durationMinutes+' Min.'):'Alle Schritte bearbeitet';
-}
-
-function renderAIPlan(plan){
-  document.getElementById('aiPlanEyebrow').textContent=plan.goal.subject+' · '+missionTypeLabel(plan.goal.type);
-  document.getElementById('aiPlanTitle').textContent=plan.goal.title;
-  document.getElementById('aiPlanDeadline').textContent=plan.goal.deadlineText||'Nicht angegeben';
-  const remaining=plan.sessions.slice(missionProgress.currentSessionIndex);
-  const remainingMinutes=remaining.reduce((a,s)=>a+(Number(s.durationMinutes)||0),0);
-  document.getElementById('aiPlanTotal').textContent=formatMinutes(remainingMinutes);
-  document.getElementById('aiPlanSessionCount').textContent=remaining.length+' offen';
-  document.getElementById('aiPlanExplanation').innerHTML='<strong>Warum so?</strong> '+escapeHTML(plan.estimate?.explanation||'Der Plan wird nach jeder Sitzung angepasst.');
-  document.getElementById('aiPlanSteps').innerHTML=plan.sessions.map((s,i)=>{
-    const done=i<missionProgress.currentSessionIndex;
-    const active=i===missionProgress.currentSessionIndex;
-    const bubble=done?'<i data-lucide="check" class="w-3.5 h-3.5"></i>':String(i+1);
-    return '<div class="flow-step-line flex gap-3 '+(i<plan.sessions.length-1?'pb-3 ':'')+(done?'mission-step-complete ':active?'mission-step-active ':'')+'"><div class="step-bubble w-7 h-7 rounded-full bg-white border border-slate-200 text-slate-500 flex items-center justify-center text-[9px] font-black shrink-0">'+bubble+'</div><div class="flex-1 pt-0.5"><div class="flex justify-between gap-2"><div class="text-[10px] font-bold '+(done?'text-slate-500 line-through':'text-slate-800')+'">'+escapeHTML(s.title)+'</div><span class="text-[9px] font-bold '+(active?'text-indigo-600':'text-slate-400')+'">'+s.durationMinutes+' Min.</span></div><div class="text-[9px] text-slate-400 mt-1">'+escapeHTML(s.task||s.reason)+'</div></div></div>';
-  }).join('');
-  const homeTitle=document.querySelector('#activeMissionCard h3');if(homeTitle)homeTitle.textContent=plan.goal.title;
-  const homeMeta=document.querySelector('#activeMissionCard h3 + p');if(homeMeta)homeMeta.textContent=plan.goal.subject+' · '+(plan.goal.deadlineText||'ohne Frist');
-  const startButton=document.getElementById('missionStartButton');
-  if(startButton){const current=getCurrentMissionSession();startButton.disabled=!current;startButton.innerHTML=current?'<i class="w-4 h-4" data-lucide="play"></i> Schritt '+(missionProgress.currentSessionIndex+1)+' starten':'<i class="w-4 h-4" data-lucide="check"></i> Mission abgeschlossen';}
-  updateMissionHome();lucide.createIcons();
-}
 
 
-function selectSessionStatus(button,status){selectedSessionStatus=status;document.querySelectorAll('#sessionStatusButtons .session-status-option').forEach(b=>b.classList.remove('active'));button.classList.add('active')}
-function resetFeedbackRows(){document.querySelectorAll('#feedbackRows .feedback-row').forEach(r=>{r.classList.add('opacity-35');r.classList.remove('done');const i=r.querySelector('.feedback-icon');if(i)i.innerHTML='<span class="flow-loader-dot w-1.5 h-1.5 bg-indigo-200 rounded-full"></span>'})}
-function completeFeedbackRow(i){const r=document.querySelectorAll('#feedbackRows .feedback-row')[i];if(!r)return;r.classList.remove('opacity-35');r.classList.add('done');const icon=r.querySelector('.feedback-icon');if(icon)icon.innerHTML='<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-300"></i>';lucide.createIcons()}
 
-async function showPlanUpdate(){
-  const current=getCurrentMissionSession();if(!current)return;
-  try{const last=JSON.parse(localStorage.getItem(SESSION_CORE_LAST_KEY)||'null');if(last?.id)sessionRepository.update(last.id,{result:{outcome:selectedSessionStatus,feedback:(document.getElementById('sessionFeedbackText').value||'').trim(),rating:selectedConfidenceRating}})}catch{}
-  const feedback=(document.getElementById('sessionFeedbackText').value||'').trim();
-  const button=document.getElementById('adaptMissionButton');button.disabled=true;button.textContent='AI wertet aus …';
-  resetFeedbackRows();setAppScreen('feedbackprocessing');[400,1000].forEach((t,i)=>setTimeout(()=>completeFeedbackRow(i),t));
-  adaptationController?.abort();adaptationController=new AbortController();const timeout=setTimeout(()=>adaptationController.abort(),120000);
-  const historyEntry={sessionId:current.id,title:current.title,plannedMinutes:currentSessionPlannedMinutes,actualMinutes:currentSessionActualMinutes,status:selectedSessionStatus,rating:selectedConfidenceRating,feedback,completedAt:new Date().toISOString()};
-  try{
-    const payload={mission:{title:activeAIPlan.goal.title,subject:activeAIPlan.goal.subject,deadlineText:activeAIPlan.goal.deadlineText},currentSession:current,plannedMinutes:currentSessionPlannedMinutes,actualMinutes:currentSessionActualMinutes,status:selectedSessionStatus,rating:selectedConfidenceRating,feedback,remainingSessions:activeAIPlan.sessions.slice(missionProgress.currentSessionIndex+1),history:missionProgress.history};
-    const response=await fetch(FOCUS_AI_ADAPT_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:adaptationController.signal});
-    let data={};try{data=await response.json()}catch{}
-    if(!response.ok||!data.ok||!data.adaptation)throw new Error(data.error||('HTTP '+response.status));
-    applyAdaptation(data.adaptation,historyEntry,current);completeFeedbackRow(2);setTimeout(()=>setAppScreen('update'),450);
-  }catch(error){
-    console.error('Mission adaptation failed',error);
-    applyFallbackAdaptation(historyEntry,current);
-    document.getElementById('adaptationMessage').textContent='Die AI war kurz nicht erreichbar. Dein Ergebnis wurde trotzdem gespeichert und der nächste Schritt lokal vorbereitet.';
-    completeFeedbackRow(2);setTimeout(()=>setAppScreen('update'),450);
-  }finally{clearTimeout(timeout);button.disabled=false;button.textContent='Ergebnis mit AI auswerten'}
-}
-
-function applyAdaptation(adaptation,entry,current){
-  missionProgress.history.push(entry);
-  const completed=selectedSessionStatus==='completed'&&!adaptation.keepCurrentStep;
-  let prefix=activeAIPlan.sessions.slice(0,missionProgress.currentSessionIndex);
-  if(completed){missionProgress.completedSessions.push({...current,completedAt:entry.completedAt});prefix=[...prefix,current];missionProgress.currentSessionIndex=prefix.length}
-  const updated=Array.isArray(adaptation.updatedSessions)?adaptation.updatedSessions.map((s,i)=>normalizeAIPlan({goal:activeAIPlan.goal,sourceAnalysis:activeAIPlan.sourceAnalysis,estimate:{...activeAIPlan.estimate,totalMinutes:s.durationMinutes},sessions:[s]}).sessions[0]):[];
-  const safeRemaining=updated.length?updated:(completed?activeAIPlan.sessions.slice(missionProgress.currentSessionIndex):activeAIPlan.sessions.slice(missionProgress.currentSessionIndex));
-  activeAIPlan.sessions=[...prefix,...safeRemaining];
-  activeAIPlan.estimate.totalMinutes=activeAIPlan.sessions.slice(missionProgress.currentSessionIndex).reduce((a,s)=>a+s.durationMinutes,0);
-  activeAIPlan.estimate.explanation=adaptation.message||adaptation.summary||activeAIPlan.estimate.explanation;
-  renderAdaptationResult(adaptation);renderAIPlan(activeAIPlan);saveMissionState();
-}
-function applyFallbackAdaptation(entry,current){
-  missionProgress.history.push(entry);
-  if(selectedSessionStatus==='completed'){missionProgress.completedSessions.push({...current,completedAt:entry.completedAt});missionProgress.currentSessionIndex=Math.min(missionProgress.currentSessionIndex+1,activeAIPlan.sessions.length)}
-  const now=getCurrentMissionSession();renderAdaptationResult({message:selectedSessionStatus==='completed'?'Der Schritt wurde abgeschlossen. Als Nächstes geht es mit dem folgenden Missionsschritt weiter.':'Der Schritt bleibt offen, damit du ihn später fortsetzen kannst.',summary:'Ergebnis lokal gespeichert.',updatedSessions:now?[now]:[]});renderAIPlan(activeAIPlan);saveMissionState();
-}
-function renderAdaptationResult(a){const next=(Array.isArray(a.updatedSessions)&&a.updatedSessions[0])||getCurrentMissionSession();document.getElementById('adaptationMessage').textContent=a.message||'Dein Feedback wurde ausgewertet.';document.getElementById('adaptationSummary').textContent=a.summary||a.mainDifficulty||'Der Restplan wurde aktualisiert.';document.getElementById('adaptedNextTitle').textContent=next?.title||'Mission abgeschlossen';document.getElementById('adaptedNextTask').textContent=next?.task||'Alle geplanten Schritte sind bearbeitet.';document.getElementById('adaptedNextDuration').textContent=next?(next.durationMinutes+' Min.'):'Fertig';}
-function finishLearningFlow(){learningFlowActive=false;renderAIPlan(activeAIPlan);saveMissionState();setAppScreen('home');lucide.createIcons()}
-
-// Restore v7 progress after the v6 restoration handler has run.
-document.addEventListener('DOMContentLoaded',()=>{setTimeout(()=>{loadMissionProgress();if(activeAIPlan){if(!missionProgress.initialSessionCount)missionProgress.initialSessionCount=activeAIPlan.sessions.length;renderAIPlan(activeAIPlan);revealCreatedMission();saveMissionState()}},0)});
-</script>
-
-<script id="mobileUIV81">
-let expandedFutureStepV81=null;
-function toggleFutureStepV81(index){expandedFutureStepV81=expandedFutureStepV81===index?null:index;if(activeAIPlan)renderAIPlan(activeAIPlan)}
-function renderAIPlan(plan){
- document.getElementById('aiPlanEyebrow').textContent=plan.goal.subject+' · '+missionTypeLabel(plan.goal.type);
- document.getElementById('aiPlanTitle').textContent=plan.goal.title;
- document.getElementById('aiPlanDeadline').textContent=plan.goal.deadlineText||'Nicht angegeben';
- const remaining=plan.sessions.slice(missionProgress.currentSessionIndex),minutes=remaining.reduce((a,s)=>a+(Number(s.durationMinutes)||0),0);
- document.getElementById('aiPlanTotal').textContent=formatMinutes(minutes);document.getElementById('aiPlanSessionCount').textContent=remaining.length+' offen';
- document.getElementById('aiPlanExplanation').innerHTML='<strong>Warum so?</strong> '+escapeHTML(plan.estimate?.explanation||'Der Plan wird nach jeder Sitzung angepasst.');
- document.getElementById('aiPlanSteps').innerHTML=plan.sessions.map((s,i)=>{const done=i<missionProgress.currentSessionIndex,active=i===missionProgress.currentSessionIndex,future=i>missionProgress.currentSessionIndex,expanded=future&&expandedFutureStepV81===i;const state=done?'mission-step-complete':active?'mission-step-active':'mission-step-future'+(expanded?' expanded':'');const click=future?' onclick="toggleFutureStepV81('+i+')"':'';const bubble=done?'<i data-lucide="check" class="w-3.5 h-3.5"></i>':String(i+1);return '<div class="flow-step-line '+state+' flex"'+click+'><div class="step-bubble rounded-full bg-white border border-slate-200 text-slate-500 flex items-center justify-center font-black shrink-0">'+bubble+'</div><div class="step-content flex-1 min-w-0"><div class="step-head flex justify-between gap-3"><div class="step-title font-bold">'+escapeHTML(s.title)+'</div><span class="step-time font-bold">'+s.durationMinutes+' Min.</span></div><div class="step-task" style="-webkit-line-clamp:'+(expanded?'unset':'2')+'">'+escapeHTML(s.task||s.reason)+'</div></div></div>'}).join('');
- const homeTitle=document.querySelector('#activeMissionCard h3');if(homeTitle)homeTitle.textContent=plan.goal.title;const homeMeta=document.querySelector('#activeMissionCard h3 + p');if(homeMeta)homeMeta.textContent=plan.goal.subject+' · '+(plan.goal.deadlineText||'ohne Frist');
- const current=getCurrentMissionSession();document.getElementById('homeMissionNextStep').textContent=current?.title||'Mission abgeschlossen';document.getElementById('homeMissionMeta').textContent=current?((current.task||current.reason)+' · ca. '+current.durationMinutes+' Min.'):'Alle Schritte bearbeitet';
- const start=document.getElementById('missionStartButton');if(start){start.disabled=!current;start.innerHTML=current?'<i class="w-4 h-4" data-lucide="play"></i> Schritt '+(missionProgress.currentSessionIndex+1)+' starten':'<i class="w-4 h-4" data-lucide="check"></i> Mission abgeschlossen'}
- updateMissionHome();lucide.createIcons();
-}
-// Real week card only. Rank and Plan-Serie stay intact.
-const oldFinishV81=finishLearningFlow;finishLearningFlow=function(){oldFinishV81();setTimeout(refreshHomeStats,20)};
-document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{refreshHomeStats();if(activeAIPlan)renderAIPlan(activeAIPlan)},30));
-</script>
 
 
 <script src="./src/features/history/session-history.js"></script>
@@ -2462,14 +2161,8 @@ const oldApplyUc=applyAppScreenImmediately;applyAppScreenImmediately=function(sc
 document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();else if(!document.getElementById('app-screen-timer')?.classList.contains('hidden')){if(ucEndsAt&&timerInterval){timerDuration=Math.max(0,Math.ceil((ucEndsAt-Date.now())/1000));updateTimerUI();if(timerDuration<=0)finishSession({status:'completed',reason:'timer_finished'})}startUc()}});window.addEventListener('resize',()=>{if(ucActive)requestAnimationFrame(initUc)},{passive:true});
 </script>
 
-<script id="homeHeroV103">
-function syncHomeHeroV103(){const empty=document.getElementById('emptyMissionCard'),active=document.getElementById('activeMissionCard'),current=(activeAIPlan&&typeof getCurrentMissionSession==='function')?getCurrentMissionSession():null,has=Boolean(activeAIPlan&&current);empty?.classList.toggle('hidden',has);active?.classList.toggle('hidden',!has);if(!has){lucide.createIcons();return}const title=document.querySelector('#activeMissionCard h3'),meta=document.querySelector('#activeMissionCard h3+p'),next=document.getElementById('homeMissionNextStep'),task=document.getElementById('homeMissionMeta'),step=document.querySelector('#activeMissionCard .active-mission-step');if(title){title.textContent=activeAIPlan.goal?.title||'Focus Mission';title.style.fontSize=title.textContent.length>76?'17.5px':title.textContent.length>58?'18.5px':''}if(meta)meta.textContent=(activeAIPlan.goal?.subject||'Allgemein')+' · '+(activeAIPlan.goal?.deadlineText||'ohne Frist');if(next)next.textContent=current.title||'Nächster Schritt';if(task)task.textContent=current.task||current.reason||'Nächsten Schritt bearbeiten';let b=document.getElementById('homeMissionDurationV103');if(!b&&step){b=document.createElement('span');b.id='homeMissionDurationV103';step.appendChild(b)}if(b)b.textContent=current.durationMinutes+' Min.';lucide.createIcons()}
-const oldU103=updateMissionHome;updateMissionHome=function(){oldU103.apply(this,arguments);syncHomeHeroV103()};const oldR103=revealCreatedMission;revealCreatedMission=function(){oldR103.apply(this,arguments);syncHomeHeroV103()};const oldA103=applyAppScreenImmediately;applyAppScreenImmediately=function(screen){const r=oldA103.apply(this,arguments);if(screen==='home')syncHomeHeroV103();return r};document.addEventListener('DOMContentLoaded',()=>setTimeout(syncHomeHeroV103,70));
-</script>
-<script id="missionDepthV105">
-function applyMissionDepthV105(center=false){const list=document.getElementById('aiPlanSteps');if(!list)return;const cards=[...list.querySelectorAll('.flow-step-line')],ai=cards.findIndex(c=>c.classList.contains('mission-step-active'));cards.forEach((c,i)=>{c.classList.remove('mission-depth-near','mission-depth-far','mission-depth-before','mission-depth-after');if(ai<0||i===ai)return;c.classList.add(Math.abs(i-ai)===1?'mission-depth-near':'mission-depth-far',i<ai?'mission-depth-before':'mission-depth-after')});const active=cards[ai];if(active&&!active.querySelector('.mission-active-start')){const b=document.createElement('button');b.type='button';b.className='mission-active-start';b.innerHTML='<i data-lucide="play"></i><span>Schritt '+(ai+1)+' starten</span>';b.onclick=e=>{e.stopPropagation();prepareLearningSession()};active.appendChild(b)}lucide.createIcons();if(center&&active)requestAnimationFrame(()=>setTimeout(()=>active.scrollIntoView({behavior:'smooth',block:'center'}),80))}
-const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderBeforeDepthV105.apply(this,arguments);applyMissionDepthV105(false);return r};const applyBeforeDepthV105=applyAppScreenImmediately;applyAppScreenImmediately=function(screen){const r=applyBeforeDepthV105.apply(this,arguments);if(screen==='plan')setTimeout(()=>applyMissionDepthV105(true),30);return r};document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>applyMissionDepthV105(false),90));
-</script><script src="./src/features/focus-session/session-model.js"></script>
+
+<script src="./src/features/focus-session/session-model.js"></script>
 <script src="./src/features/focus-session/session-runtime.js"></script>
 <script src="./src/features/focus-session/session-controller.js"></script>
 <script src="./src/features/focus-session/session-finalization.js"></script>
@@ -2477,64 +2170,12 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
 <style id="multiMissionV115Styles">
 #missionSwitcherV115{display:flex;gap:7px;margin:-3px 0 14px;overflow-x:auto;scrollbar-width:none}#missionSwitcherV115 button{flex:1;min-width:0;padding:9px 10px;border:1px solid #e2e8f0;border-radius:14px;background:#fff;color:#64748b;font-size:10px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#missionSwitcherV115 button.active{border-color:#c7d2fe;background:#eef2ff;color:#4338ca}
 </style>
-<script id="multiMissionCoreV115">
-function bindMissionCompatibilityV115(m){activeAIPlan=missionToLegacyV115(m);pendingAIPlan=activeAIPlan;if(!m){missionProgress={currentSessionIndex:0,completedSessions:[],history:[],initialSessionCount:0};return}const index=Math.max(0,m.steps.findIndex(x=>x.id===m.currentStepId));missionProgress={currentSessionIndex:m.currentStepId?index:m.steps.length,completedSessions:m.steps.filter(x=>x.status==='completed').map(missionClone),history:missionClone(m.progress.history),initialSessionCount:m.progress.initialStepCount||m.steps.length};focusMissionCreated=Boolean(m)}
-function openMission(id){const m=missionRepository.getById(id);if(!m)return false;missionRepository.setSelected(id);bindMissionCompatibilityV115(m);renderAIPlan(activeAIPlan);renderMultiMissionUIV115();setAppScreen('plan');return true}window.openMission=openMission;
-function renderMultiMissionUIV115(){const active=missionRepository.getActive(),primary=missionRepository.getPrimary(),selected=missionRepository.getSelected()||primary;const home=primary||active[0]||null;if(home){document.getElementById('emptyMissionCard')?.classList.add('hidden');document.getElementById('activeMissionCard')?.classList.remove('hidden');const hs=home.steps.find(x=>x.id===home.currentStepId);const ht=document.querySelector('#activeMissionCard h3'),hm=document.querySelector('#activeMissionCard h3+p');if(ht)ht.textContent=home.title;if(hm)hm.textContent=home.subject+' · '+(home.deadlineText||'ohne Frist');const hn=document.getElementById('homeMissionNextStep'),hmeta=document.getElementById('homeMissionMeta');if(hn)hn.textContent=hs?.title||'Mission abgeschlossen';if(hmeta)hmeta.textContent=hs?((hs.task||hs.reason)+' · ca. '+hs.durationMinutes+' Min.'):'Alle Schritte bearbeitet';const pct=home.steps.length?Math.round(home.progress.completedStepIds.length/home.steps.length*100):0;document.getElementById('homeMissionPercent').textContent=pct+'%';document.getElementById('homeMissionProgressBar').style.width=pct+'%'}else{bindMissionCompatibilityV115(null);document.getElementById('emptyMissionCard')?.classList.remove('hidden');document.getElementById('activeMissionCard')?.classList.add('hidden')}const card=document.getElementById('activeMissionCard');if(card&&home)card.onclick=e=>{if(!e.target.closest('button')||e.target.closest('.active-mission-step'))openMission(home.id)};let second=document.getElementById('secondaryMissionCard');if(!second){second=document.createElement('button');second.id='secondaryMissionCard';second.type='button';card?.insertAdjacentElement('afterend',second)}const other=active.find(x=>x.id!==home?.id);if(other){const step=other.steps.find(x=>x.id===other.currentStepId),done=other.progress.completedStepIds.length;second.classList.remove('hidden');second.innerHTML='<div class="mm-row"><span class="mm-icon"><i data-lucide="layers-3"></i></span><span class="mm-copy"><span class="mm-label">Weitere Mission</span><span class="mm-title">'+escapeHTML(other.title)+'</span><span class="mm-meta">'+escapeHTML(other.subject)+' · Schritt '+Math.min(done+1,other.steps.length)+' von '+other.steps.length+'</span></span><i data-lucide="chevron-right"></i></div>';second.onclick=()=>openMission(other.id)}else second?.classList.add('hidden');const plan=document.getElementById('app-screen-plan'),anchor=plan?.children[1];let switcher=document.getElementById('missionSwitcherV115');if(active.length>1&&anchor){if(!switcher){switcher=document.createElement('div');switcher.id='missionSwitcherV115';anchor.insertAdjacentElement('afterend',switcher)}switcher.innerHTML=active.map(m=>'<button class="'+(m.id===selected?.id?'active':'')+'" onclick="openMission(\''+m.id+'\')">'+escapeHTML(m.title)+'</button>').join('')}else switcher?.remove();lucide.createIcons()}
-const legacyRenderPlanV115=renderAIPlan;renderAIPlan=function(plan){const selected=missionRepository.getSelected();if(selected&&(!plan||plan.id!==selected.id)){bindMissionCompatibilityV115(selected);plan=activeAIPlan}return legacyRenderPlanV115.call(this,plan)};
-confirmAIPlan=function(){if(!pendingAIPlan)return;const result=missionRepository.create({title:pendingAIPlan.goal.title,subject:pendingAIPlan.goal.subject,type:pendingAIPlan.goal.type,deadlineText:pendingAIPlan.goal.deadlineText,estimate:pendingAIPlan.estimate,sourceAnalysis:pendingAIPlan.sourceAnalysis,steps:pendingAIPlan.sessions});if(!result.ok){showMissionError('Du kannst momentan bis zu zwei aktive Focus Missions haben. Schließe eine Mission ab oder archiviere sie, bevor du eine neue erstellst.');return}openMission(result.mission.id)};
-const oldOpenGoalV115=openGoalIntake;openGoalIntake=function(){if(missionRepository.getActive().length>=2){alert('Du kannst momentan bis zu zwei aktive Focus Missions haben. Schließe eine Mission ab oder archiviere sie, bevor du eine neue erstellst.');renderMultiMissionUIV115();return}return oldOpenGoalV115.apply(this,arguments)};
-getCurrentMissionSession=function(id=missionRepository.getSelectedId()){const m=missionRepository.getById(id);return m?.steps.find(x=>x.id===m.currentStepId)||null};
-ensureActiveMissionId=function(){return missionRepository.getSelectedId()||missionRepository.getPrimaryId()};
-createMissionSession=function(mid,sid){const m=missionRepository.getById(mid);if(!m||m.status!=='active')throw new Error('Diese Mission konnte nicht gefunden werden.');const s=m.steps.find(x=>x.id===sid);if(!s||m.currentStepId!==sid)throw new Error('Dieser Missionsschritt kann gerade nicht gestartet werden.');const idx=m.steps.findIndex(x=>x.id===sid);return makeSession({type:'mission',title:s.title,task:s.task||s.reason||s.title,plannedMinutes:s.durationMinutes,missionId:mid,missionStepId:sid,ui:{modeLabel:m.subject||'Focus Mission',progressCurrent:idx+1,progressTotal:m.steps.length}})};
-prepareLearningSession=function(mid=missionRepository.getSelectedId(),sid=null){const m=missionRepository.getById(mid),step=sid?m?.steps.find(x=>x.id===sid):m?.steps.find(x=>x.id===m.currentStepId);if(!m||!step)return false;try{return startSession(createMissionSession(mid,step.id))}catch(e){alert(e.message);return false}};
-const oldShowUpdateV115=showPlanUpdate;showPlanUpdate=async function(){const last=JSON.parse(localStorage.getItem(SESSION_CORE_LAST_KEY)||'null'),mid=last?.missionId||activeSession?.missionId||missionRepository.getSelectedId(),before=missionRepository.getById(mid);if(!before)return oldShowUpdateV115.apply(this,arguments);missionRepository.setSelected(mid);bindMissionCompatibilityV115(before);const r=await oldShowUpdateV115.apply(this,arguments);const after=activeAIPlan;if(after?.id===mid){const completedIds=missionProgress.completedSessions.map(x=>x.id);const steps=after.sessions.map((x,i)=>({...x,status:completedIds.includes(x.id)?'completed':i===missionProgress.currentSessionIndex?'active':'pending',completedAt:completedIds.includes(x.id)?Date.now():null}));const current=steps.find(x=>x.status==='active');missionRepository.update(mid,{steps,currentStepId:current?.id||null,status:current?'active':'completed',completedAt:current?null:Date.now(),estimate:after.estimate,progress:{completedStepIds:completedIds,history:missionProgress.history,initialStepCount:missionProgress.initialSessionCount}})}renderMultiMissionUIV115();return r};
-const oldRecoveryRenderV115=renderSessionRecovery;renderSessionRecovery=function(s){if(s.type==='mission'){const m=missionRepository.getById(s.missionId),step=m?.steps.find(x=>x.id===s.missionStepId);if(m&&step){s={...s,title:step.title,task:step.task||step.reason||step.title,ui:{...s.ui,modeLabel:m.subject}}}}return oldRecoveryRenderV115(s)};
-const oldResumeV115=resumeRecoveredSession;resumeRecoveredSession=function(){const s=sessionRecoveryCandidate||activeSession;if(s?.type==='mission'&&missionRepository.getById(s.missionId))missionRepository.setSelected(s.missionId);return oldResumeV115.apply(this,arguments)};
-const oldApplyScreenV115=applyAppScreenImmediately;applyAppScreenImmediately=function(screen){if(screen==='plan'){const m=missionRepository.getSelected();if(m){bindMissionCompatibilityV115(m);legacyRenderPlanV115(activeAIPlan)}}const r=oldApplyScreenV115.apply(this,arguments);if(screen==='home'||screen==='plan')setTimeout(renderMultiMissionUIV115,0);return r};
-document.addEventListener('DOMContentLoaded',()=>{migrateLegacyMissionV115();const st=loadMissionStoreV115(),initial=missionRepository.getById(st.selectedMissionId)||missionRepository.getPrimary();bindMissionCompatibilityV115(initial);if(initial)legacyRenderPlanV115(activeAIPlan);renderMultiMissionUIV115();console.info('[Missions]',{event:'v11_5_ready',active:missionRepository.getActive().length,selected:st.selectedMissionId,primary:st.primaryMissionId})},{once:true});
-</script>
+<script src="./src/features/missions/mission-controller.js"></script>
+<script src="./src/features/missions/mission-renderer.js"></script>
+<script src="./src/features/missions/mission-management.js"></script>
+<script src="./src/features/missions/multi-mission-ui.js"></script>
 
-<script id="sessionRecoveryAndHomeHotfixV1151">
-function renderMultiMissionUIV115(){
-  document.getElementById('secondaryMissionCard')?.remove();
-  const active=missionRepository.getActive();
-  const primary=missionRepository.getPrimary();
-  const selected=missionRepository.getSelected()||primary;
-  const home=primary||active[0]||null;
-  const empty=document.getElementById('emptyMissionCard');
-  const card=document.getElementById('activeMissionCard');
-  if(home){
-    empty?.classList.add('hidden');card?.classList.remove('hidden');
-    const step=home.steps.find(x=>x.id===home.currentStepId);
-    const title=document.querySelector('#activeMissionCard h3');
-    const meta=document.querySelector('#activeMissionCard h3+p');
-    if(title)title.textContent=home.title;
-    if(meta)meta.textContent=home.subject+' · '+(home.deadlineText||'ohne Frist');
-    const next=document.getElementById('homeMissionNextStep');
-    const detail=document.getElementById('homeMissionMeta');
-    if(next)next.textContent=step?.title||'Mission abgeschlossen';
-    if(detail)detail.textContent=step?((step.task||step.reason)+' · ca. '+step.durationMinutes+' Min.'):'Alle Schritte bearbeitet';
-    const pct=home.steps.length?Math.round(home.progress.completedStepIds.length/home.steps.length*100):0;
-    const percent=document.getElementById('homeMissionPercent');
-    const bar=document.getElementById('homeMissionProgressBar');
-    if(percent)percent.textContent=pct+'%';if(bar)bar.style.width=pct+'%';
-    if(card)card.onclick=e=>{if(!e.target.closest('button')||e.target.closest('.active-mission-step'))openMission(home.id)};
-  }else{
-    empty?.classList.remove('hidden');card?.classList.add('hidden');
-  }
-  const plan=document.getElementById('app-screen-plan'),anchor=plan?.children[1];
-  let switcher=document.getElementById('missionSwitcherV115');
-  if(active.length>1&&anchor){
-    if(!switcher){switcher=document.createElement('div');switcher.id='missionSwitcherV115';anchor.insertAdjacentElement('afterend',switcher)}
-    switcher.innerHTML=active.map(m=>'<button class="'+(m.id===selected?.id?'active':'')+'" onclick="openMission(\''+m.id+'\')">'+escapeHTML(m.title)+'</button>').join('');
-  }else switcher?.remove();
-  lucide.createIcons();
-}
-document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{
-  document.getElementById('secondaryMissionCard')?.remove();
-},180),{once:true});
-</script>
+
 
 <style id="multiMissionUXV116Styles">
 /* v11.6 UX only. Session Recovery, Timer and History visuals remain untouched. */
@@ -2546,60 +2187,7 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{
 #app-screen-missions{overflow:hidden!important;padding:18px!important;background:#f8fafc!important}.mission-tabs-v116{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:4px;border-radius:15px;background:#e9edf5}.mission-tab-v116{min-height:36px;border:0;border-radius:11px;background:transparent;color:#64748b;font-size:9px;font-weight:850}.mission-tab-v116.active{background:#fff;color:#4338ca;box-shadow:0 4px 12px rgba(15,23,42,.08)}#missionManagementListV116{overflow-y:auto;min-height:0;scrollbar-width:none;-webkit-overflow-scrolling:touch}#missionManagementListV116::-webkit-scrollbar{display:none}.mission-manage-card-v116{padding:15px;border:1px solid #e2e8f0;border-radius:21px;background:#fff;box-shadow:0 8px 22px rgba(15,23,42,.045)}.mmc-top{display:flex;align-items:flex-start;gap:11px}.mmc-icon{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;color:#4f46e5;background:#eef2ff;flex:0 0 auto}.mmc-copy{min-width:0;flex:1}.mmc-primary{display:block;margin-bottom:4px;color:#4f46e5;font-size:7px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}.mmc-title{font-size:13px;font-weight:900;color:#172033;line-height:1.25;overflow-wrap:anywhere}.mmc-meta{margin-top:4px;color:#94a3b8;font-size:9px}.mmc-menu{width:38px;height:38px;border:0;border-radius:13px;background:#f1f5f9;color:#64748b;display:grid;place-items:center}.mmc-track{height:5px;margin-top:12px;border-radius:999px;background:#eef2f7;overflow:hidden}.mmc-track i{display:block;height:100%;border-radius:inherit;background:#4f46e5}.mmc-foot{display:flex;justify-content:space-between;margin-top:7px;color:#94a3b8;font-size:8px;font-weight:750}.missions-empty-v116{height:100%;min-height:280px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#64748b}.missions-empty-v116 i{width:52px;height:52px;padding:13px;border-radius:18px;background:#eef2ff;color:#4f46e5;margin-bottom:13px}
 #missionSheetV116{position:absolute;inset:0;z-index:160;display:none;align-items:flex-end;padding:16px 16px calc(16px + env(safe-area-inset-bottom));background:rgba(15,23,42,.38);backdrop-filter:blur(11px)}#missionSheetV116.open{display:flex}.mission-sheet-card-v116{width:100%;max-height:77%;overflow-y:auto;padding:18px;border-radius:27px;background:#fff;color:#172033;box-shadow:0 25px 70px rgba(15,23,42,.3)}.mission-sheet-card-v116 h3{margin:0;font-size:18px;font-weight:900}.mission-sheet-card-v116 p{margin:7px 0 15px;color:#64748b;font-size:11px;line-height:1.45}.mission-sheet-action-v116{width:100%;min-height:47px;margin-top:7px;border:1px solid #e2e8f0;border-radius:15px;background:#fff;color:#334155;font-size:11px;font-weight:800}.mission-sheet-action-v116.primary{border-color:#c7d2fe;background:#eef2ff;color:#4338ca}.mission-sheet-action-v116.danger{border-color:#fecdd3;background:#fff1f2;color:#e11d48}.mission-sheet-input-v116{width:100%;padding:13px;border:1px solid #cbd5e1;border-radius:15px;color:#172033;outline:none}.mission-sheet-input-v116:focus{border-color:#818cf8;box-shadow:0 0 0 3px rgba(99,102,241,.1)}
 </style>
-<script id="multiMissionUXV116">
-const MISSION_THEMES_V116=['violet','aqua'];
-let missionManagementFilterV116='active';
-function missionViewModelV116(m){
- const step=m?.steps?.find(x=>x.id===m.currentStepId)||null,total=m?.steps?.length||0,done=m?.progress?.completedStepIds?.length||0;
- return{id:m.id,title:m.title,subject:m.subject||'Allgemein',deadlineText:m.deadlineText||'ohne Frist',status:m.status,currentStepTitle:step?.title||'Mission abgeschlossen',currentStepMinutes:step?.durationMinutes||0,completedSteps:done,totalSteps:total,progressPercent:total?Math.min(100,Math.round(done/total*100)):0,isPrimary:m.id===missionRepository.getPrimaryId(),theme:MISSION_THEMES_V116[Math.abs([...m.id].reduce((a,c)=>a+c.charCodeAt(0),0))%MISSION_THEMES_V116.length]};
-}
-function sortedActiveMissionsV116(){const active=missionRepository.getActive();const primary=missionRepository.getPrimaryId();return active.sort((a,b)=>a.id===primary?-1:b.id===primary?1:a.createdAt-b.createdAt)}
-function renderMissionHeroV116(vm){return '<button class="mission-hero-v116 theme-'+vm.theme+'" type="button" aria-label="Mission '+escapeHTML(vm.title)+' öffnen" onclick="openMission(\''+vm.id+'\')"><span class="mh-kicker"><i></i>'+(vm.isPrimary?'Hauptmission':'Focus Mission')+'</span><span class="mh-title">'+escapeHTML(vm.title)+'</span><span class="mh-meta">'+escapeHTML(vm.subject)+' · '+escapeHTML(vm.deadlineText)+'</span><span class="mh-step"><span class="mh-label">Nächster Schritt</span><span class="mh-step-title">'+escapeHTML(vm.currentStepTitle)+'</span>'+(vm.currentStepMinutes?'<span class="mh-duration">'+vm.currentStepMinutes+' Min.</span>':'')+'</span><span class="mh-progress"><span class="mh-progress-row"><span>Mission-Fortschritt</span><span>'+vm.progressPercent+'%</span></span><span class="mh-track"><i style="width:'+vm.progressPercent+'%"></i></span></span></button>'}
-function renderHomeCarouselV116(){
- const active=sortedActiveMissionsV116(),old=document.getElementById('missionCarouselV116'),card=document.getElementById('activeMissionCard'),empty=document.getElementById('emptyMissionCard');
- if(active.length<2){old?.remove();renderMultiMissionUIV115();return}
- empty?.classList.add('hidden');card?.classList.add('hidden');let host=old;if(!host){host=document.createElement('div');host.id='missionCarouselV116';card.insertAdjacentElement('afterend',host)}host.innerHTML=active.map(m=>renderMissionHeroV116(missionViewModelV116(m))).join('');host.scrollLeft=0;
-}
-function focusMissionListV116(){return sortedActiveMissionsV116().map(m=>{const v=missionViewModelV116(m);return '<button class="focus-mission-v116" onclick="openMissionFromFocusV116(\''+m.id+'\')"><span class="fm-icon"><i data-lucide="target"></i></span><span class="fm-copy"><span class="fm-title">'+escapeHTML(v.title)+'</span><span class="fm-meta">'+escapeHTML(v.currentStepTitle)+' · '+v.currentStepMinutes+' Min.</span></span><i class="w-4 h-4 text-slate-300" data-lucide="chevron-right"></i></button>'}).join('')}
-function renderFocusChoiceV116(){
- const sheet=document.querySelector('#focusChoiceOverlay .focus-choice-sheet');if(!sheet)return;
- const active=missionRepository.getActive(),full=active.length>=2;
- sheet.innerHTML='<div class="w-10 h-1 bg-slate-200 rounded-full mx-auto mb-4"></div><div class="flex items-start justify-between gap-3"><div><div class="text-[9px] font-black uppercase tracking-[.16em] text-indigo-500">Fokus starten</div><h3 class="text-lg font-black tracking-tight text-slate-950 mt-1">Was möchtest du fokussieren?</h3></div><button class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center" onclick="closeFocusChoice()"><i class="w-4 h-4" data-lucide="x"></i></button></div><div class="focus-section-v116"><div class="focus-section-label-v116">Quick Focus</div><button class="focus-mission-v116" onclick="openQuickSetupFromChoice()"><span class="fm-icon"><i data-lucide="timer"></i></span><span class="fm-copy"><span class="fm-title">Kurzen Fokus starten</span><span class="fm-meta">Aufgabe und Dauer selbst festlegen</span></span><i class="w-4 h-4 text-slate-300" data-lucide="chevron-right"></i></button></div><div class="focus-section-v116"><div class="focus-section-label-v116">Deine Focus Missions</div>'+focusMissionListV116()+'<button class="focus-new-v116" onclick="newMissionFromFocusV116()">'+(full?'Zwei aktive Missionen erreicht':'+ Neue Focus Mission')+'</button><button class="focus-manage-v116" onclick="openMissionManagementV116()">Missionen verwalten</button></div>';
- lucide.createIcons();
-}
-function openMissionFromFocusV116(id){closeFocusChoice();setTimeout(()=>openMission(id),180)}
-function newMissionFromFocusV116(){if(missionRepository.getActive().length>=2){closeFocusChoice();setTimeout(()=>{openMissionManagementV116();showMissionLimitV116()},180);return}closeFocusChoice();setTimeout(()=>openGoalIntake(),180)}
-const openFocusChoicePreV116=openFocusChoice;openFocusChoice=function(){if(activeSession||sessionRecoveryCandidate||getRecoverableSessionV1151()){routeExistingSessionV1151();return}renderFocusChoiceV116();return openFocusChoicePreV116.apply(this,arguments)};
-function ensureMissionManagementScreenV116(){
- if(document.getElementById('app-screen-missions'))return;
- const screen=document.createElement('div');screen.id='app-screen-missions';screen.className='app-screen hidden flex flex-col flex-1 min-h-0';screen.innerHTML='<div class="flex items-center justify-between mb-4 shrink-0"><button class="w-10 h-10 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-600" onclick="setAppScreen(\'home\')"><i class="w-4 h-4" data-lucide="arrow-left"></i></button><div class="text-center"><div class="text-[8px] font-black uppercase tracking-[.16em] text-indigo-500">Focus Missions</div><h3 class="text-[19px] font-black text-slate-950 mt-0.5">Deine Missionen</h3></div><button class="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center" onclick="newMissionFromManagerV116()"><i class="w-4 h-4" data-lucide="plus"></i></button></div><div class="mission-tabs-v116 mb-4"><button class="mission-tab-v116 active" data-filter="active" onclick="setMissionFilterV116(\'active\',this)">Aktiv</button><button class="mission-tab-v116" data-filter="completed" onclick="setMissionFilterV116(\'completed\',this)">Abgeschlossen</button><button class="mission-tab-v116" data-filter="archived" onclick="setMissionFilterV116(\'archived\',this)">Archiv</button></div><div id="missionManagementListV116" class="flex-1 space-y-2.5 pb-5"></div>';
- document.getElementById('appBody').appendChild(screen);ensureMissionSheetV116();lucide.createIcons();
-}
-function ensureMissionSheetV116(){if(document.getElementById('missionSheetV116'))return;const sheet=document.createElement('div');sheet.id='missionSheetV116';sheet.onclick=e=>{if(e.target===sheet)closeMissionSheetV116()};sheet.innerHTML='<div class="mission-sheet-card-v116" id="missionSheetCardV116"></div>';document.getElementById('screenWrapper').appendChild(sheet)}
-function openMissionSheetV116(content){ensureMissionSheetV116();document.getElementById('missionSheetCardV116').innerHTML=content;document.getElementById('missionSheetV116').classList.add('open');lucide.createIcons()}
-function closeMissionSheetV116(){document.getElementById('missionSheetV116')?.classList.remove('open')}
-function setMissionFilterV116(filter,button){missionManagementFilterV116=filter;document.querySelectorAll('.mission-tab-v116').forEach(x=>x.classList.toggle('active',x===button));renderMissionManagementV116()}
-function renderMissionManagementV116(){
- ensureMissionManagementScreenV116();const list=document.getElementById('missionManagementListV116');const all=missionRepository.getAll(),items=all.filter(x=>x.status===missionManagementFilterV116);list.replaceChildren();
- if(!items.length){const e=document.createElement('div');e.className='missions-empty-v116';e.innerHTML='<i data-lucide="folder-open"></i><div class="text-[14px] font-black text-slate-900">Keine Missionen</div><div class="text-[10px] leading-relaxed mt-2">In diesem Bereich gibt es noch keine Mission.</div>';list.append(e);lucide.createIcons();return}
- items.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).forEach(m=>{const v=missionViewModelV116(m),card=document.createElement('article');card.className='mission-manage-card-v116';card.innerHTML='<div class="mmc-top"><span class="mmc-icon"><i data-lucide="target"></i></span><span class="mmc-copy">'+(v.isPrimary?'<span class="mmc-primary">Hauptmission</span>':'')+'<span class="mmc-title">'+escapeHTML(v.title)+'</span><span class="mmc-meta">'+escapeHTML(v.subject)+' · '+v.completedSteps+' von '+v.totalSteps+' Schritten</span></span><button class="mmc-menu" aria-label="Mission verwalten"><i data-lucide="ellipsis"></i></button></div><div class="mmc-track"><i style="width:'+v.progressPercent+'%"></i></div><div class="mmc-foot"><span>'+v.currentStepTitle+'</span><span>'+v.progressPercent+'%</span></div>';card.querySelector('.mmc-copy').onclick=()=>openMission(m.id);card.querySelector('.mmc-menu').onclick=()=>openMissionActionsV116(m.id);list.append(card)});lucide.createIcons();
-}
-function openMissionManagementV116(){closeFocusChoice();ensureMissionManagementScreenV116();renderMissionManagementV116();setAppScreen('missions',{immediate:true})}
-function newMissionFromManagerV116(){if(missionRepository.getActive().length>=2){showMissionLimitV116();return}setAppScreen('goal')}
-function showMissionLimitV116(){openMissionSheetV116('<h3>Zwei aktive Missionen</h3><p>Archiviere oder schließe zuerst eine aktive Mission ab, bevor du eine neue erstellst.</p><button class="mission-sheet-action-v116 primary" onclick="closeMissionSheetV116()">Verstanden</button>')}
-function openMissionActionsV116(id){const m=missionRepository.getById(id);if(!m)return;let actions='<h3>'+escapeHTML(m.title)+'</h3><p>Wähle eine Aktion für diese Mission.</p><button class="mission-sheet-action-v116 primary" onclick="closeMissionSheetV116();openMission(\''+id+'\')">Öffnen</button>';if(m.status==='active'&&!missionViewModelV116(m).isPrimary)actions+='<button class="mission-sheet-action-v116" onclick="makePrimaryV116(\''+id+'\')">Als Hauptmission festlegen</button>';actions+='<button class="mission-sheet-action-v116" onclick="openRenameMissionV116(\''+id+'\')">Umbenennen</button>';if(m.status!=='archived')actions+='<button class="mission-sheet-action-v116" onclick="confirmArchiveV116(\''+id+'\')">Archivieren</button>';else actions+='<button class="mission-sheet-action-v116" onclick="restoreMissionActionV116(\''+id+'\')">Wiederherstellen</button>';actions+='<button class="mission-sheet-action-v116 danger" onclick="confirmDeleteV116(\''+id+'\')">Löschen</button><button class="mission-sheet-action-v116" onclick="closeMissionSheetV116()">Abbrechen</button>';openMissionSheetV116(actions)}
-function makePrimaryV116(id){missionRepository.setPrimary(id);closeMissionSheetV116();refreshMissionUIV116()}
-function openRenameMissionV116(id){const m=missionRepository.getById(id);openMissionSheetV116('<h3>Mission umbenennen</h3><p>Der Plan und die bisherige Historie bleiben unverändert.</p><input class="mission-sheet-input-v116" id="renameMissionInputV116" maxlength="80" value="'+escapeHTML(m?.title||'')+'"><button class="mission-sheet-action-v116 primary" onclick="saveRenameMissionV116(\''+id+'\')">Speichern</button><button class="mission-sheet-action-v116" onclick="closeMissionSheetV116()">Abbrechen</button>')}
-function saveRenameMissionV116(id){const r=renameMissionV116(id,document.getElementById('renameMissionInputV116')?.value);if(!r.ok)return;closeMissionSheetV116();refreshMissionUIV116()}
-function confirmArchiveV116(id){if(missionHasActiveSessionV116(id)){openMissionSheetV116('<h3>Mission wird gerade verwendet</h3><p>Beende oder verwirf zuerst die laufende Fokus-Sitzung.</p><button class="mission-sheet-action-v116 primary" onclick="closeMissionSheetV116();routeExistingSessionV1151()">Zur Sitzung</button>');return}openMissionSheetV116('<h3>Mission archivieren?</h3><p>Der Fortschritt bleibt gespeichert und kann später wiederhergestellt werden.</p><button class="mission-sheet-action-v116 danger" onclick="archiveMissionActionV116(\''+id+'\')">Archivieren</button><button class="mission-sheet-action-v116" onclick="closeMissionSheetV116()">Abbrechen</button>')}
-function archiveMissionActionV116(id){const r=missionRepository.archive(id);if(!r.ok)return;closeMissionSheetV116();refreshMissionUIV116()}
-function restoreMissionActionV116(id){const r=restoreMissionV116(id);if(!r.ok){showMissionLimitV116();return}closeMissionSheetV116();refreshMissionUIV116()}
-function confirmDeleteV116(id){if(missionHasActiveSessionV116(id)){confirmArchiveV116(id);return}openMissionSheetV116('<h3>Mission endgültig löschen?</h3><p>Der Missionsplan wird entfernt. Bereits gespeicherte Fokus-Sitzungen bleiben im Verlauf.</p><button class="mission-sheet-action-v116 danger" onclick="deleteMissionActionV116(\''+id+'\')">Endgültig löschen</button><button class="mission-sheet-action-v116" onclick="closeMissionSheetV116()">Abbrechen</button>')}
-function deleteMissionActionV116(id){const r=missionRepository.delete(id);if(!r.ok)return;closeMissionSheetV116();refreshMissionUIV116()}
-function refreshMissionUIV116(){renderMultiMissionUIV115();renderHomeCarouselV116();renderFocusChoiceV116();if(document.getElementById('app-screen-missions'))renderMissionManagementV116();const selected=missionRepository.getSelected();if(selected){bindMissionCompatibilityV115(selected);if(!document.getElementById('app-screen-plan').classList.contains('hidden'))renderAIPlan(activeAIPlan)}}
-const applyScreenBeforeV116=applyAppScreenImmediately;applyAppScreenImmediately=function(screen){const r=applyScreenBeforeV116.apply(this,arguments);if(screen==='home')setTimeout(renderHomeCarouselV116,0);if(screen==='missions')setTimeout(renderMissionManagementV116,0);return r};
-document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{ensureMissionManagementScreenV116();refreshMissionUIV116();console.info('[MissionsUX]',{event:'v11_6_ready',active:missionRepository.getActive().length})},260),{once:true});
-</script>
+
 
 <style id="missionCardLayoutFixV1161">
 /* v11.6.1: robust mission-card geometry. Content participates in layout instead of
@@ -2663,41 +2251,7 @@ body.mission-carousel-active #emptyMissionCard{display:none!important}
   .mission-hero-v116 .mh-progress{padding-top:7px!important;flex-basis:31px!important}
 }
 </style>
-<script id="missionCardPaintFixV1161">
-(function(){
-  function syncMissionCarouselPaintV1161(){
-    const active=(typeof missionRepository!=='undefined'&&missionRepository.getActive)?missionRepository.getActive():[];
-    const multi=active.length>1;
-    document.body.classList.toggle('mission-carousel-active',multi);
-    if(multi){
-      const card=document.getElementById('activeMissionCard');
-      const empty=document.getElementById('emptyMissionCard');
-      if(card)card.classList.add('hidden');
-      if(empty)empty.classList.add('hidden');
-    }
-  }
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(syncMissionCarouselPaintV1161,280),{once:true});
-  const oldRender=window.renderHomeCarouselV116;
-  if(typeof oldRender==='function'){
-    window.renderHomeCarouselV116=function(){
-      syncMissionCarouselPaintV1161();
-      const result=oldRender.apply(this,arguments);
-      syncMissionCarouselPaintV1161();
-      return result;
-    };
-  }
-  const oldOpen=window.openMission;
-  if(typeof oldOpen==='function'){
-    window.openMission=function(id){
-      syncMissionCarouselPaintV1161();
-      /* Do not animate a stale Home frame while the plan is being prepared. */
-      const result=oldOpen.call(this,id);
-      syncMissionCarouselPaintV1161();
-      return result;
-    };
-  }
-})();
-</script>
+
 
 <style id="adaptiveMissionCardsV117Styles">
 /* v11.7: adaptive mission-card typography. The progress block keeps its current
@@ -2751,41 +2305,7 @@ body.mission-carousel-active #emptyMissionCard{display:none!important}
   .mission-hero-v116 .mh-progress{padding-top:7px!important;flex-basis:31px!important}
 }
 </style>
-<script id="adaptiveMissionCardsV117">
-(function(){
-  const SIZES=[30,28,26,24,22];
-  let queued=false;
-  function lineCount(el){
-    const cs=getComputedStyle(el), lh=parseFloat(cs.lineHeight)||parseFloat(cs.fontSize)*1.04;
-    return Math.max(1,Math.round(el.getBoundingClientRect().height/lh));
-  }
-  function fitTitle(el){
-    if(!el||!el.isConnected)return;
-    const text=(el.textContent||'').trim();
-    el.classList.remove('mh-title-short','mh-title-medium','mh-title-long');
-    const mode=text.length<=30?'short':text.length<=62?'medium':'long';
-    el.classList.add('mh-title-'+mode);
-    el.style.setProperty('--mh-title-lines','3');
-    let chosen=22;
-    for(const size of SIZES){
-      el.style.setProperty('--mh-title-size',size+'px');
-      const cs=getComputedStyle(el), lh=parseFloat(cs.lineHeight)||size*1.04;
-      if(el.scrollHeight<=lh*3+2){chosen=size;break;}
-    }
-    el.style.setProperty('--mh-title-size',chosen+'px');
-    el.dataset.titleLines=String(lineCount(el));
-  }
-  function fitAll(){queued=false;document.querySelectorAll('.mission-hero-v116 .mh-title').forEach(fitTitle)}
-  function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>requestAnimationFrame(fitAll))}
-  const observer=new MutationObserver(schedule);
-  document.addEventListener('DOMContentLoaded',()=>{
-    observer.observe(document.body,{subtree:true,childList:true,characterData:true});
-    if(document.fonts?.ready)document.fonts.ready.then(schedule);else schedule();
-  },{once:true});
-  addEventListener('resize',schedule,{passive:true});
-  window.fitMissionCardTitlesV117=fitAll;
-})();
-</script>
+
 
 
 <style id="missionAuraBlendV1181Styles">
@@ -2804,18 +2324,7 @@ body.mission-aura-active #activeMissionCard,body.mission-aura-active #emptyMissi
 @media(max-width:380px){#missionCarouselV1181{gap:12px;padding-inline:12px;scroll-padding-inline:12px}#missionCarouselV1181>.mission-hero-v116,#missionCarouselV1181>.mission-create-v1181{flex-basis:calc(100% - 36px)!important}.mission-create-v1181{height:286px;min-height:286px}.mission-create-v1181 .mc-kicker{margin-top:45px}}
 @media(prefers-reduced-motion:reduce){#missionAuraShellV1181::before,#missionAuraShellV1181::after{transition:none!important}}
 </style>
-<script id="missionAuraBlendV1181">
-(function(){
- const colors={violet:[99,102,241],aqua:[20,184,166],create:[124,58,237]};let raf=0;
- function createSlide(){return '<button class="mission-create-v1181" data-aura="create" type="button" onclick="openGoalIntake()"><span class="mc-icon"><i data-lucide="plus"></i></span><span class="mc-kicker">Neue Focus Mission</span><span class="mc-title">Weitere Mission erstellen</span><span class="mc-copy">Plane eine weitere wichtige Aufgabe und verwandle sie in klare Fokus-Schritte.</span></button>'}
- function mix(a,b,t){return a.map((v,i)=>Math.round(v+(b[i]-v)*t))}
- function paint(host){raf=0;const shell=host?.parentElement;if(!host||!shell)return;const slides=[...host.children];if(!slides.length)return;const center=host.scrollLeft+host.clientWidth/2;const ranked=slides.map(el=>({el,d:Math.abs(el.offsetLeft+el.offsetWidth/2-center)})).sort((a,b)=>a.d-b.d);const a=ranked[0],b=ranked[1]||a,span=Math.max(1,Math.abs((b.el.offsetLeft+b.el.offsetWidth/2)-(a.el.offsetLeft+a.el.offsetWidth/2))),t=Math.min(1,a.d/span),rgb=mix(colors[a.el.dataset.aura]||colors.violet,colors[b.el.dataset.aura]||colors.violet,t).join(',');shell.style.setProperty('--aura',rgb);shell.style.setProperty('--aura-shift',Math.max(-20,Math.min(20,(center-(a.el.offsetLeft+a.el.offsetWidth/2))*.13))+'px');document.querySelector('#app-screen-home .home-scroll-content')?.style.setProperty('--home-aura',rgb)}
- window.renderHomeCarouselV116=function(){const active=sortedActiveMissionsV116();document.getElementById('missionAuraShellV1181')?.remove();const card=document.getElementById('activeMissionCard'),empty=document.getElementById('emptyMissionCard');if(!active.length){document.body.classList.remove('mission-aura-active');renderMultiMissionUIV115();return}document.body.classList.add('mission-aura-active');card?.classList.add('hidden');empty?.classList.add('hidden');const shell=document.createElement('div');shell.id='missionAuraShellV1181';const host=document.createElement('div');host.id='missionCarouselV1181';host.innerHTML=active.map(m=>{const vm=missionViewModelV116(m);return renderMissionHeroV116(vm).replace('class="mission-hero-v116','data-aura="'+vm.theme+'" class="mission-hero-v116')}).join('')+(active.length===1?createSlide():'');shell.append(host);card.insertAdjacentElement('afterend',shell);host.addEventListener('scroll',()=>{if(!raf)raf=requestAnimationFrame(()=>paint(host))},{passive:true});requestAnimationFrame(()=>paint(host));lucide.createIcons();window.fitMissionCardTitlesV117?.()};
- const oldApply=window.applyAppScreenImmediately;window.applyAppScreenImmediately=function(screen){const r=oldApply.apply(this,arguments);if(screen==='home')setTimeout(renderHomeCarouselV116,0);return r};
- const oldRefresh=window.refreshMissionUIV116;if(typeof oldRefresh==='function')window.refreshMissionUIV116=function(){const r=oldRefresh.apply(this,arguments);renderHomeCarouselV116();return r};
- document.addEventListener('DOMContentLoaded',()=>setTimeout(renderHomeCarouselV116,360),{once:true});
-})();
-</script>
+
 
 
 <!-- V12.1 DEPENDENCY MAP
@@ -3401,36 +2910,7 @@ END V13 SESSION PERSISTENCE MIGRATION MANIFEST -->
 }
 END V13.1 RECOVERY REPOSITORY MIGRATION MANIFEST -->
 
-<script id="criticalFlowFixV1311">
-/* v13.1.1 Critical Flow Fix */
-(function installCriticalFlowFixV1311(global){
-  'use strict';
-  const App=global.FocusModeApp;
-  const storage=App?.services?.storage;
-  const sessions=App?.repositories?.sessions;
-  const missions=App?.repositories?.missions;
-  if(!storage||!sessions||!missions)throw new Error('v13.1 repositories are required.');
 
-  /* Reinstall the final Plan übernehmen handler after repairing the store loader. */
-  global.confirmAIPlan=function confirmAIPlanV1311(){
-    if(!pendingAIPlan){showMissionError?.('Der AI-Plan ist nicht mehr verfügbar. Bitte starte die Analyse erneut.');return false}
-    const result=missions.create({title:pendingAIPlan.goal.title,subject:pendingAIPlan.goal.subject,type:pendingAIPlan.goal.type,deadlineText:pendingAIPlan.goal.deadlineText,estimate:pendingAIPlan.estimate,sourceAnalysis:pendingAIPlan.sourceAnalysis,steps:pendingAIPlan.sessions});
-    if(!result?.ok){
-      showMissionError?.(result?.error==='active_mission_limit_reached'?'Du kannst momentan bis zu zwei aktive Focus Missions haben. Schließe eine Mission ab oder archiviere sie.':'Die Mission konnte nicht gespeichert werden. Bitte versuche es erneut.');
-      return false;
-    }
-    missions.setSelected(result.mission.id);
-    if(!missions.getPrimaryId())missions.setPrimary(result.mission.id);
-    bindMissionCompatibilityV115(result.mission);
-    renderAIPlan(activeAIPlan);
-    revealCreatedMission();
-    renderMultiMissionUIV115();
-    setAppScreen('plan',{immediate:true});
-    console.info('[CriticalFlowFix]',{event:'mission_plan_accepted',missionId:result.mission.id});
-    return true;
-  };
-})(window);
-</script>
 <!-- V13.1.1 CRITICAL FLOW FIX MANIFEST
 {"version":"v13.1.1 Critical Flow Fix","sourceFile":"v13.1 Recovery Repository Migration","fixed":["Plan übernehmen","Recovery resume to timer"],"keysRenamed":0,"formatsChanged":0,"uiChanged":false}
 END V13.1.1 CRITICAL FLOW FIX MANIFEST -->
@@ -3452,8 +2932,6 @@ END V13.1.4 AUTHORITATIVE RECOVERY ROUTER MANIFEST -->
 END V13.1.5 FINALIZED SESSION GUARD MANIFEST -->
 <script id="runtimeOwnershipV132">
 (function(g){'use strict';const A=g.FocusModeApp;if(!A?.core?.registerModule)throw new Error('Architecture Shell required');if(A.core.hasModule('core.runtimeOwnership'))return;const call=n=>function(){const f=g[n];if(typeof f!=='function')throw new Error('Runtime entry unavailable: '+n);return f.apply(this,arguments)};const r=Object.freeze({navigation:Object.freeze({go:call('setAppScreen'),apply:call('applyAppScreenImmediately')}),sessions:Object.freeze({start:call('startSession'),checkpoint:call('checkpointActiveSession'),finish:call('endSessionByUser'),cancel:call('stopFocusSession')}),recovery:Object.freeze({read:call('readRecoveryCandidate'),resume:call('resumeRecoveredSession'),discard:call('discardRecoveredSession'),review:call('finishRecoveredSession')}),missions:Object.freeze({confirm:call('confirmAIPlan'),open:call('openMission'),startStep:call('prepareLearningSession'),adapt:call('showPlanUpdate'),finish:call('finishLearningFlow'),renderPlan:call('renderAIPlan'),renderHome:call('renderHomeCarouselV116')})});A.core.runtime=A.core.registerModule('core.runtimeOwnership',r,{version:'13.2.3',status:'ownership-contract'});A.compatibility.publicActionsInstalled=true;})(window);
-</script><script id="missionFlowControllerV1322">
-(function(g){'use strict';const A=g.FocusModeApp,M=A?.repositories?.missions,S=A?.repositories?.sessions;if(!A?.core?.registerModule||!M||!S)throw new Error('Mission and Session repositories required');if(A.core.hasModule('features.missionFlow'))return;const d=Object.freeze({confirm:g.confirmAIPlan,open:g.openMission,startStep:g.prepareLearningSession,adapt:g.showPlanUpdate,finish:g.finishLearningFlow,renderPlan:g.renderAIPlan,renderHome:g.renderHomeCarouselV116,currentStep:g.getCurrentMissionSession,missionId:g.ensureActiveMissionId,createSession:g.createMissionSession});const need=Object.keys(d),missing=need.filter(k=>typeof d[k]!=='function');if(missing.length)throw new Error('Mission Flow delegates unavailable: '+missing.join(','));const wrap=fn=>function(){return fn.apply(this,arguments)};const confirm=wrap(d.confirm),open=wrap(d.open),startStep=wrap(d.startStep),adapt=async function(){return await d.adapt.apply(this,arguments)},finish=wrap(d.finish),renderPlan=wrap(d.renderPlan),renderHome=wrap(d.renderHome),currentStep=wrap(d.currentStep),missionId=wrap(d.missionId),createSession=wrap(d.createSession);const C=Object.freeze({version:'13.2.2',selected:()=>M.getSelected?.()||M.getPrimary?.()||null,confirm,open,startStep,adapt,finish,currentStep,missionId,createSession,render:Object.freeze({plan:renderPlan,home:renderHome})});A.features.missionFlow=A.core.registerModule('features.missionFlow',C,{version:'13.2.2',status:'authoritative-controller'});Object.assign(g,{confirmAIPlan:confirm,openMission:open,prepareLearningSession:startStep,showPlanUpdate:adapt,finishLearningFlow:finish,renderAIPlan:renderPlan,renderHomeCarouselV116:renderHome,getCurrentMissionSession:currentStep,ensureActiveMissionId:missionId,createMissionSession:createSession});A.compatibility.missionFlowConsolidation=Object.freeze({version:'13.2.2',storageKeysRenamed:0,formatsChanged:0,uiChanged:false});})(window);
 </script><script id="legacyCleanupGateV1323">
 /** Virtual module: src/core/legacy-cleanup-gate.js */
 (function(g){
@@ -3624,24 +3102,7 @@ A.compatibility.optionalAdaptation=Object.freeze({skipWithoutFetch:true,idempote
 document.addEventListener('DOMContentLoaded',()=>{g.lucide?.createIcons();emit('optional_adaptation_ready',null)},{once:true});
 })(window);
 </script>
-<script id="missionDepthV1338Logic">
-(function(){
- const typeNames=['Prüfung','Aufgabe','Projekt','Eigene Mission'];
- function syncTypeUI(btn){
-  document.querySelectorAll('#missionTypeCarousel .mg-type-card').forEach((x,i)=>x.classList.toggle('active',x===btn));
-  const ix=Number(btn?.dataset.index||0);document.querySelectorAll('.mg-dots i').forEach((d,i)=>d.classList.toggle('active',i===ix));
-  const carousel=document.getElementById('missionTypeCarousel');
-  if(carousel&&btn){
-   const target=Math.max(0,btn.offsetLeft-(carousel.clientWidth-btn.offsetWidth)/2);
-   carousel.scrollTo({left:target,behavior:'smooth'});
-  }
- }
- const oldType=window.selectMissionType;window.selectMissionType=function(btn){oldType.call(this,btn);syncTypeUI(btn)};
- const oldConfidence=window.selectConfidence;window.selectConfidence=function(btn){oldConfidence.call(this,btn);const fill=document.querySelector('.mg-confidence-track i'),level=btn?.dataset?.confidence||'uncertain';if(fill){fill.style.removeProperty('width');fill.dataset.level=level}lucide.createIcons()};
- document.addEventListener('DOMContentLoaded',()=>{const carousel=document.getElementById('missionTypeCarousel');if(carousel){let timer;carousel.addEventListener('scroll',()=>{clearTimeout(timer);timer=setTimeout(()=>{const center=carousel.scrollLeft+carousel.clientWidth/2,cards=[...carousel.children],best=cards.reduce((a,b)=>Math.abs(b.offsetLeft+b.offsetWidth/2-center)<Math.abs(a.offsetLeft+a.offsetWidth/2-center)?b:a);if(best&&!best.classList.contains('active'))window.selectMissionType(best)},110)},{passive:true})}lucide.createIcons()});
- document.title='v14 Recovery Merge';
-})();
-</script>
+
 <style id="cleanQuickFocusV13313">
 /* v13.3.13: clean card surfaces and let Quick Focus paint through the full app viewport. */
 #app-screen-quicksetup{
@@ -3718,61 +3179,5 @@ html.quick-focus-surface body::after{
 #aiPlanExplanation strong{display:block!important;margin-bottom:7px!important;font-size:16px!important;line-height:1.25!important}
 @media (max-width:370px){#aiPlanSteps .step-time{top:11px!important;right:11px!important}#aiPlanSteps .step-title{padding-right:70px!important}#aiPlanSteps .mission-step-active .step-time{top:15px!important;right:15px!important}#aiPlanSteps .mission-step-active .step-title{padding-right:86px!important}.mission-explanation-card-v1332{min-height:144px!important;padding:17px!important;gap:11px!important}#aiPlanExplanation{font-size:14px!important;line-height:1.5!important}}
 </style>
-<script id="planDurationProtectionRestoreRuntimeV13315">
-(function restorePlanDurationAndProtectionOrder(global){
-  'use strict';
-  if(global.__planDurationProtectionRestoreV13315)return;
-  global.__planDurationProtectionRestoreV13315=true;
 
-  function arrangePlanSupportBlocks(){
-    const explanationText=document.getElementById('aiPlanExplanation');
-    const explanationCard=explanationText?.parentElement;
-    const protectionCard=document.getElementById('missionProtectionCard');
-    if(!explanationCard||!protectionCard||explanationCard===protectionCard)return false;
-    if(explanationCard.parentElement!==protectionCard.parentElement)return false;
-    explanationCard.classList.add('mission-explanation-card-v1332');
-    if(protectionCard.nextElementSibling!==explanationCard){
-      protectionCard.parentElement.insertBefore(explanationCard,protectionCard.nextElementSibling);
-    }
-    return true;
-  }
-
-  function refreshPlanSupportLayout(){
-    arrangePlanSupportBlocks();
-    requestAnimationFrame(arrangePlanSupportBlocks);
-  }
-
-  function wrapAfter(name, callback){
-    const original=global[name];
-    if(typeof original!=='function'||original.__planRestoreWrapped)return false;
-    function wrapped(){
-      const result=original.apply(this,arguments);
-      callback.apply(this,arguments);
-      return result;
-    }
-    wrapped.__planRestoreWrapped=true;
-    wrapped.__planRestoreOriginal=original;
-    global[name]=wrapped;
-    return true;
-  }
-
-  wrapAfter('applyAppScreenImmediately',function(screen){
-    if(screen==='plan')refreshPlanSupportLayout();
-  });
-  wrapAfter('renderAIPlan',refreshPlanSupportLayout);
-  wrapAfter('renderMissionPlan',refreshPlanSupportLayout);
-
-  document.addEventListener('DOMContentLoaded',refreshPlanSupportLayout,{once:true});
-  if(document.readyState!=='loading')refreshPlanSupportLayout();
-
-  const App=global.FocusModeApp;
-  if(App?.core?.registerModule&&!App.core.hasModule('features.planDurationProtectionRestore')){
-    App.features.planDurationProtectionRestore=App.core.registerModule(
-      'features.planDurationProtectionRestore',
-      Object.freeze({version:'13.3.15',arrangePlanSupportBlocks,refreshPlanSupportLayout}),
-      {virtualPath:'src/features/ui/plan-duration-protection-restore.js',version:'13.3.15',status:'compatibility-restore'}
-    );
-  }
-})(window);
-</script>
 </body></html>
