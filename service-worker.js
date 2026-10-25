@@ -1,4 +1,4 @@
-const CACHE = "focus-mode-plus-v15-modular-baseline-icons-v1";
+const CACHE = "focus-mode-plus-v16-data-stability-v1";
 const CORE = [
   "./",
   "./index.html",
@@ -12,8 +12,12 @@ const CORE = [
   "./styles/recovery.css",
   "./styles/quick-focus.css",
   "./styles/missions.css",
+  "./styles/data-management.css",
   "./src/core/architecture-shell.js",
   "./src/services/storage-service.js",
+  "./src/data/schema-versions.js",
+  "./src/data/data-validator.js",
+  "./src/data/migration-runner.js",
   "./src/core/navigation.js",
   "./src/features/quick-focus/quick-focus.js",
   "./src/services/ai-service.js",
@@ -33,7 +37,11 @@ const CORE = [
   "./src/features/focus-session/session-controller.js",
   "./src/features/missions/mission-controller.js",
   "./src/core/bootstrap.js",
-  "./src/features/optional-adaptation/optional-adaptation.js"
+  "./src/features/optional-adaptation/optional-adaptation.js",
+  "./src/data/data-export.js",
+  "./src/data/data-import.js",
+  "./src/data/data-reset.js",
+  "./src/features/data-management/data-management-controller.js"
 ];
 
 self.addEventListener("install", e =>

@@ -213,8 +213,8 @@
     storageService,
     {
       virtualPath: 'src/services/storage-service.js',
-      version: '12.8',
-      status: 'design-contract',
+      version: '16.0',
+      status: 'canonical-storage-boundary',
       legacyRuntimeAuthoritative: true
     }
   );
@@ -223,12 +223,13 @@
     serviceAvailable: true,
     legacyCallsMigrated: 16,
     legacyCallsRemaining: 30,
-    storageKeysRenamed: 0
+    storageKeysRenamed: 0,
+    v16DataStabilityReady: true
   });
 
   console.info('[StorageService]', {
     event: 'boundary_ready',
-    version: '12.3',
+    version: '16.0',
     available: storageService.isAvailable(),
     legacyCallsMigrated: 0
   });
