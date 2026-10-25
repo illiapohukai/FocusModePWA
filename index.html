@@ -2433,56 +2433,6 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{refreshHomeStat
 
 
 <script src="./src/features/history/session-history.js"></script>
-<script id="sessionCoreV11">
-const SESSION_CORE_STORAGE_KEY='focusmode-active-session-v11';
-const SESSION_CORE_LAST_KEY='focusmode-last-session-v11';
-const SESSION_TYPES=Object.freeze(['quick','mission']);
-const SESSION_STATUSES=Object.freeze(['created','running','completed','cancelled','interrupted']);
-let activeSession=null;window.activeSession=null;
-function createSessionId(){return globalThis.crypto?.randomUUID?crypto.randomUUID():'session_'+Date.now()+'_'+Math.random().toString(36).slice(2,10)}
-function cloneSession(v){return typeof structuredClone==='function'?structuredClone(v):JSON.parse(JSON.stringify(v))}
-function setActiveSession(session){activeSession=session?cloneSession(session):null;window.activeSession=activeSession;if(activeSession)localStorage.setItem(SESSION_CORE_STORAGE_KEY,JSON.stringify(activeSession));else localStorage.removeItem(SESSION_CORE_STORAGE_KEY);return activeSession}
-function getActiveSession(){return activeSession?cloneSession(activeSession):null}
-function updateActiveSession(patch){return activeSession?setActiveSession({...activeSession,...patch}):null}
-function validateSession(s){const e=[];if(!s||typeof s!=='object')return{valid:false,errors:['session_missing']};if(!s.id)e.push('id_missing');if(!SESSION_TYPES.includes(s.type))e.push('type_invalid');if(s.status!=='created')e.push('status_must_be_created');if(!String(s.title||'').trim())e.push('title_missing');if(!String(s.task||'').trim())e.push('task_missing');if(!Number.isFinite(Number(s.plannedMinutes))||Number(s.plannedMinutes)<=0)e.push('duration_invalid');if(Number(s.actualMinutes)!==0)e.push('actual_minutes_must_be_zero');if(s.startedAt!==null)e.push('started_at_must_be_null');if(s.finishedAt!==null)e.push('finished_at_must_be_null');if(s.type==='quick'&&(s.missionId!==null||s.missionStepId!==null))e.push('quick_mission_link_forbidden');if(s.type==='mission'&&(!s.missionId||!s.missionStepId))e.push('mission_link_required');return{valid:!e.length,errors:e}}
-function makeSession(x){return{id:createSessionId(),type:x.type,status:'created',title:String(x.title||'').trim(),task:String(x.task||'').trim(),plannedMinutes:Math.round(Number(x.plannedMinutes)||0),actualMinutes:0,startedAt:null,finishedAt:null,missionId:x.missionId??null,missionStepId:x.missionStepId??null,result:{reason:null,outcome:null,feedback:null},ui:{modeLabel:String(x.ui?.modeLabel||''),progressCurrent:Math.max(1,Number(x.ui?.progressCurrent)||1),progressTotal:Math.max(1,Number(x.ui?.progressTotal)||1)}}}
-function createQuickSession(input={}){const task=String(input.task||'').trim()||'Konzentriert arbeiten',minutes=Math.max(1,Math.round(Number(input.plannedMinutes)||25));return makeSession({type:'quick',title:String(input.title||'').trim()||task,task,plannedMinutes:minutes,missionId:null,missionStepId:null,ui:{modeLabel:'Kurzer Fokus',progressCurrent:1,progressTotal:1}})}
-function ensureActiveMissionId(){if(!activeAIPlan)return null;if(!activeAIPlan.id){activeAIPlan.id='mission_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);saveMissionState()}return activeAIPlan.id}
-function createMissionSession(missionId,stepId){if(!activeAIPlan)throw new Error('Diese Mission konnte nicht gefunden werden.');const realId=ensureActiveMissionId();if(missionId!==realId)throw new Error('Diese Mission konnte nicht gefunden werden.');const index=activeAIPlan.sessions.findIndex(s=>s.id===stepId);if(index<0)throw new Error('Dieser Missionsschritt ist nicht mehr verfügbar.');if(index!==missionProgress.currentSessionIndex)throw new Error('Dieser Missionsschritt kann gerade nicht gestartet werden.');const s=activeAIPlan.sessions[index];return makeSession({type:'mission',title:s.title,task:s.task||s.reason||s.title,plannedMinutes:s.durationMinutes,missionId:realId,missionStepId:s.id,ui:{modeLabel:activeAIPlan.goal?.subject||'Focus Mission',progressCurrent:index+1,progressTotal:activeAIPlan.sessions.length}})}
-function currentUcSession(){return window.activeSession}
-function renderSession(s){document.getElementById('activeTaskLabel').textContent=s.title;document.getElementById('timerTaskValue').textContent=s.task;document.getElementById('currentFocusModeLabel').textContent=s.ui.modeLabel;syncUcData()}
-function clearActiveSession(){if(timerInterval)clearInterval(timerInterval);timerInterval=null;hideUcTask();setActiveSession(null);currentSessionStartedAt=null;currentSessionPlannedMinutes=0;currentSessionActualMinutes=0;document.getElementById('islandIndicator')?.classList.add('hidden');console.info('[SessionCore]',{event:'session_cleared'})}
-function startSession(session){const check=validateSession(session);if(!check.valid){console.error('[SessionCore]',{event:'session_validation_failed',errors:check.errors});alert('Die Fokus-Sitzung konnte nicht gestartet werden.');return false}if(activeSession?.status==='running'){alert('Beende zuerst deine aktuelle Fokus-Sitzung.');return false}const startedAt=Date.now(),endsAt=startedAt+session.plannedMinutes*60000,running={...cloneSession(session),status:'running',startedAt,endsAt};setActiveSession(running);currentSessionStartedAt=running.startedAt;currentSessionPlannedMinutes=running.plannedMinutes;currentSessionActualMinutes=0;timerDuration=running.plannedMinutes*60;originalDuration=timerDuration;ucEndsAt=endsAt;renderSession(running);setAppScreen('timer');document.getElementById('islandIndicator')?.classList.remove('hidden');updateTimerUI();if(timerInterval)clearInterval(timerInterval);timerInterval=setInterval(()=>{timerDuration=Math.max(0,Math.ceil((ucEndsAt-Date.now())/1000));updateTimerUI();if(timerDuration<=0)finishSession({status:'completed',reason:'timer_finished'})},1000);console.info('[SessionCore]',{event:'session_started',sessionId:running.id,type:running.type});return true}
-function actualSessionMinutes(s){const elapsed=s.startedAt?Math.max(0,Math.floor((Date.now()-s.startedAt)/60000)):0,planned=Math.max(1,Math.round(Number(s.plannedMinutes)||1));return Math.min(planned,elapsed)}
-function saveSessionSnapshot(s){localStorage.setItem(SESSION_CORE_LAST_KEY,JSON.stringify(s))}
-function handleQuickSessionResult(s){saveSessionSnapshot(s);sessionRepository.save(s);setAppScreen('home')}
-function handleMissionSessionResult(s){saveSessionSnapshot(s);sessionRepository.save(s);if(s.status!=='completed'){setAppScreen('home');return}const current=getCurrentMissionSession();if(!activeAIPlan||s.missionId!==ensureActiveMissionId()||!current||current.id!==s.missionStepId){console.error('[SessionCore]',{event:'mission_link_invalid',sessionId:s.id});const interrupted={...s,status:'interrupted',result:{...(s.result||{}),reason:'mission_link_invalid'}};saveSessionSnapshot(interrupted);sessionRepository.save(interrupted);setAppScreen('home');return}currentSessionActualMinutes=s.actualMinutes;const ratio=s.plannedMinutes?s.actualMinutes/s.plannedMinutes:0;selectedSessionStatus=ratio<.2?'aborted':'partial';document.querySelectorAll('#sessionStatusButtons .session-status-option').forEach(b=>b.classList.toggle('active',b.dataset.status===selectedSessionStatus));document.getElementById('sessionTimeSummary').textContent='Geplant: '+s.plannedMinutes+' Min. · gearbeitet: '+s.actualMinutes+' Min. Früher fertig zu sein ist völlig in Ordnung.';document.getElementById('sessionFeedbackText').value='';document.getElementById('adaptationError').classList.add('hidden');setAppScreen('result')}
-function finishSession(result={}){if(!activeSession||activeSession.status!=='running')return null;if(timerInterval)clearInterval(timerInterval);timerInterval=null;const status=SESSION_STATUSES.includes(result.status)?result.status:'completed',finished={...cloneSession(activeSession),status,actualMinutes:actualSessionMinutes(activeSession),finishedAt:Date.now(),result:{reason:result.reason||'user_finished',outcome:result.outcome??null,feedback:result.feedback??null}};setActiveSession(finished);console.info('[SessionCore]',{event:'session_'+status,sessionId:finished.id,type:finished.type});finished.type==='mission'?handleMissionSessionResult(finished):handleQuickSessionResult(finished);setActiveSession(null);document.getElementById('islandIndicator')?.classList.add('hidden');return cloneSession(finished)}
-function calculateInterruptedMinutes(session,finishedAt){const started=Number(session?.startedAt)||0,planned=Math.max(0,Math.round(Number(session?.plannedMinutes)||0));if(!started||finishedAt<started)return 0;const elapsed=Math.max(0,Math.round((finishedAt-started)/60000));return planned?Math.min(elapsed,planned):elapsed}
-function updateLastSessionOutcome(outcome){try{const s=JSON.parse(localStorage.getItem(SESSION_CORE_LAST_KEY)||'null');if(!s)return;s.result={...(s.result||{}),outcome};localStorage.setItem(SESSION_CORE_LAST_KEY,JSON.stringify(s));sessionRepository.updateOutcome(s.id,outcome)}catch{}}
-function prepareLearningSession(){const step=getCurrentMissionSession();if(!step)return false;try{return startSession(createMissionSession(ensureActiveMissionId(),step.id))}catch(e){console.error('[SessionCore]',{event:'mission_create_failed',message:e.message});alert(e.message);return false}}
-function completeLearningSession(){return finishSession({status:'completed',reason:'user_finished'})}
-function endSessionByUser(){if(!activeSession||activeSession.status!=='running')return null;return actualSessionMinutes(activeSession)<1?finishSession({status:'cancelled',reason:'ended_too_early'}):finishSession({status:'completed',reason:'user_finished'})}
-function stopFocusSession(){return finishSession({status:'cancelled',reason:'user_cancelled'})}
-function showUcTask(){const s=window.activeSession;document.getElementById('ucTaskTitle').textContent=s?.title||'Aktuelle Aufgabe';document.getElementById('ucTaskText').textContent=s?.task||'Konzentriert weiterarbeiten.';document.getElementById('ucTaskPopup').classList.add('open')}
-const sessionCoreSelectStatus=selectSessionStatus;selectSessionStatus=function(button,status){sessionCoreSelectStatus(button,status);updateLastSessionOutcome(status)};
-function startRestoredSessionTimer(){
- if(timerInterval)clearInterval(timerInterval);
- timerInterval=setInterval(()=>{timerDuration=Math.max(0,Math.ceil((ucEndsAt-Date.now())/1000));updateTimerUI();if(timerDuration<=0)finishSession({status:'completed',reason:'timer_finished'})},1000);
-}
-function restoreRunningSession(){
- let s=null;try{s=JSON.parse(localStorage.getItem(SESSION_CORE_STORAGE_KEY)||'null')}catch{localStorage.removeItem(SESSION_CORE_STORAGE_KEY);console.warn('[SessionCore]',{event:'restore_failed'});return}
- if(!s||s.status!=='running')return;
- const planned=Math.max(1,Math.round(Number(s.plannedMinutes)||1));
- const endsAt=Number(s.endsAt)||(Number(s.startedAt)+planned*60000);
- if(!Number.isFinite(endsAt)||!Number.isFinite(Number(s.startedAt))){localStorage.removeItem(SESSION_CORE_STORAGE_KEY);return}
- s={...s,endsAt};setActiveSession(s);currentSessionStartedAt=s.startedAt;currentSessionPlannedMinutes=planned;currentSessionActualMinutes=actualSessionMinutes(s);originalDuration=planned*60;ucEndsAt=endsAt;
- if(Date.now()>=endsAt){timerDuration=0;const finished={...s,status:'completed',actualMinutes:planned,finishedAt:endsAt,result:{...(s.result||{}),reason:'timer_finished_while_away',outcome:null,feedback:null}};saveSessionSnapshot(finished);sessionRepository.save(finished);setActiveSession(null);console.info('[SessionCore]',{event:'session_completed_while_away',sessionId:finished.id,type:finished.type});return}
- timerDuration=Math.max(0,Math.ceil((endsAt-Date.now())/1000));
- document.addEventListener('DOMContentLoaded',()=>{renderSession(s);setAppScreen('timer',{immediate:true});document.getElementById('islandIndicator')?.classList.remove('hidden');updateTimerUI();startRestoredSessionTimer();console.info('[SessionCore]',{event:'session_resumed',sessionId:s.id,type:s.type})},{once:true});
-}
-restoreRunningSession();
-</script>
 <script id="ultraCosmicV91">
 let ucFrame=null,ucState=null,ucActive=false,ucEndsAt=null;
 function syncUcData(){
@@ -2519,39 +2469,11 @@ const oldU103=updateMissionHome;updateMissionHome=function(){oldU103.apply(this,
 <script id="missionDepthV105">
 function applyMissionDepthV105(center=false){const list=document.getElementById('aiPlanSteps');if(!list)return;const cards=[...list.querySelectorAll('.flow-step-line')],ai=cards.findIndex(c=>c.classList.contains('mission-step-active'));cards.forEach((c,i)=>{c.classList.remove('mission-depth-near','mission-depth-far','mission-depth-before','mission-depth-after');if(ai<0||i===ai)return;c.classList.add(Math.abs(i-ai)===1?'mission-depth-near':'mission-depth-far',i<ai?'mission-depth-before':'mission-depth-after')});const active=cards[ai];if(active&&!active.querySelector('.mission-active-start')){const b=document.createElement('button');b.type='button';b.className='mission-active-start';b.innerHTML='<i data-lucide="play"></i><span>Schritt '+(ai+1)+' starten</span>';b.onclick=e=>{e.stopPropagation();prepareLearningSession()};active.appendChild(b)}lucide.createIcons();if(center&&active)requestAnimationFrame(()=>setTimeout(()=>active.scrollIntoView({behavior:'smooth',block:'center'}),80))}
 const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderBeforeDepthV105.apply(this,arguments);applyMissionDepthV105(false);return r};const applyBeforeDepthV105=applyAppScreenImmediately;applyAppScreenImmediately=function(screen){const r=applyBeforeDepthV105.apply(this,arguments);if(screen==='plan')setTimeout(()=>applyMissionDepthV105(true),30);return r};document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>applyMissionDepthV105(false),90));
-</script><script id="sessionRecoveryV112">
-const ACTIVE_SESSION_STATES=Object.freeze(['running','awaiting_resume','awaiting_review']);
-const ACTIVE_SESSION_BACKUP_KEY='focusmode-active-session-v11-recovery-backup';
-let sessionCheckpointInterval=null;
-let sessionRecoveryCandidate=null;
-let sessionRecoveryBootResolved=false;
-
-function recoveryLog(event,data={}){console.info('[SessionRecovery]',{event,...data})}
-function plannedSessionMs(s){return Math.max(1,Math.round(Number(s?.plannedMinutes)||1))*60000}
-function sessionElapsedMs(s,includeLive=true){
- const cap=plannedSessionMs(s),base=Math.max(0,Number(s?.elapsedMs)||0);
- const live=includeLive&&s?.lifecycleState==='running'&&Number.isFinite(Number(s?.lastActiveAt))?Math.max(0,Date.now()-Number(s.lastActiveAt)):0;
- return Math.min(cap,base+live);
-}
-function validateActiveSessionV112(s){
- const errors=[];
- if(!s||typeof s!=='object')return{valid:false,errors:['session_missing']};
- if(!String(s.id||'').trim())errors.push('id_missing');
- if(!SESSION_TYPES.includes(s.type))errors.push('type_invalid');
- if(!ACTIVE_SESSION_STATES.includes(s.lifecycleState))errors.push('lifecycle_invalid');
- if(!Number.isFinite(Number(s.plannedMinutes))||Number(s.plannedMinutes)<=0)errors.push('duration_invalid');
- if(!Number.isFinite(Number(s.startedAt))||Number(s.startedAt)<=0)errors.push('started_at_invalid');
- if(!Number.isFinite(Number(s.elapsedMs))||Number(s.elapsedMs)<0||Number(s.elapsedMs)>plannedSessionMs(s))errors.push('elapsed_invalid');
- if(s.type==='quick'&&(s.missionId!=null||s.missionStepId!=null))errors.push('quick_mission_link_forbidden');
- if(s.type==='mission'&&(!String(s.missionId||'').trim()||!String(s.missionStepId||'').trim()))errors.push('mission_link_required');
- return{valid:!errors.length,errors};
-}
-function migrateActiveSessionV112(raw){
- if(!raw||raw.status!=='running')return null;
- const planned=plannedSessionMs(raw),legacyElapsed=Math.max(0,Math.min(planned,Date.now()-(Number(raw.startedAt)||Date.now())));
- const elapsed=Number.isFinite(Number(raw.elapsedMs))?Math.max(0,Math.min(planned,Number(raw.elapsedMs))):legacyElapsed;
- return{...raw,status:'running',lifecycleState:'awaiting_resume',elapsedMs:elapsed,remainingSeconds:Math.max(0,Math.ceil((planned-elapsed)/1000)),lastActiveAt:null,lastCheckpointAt:Number(raw.lastCheckpointAt)||Date.now(),endsAt:null,finalizationState:raw.finalizationState||null};
-}
+</script><script src="./src/features/focus-session/session-model.js"></script>
+<script src="./src/features/focus-session/session-runtime.js"></script>
+<script src="./src/features/focus-session/session-controller.js"></script>
+<script src="./src/features/focus-session/session-finalization.js"></script>
+<script id="sessionRecoveryV112">
 function readRecoveryCandidate(){
  let raw=null;try{raw=JSON.parse(localStorage.getItem(SESSION_CORE_STORAGE_KEY)||'null')}catch(error){try{localStorage.setItem(ACTIVE_SESSION_BACKUP_KEY,localStorage.getItem(SESSION_CORE_STORAGE_KEY)||'')}catch{}localStorage.removeItem(SESSION_CORE_STORAGE_KEY);return null}
  if(!raw)return null;
@@ -2560,24 +2482,6 @@ function readRecoveryCandidate(){
  const check=validateActiveSessionV112(migrated);
  if(!check.valid){try{localStorage.setItem(ACTIVE_SESSION_BACKUP_KEY,JSON.stringify(raw))}catch{}localStorage.removeItem(SESSION_CORE_STORAGE_KEY);console.warn('[SessionRecovery]',{event:'active_session_invalid',errors:check.errors});return null}
  setActiveSession(migrated);sessionRecoveryCandidate=cloneSession(migrated);recoveryLog('active_session_recovery_detected',{sessionId:migrated.id,type:migrated.type});return migrated;
-}
-function checkpointActiveSession(reason='interval',persist=true){
- if(!activeSession||activeSession.status!=='running'||activeSession.lifecycleState!=='running')return null;
- const now=Date.now(),elapsed=sessionElapsedMs(activeSession,true),remaining=Math.max(0,Math.ceil((plannedSessionMs(activeSession)-elapsed)/1000));
- activeSession={...activeSession,elapsedMs:elapsed,remainingSeconds:remaining,lastActiveAt:now,lastCheckpointAt:now};window.activeSession=activeSession;
- if(persist)localStorage.setItem(SESSION_CORE_STORAGE_KEY,JSON.stringify(activeSession));
- timerDuration=remaining;updateTimerUI();
- if(persist)recoveryLog('active_session_checkpointed',{sessionId:activeSession.id,reason,elapsedMinutes:Math.floor(elapsed/60000)});
- return cloneSession(activeSession);
-}
-function stopCheckpointLoop(){if(sessionCheckpointInterval)clearInterval(sessionCheckpointInterval);sessionCheckpointInterval=null}
-function startCheckpointLoop(){stopCheckpointLoop();sessionCheckpointInterval=setInterval(()=>checkpointActiveSession('interval',true),5000)}
-function stopSessionRuntime(){if(timerInterval)clearInterval(timerInterval);timerInterval=null;stopCheckpointLoop();document.getElementById('islandIndicator')?.classList.add('hidden')}
-function startSessionRuntime(){
- stopSessionRuntime();
- timerDuration=Math.max(0,Math.ceil((plannedSessionMs(activeSession)-sessionElapsedMs(activeSession,true))/1000));originalDuration=Math.max(1,activeSession.plannedMinutes*60);updateTimerUI();
- document.getElementById('islandIndicator')?.classList.remove('hidden');startCheckpointLoop();
- timerInterval=setInterval(()=>{const s=checkpointActiveSession('tick',false);if(!s)return;if(s.remainingSeconds<=0)handleElapsedSessionV112()},1000);
 }
 function renderSessionRecovery(s){
  const elapsed=Math.floor((Number(s.elapsedMs)||0)/60000),planned=Math.max(1,Math.round(Number(s.plannedMinutes)||1)),remaining=Math.max(0,planned-elapsed),pct=Math.min(100,Math.round((Number(s.elapsedMs)||0)/plannedSessionMs(s)*100)),mission=s.type==='mission';
@@ -2603,15 +2507,6 @@ function discardRecoveredSession(){
  releaseRecoveryNavigationV112();
  const id=activeSession?.id||sessionRecoveryCandidate?.id||null;stopSessionRuntime();setActiveSession(null);sessionRecoveryCandidate=null;recoveryLog('active_session_discarded',{sessionId:id});setAppScreen('home',{immediate:true});
 }
-function buildFinalSessionV112(s,outcome,reason){
- const elapsed=Math.min(plannedSessionMs(s),sessionElapsedMs(s,s.lifecycleState==='running')),minutes=Math.floor(elapsed/60000);
- return{...cloneSession(s),status:'completed',lifecycleState:undefined,elapsedMs:undefined,remainingSeconds:undefined,lastActiveAt:undefined,lastCheckpointAt:undefined,endsAt:undefined,finalizationState:undefined,actualMinutes:minutes,finishedAt:Date.now(),result:{...(s.result||{}),reason,outcome,feedback:s.result?.feedback||null,countAsFocus:minutes>=1}};
-}
-function saveFinalSessionOnceV112(final){
- const existing=sessionRepository.getById(final.id);if(existing){recoveryLog('active_session_finalization_reused',{sessionId:final.id});return existing}
- const saved=sessionRepository.save(final);if(!saved){console.error('[SessionRecovery]',{event:'active_session_finalization_failed',sessionId:final.id});return null}
- saveSessionSnapshot(saved);recoveryLog('active_session_finalization_saved',{sessionId:final.id,type:final.type});return saved;
-}
 function finishRecoveredSession(){
  const s=activeSession||sessionRecoveryCandidate;if(!s)return;
  const minutes=Math.floor(sessionElapsedMs(s,s.lifecycleState==='running')/60000);if(minutes<1)return;
@@ -2619,32 +2514,6 @@ function finishRecoveredSession(){
  releaseRecoveryNavigationV112();
  const final=buildFinalSessionV112(s,'completed','recovery_confirmed');if(!saveFinalSessionOnceV112(final))return;stopSessionRuntime();setActiveSession(null);sessionRecoveryCandidate=null;setAppScreen('home',{immediate:true});
 }
-function openRecoveredMissionReview(source=activeSession){
- if(!source)return;stopSessionRuntime();
- const frozen={...cloneSession(source),lifecycleState:'awaiting_review',elapsedMs:sessionElapsedMs(source,source.lifecycleState==='running'),lastActiveAt:null,lastCheckpointAt:Date.now()};setActiveSession(frozen);sessionRecoveryCandidate=frozen;
- const final=buildFinalSessionV112(frozen,null,'awaiting_user_review');if(!saveFinalSessionOnceV112(final))return;
- currentSessionStartedAt=frozen.startedAt;currentSessionPlannedMinutes=frozen.plannedMinutes;currentSessionActualMinutes=final.actualMinutes;selectedSessionStatus=final.actualMinutes/frozen.plannedMinutes<.2?'aborted':'partial';
- document.querySelectorAll('#sessionStatusButtons .session-status-option').forEach(b=>b.classList.toggle('active',b.dataset.status===selectedSessionStatus));document.getElementById('sessionTimeSummary').textContent='Geplant: '+frozen.plannedMinutes+' Min. · gearbeitet: '+final.actualMinutes+' Min. Deine Fokuszeit bleibt erhalten.';document.getElementById('sessionFeedbackText').value='';document.getElementById('adaptationError').classList.add('hidden');setAppScreen('result',{immediate:true});recoveryLog('active_session_review_opened',{sessionId:frozen.id,type:frozen.type});
-}
-function handleElapsedSessionV112(){
- if(!activeSession)return;checkpointActiveSession('timer_finished',true);stopSessionRuntime();
- if(activeSession.type==='mission'){openRecoveredMissionReview(activeSession);return}
- const final=buildFinalSessionV112(activeSession,'completed','timer_finished');if(!saveFinalSessionOnceV112(final))return;setActiveSession(null);setAppScreen('home',{immediate:true});
-}
-
-// Authoritative start and finish paths for v11.2.
-startSession=function(session){
- const check=validateSession(session);if(!check.valid){console.error('[SessionCore]',{event:'session_validation_failed',errors:check.errors});alert('Die Fokus-Sitzung konnte nicht gestartet werden.');return false}
- if(activeSession){alert('Beende zuerst deine aktuelle Fokus-Sitzung.');return false}
- const now=Date.now(),running={...cloneSession(session),status:'running',lifecycleState:'running',startedAt:now,elapsedMs:0,remainingSeconds:session.plannedMinutes*60,lastActiveAt:now,lastCheckpointAt:now,endsAt:null,finalizationState:null};setActiveSession(running);currentSessionStartedAt=now;currentSessionPlannedMinutes=running.plannedMinutes;currentSessionActualMinutes=0;renderSession(running);setAppScreen('timer');startSessionRuntime();recoveryLog('session_started',{sessionId:running.id,type:running.type});return true;
-};
-endSessionByUser=function(){
- if(!activeSession||activeSession.lifecycleState!=='running')return null;checkpointActiveSession('user_end',true);if(Math.floor(activeSession.elapsedMs/60000)<1){stopSessionRuntime();const cancelled={...buildFinalSessionV112(activeSession,'aborted','ended_too_early'),status:'cancelled',result:{...(activeSession.result||{}),reason:'ended_too_early',outcome:'aborted',countAsFocus:false}};sessionRepository.save(cancelled);saveSessionSnapshot(cancelled);setActiveSession(null);setAppScreen('home');return cancelled}
- if(activeSession.type==='mission'){openRecoveredMissionReview(activeSession);return cloneSession(activeSession)}
- const final=buildFinalSessionV112(activeSession,'completed','user_finished');if(!saveFinalSessionOnceV112(final))return null;stopSessionRuntime();setActiveSession(null);setAppScreen('home');return final;
-};
-completeLearningSession=endSessionByUser;
-stopFocusSession=function(){if(!activeSession)return null;checkpointActiveSession('user_cancelled',true);const cancelled={...buildFinalSessionV112(activeSession,'aborted','user_cancelled'),status:'cancelled',result:{...(activeSession.result||{}),reason:'user_cancelled',outcome:'aborted',countAsFocus:false}};sessionRepository.save(cancelled);saveSessionSnapshot(cancelled);stopSessionRuntime();setActiveSession(null);setAppScreen('home');return cancelled};
 
 // Mission result update must finalize the same record, then adaptation remains unchanged.
 const recoveryShowPlanUpdate=showPlanUpdate;
@@ -2655,10 +2524,6 @@ showPlanUpdate=async function(){
  }
  try{return await recoveryShowPlanUpdate.apply(this,arguments)}finally{if(activeSession?.lifecycleState==='awaiting_review'){setActiveSession(null);sessionRecoveryCandidate=null}}
 };
-
-// Freeze on real document termination. Backgrounding within the same document continues normally.
-window.addEventListener('pagehide',()=>{if(activeSession?.lifecycleState==='running')checkpointActiveSession('pagehide',true)},{capture:true});
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&activeSession?.lifecycleState==='running')checkpointActiveSession('visibility_hidden',true)},{capture:true});
 
 // Read before DOMContentLoaded listeners run, so legacy startup handlers cannot force Home.
 readRecoveryCandidate();
@@ -3671,109 +3536,6 @@ END V12.8 SESSION PERSISTENCE DESIGN MANIFEST -->
 }
 END V12.9 SESSION REPOSITORY MANIFEST -->
 
-<script id="sessionPersistenceMigrationV13">
-/* v13 Session Persistence Migration
-   Routes Session Core persistence writes through FocusModeApp.repositories.sessions.
-   Recovery hydration and History UI reads remain compatibility-owned until v13.1. */
-(function installSessionPersistenceMigrationV13(global){
-  'use strict';
-  const App=global.FocusModeApp;
-  const sessions=App?.repositories?.sessions;
-  if(!sessions)throw new Error('v12.9 Session Repository must be installed before v13 migration.');
-  if(App.compatibility?.sessionPersistenceMigration?.version==='13')return;
-
-  const legacyHistory=global.sessionRepository;
-  const clone=value=>value==null?value:(typeof global.structuredClone==='function'?global.structuredClone(value):JSON.parse(JSON.stringify(value)));
-  const terminalStates=new Set(['completed','cancelled','interrupted']);
-  let terminalCommitInFlight=new Set();
-
-  function refreshSessionConsumersV13(){
-    try{global.refreshSessionHistoryUI?.()}catch(error){console.warn('[SessionMigration]',{event:'history_ui_refresh_failed',message:error?.message||'unknown'})}
-    try{global.refreshHomeStats?.()}catch(error){console.warn('[SessionMigration]',{event:'home_stats_refresh_failed',message:error?.message||'unknown'})}
-    try{global.refreshStatsScreen?.()}catch(error){console.warn('[SessionMigration]',{event:'stats_refresh_failed',message:error?.message||'unknown'})}
-  }
-  function isTerminalSessionV13(session){return Boolean(session&&terminalStates.has(String(session.status||'')))}
-  function terminalCommitV13(session){
-    if(!isTerminalSessionV13(session))return null;
-    const check=sessions.validate(session,{terminal:true});
-    if(!check.valid){console.error('[SessionMigration]',{event:'terminal_validation_failed',sessionId:session?.id||null,errors:check.errors});return null}
-    const token=String(session.id)+'::'+String(session.status);
-    if(terminalCommitInFlight.has(token)){console.info('[SessionMigration]',{event:'terminal_duplicate_blocked',sessionId:session.id,status:session.status});return sessions.listHistory().find(x=>x.id===session.id&&x.status===session.status)||clone(session)}
-    terminalCommitInFlight.add(token);
-    try{
-      const history=sessions.appendHistory(session);
-      if(!history)throw new Error('history_append_failed');
-      const last=sessions.saveLast(history);
-      if(!last)throw new Error('last_session_save_failed');
-      if(!sessions.clearActive(session.id))throw new Error('active_session_clear_failed');
-      if(global.activeSession?.id===session.id){global.activeSession=null;try{activeSession=null}catch{}}
-      refreshSessionConsumersV13();
-      console.info('[SessionMigration]',{event:'terminal_commit_succeeded',sessionId:session.id,status:session.status});
-      return clone(last);
-    }catch(error){
-      console.error('[SessionMigration]',{event:'terminal_commit_failed',sessionId:session.id,status:session.status,message:error?.message||'unknown'});
-      return null;
-    }finally{terminalCommitInFlight.delete(token)}
-  }
-
-  /* Canonical active-session writer used by Session Core and existing Recovery code. */
-  global.setActiveSession=function setActiveSessionV13(session){
-    if(session==null){
-      sessions.clearActive(global.activeSession?.id||null);
-      try{activeSession=null}catch{}
-      global.activeSession=null;
-      return null;
-    }
-    const saved=sessions.saveActive(session);
-    if(!saved)return null;
-    try{activeSession=clone(saved)}catch{}
-    global.activeSession=clone(saved);
-    return clone(saved);
-  };
-  global.getActiveSession=function getActiveSessionV13(){return clone(global.activeSession||sessions.loadActive())};
-  global.updateActiveSession=function updateActiveSessionV13(patch){const current=global.getActiveSession();return current?global.setActiveSession({...current,...clone(patch)}):null};
-  global.saveSessionSnapshot=function saveSessionSnapshotV13(session){return sessions.saveLast(session)};
-
-  /* Checkpoints retain existing elapsed-time calculations, but persistence crosses the repository boundary. */
-  const checkpointBeforeV13=global.checkpointActiveSession;
-  if(typeof checkpointBeforeV13==='function'){
-    global.checkpointActiveSession=function checkpointActiveSessionV13(reason='interval',persist=true){
-      const snapshot=checkpointBeforeV13.call(this,reason,false);
-      if(!snapshot||!persist)return snapshot;
-      const saved=sessions.checkpoint(snapshot);
-      if(!saved){console.error('[SessionMigration]',{event:'checkpoint_failed',sessionId:snapshot.id,reason});return null}
-      try{activeSession=clone(saved)}catch{}
-      global.activeSession=clone(saved);
-      recoveryLog?.('active_session_checkpointed',{sessionId:saved.id,reason,elapsedMinutes:Math.floor((Number(saved.elapsedMs)||0)/60000)});
-      return clone(saved);
-    };
-  }
-
-  /* Preserve the legacy History API while making its writes repository-owned. */
-  if(legacyHistory&&typeof legacyHistory.save==='function'){
-    legacyHistory.save=function saveHistoryThroughSessionsV13(session){
-      const saved=terminalCommitV13(session);
-      return saved?clone(saved):null;
-    };
-    legacyHistory.getAll=function getAllHistoryThroughSessionsV13(){return sessions.listHistory()};
-    legacyHistory.getById=function getByIdHistoryThroughSessionsV13(id){return sessions.listHistory().find(x=>x.id===id)||null};
-  }
-
-  /* Recovery's finalization helper now uses the ordered commit without altering recovery hydration. */
-  global.saveFinalSessionOnceV112=function saveFinalSessionOnceV13(final){
-    const existing=sessions.listHistory().find(x=>x.id===final.id&&x.status===final.status);
-    if(existing){sessions.saveLast(existing);sessions.clearActive(final.id);recoveryLog?.('active_session_finalization_reused',{sessionId:final.id});return clone(existing)}
-    const saved=terminalCommitV13(final);
-    if(!saved)return null;
-    recoveryLog?.('active_session_finalization_saved',{sessionId:final.id,type:final.type});
-    return clone(saved);
-  };
-
-  App.services.sessionPersistence=Object.freeze({terminalCommit:terminalCommitV13,refreshConsumers:refreshSessionConsumersV13});
-  App.compatibility.sessionPersistenceMigration=Object.freeze({version:'13',sessionCoreWritesMigrated:true,checkpointWritesMigrated:true,terminalWritesMigrated:true,lastSessionWritesMigrated:true,recoveryReadsMigrated:false,historyUIReadsMigrated:false,keysRenamed:0,formatsChanged:0});
-  console.info('[SessionMigration]',{event:'migration_ready',version:'13',repository:'FocusModeApp.repositories.sessions'});
-})(window);
-</script>
 <!-- V13 SESSION PERSISTENCE MIGRATION MANIFEST
 {
   "version": "v13 Session Persistence Migration",
@@ -4558,37 +4320,6 @@ html.quick-focus-surface body::after{
 }
 </style>
 
-<script id="focusClarityLogicV13314">
-(function(){
-  function syncFocusClarityCard(){
-    const session=window.activeSession;
-    const card=document.getElementById('ucFocusCard');
-    if(!session||!card)return;
-    const title=document.getElementById('ucTaskCardTitle');
-    const description=document.getElementById('timerTaskValue');
-    const quick=session.type==='quick';
-    card.classList.toggle('is-quick',quick);
-    if(title)title.textContent=session.title||'Aktuelle Aufgabe';
-    if(description)description.textContent=session.task||'Konzentriert weiterarbeiten.';
-    card.setAttribute('aria-label',(session.title||'Aktuelle Aufgabe')+' öffnen');
-  }
-  const previousSync=window.syncUcData;
-  window.syncUcData=function(){
-    if(typeof previousSync==='function')previousSync.apply(this,arguments);
-    syncFocusClarityCard();
-  };
-  const previousRender=window.renderSession;
-  window.renderSession=function(session){
-    const result=previousRender.apply(this,arguments);
-    syncFocusClarityCard();
-    return result;
-  };
-  document.getElementById('ucFocusCard')?.addEventListener('keydown',function(event){
-    if(event.key==='Enter'||event.key===' '){event.preventDefault();showUcTask();}
-  });
-  document.title='v14 Recovery Merge';
-})();
-</script>
 
 <!-- Restored from v13.3.2 without replacing newer runtime features. -->
 <style id="planDurationProtectionRestoreV13315">
