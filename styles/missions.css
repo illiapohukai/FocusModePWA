@@ -1,0 +1,415 @@
+/* === missionDepthV1338 === */
+#app-screen-goal{position:absolute!important;inset:0!important;overflow-y:auto!important;background:radial-gradient(circle at 88% 29%,rgba(147,197,253,.30),transparent 24%),radial-gradient(circle at 12% 57%,rgba(196,181,253,.25),transparent 25%),#fbfbfa!important;color:#080b18!important;scrollbar-width:none}#app-screen-goal::-webkit-scrollbar{display:none}.mission-goal-shell{min-height:100%;padding:calc(18px + env(safe-area-inset-top)) 20px calc(18px + env(safe-area-inset-bottom));display:flex;flex-direction:column}.mg-topbar{display:grid;grid-template-columns:46px 1fr 46px;align-items:center}.mg-topbar>span{text-align:center;color:#654bc2;font-size:12px;font-weight:900;letter-spacing:.13em;text-transform:uppercase}.mg-back{width:46px;height:46px;border:1px solid #d9dbe2;border-radius:17px;background:rgba(255,255,255,.72);display:grid;place-items:center;box-shadow:inset 0 1px #fff}.mg-back svg{width:21px}.mg-intro{margin-top:25px}.mg-badge{display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border-radius:999px;color:#6248bd;background:linear-gradient(110deg,#eee9ff,#e6e2ff);font-size:11px;font-weight:850}.mg-badge svg{width:16px}.mg-intro h3{margin:15px 0 0;font-size:clamp(34px,9vw,45px);line-height:1.01;font-weight:950;letter-spacing:-.055em;white-space:nowrap}.mg-intro p{margin:9px 0 0;color:#667085;font-size:14px;line-height:1.45}.mg-input-card{height:211px;margin-top:22px;padding:17px;border:1px solid rgba(148,163,184,.27);border-radius:28px;background:rgba(255,255,255,.72);box-shadow:0 26px 50px rgba(76,69,121,.10),inset 0 1px #fff;backdrop-filter:blur(18px);display:flex;flex-direction:column}.mg-input-card textarea{width:100%;flex:1;resize:none;border:0;outline:0;background:transparent;color:#111827;font:650 16px/1.45 Inter,sans-serif}.mg-input-card textarea::placeholder{color:#aeb8ca}.mg-input-actions{padding-top:13px;border-top:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;gap:8px}.mg-input-actions>div{display:flex;gap:7px}.mg-input-actions button{width:39px;height:39px;border:0;border-radius:14px;background:#eef0f6;color:#5e6880;display:grid;place-items:center}.mg-input-actions svg{width:19px}.mg-input-actions>span{color:#8e9ab0;font-size:12px}.mg-error{margin-top:9px;padding:10px;border-radius:14px;background:#fff1f2;color:#be123c;font-size:11px}.mg-file{width:100%;margin-top:10px;padding:10px;border:1px solid #c7d2fe;border-radius:18px;background:#fff;text-align:left}.mg-file #selectedFileName{font-size:11px;font-weight:800}.mg-file #selectedFileMeta{font-size:9px;color:#94a3b8}.mg-section{margin-top:18px}.mg-section h4{margin:0 0 10px;font-size:12px;font-weight:950;letter-spacing:.035em;text-transform:uppercase}.mg-type-carousel{display:flex;gap:11px;margin:0 -20px;padding:0 calc(50% - 72px) 15px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}.mg-type-carousel::-webkit-scrollbar{display:none}.mg-type-card{flex:0 0 144px;height:130px;border:1px solid rgba(255,255,255,.68)!important;border-radius:25px!important;background:rgba(255,255,255,.42)!important;scroll-snap-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#7d8492!important;box-shadow:0 15px 29px rgba(60,64,90,.07);opacity:.57;filter:blur(.5px);transform:scale(.91);transition:.38s cubic-bezier(.16,1,.3,1)!important}.mg-type-card .mg-emoji{font-size:43px;filter:saturate(.75)}.mg-type-card b{margin-top:9px;font-size:18px;font-weight:900}.mg-type-card.active{opacity:1;filter:none;transform:scale(1);color:#06080d!important;background:linear-gradient(145deg,rgba(255,255,255,.97),rgba(255,255,255,.74))!important;border-color:#fff!important;box-shadow:0 24px 42px rgba(36,38,52,.18),inset 0 1px #fff!important}.mg-type-card.active .mg-emoji{filter:none;transform:scale(1.08)}.mg-dots{height:7px;display:flex;justify-content:center;gap:7px}.mg-dots i{width:7px;height:7px;border-radius:999px;background:#cfd2d8}.mg-dots i.active{width:25px;background:#90939a}.mg-confidence{margin-top:18px}.mg-confidence-options{height:102px;display:grid;grid-template-columns:1fr 1.12fr 1fr;gap:8px;align-items:end}.mg-confidence-card{height:80px;border:0!important;border-radius:23px!important;background:transparent!important;font-size:14px;font-weight:900;line-height:1.15;position:relative;transition:.35s!important}.mg-confidence-card.uncertain{color:#d85f67!important;background:radial-gradient(circle,#ffb4b877,transparent 70%)!important}.mg-confidence-card.partial{color:#c89114!important;background:radial-gradient(circle,#ffd77170,transparent 70%)!important}.mg-confidence-card.secure{color:#111!important;background:radial-gradient(circle,#79efad65,transparent 70%)!important}.mg-confidence-card:not(.active){opacity:.55;filter:blur(1.1px)}.mg-confidence-card.active{height:96px;opacity:1;filter:none;border:3px solid currentColor!important;background:rgba(255,255,255,.74)!important;box-shadow:0 0 30px color-mix(in srgb,currentColor 38%,transparent),inset 0 1px #fff!important;font-size:20px}.mg-confidence-card.active:after{content:"";position:absolute;left:50%;bottom:-9px;width:16px;height:16px;background:#fff;border-right:3px solid currentColor;border-bottom:3px solid currentColor;transform:translateX(-50%) rotate(45deg)}.mg-check{display:none;width:31px;height:31px;margin:0 auto 5px;border-radius:50%;background:#10c968;color:#fff;place-items:center;box-shadow:0 7px 16px #10c96855}.mg-check svg{width:20px}.mg-confidence-card.secure.active .mg-check{display:grid}.mg-confidence-track{height:7px;margin-top:9px;border-radius:999px;background:linear-gradient(90deg,#ff4d61,#ffad4d 35%,#f1df3a 57%,#1fd66f);position:relative}.mg-confidence-track i{position:absolute;left:0;top:0;width:0;height:100%;border-radius:inherit;background:#08cb66;box-shadow:0 0 15px #11d46b;transition:.35s}.mg-plan-button{flex:0 0 auto;width:100%;height:64px;margin-top:28px;border:0;border-radius:24px;color:#fff;background:linear-gradient(105deg,#8158ee,#5d35d4);box-shadow:0 18px 34px rgba(92,55,216,.33),inset 0 1px rgba(255,255,255,.28);display:flex;align-items:center;justify-content:center;gap:9px;font-size:17px;font-weight:900;transition:.3s}.mg-plan-button svg{width:21px}.mg-plan-button:disabled{background:#a9a3e5;opacity:.62!important}.mg-plan-button:not(:disabled){opacity:1!important;cursor:pointer!important}@media(max-height:760px){.mission-goal-shell{padding-top:12px}.mg-intro{margin-top:14px}.mg-intro h3{font-size:31px}.mg-intro p{font-size:12px}.mg-input-card{height:170px;margin-top:13px}.mg-section{margin-top:12px}.mg-type-card{height:105px}.mg-type-card .mg-emoji{font-size:33px}.mg-confidence-options{height:82px}.mg-confidence-card{height:65px}.mg-confidence-card.active{height:78px}.mg-plan-button{height:56px;margin-top:18px}}
+
+/* === singleScreenMissionV1339 === */
+/* Narrow patch over v13.3.8. Upper layout is intentionally preserved. */
+#app-screen-goal{overflow:hidden!important}
+.mission-goal-shell{
+  height:100%!important;
+  min-height:0!important;
+  overflow:hidden!important;
+  position:relative!important;
+  padding-bottom:calc(94px + env(safe-area-inset-bottom))!important;
+}
+/* Only upper-area adjustment: keep the title inside the viewport. */
+.mg-intro h3{
+  font-size:clamp(31px,8.25vw,40px)!important;
+  letter-spacing:-.052em!important;
+}
+/* Compact only the controls below the text input. */
+.mg-section{margin-top:13px!important}
+.mg-section h4{margin-bottom:7px!important}
+.mg-type-carousel{
+  gap:9px!important;
+  padding-top:2px!important;
+  padding-bottom:10px!important;
+  padding-left:calc(50% - 59px)!important;
+  padding-right:calc(50% - 59px)!important;
+}
+.mg-type-card{
+  flex-basis:118px!important;
+  height:91px!important;
+  border-radius:21px!important;
+  transform:scale(.92)!important;
+  box-shadow:0 12px 24px rgba(60,64,90,.065)!important;
+}
+.mg-type-card .mg-emoji{font-size:30px!important}
+.mg-type-card b{margin-top:5px!important;font-size:14px!important}
+.mg-type-card.active{
+  transform:scale(1)!important;
+  box-shadow:0 18px 34px rgba(36,38,52,.16),inset 0 1px #fff!important;
+}
+.mg-dots{display:none!important}
+/* Let the upper cloud shadow continue over the former hard section edge. */
+.mg-section:not(.mg-confidence){isolation:isolate}
+.mg-section:not(.mg-confidence)::after{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  pointer-events:none;
+  left:-28px;right:-28px;
+  top:37px;height:154px;
+  background:radial-gradient(ellipse at 50% 30%,rgba(91,75,135,.18),rgba(147,197,253,.10) 38%,rgba(196,181,253,.07) 58%,transparent 82%);
+  filter:blur(19px);
+}
+.mg-confidence{margin-top:8px!important}
+.mg-confidence-options{height:73px!important;gap:7px!important}
+.mg-confidence-card{height:57px!important;border-radius:19px!important;font-size:12px!important}
+.mg-confidence-card.active{height:70px!important;border-width:2px!important;font-size:16px!important}
+.mg-confidence-card.active:after{width:12px!important;height:12px!important;bottom:-7px!important;border-width:0 2px 2px 0!important}
+.mg-check{width:23px!important;height:23px!important;margin-bottom:3px!important}
+.mg-check svg{width:15px!important}
+.mg-confidence-track{height:5px!important;margin-top:7px!important}
+.mg-plan-button{
+  position:absolute!important;
+  z-index:30!important;
+  left:20px!important;right:20px!important;
+  bottom:calc(10px + env(safe-area-inset-bottom))!important;
+  width:auto!important;
+  height:64px!important;
+  margin:0!important;
+}
+@media(max-height:760px){
+  .mission-goal-shell{padding-bottom:calc(82px + env(safe-area-inset-bottom))!important}
+  .mg-intro h3{font-size:30px!important}
+  .mg-type-card{height:76px!important;flex-basis:108px!important}
+  .mg-type-card .mg-emoji{font-size:25px!important}
+  .mg-type-card b{font-size:12px!important}
+  .mg-confidence{margin-top:5px!important}
+  .mg-confidence-options{height:60px!important}
+  .mg-confidence-card{height:47px!important}
+  .mg-confidence-card.active{height:58px!important;font-size:14px!important}
+  .mg-plan-button{height:56px!important}
+}
+
+/* === stableMissionScrollV13310 === */
+/* v13.3.10: preserve v13.3.9 visuals, restore vertical scroll and isolate horizontal movement. */
+#app-screen-goal{
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  overscroll-behavior-y:contain!important;
+  overscroll-behavior-x:none!important;
+  touch-action:pan-y!important;
+  -webkit-overflow-scrolling:touch!important;
+  max-width:100%!important;
+}
+.mission-goal-shell{
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  height:auto!important;
+  min-height:100%!important;
+  overflow:visible!important;
+  padding-bottom:calc(94px + env(safe-area-inset-bottom))!important;
+}
+.mission-goal-shell>*{max-width:100%;min-width:0}
+.mg-section{width:100%;max-width:100%;min-width:0}
+.mg-type-carousel{
+  width:calc(100% + 40px)!important;
+  max-width:calc(100% + 40px)!important;
+  overscroll-behavior-x:contain!important;
+  touch-action:pan-x!important;
+  contain:layout paint!important;
+}
+.mg-type-card{min-width:0!important}
+/* The depth shadow now visibly crosses the seam and lies over the beginning
+   of the confidence section, while all labels and controls stay readable. */
+.mg-section:not(.mg-confidence)::after{display:none!important}
+.mg-confidence{
+  position:relative!important;
+  isolation:isolate!important;
+  overflow:visible!important;
+}
+.mg-confidence::before{
+  content:"";
+  position:absolute;
+  z-index:1;
+  pointer-events:none;
+  left:-20px;
+  right:-20px;
+  top:-35px;
+  height:92px;
+  background:
+    radial-gradient(ellipse at 50% 0%,rgba(48,43,72,.22) 0%,rgba(91,75,135,.16) 27%,rgba(147,197,253,.10) 49%,rgba(196,181,253,.06) 65%,transparent 86%);
+  filter:blur(17px);
+  transform:translateZ(0);
+}
+.mg-confidence>h4,
+.mg-confidence>.mg-confidence-options,
+.mg-confidence>.mg-confidence-track{
+  position:relative;
+  z-index:2;
+}
+/* Keep the CTA behavior and appearance from the accepted version. */
+.mg-plan-button{max-width:calc(100% - 40px)!important}
+@media(max-height:760px){
+  .mission-goal-shell{padding-bottom:calc(82px + env(safe-area-inset-bottom))!important}
+}
+
+/* === headerBadgeFitV13311 === */
+/* Move the Focus Mission pill into the navigation row and reclaim its old space. */
+.mg-topbar{
+  grid-template-columns:46px minmax(0,1fr) 46px!important;
+}
+.mg-topbar>.mg-top-badge{
+  justify-self:center!important;
+  width:max-content!important;
+  max-width:100%!important;
+  padding:8px 13px!important;
+  color:#6248bd!important;
+  background:linear-gradient(110deg,#eee9ff,#e6e2ff)!important;
+  border-radius:999px!important;
+  font-size:11px!important;
+  font-weight:850!important;
+  letter-spacing:0!important;
+  line-height:1!important;
+  text-transform:none!important;
+  white-space:nowrap!important;
+}
+.mg-topbar>.mg-top-badge svg{width:16px!important;height:16px!important}
+/* Intro now starts where the removed pill used to begin. */
+.mg-intro{margin-top:20px!important}
+.mg-intro h3{margin-top:0!important}
+/* Reclaim a little more vertical room without changing component designs. */
+.mg-intro p{margin-top:8px!important}
+.mg-input-card{margin-top:18px!important}
+.mg-section{margin-top:11px!important}
+.mg-confidence{margin-top:6px!important}
+@media(max-height:760px){
+  .mg-intro{margin-top:10px!important}
+  .mg-input-card{margin-top:10px!important}
+  .mg-section{margin-top:8px!important}
+  .mg-confidence{margin-top:3px!important}
+}
+
+/* === confidenceGlowV13312 === */
+/* v13.3.12: compact, borderless confidence selector with color-aware progress. */
+.mg-confidence-options{align-items:center!important}
+.mg-confidence-card{
+  --confidence-rgb:100,116,139;
+  height:57px!important;
+  border:0!important;
+  outline:0!important;
+  border-radius:19px!important;
+  padding:4px 3px!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:4px!important;
+  color:#64748b!important;
+  font-size:11px!important;
+  line-height:1!important;
+  opacity:.56!important;
+  filter:saturate(.72)!important;
+  transform:scale(.96)!important;
+  transition:opacity .28s ease,filter .28s ease,transform .34s cubic-bezier(.16,1,.3,1),color .28s ease!important;
+  position:relative!important;
+}
+.mg-confidence-card.uncertain{--confidence-rgb:244,63,94;color:#e3485c!important}
+.mg-confidence-card.partial{--confidence-rgb:234,179,8;color:#b98508!important}
+.mg-confidence-card.secure{--confidence-rgb:16,185,129;color:#0b9f70!important}
+.mg-confidence-card::before{
+  content:"";position:absolute;z-index:-1;inset:3px 0;border-radius:22px;
+  background:radial-gradient(ellipse at 50% 52%,rgba(var(--confidence-rgb),.10),rgba(var(--confidence-rgb),.035) 48%,transparent 76%);
+  filter:blur(8px);opacity:.38;transform:scale(.82);transition:.32s ease;pointer-events:none;
+}
+.mg-confidence-card.active{
+  height:57px!important;border:0!important;background:transparent!important;box-shadow:none!important;
+  opacity:1!important;filter:none!important;transform:scale(1.035)!important;font-size:11px!important;
+}
+.mg-confidence-card.active::before{
+  opacity:1;transform:scale(1.08);
+  background:radial-gradient(ellipse at 50% 52%,rgba(var(--confidence-rgb),.34),rgba(var(--confidence-rgb),.16) 43%,rgba(var(--confidence-rgb),.04) 66%,transparent 80%);
+  filter:blur(10px);
+}
+.mg-confidence-card.active::after{display:none!important;content:none!important}
+.mg-confidence-icon{
+  width:25px;height:25px;border-radius:50%;display:grid;place-items:center;flex:0 0 25px;
+  color:#fff;background:rgb(var(--confidence-rgb));box-shadow:0 6px 14px rgba(var(--confidence-rgb),.18);
+  transition:transform .3s cubic-bezier(.16,1,.3,1),box-shadow .3s ease;
+}
+.mg-confidence-card.active .mg-confidence-icon{transform:scale(1.08);box-shadow:0 7px 18px rgba(var(--confidence-rgb),.42)}
+.mg-confidence-icon svg{width:15px!important;height:15px!important;stroke-width:3!important}
+.mg-confidence-half{font-size:7px!important;font-weight:950!important;letter-spacing:-.06em!important}
+.mg-confidence-label{font-size:11px!important;font-weight:900!important;line-height:1!important;white-space:nowrap}
+.mg-confidence-track{height:5px!important;margin-top:7px!important;background:#e7e9ee!important;overflow:visible!important;box-shadow:inset 0 1px 2px rgba(15,23,42,.08)!important}
+.mg-confidence-track i{
+  width:0;height:100%;border-radius:inherit;background:#e7e9ee;box-shadow:none;
+  transition:width .38s cubic-bezier(.22,1,.36,1),background .32s ease,box-shadow .32s ease!important;
+}
+.mg-confidence-track i[data-level="uncertain"]{width:33.333%!important;background:linear-gradient(90deg,#fb7185,#f43f5e)!important;box-shadow:0 0 12px rgba(244,63,94,.36)!important}
+.mg-confidence-track i[data-level="partial"]{width:66.666%!important;background:linear-gradient(90deg,#fb7185 0%,#f59e0b 72%,#eab308 100%)!important;box-shadow:0 0 12px rgba(234,179,8,.32)!important}
+.mg-confidence-track i[data-level="secure"]{width:100%!important;background:linear-gradient(90deg,#fb7185 0%,#facc15 51%,#10b981 100%)!important;box-shadow:0 0 13px rgba(16,185,129,.34)!important}
+@media(max-height:760px){
+ .mg-confidence-card,.mg-confidence-card.active{height:47px!important}
+ .mg-confidence-icon{width:21px;height:21px;flex-basis:21px}
+ .mg-confidence-icon svg{width:13px!important;height:13px!important}
+ .mg-confidence-label{font-size:10px!important}
+}
+@media(prefers-reduced-motion:reduce){.mg-confidence-card,.mg-confidence-card::before,.mg-confidence-icon,.mg-confidence-track i{transition-duration:.01ms!important}}
+
+/* === multiMissionV115Styles === */
+#missionSwitcherV115{display:flex;gap:7px;margin:-3px 0 14px;overflow-x:auto;scrollbar-width:none}#missionSwitcherV115 button{flex:1;min-width:0;padding:9px 10px;border:1px solid #e2e8f0;border-radius:14px;background:#fff;color:#64748b;font-size:10px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#missionSwitcherV115 button.active{border-color:#c7d2fe;background:#eef2ff;color:#4338ca}
+
+/* === multiMissionUXV116Styles === */
+/* v11.6 UX only. Session Recovery, Timer and History visuals remain untouched. */
+#missionCarouselV116{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;scrollbar-width:none;margin:0 -18px;padding:0 18px 6px;-webkit-overflow-scrolling:touch}
+#missionCarouselV116::-webkit-scrollbar{display:none}.mission-hero-v116{position:relative;flex:0 0 90%;height:270px;scroll-snap-align:start;border:0;border-radius:30px;padding:17px;color:#fff;text-align:left;overflow:hidden;isolation:isolate;box-shadow:0 20px 42px rgba(15,23,42,.17)}
+.mission-hero-v116.theme-violet{background:radial-gradient(circle at 90% 8%,rgba(120,90,255,.32),transparent 28%),linear-gradient(145deg,#070b1b,#111832 55%,#241a58)}.mission-hero-v116.theme-aqua{background:radial-gradient(circle at 88% 10%,rgba(45,212,191,.25),transparent 29%),linear-gradient(145deg,#04151b,#0b2533 55%,#123c52)}
+.mission-hero-v116:after{content:"";position:absolute;right:-58px;top:-62px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.06);z-index:-1}.mh-kicker{display:flex;align-items:center;gap:7px;color:#c7d2fe;font-size:9px;font-weight:900;letter-spacing:.15em;text-transform:uppercase}.theme-aqua .mh-kicker{color:#99f6e4}.mh-kicker i{width:7px;height:7px;border-radius:50%;background:#34d399}.mh-title{max-width:88%;margin-top:10px;font-size:22px;font-weight:900;line-height:1.08;letter-spacing:-.025em;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}.mh-meta{margin-top:6px;color:#aeb7c9;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mh-step{position:absolute;left:17px;right:17px;bottom:47px;min-height:91px;padding:12px 65px 12px 13px;border:1px solid rgba(255,255,255,.11);border-radius:19px;background:rgba(255,255,255,.07);backdrop-filter:blur(8px)}.mh-label{color:#7f8ba3;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.08em}.mh-step-title{margin-top:5px;font-size:14px;font-weight:850;line-height:1.22;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}.mh-duration{position:absolute;right:11px;top:11px;padding:6px 8px;border-radius:999px;background:rgba(129,140,248,.18);color:#dbe4ff;font-size:10px;font-weight:850}.theme-aqua .mh-duration{background:rgba(45,212,191,.13);color:#99f6e4}.mh-progress{position:absolute;left:18px;right:18px;bottom:19px}.mh-progress-row{display:flex;justify-content:space-between;color:#aeb7c9;font-size:9px;font-weight:800}.mh-track{height:5px;margin-top:6px;border-radius:999px;background:rgba(255,255,255,.1);overflow:hidden}.mh-track i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#818cf8,#c084fc)}.theme-aqua .mh-track i{background:linear-gradient(90deg,#2dd4bf,#38bdf8)}
+#focusChoiceOverlay .focus-choice-sheet{max-height:min(78vh,620px);overflow-y:auto}.focus-section-v116{margin-top:13px}.focus-section-label-v116{margin:0 3px 7px;color:#94a3b8;font-size:8px;font-weight:900;letter-spacing:.13em;text-transform:uppercase}.focus-mission-v116{width:100%;display:flex;align-items:center;gap:11px;padding:12px;border:1px solid #e2e8f0;border-radius:17px;background:#fff;text-align:left;margin-top:7px}.focus-mission-v116 .fm-icon{width:39px;height:39px;border-radius:14px;display:grid;place-items:center;color:#fff;background:linear-gradient(145deg,#4f46e5,#7c3aed);flex:0 0 auto}.focus-mission-v116:nth-child(odd) .fm-icon{background:linear-gradient(145deg,#0f766e,#0891b2)}.fm-copy{min-width:0;flex:1}.fm-title{display:block;color:#172033;font-size:11px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fm-meta{display:block;margin-top:3px;color:#94a3b8;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.focus-new-v116{width:100%;margin-top:9px;min-height:44px;border:1px dashed #c7d2fe;border-radius:15px;background:#eef2ff;color:#4338ca;font-size:10px;font-weight:900}.focus-manage-v116{width:100%;padding:10px 0 2px;border:0;background:transparent;color:#64748b;font-size:9px;font-weight:800}
+#app-screen-missions{overflow:hidden!important;padding:18px!important;background:#f8fafc!important}.mission-tabs-v116{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:4px;border-radius:15px;background:#e9edf5}.mission-tab-v116{min-height:36px;border:0;border-radius:11px;background:transparent;color:#64748b;font-size:9px;font-weight:850}.mission-tab-v116.active{background:#fff;color:#4338ca;box-shadow:0 4px 12px rgba(15,23,42,.08)}#missionManagementListV116{overflow-y:auto;min-height:0;scrollbar-width:none;-webkit-overflow-scrolling:touch}#missionManagementListV116::-webkit-scrollbar{display:none}.mission-manage-card-v116{padding:15px;border:1px solid #e2e8f0;border-radius:21px;background:#fff;box-shadow:0 8px 22px rgba(15,23,42,.045)}.mmc-top{display:flex;align-items:flex-start;gap:11px}.mmc-icon{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;color:#4f46e5;background:#eef2ff;flex:0 0 auto}.mmc-copy{min-width:0;flex:1}.mmc-primary{display:block;margin-bottom:4px;color:#4f46e5;font-size:7px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}.mmc-title{font-size:13px;font-weight:900;color:#172033;line-height:1.25;overflow-wrap:anywhere}.mmc-meta{margin-top:4px;color:#94a3b8;font-size:9px}.mmc-menu{width:38px;height:38px;border:0;border-radius:13px;background:#f1f5f9;color:#64748b;display:grid;place-items:center}.mmc-track{height:5px;margin-top:12px;border-radius:999px;background:#eef2f7;overflow:hidden}.mmc-track i{display:block;height:100%;border-radius:inherit;background:#4f46e5}.mmc-foot{display:flex;justify-content:space-between;margin-top:7px;color:#94a3b8;font-size:8px;font-weight:750}.missions-empty-v116{height:100%;min-height:280px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#64748b}.missions-empty-v116 i{width:52px;height:52px;padding:13px;border-radius:18px;background:#eef2ff;color:#4f46e5;margin-bottom:13px}
+#missionSheetV116{position:absolute;inset:0;z-index:160;display:none;align-items:flex-end;padding:16px 16px calc(16px + env(safe-area-inset-bottom));background:rgba(15,23,42,.38);backdrop-filter:blur(11px)}#missionSheetV116.open{display:flex}.mission-sheet-card-v116{width:100%;max-height:77%;overflow-y:auto;padding:18px;border-radius:27px;background:#fff;color:#172033;box-shadow:0 25px 70px rgba(15,23,42,.3)}.mission-sheet-card-v116 h3{margin:0;font-size:18px;font-weight:900}.mission-sheet-card-v116 p{margin:7px 0 15px;color:#64748b;font-size:11px;line-height:1.45}.mission-sheet-action-v116{width:100%;min-height:47px;margin-top:7px;border:1px solid #e2e8f0;border-radius:15px;background:#fff;color:#334155;font-size:11px;font-weight:800}.mission-sheet-action-v116.primary{border-color:#c7d2fe;background:#eef2ff;color:#4338ca}.mission-sheet-action-v116.danger{border-color:#fecdd3;background:#fff1f2;color:#e11d48}.mission-sheet-input-v116{width:100%;padding:13px;border:1px solid #cbd5e1;border-radius:15px;color:#172033;outline:none}.mission-sheet-input-v116:focus{border-color:#818cf8;box-shadow:0 0 0 3px rgba(99,102,241,.1)}
+
+/* === missionCardLayoutFixV1161 === */
+/* v11.6.1: robust mission-card geometry. Content participates in layout instead of
+   competing absolute layers, so long titles cannot cover the next-step panel. */
+#missionCarouselV116{align-items:stretch!important;padding-bottom:8px!important}
+.mission-hero-v116{
+  height:300px!important;
+  min-height:300px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  padding:16px 17px 15px!important;
+}
+.mission-hero-v116 .mh-kicker{flex:0 0 auto!important;min-height:15px!important}
+.mission-hero-v116 .mh-title{
+  flex:0 0 auto!important;
+  max-width:calc(100% - 4px)!important;
+  margin-top:10px!important;
+  font-size:22px!important;
+  line-height:1.08!important;
+  -webkit-line-clamp:2!important;
+}
+.mission-hero-v116 .mh-meta{
+  flex:0 0 auto!important;
+  margin-top:5px!important;
+  min-height:14px!important;
+}
+.mission-hero-v116 .mh-step{
+  position:relative!important;
+  left:auto!important;right:auto!important;bottom:auto!important;
+  width:100%!important;
+  min-height:94px!important;
+  margin-top:12px!important;
+  padding:12px 68px 12px 13px!important;
+  flex:0 0 auto!important;
+  overflow:hidden!important;
+}
+.mission-hero-v116 .mh-step-title{
+  font-size:14px!important;
+  line-height:1.22!important;
+  -webkit-line-clamp:2!important;
+  overflow-wrap:anywhere!important;
+}
+.mission-hero-v116 .mh-progress{
+  position:relative!important;
+  left:auto!important;right:auto!important;bottom:auto!important;
+  width:100%!important;
+  margin-top:auto!important;
+  padding-top:10px!important;
+  flex:0 0 35px!important;
+  visibility:visible!important;
+  opacity:1!important;
+}
+.mission-hero-v116 .mh-track{display:block!important;height:5px!important;margin-top:6px!important}
+/* The legacy single card must never repaint underneath the v11.6 carousel. */
+body.mission-carousel-active #activeMissionCard,
+body.mission-carousel-active #emptyMissionCard{display:none!important}
+@media(max-width:380px){
+  .mission-hero-v116{height:286px!important;min-height:286px!important;padding:14px 15px!important}
+  .mission-hero-v116 .mh-title{font-size:20px!important;margin-top:8px!important}
+  .mission-hero-v116 .mh-step{min-height:88px!important;margin-top:9px!important}
+  .mission-hero-v116 .mh-progress{padding-top:7px!important;flex-basis:31px!important}
+}
+
+/* === adaptiveMissionCardsV117Styles === */
+/* v11.7: adaptive mission-card typography. The progress block keeps its current
+   bottom geometry; only the next-step panel consumes the flexible space above it. */
+.mission-hero-v116{
+  --mh-title-size:22px;
+  --mh-title-lines:3;
+}
+.mission-hero-v116 .mh-title{
+  width:100%!important;
+  max-width:100%!important;
+  min-height:0!important;
+  margin-top:9px!important;
+  font-size:var(--mh-title-size)!important;
+  line-height:1.04!important;
+  letter-spacing:-.035em!important;
+  -webkit-line-clamp:var(--mh-title-lines)!important;
+  text-wrap:balance;
+  overflow-wrap:normal!important;
+  word-break:normal!important;
+  hyphens:auto!important;
+}
+.mission-hero-v116 .mh-title.mh-title-short{
+  width:min(82%,250px)!important;
+  max-width:min(82%,250px)!important;
+  font-size:var(--mh-title-size,30px)!important;
+  line-height:1.02!important;
+}
+.mission-hero-v116 .mh-title.mh-title-medium{
+  width:94%!important;
+  max-width:94%!important;
+}
+.mission-hero-v116 .mh-title.mh-title-long{
+  width:100%!important;
+  max-width:100%!important;
+}
+/* The spacer belongs above the next-step panel. This lowers the panel without
+   changing the progress block's size or its lowest point. */
+.mission-hero-v116 .mh-step{
+  margin-top:auto!important;
+  flex:0 0 94px!important;
+}
+.mission-hero-v116 .mh-progress{
+  margin-top:0!important;
+  padding-top:10px!important;
+  flex:0 0 35px!important;
+}
+@media(max-width:380px){
+  .mission-hero-v116 .mh-title.mh-title-short{width:min(84%,225px)!important;max-width:min(84%,225px)!important}
+  .mission-hero-v116 .mh-step{flex-basis:88px!important}
+  .mission-hero-v116 .mh-progress{padding-top:7px!important;flex-basis:31px!important}
+}
+
+/* === missionAuraBlendV1181Styles === */
+#missionAuraShellV1181{--aura:99,102,241;position:relative;width:calc(100% + 36px);margin:-22px -18px -34px;padding:22px 0 34px;isolation:isolate;overflow:visible;z-index:2}
+#missionAuraShellV1181::before,#missionAuraShellV1181::after{content:"";position:absolute;z-index:0;left:-7%;right:-7%;border-radius:48%;pointer-events:none;transform:translate3d(var(--aura-shift,0),0,0);transition:background .18s linear,transform .18s linear}
+#missionAuraShellV1181::before{top:-48px;height:205px;background:radial-gradient(ellipse at 50% 68%,rgba(var(--aura),.42),rgba(var(--aura),.22) 34%,rgba(var(--aura),.08) 55%,transparent 78%);filter:blur(30px) saturate(1.3);mix-blend-mode:multiply}
+#missionAuraShellV1181::after{bottom:-62px;height:225px;background:radial-gradient(ellipse at 50% 18%,rgba(var(--aura),.40),rgba(var(--aura),.21) 35%,rgba(var(--aura),.07) 59%,transparent 82%);filter:blur(34px) saturate(1.28);mix-blend-mode:multiply}
+#missionCarouselV1181{position:relative;z-index:2;display:flex;gap:14px;width:100%;padding:0 14px 20px;overflow-x:auto;overflow-y:visible;scroll-snap-type:x mandatory;scroll-padding-inline:14px;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch;background:transparent}
+#missionCarouselV1181::-webkit-scrollbar{display:none}
+#missionCarouselV1181>.mission-hero-v116,#missionCarouselV1181>.mission-create-v1181{position:relative;z-index:3;flex:0 0 calc(100% - 42px)!important;scroll-snap-align:start;scroll-snap-stop:always}
+.mission-create-v1181{height:300px;min-height:300px;padding:22px;border:1px solid rgba(99,102,241,.18);border-radius:30px;color:#4338ca;background:radial-gradient(circle at 80% 15%,rgba(129,140,248,.22),transparent 31%),linear-gradient(145deg,#fff,#f1f2ff);text-align:left;overflow:hidden;box-shadow:0 18px 38px rgba(79,70,229,.13)}
+.mission-create-v1181 .mc-icon{width:54px;height:54px;border-radius:19px;display:grid;place-items:center;color:#fff;background:linear-gradient(145deg,#4f46e5,#7c3aed);box-shadow:0 13px 28px rgba(79,70,229,.25)}.mission-create-v1181 .mc-icon svg{width:24px}.mission-create-v1181 .mc-kicker{display:block;margin-top:58px;color:#818cf8;font-size:9px;font-weight:900;letter-spacing:.14em;text-transform:uppercase}.mission-create-v1181 .mc-title{display:block;margin-top:8px;max-width:235px;color:#172033;font-size:24px;font-weight:900;line-height:1.08;letter-spacing:-.03em}.mission-create-v1181 .mc-copy{display:block;margin-top:9px;max-width:245px;color:#64748b;font-size:12px;font-weight:600;line-height:1.45}
+body.mission-aura-active #activeMissionCard,body.mission-aura-active #emptyMissionCard{display:none!important}
+#app-screen-home .home-scroll-content{position:relative;isolation:isolate}
+#app-screen-home .home-scroll-content::after{content:"";position:absolute;z-index:-1;left:-18px;right:-18px;top:326px;height:205px;background:linear-gradient(180deg,rgba(var(--home-aura,99,102,241),.13),rgba(var(--home-aura,99,102,241),.055) 42%,transparent 88%);filter:blur(18px);pointer-events:none}
+@media(max-width:380px){#missionCarouselV1181{gap:12px;padding-inline:12px;scroll-padding-inline:12px}#missionCarouselV1181>.mission-hero-v116,#missionCarouselV1181>.mission-create-v1181{flex-basis:calc(100% - 36px)!important}.mission-create-v1181{height:286px;min-height:286px}.mission-create-v1181 .mc-kicker{margin-top:45px}}
+@media(prefers-reduced-motion:reduce){#missionAuraShellV1181::before,#missionAuraShellV1181::after{transition:none!important}}
+
+/* === optionalAdaptationV133Styles === */
+.optional-adaptation-actions{padding-top:8px}.optional-adaptation-primary,.optional-adaptation-secondary{width:100%;min-height:56px;border-radius:18px;display:flex;align-items:center;justify-content:center;gap:9px;font-size:13px;font-weight:900}.optional-adaptation-primary{border:0;background:linear-gradient(110deg,#4f46e5,#6d42ef);color:#fff;box-shadow:0 14px 30px rgba(79,70,229,.23)}.optional-adaptation-secondary{margin-top:13px;border:1px solid #cbd5e1;background:#fff;color:#334155}.optional-adaptation-primary svg,.optional-adaptation-secondary svg{width:17px;height:17px}.optional-adaptation-primary:disabled,.optional-adaptation-secondary:disabled{opacity:.55;cursor:wait}.optional-adaptation-locked #sessionStatusButtons,.optional-adaptation-locked #confidenceRatingButtons,.optional-adaptation-locked #sessionFeedbackText{pointer-events:none;opacity:.62}
+
+/* === planDurationProtectionRestoreV13315 === */
+@media (hover:none) and (pointer:coarse) and (max-width:900px){input,textarea,select{font-size:16px!important}}
+#aiPlanSteps .flow-step-line{position:relative!important}
+#aiPlanSteps .step-head{position:static!important;display:block!important}
+#aiPlanSteps .step-time{position:absolute!important;top:13px!important;right:13px!important;z-index:3!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;width:max-content!important;min-width:64px!important;max-width:calc(100% - 26px)!important;padding:6px 10px!important;margin:0!important;border:1px solid #e0e7ff!important;border-radius:999px!important;background:rgba(255,255,255,.94)!important;color:#4f46e5!important;box-shadow:0 4px 12px rgba(79,70,229,.10)!important;font-size:12px!important;line-height:1!important;white-space:nowrap!important;flex:none!important}
+#aiPlanSteps .step-title{padding-right:76px!important}
+#aiPlanSteps .mission-step-active .step-time{top:18px!important;right:18px!important;padding:8px 12px!important;font-size:14px!important}
+#aiPlanSteps .mission-step-active .step-title{padding-right:94px!important}
+/* Protection is the primary block and stays directly below mission steps. */
+#missionProtectionCard{margin-top:0!important;margin-bottom:14px!important}
+/* Explanation now sits below protection and grows with all of its text. */
+.mission-explanation-card-v1332{display:flex!important;align-items:flex-start!important;gap:14px!important;width:100%!important;min-height:132px!important;height:auto!important;padding:20px!important;margin:0 0 18px!important;border-radius:24px!important;overflow:visible!important;box-sizing:border-box!important}
+.mission-explanation-card-v1332>svg,.mission-explanation-card-v1332>i{width:22px!important;height:22px!important;min-width:22px!important;margin-top:2px!important}
+#aiPlanExplanation{display:block!important;min-width:0!important;width:100%!important;height:auto!important;max-height:none!important;margin:0!important;font-size:15px!important;line-height:1.55!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:anywhere!important;word-break:normal!important;-webkit-line-clamp:unset!important;-webkit-box-orient:initial!important}
+#aiPlanExplanation strong{display:block!important;margin-bottom:7px!important;font-size:16px!important;line-height:1.25!important}
+@media (max-width:370px){#aiPlanSteps .step-time{top:11px!important;right:11px!important}#aiPlanSteps .step-title{padding-right:70px!important}#aiPlanSteps .mission-step-active .step-time{top:15px!important;right:15px!important}#aiPlanSteps .mission-step-active .step-title{padding-right:86px!important}.mission-explanation-card-v1332{min-height:144px!important;padding:17px!important;gap:11px!important}#aiPlanExplanation{font-size:14px!important;line-height:1.5!important}}

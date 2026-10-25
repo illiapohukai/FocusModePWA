@@ -1,0 +1,7 @@
+/* === V11.2 SESSION RECOVERY === */
+#app-screen-session-recovery{position:absolute;inset:0;z-index:72;padding:calc(24px + env(safe-area-inset-top)) 20px calc(20px + env(safe-area-inset-bottom));overflow-y:auto;background:radial-gradient(circle at 82% 10%,rgba(99,102,241,.14),transparent 30%),#f8fafc!important}
+.recovery-orb{width:76px;height:76px;border-radius:26px;display:grid;place-items:center;color:#fff;background:linear-gradient(145deg,#4f46e5,#7c3aed);box-shadow:0 20px 45px rgba(79,70,229,.28)}
+.recovery-orb svg{width:31px;height:31px}.recovery-card{padding:18px;border:1px solid #e2e8f0;border-radius:26px;background:#fff;box-shadow:0 15px 38px rgba(15,23,42,.07)}
+.recovery-progress{height:8px;border-radius:999px;background:#eef2f7;overflow:hidden}.recovery-progress>i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#4f46e5,#8b5cf6);transition:width .35s ease}
+.recovery-primary,.recovery-secondary,.recovery-danger{width:100%;min-height:58px;border-radius:19px;font-size:14px;font-weight:900}.recovery-primary{border:0;color:#fff;background:linear-gradient(110deg,#4f46e5,#6d42ef);box-shadow:0 14px 30px rgba(79,70,229,.23)}.recovery-secondary{border:1px solid #c7d2fe;color:#4338ca;background:#eef2ff}.recovery-danger{min-height:48px;border:0;color:#94a3b8;background:transparent;font-size:12px}
+/* === END V11.2 SESSION RECOVERY === */

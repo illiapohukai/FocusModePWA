@@ -1,0 +1,73 @@
+/* === balanced-screen-v1336 === */
+.qb{padding:14px 10px 0!important;background:radial-gradient(circle at 85% 18%,#c4b5fd29,transparent 28%),#f8fafc!important;overflow:hidden;min-height:0}.qb-main{flex:1;min-height:0;overflow:hidden;padding:0 20px 8px;display:flex;flex-direction:column}.qb-top{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;margin-bottom:12px}.qb-top button{width:44px;height:44px;border-radius:16px;background:#fff;border:1px solid #e2e8f0;color:#64748b;display:grid;place-items:center;box-shadow:0 12px 22px -12px #33415566}.qb-top svg{width:20px}.qb-top b{justify-self:center;text-transform:uppercase;letter-spacing:.18em;color:#6366f1;font-size:10px;background:#6366f114;padding:8px 15px;border-radius:999px}.qb header{margin:0 0 14px}.qb header h3{font-size:clamp(23px,7.55vw,31px);line-height:1;font-weight:950;letter-spacing:-.05em;color:#080d20;white-space:nowrap}.qb header p{font-size:12px;line-height:1.35;color:#64748b;margin-top:7px}.qb section{margin:10px 0 0}.qb h4{text-transform:uppercase;font-size:11.5px;font-weight:950;color:#626978;letter-spacing:.03em;margin:0 0 8px}.qb-task{position:relative;z-index:1;height:61px;border-radius:22px;background:#fff;display:grid;grid-template-columns:28px 1fr 21px;align-items:center;gap:8px;padding:0 17px;margin:0 2px;box-shadow:0 27px 23px -18px #252a4d59}.qb-task:after,.qb-app:after{content:"";position:absolute;z-index:-1;left:15px;right:15px;top:22px;bottom:-10px;border-radius:0 0 21px 21px;background:#33395b2e;filter:blur(13px)}.qb-task input{min-width:0;border:0;outline:0;background:transparent;font-size:14px;font-weight:800}.qb-task svg{width:17px;color:#7c8090}.qb-duration{margin-top:21px!important}.qb-duration h4{margin-bottom:2px}.qb-time{display:flex;align-items:center;justify-content:center;gap:14px}.qb-ring{width:166px;height:166px;position:relative;filter:drop-shadow(0 13px 17px #4f46e526)}.qb-ring svg{width:100%;transform:rotate(-90deg);overflow:visible}.qb-ring circle{fill:none;stroke-width:14}.qb-ring .track{stroke:#e5e7eb}.qb-ring .progress{stroke:url(#qbg);stroke-linecap:round;stroke-dasharray:433.54;stroke-dashoffset:275.9}.qb-ring>div{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}.qb-ring strong{font-size:46px;line-height:.9;color:#0b1025}.qb-ring span{font-size:14px;font-weight:850;color:#737987;margin-top:7px}.qb-time aside{display:flex;gap:8px}.qb-time aside button{width:40px;height:40px;border-radius:14px;background:#fff;border:1px solid #d7dae2;color:#6b7280;font-size:23px}.qb-presets{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:-2px}.qb-presets button{height:33px;border-radius:999px;background:#e2e8f0b3;border:1px solid transparent;font-size:9px;font-weight:800;color:#606776}.qb-presets .active{background:#eef2ff;border-color:#6366f1;color:#5347bd}.qb-app{position:relative;z-index:1;width:calc(100% - 4px);min-height:80px;margin:16px 2px 0;border:0;border-radius:23px;background:#fff;display:grid;grid-template-columns:106px minmax(0,1fr) 18px;gap:9px;align-items:center;text-align:left;padding:12px 16px;box-shadow:0 28px 23px -18px #1f234f52}.qb-visual{position:relative;width:106px;height:56px}.qb-shield{position:absolute;left:0;top:0;z-index:3;width:56px;height:56px;border-radius:18px;background:#ffe9ec;color:#ef476f;display:grid;place-items:center}.qb-shield svg{width:26px}.qb-icons{position:absolute;left:43px;top:9px;width:63px;height:38px}.qb-icons .app-dot{position:absolute;width:30px;height:30px;border-radius:9px;border:2px solid #fff;color:#fff;display:grid;place-items:center;font-size:11px;font-weight:900;box-shadow:0 3px 7px #0f172a24}.qb-icons .app-dot:nth-child(1){left:0}.qb-icons .app-dot:nth-child(2){left:17px;top:7px}.qb-icons .app-dot:nth-child(3){left:34px}.qb-copy{display:flex;flex-direction:column;min-width:0}.qb-copy small{text-transform:uppercase;color:#7d8190;font-size:8.5px;font-weight:900}.qb-copy strong{font-size:14px;white-space:nowrap}.qb-copy em{font-style:normal;font-size:8.5px;color:#747b8b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.qb-info{margin-top:13px;min-height:64px;border-radius:21px;border:1px solid #b8f2d6;background:linear-gradient(135deg,#edfff7,#e2fbec);padding:11px 15px;display:flex;align-items:center;gap:11px}.qb-info>span{width:40px;height:40px;border-radius:14px;background:#10b98129;color:#0b9c73;display:grid;place-items:center}.qb-info p{font-size:9.5px;color:#176b55}.qb-info strong{font-size:10.5px;color:#075c47}.qb-bottom{width:100%;margin-top:auto;padding:10px 10px max(12px,env(safe-area-inset-bottom))}.qb-bottom button{width:100%;height:59px;border:0;border-radius:21px;color:#fff;background:linear-gradient(100deg,#4320c8,#4f46f5);display:flex;align-items:center;justify-content:center;gap:10px;font-size:14px;font-weight:900;box-shadow:0 16px 30px #4f46e552}.qb-bottom svg{width:20px;fill:#fff}@media(max-height:760px){.qb{padding-top:9px!important}.qb-top{margin-bottom:6px}.qb header{margin-bottom:6px}.qb header p{font-size:10.5px;margin-top:4px}.qb section{margin-top:6px}.qb-task{height:56px}.qb-duration{margin-top:14px!important}.qb-ring{width:148px;height:148px}.qb-ring strong{font-size:42px}.qb-presets button{height:29px}.qb-app{min-height:72px;margin-top:10px;padding-top:8px;padding-bottom:8px}.qb-info{min-height:55px;margin-top:8px;padding-top:8px;padding-bottom:8px}.qb-bottom button{height:55px}}
+
+/* === quickFocusRoutingFixV1337 === */
+/* Smooth only the Quick Focus progress arc. Existing geometry and routing stay untouched. */
+#quickRingProgress{
+  transition:stroke-dashoffset .42s cubic-bezier(.22,1,.36,1);
+  will-change:stroke-dashoffset;
+}
+.qb-task input::placeholder{
+  color:#9ca3af;
+  opacity:1;
+  font-weight:700;
+}
+@media(prefers-reduced-motion:reduce){
+  #quickRingProgress{transition-duration:.01ms}
+}
+
+/* === cleanQuickFocusV13313 === */
+/* v13.3.13: clean card surfaces and let Quick Focus paint through the full app viewport. */
+#app-screen-quicksetup{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:100%!important;
+  display:flex!important;
+  flex-direction:column!important;
+  overflow:hidden!important;
+  background:radial-gradient(circle at 85% 18%,rgba(196,181,253,.16),transparent 28%),#f8fafc!important;
+  padding-bottom:0!important;
+}
+#app-screen-quicksetup.hidden{display:none!important}
+#app-screen-quicksetup .qb-main{
+  flex:1 1 auto!important;
+  min-height:0!important;
+}
+#app-screen-quicksetup .qb-bottom{
+  flex:0 0 auto!important;
+  margin-top:0!important;
+  background:transparent!important;
+}
+/* Keep only the deliberate external lift shadow. Remove the muddy inner/overlay layer. */
+#app-screen-quicksetup .qb-task,
+#app-screen-quicksetup .qb-app{
+  background:#fff!important;
+  background-image:none!important;
+  filter:none!important;
+  -webkit-filter:none!important;
+}
+#app-screen-quicksetup .qb-task::after,
+#app-screen-quicksetup .qb-app::after{
+  content:none!important;
+  display:none!important;
+  background:none!important;
+  filter:none!important;
+}
+#app-screen-quicksetup .qb-task{
+  box-shadow:0 27px 23px -18px rgba(37,42,77,.35)!important;
+}
+#app-screen-quicksetup .qb-app{
+  box-shadow:0 28px 23px -18px rgba(31,35,79,.32)!important;
+}
+/* Paint the real safe area with the same Quick Focus surface. */
+html.quick-focus-surface,
+html.quick-focus-surface body,
+html.quick-focus-surface #screenWrapper,
+html.quick-focus-surface #appBody{
+  background:#f8fafc!important;
+}
+html.quick-focus-surface body::after{
+  background:#f8fafc!important;
+}
