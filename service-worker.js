@@ -1,8 +1,12 @@
-const CACHE = "focus-mode-plus-v15-modular-baseline";
+const CACHE = "focus-mode-plus-v15-modular-baseline-icons-v1";
 const CORE = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
+  "./apple-touch-icon.png",
+  "./icon-192.png",
+  "./icon-512.png",
+  "./icon-maskable-512.png",
   "./styles/app.css",
   "./styles/timer.css",
   "./styles/recovery.css",
