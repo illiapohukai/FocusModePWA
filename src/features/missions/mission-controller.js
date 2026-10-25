@@ -311,5 +311,5 @@ const oldResumeV115=resumeRecoveredSession;resumeRecoveredSession=function(){con
  const oldType=window.selectMissionType;window.selectMissionType=function(btn){oldType.call(this,btn);syncTypeUI(btn)};
  const oldConfidence=window.selectConfidence;window.selectConfidence=function(btn){oldConfidence.call(this,btn);const fill=document.querySelector('.mg-confidence-track i'),level=btn?.dataset?.confidence||'uncertain';if(fill){fill.style.removeProperty('width');fill.dataset.level=level}lucide.createIcons()};
  document.addEventListener('DOMContentLoaded',()=>{const carousel=document.getElementById('missionTypeCarousel');if(carousel){let timer;carousel.addEventListener('scroll',()=>{clearTimeout(timer);timer=setTimeout(()=>{const center=carousel.scrollLeft+carousel.clientWidth/2,cards=[...carousel.children],best=cards.reduce((a,b)=>Math.abs(b.offsetLeft+b.offsetWidth/2-center)<Math.abs(a.offsetLeft+a.offsetWidth/2-center)?b:a);if(best&&!best.classList.contains('active'))window.selectMissionType(best)},110)},{passive:true})}lucide.createIcons()});
- document.title='v14 Recovery Merge';
+ document.title='v15 Modular Baseline';
 })();
