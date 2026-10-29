@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<html class="dark" lang="de"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/><meta content="#05050a" name="theme-color"/><meta content="Focus Mode+ verbindet klare nächste Schritte, geschützte Fokus-Sitzungen und adaptive Focus Missions in einem interaktiven Prototyp." name="description"/><title>v17 Navigation Clarity</title><script src="https://cdn.tailwindcss.com"></script><script>tailwind.config={darkMode:'class'}</script><script src="https://unpkg.com/lucide@latest"></script><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>  <link rel="stylesheet" href="./styles/app.css" />
+<html class="dark" lang="de"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/><meta content="#05050a" name="theme-color"/><meta content="Focus Mode+ verbindet klare nächste Schritte, geschützte Fokus-Sitzungen und adaptive Focus Missions in einem interaktiven Prototyp." name="description"/><title>v17.1 Cosmic Focus</title><script src="https://cdn.tailwindcss.com"></script><script>tailwind.config={darkMode:'class'}</script><script src="https://unpkg.com/lucide@latest"></script><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>  <link rel="stylesheet" href="./styles/app.css" />
   <link rel="stylesheet" href="./styles/timer.css" />
   <link rel="stylesheet" href="./styles/recovery.css" />
   <link rel="stylesheet" href="./styles/quick-focus.css" />
@@ -199,7 +199,7 @@
 <button class="distraction-row selected" data-name="Shopping" onclick="toggleDistraction(this)"><span class="app-dot bg-cyan-500"><i data-lucide="shopping-bag"></i></span><span>Shopping</span><i data-lucide="check"></i></button>
 <button class="distraction-row selected" data-name="News" onclick="toggleDistraction(this)"><span class="app-dot bg-blue-500"><i data-lucide="newspaper"></i></span><span>News</span><i data-lucide="check"></i></button>
 </div>
-<button class="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold text-xs mt-auto" id="distractionSaveButton" onclick="saveDistractions()">Auswahl speichern</button>
+<button class="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold text-xs mt-auto" id="distractionSaveButton" type="button" onclick="saveDistractions()">Fertig</button>
 </div>
 <div class="app-screen flow-screen hidden" id="app-screen-goal">
   <div class="mission-goal-shell">
@@ -372,7 +372,6 @@
 <div class="uc-shell">
 <header class="uc-header">
   <div class="uc-headcopy"><div class="uc-kicker">Fokus-Sitzung</div><h2 id="activeTaskLabel">Aktueller Missionsschritt</h2><div class="uc-meta"><span><i data-lucide="book-open"></i><b id="ucDuration">25 Min.</b></span><span id="currentFocusModeLabel">Focus Mission</span></div></div>
-  <div class="uc-tools"><button onclick="setAppScreen('plan')" aria-label="Fortschritt"><i data-lucide="chart-no-axes-column-increasing"></i></button><button onclick="openDistractionPicker('timer')" aria-label="Einstellungen"><i data-lucide="settings"></i></button></div>
 </header>
 <section class="uc-scene" id="ucScene">
   <canvas id="ucBackCanvas" aria-hidden="true"></canvas>
@@ -382,7 +381,7 @@
   <canvas id="ucFrontCanvas" aria-hidden="true"></canvas>
   <svg class="uc-main-ring uc-main-ring-front" viewBox="0 0 400 220" aria-hidden="true"><defs><filter id="ucGlow"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><linearGradient id="ucFrontGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8b5cf6" stop-opacity="0"/><stop offset=".13" stop-color="#a78bfa" stop-opacity=".35"/><stop offset=".35" stop-color="#c084fc" stop-opacity=".93"/><stop offset=".68" stop-color="#e9d5ff" stop-opacity="1"/><stop offset=".88" stop-color="#a78bfa" stop-opacity=".42"/><stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/></linearGradient><clipPath id="ucFrontHalf"><rect x="0" y="110" width="400" height="110"/></clipPath></defs><ellipse clip-path="url(#ucFrontHalf)" cx="200" cy="110" rx="174" ry="57" fill="none" stroke="url(#ucFrontGrad)" stroke-width="14" stroke-opacity=".24" filter="url(#ucGlow)"/><ellipse clip-path="url(#ucFrontHalf)" cx="200" cy="110" rx="174" ry="57" fill="none" stroke="url(#ucFrontGrad)" stroke-width="5" filter="url(#ucGlow)"/><ellipse clip-path="url(#ucFrontHalf)" cx="200" cy="110" rx="174" ry="57" fill="none" stroke="#f3e8ff" stroke-opacity=".58" stroke-width="1.2"/></svg>
   <div class="uc-readout"><div id="timerDigits">25:00</div><div id="timerCaption">Minuten verbleibend</div></div>
-  <button class="uc-protect" onclick="showBlockedAppsPopup()"><span></span>Fokus-Schutz aktiv<i data-lucide="chevron-right"></i></button>
+  <button class="uc-protect" type="button" title="Tippen zum Anpassen" onclick="openDistractionPicker('timer')"><span></span>Fokusschutz aktiv<i data-lucide="chevron-right"></i></button>
 </section>
 <section class="uc-focus-card" id="ucFocusCard" onclick="showUcTask()" role="button" tabindex="0" aria-label="Aktuelle Aufgabe öffnen">
   <div class="uc-focus-card-head">
@@ -548,7 +547,7 @@
 <span class="text-[9px] font-black uppercase tracking-wider text-indigo-600 block">Lokale Datenstabilität</span>
 <h3 class="text-base font-black text-slate-900 truncate">Daten &amp; Backup</h3>
 </div>
-<span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100" id="dataAppVersionBadge">v17 Navigation Clarity</span>
+<span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100" id="dataAppVersionBadge">v17.1 Cosmic Focus</span>
 </div>
 
 <div class="data-summary-card">

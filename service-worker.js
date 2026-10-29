@@ -1,4 +1,4 @@
-const CACHE = "focus-mode-plus-v17-navigation-clarity-v1";
+const CACHE = "focus-mode-plus-v17-1-cosmic-focus-v1";
 const CORE = [
   "./",
   "./index.html",
