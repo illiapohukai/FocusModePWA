@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<html class="dark" lang="de"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/><meta content="#05050a" name="theme-color"/><meta content="Focus Mode+ verbindet klare nächste Schritte, geschützte Fokus-Sitzungen und adaptive Focus Missions in einem interaktiven Prototyp." name="description"/><title>v17.1 Cosmic Focus</title><script src="https://cdn.tailwindcss.com"></script><script>tailwind.config={darkMode:'class'}</script><script src="https://unpkg.com/lucide@latest"></script><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>  <link rel="stylesheet" href="./styles/app.css" />
+<html class="dark" lang="de"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/><meta content="#05050a" name="theme-color"/><meta content="Focus Mode+ verbindet klare nächste Schritte, geschützte Fokus-Sitzungen und adaptive Focus Missions in einem interaktiven Prototyp." name="description"/><title>v17.2 Offline Ready</title><script src="https://cdn.tailwindcss.com"></script><script>window.tailwind=window.tailwind||{};tailwind.config={darkMode:'class'}</script><script src="https://unpkg.com/lucide@latest"></script><script>window.lucide=window.lucide||{createIcons:function(){}}</script><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>  <link rel="stylesheet" href="./styles/app.css" />
   <link rel="stylesheet" href="./styles/timer.css" />
   <link rel="stylesheet" href="./styles/recovery.css" />
   <link rel="stylesheet" href="./styles/quick-focus.css" />
@@ -110,6 +110,7 @@
 </div>
 </div>
 </div>
+<div aria-atomic="true" aria-live="polite" class="fm-offline-banner hidden" id="offlineStatusBanner" role="status"><span aria-hidden="true" class="fm-offline-banner-dot"></span><div class="fm-offline-banner-copy"><strong id="offlineBannerTitle">Offline-Modus</strong><span id="offlineBannerSub">Lokale Funktionen bleiben verfügbar. AI-Funktionen benötigen eine Internetverbindung.</span></div></div>
 <!-- ЭКРАНЫ ПРИЛОЖЕНИЯ -->
 <div class="flex-1 relative flex flex-col bg-slate-50 text-slate-900 transition-colors duration-300 hide-scrollbar" id="appBody">
 <!-- ЭКРАН 1: Startbildschirm (Home) -->
@@ -547,7 +548,7 @@
 <span class="text-[9px] font-black uppercase tracking-wider text-indigo-600 block">Lokale Datenstabilität</span>
 <h3 class="text-base font-black text-slate-900 truncate">Daten &amp; Backup</h3>
 </div>
-<span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100" id="dataAppVersionBadge">v17.1 Cosmic Focus</span>
+<span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100" id="dataAppVersionBadge">v17.2 Offline Ready</span>
 </div>
 
 <div class="data-summary-card">

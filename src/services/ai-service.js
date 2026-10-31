@@ -8,6 +8,31 @@ let missionImagePreviewUrl=null;
 let pendingAIPlan=null;
 let activeAIPlan=null;
 let aiRequestController=null;
+let analysisRowTimers=[];
+
+function isEnglishLanguage(){
+  try{
+    if(typeof document!=='undefined'&&document.documentElement.lang==='en')return true;
+    const saved=window.FocusModeApp?.services?.storage?.getText?.('focus-mode-language')||localStorage.getItem('focus-mode-language')||localStorage.getItem('focus_lang');
+    return saved==='en';
+  }catch(_){
+    return false;
+  }
+}
+
+function clearAnalysisRowTimers(){
+  while(analysisRowTimers.length){
+    clearTimeout(analysisRowTimers.pop());
+  }
+}
+
+function isOfflineOrNetworkFailure(error){
+  if(typeof navigator!=='undefined'&&navigator.onLine===false)return true;
+  if(!error)return false;
+  if(error.name==='AbortError')return false;
+  const msg=String(error?.message||error||'');
+  return error instanceof TypeError||/failed to fetch|networkerror|network request failed|load failed|offline|internet/i.test(msg);
+}
 
 function openRealFilePicker(cameraPreferred){
   const input=document.getElementById('missionFileInput');
@@ -48,19 +73,68 @@ async function compressMissionImage(file){
   return new File([blob],(file.name||'material').replace(/\.[^.]+$/, '')+'.jpg',{type:'image/jpeg',lastModified:Date.now()});
 }
 function formatBytes(bytes){return bytes<1048576?Math.max(1,Math.round(bytes/1024))+' KB':(bytes/1048576).toFixed(1).replace('.',',')+' MB'}
-function showMissionError(message){const box=document.getElementById('missionError');if(!box)return;box.textContent=message;box.classList.remove('hidden');setAppScreen('goal',{immediate:true});}
-function clearMissionError(){const box=document.getElementById('missionError');if(box){box.textContent='';box.classList.add('hidden')}}
+function showMissionError(message){
+  const box=document.getElementById('missionError');
+  if(!box)return;
+  delete box.dataset.offlineState;
+  box.textContent=message;
+  box.classList.remove('hidden');
+  setAppScreen('goal',{immediate:true});
+}
+function showMissionOfflineError(){
+  const box=document.getElementById('missionError');
+  if(!box)return;
+  const en=isEnglishLanguage();
+  box.dataset.offlineState='1';
+  const title=en?'No internet connection':'Keine Internetverbindung';
+  const line1=en?'Your AI Mission can be created when you are back online.':'Die AI-Mission kann erstellt werden, sobald du wieder online bist.';
+  const line2=en?'Your input has been preserved.':'Deine Eingaben bleiben erhalten.';
+  const retryLabel=en?'Try Again':'Erneut versuchen';
+  const backLabel=en?'Back':'Zurück';
+  box.innerHTML=
+    '<div class="mg-offline-state">'+
+      '<div class="mg-offline-title">'+escapeHTML(title)+'</div>'+
+      '<div class="mg-offline-copy"><span>'+escapeHTML(line1)+'</span><br><span>'+escapeHTML(line2)+'</span></div>'+
+      '<div class="mg-offline-actions">'+
+        '<button type="button" class="mg-offline-btn primary" id="missionOfflineRetryBtn" onclick="analyzeGoal()">'+escapeHTML(retryLabel)+'</button>'+
+        '<button type="button" class="mg-offline-btn secondary" id="missionOfflineBackBtn" onclick="clearMissionError();navigateBack()">'+escapeHTML(backLabel)+'</button>'+
+      '</div>'+
+    '</div>';
+  box.classList.remove('hidden');
+  setAppScreen('goal',{immediate:true});
+  try{box.scrollIntoView?.({block:'nearest',behavior:'smooth'});}catch(_){}
+}
+function clearMissionError(){
+  const box=document.getElementById('missionError');
+  if(box){
+    delete box.dataset.offlineState;
+    box.textContent='';
+    box.classList.add('hidden');
+  }
+}
+const hideMissionError=clearMissionError;
 function missionTypeForAPI(){const map={'Prüfung':'exam','Aufgabe':'assignment','Projekt':'project','Eigene Mission':'custom','Exam':'exam','Task':'assignment','Project':'project','Custom mission':'custom'};return map[selectedMissionTypeValue]||'custom'}
 function confidenceForAPI(){const v=(selectedMissionConfidenceValue||'').toLowerCase();if(v.includes('unsicher')||v.includes('uncertain'))return'uncertain';if(v==='sicher'||v.includes('confident'))return'confident';return'partial'}
 function resetAnalysisRows(){document.querySelectorAll('#analysisRows .analysis-row').forEach(row=>{row.classList.add('opacity-40');row.classList.remove('done');const icon=row.querySelector('.analysis-icon');if(icon)icon.innerHTML='<span class="flow-loader-dot w-1.5 h-1.5 bg-indigo-300 rounded-full"></span>'});}
 function completeAnalysisRow(index){const row=document.querySelectorAll('#analysisRows .analysis-row')[index];if(!row)return;row.classList.remove('opacity-40');row.classList.add('done');const icon=row.querySelector('.analysis-icon');if(icon)icon.innerHTML='<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i>';lucide.createIcons();}
 
 async function analyzeGoal(){
-  if(!selectedMissionTypeValue||!selectedMissionConfidenceValue)return;
-  const goalText=(document.getElementById('goalPrompt').value||'').trim();
-  if(!goalText&&!missionImageFile)return showMissionError('Beschreibe dein Ziel oder füge ein Foto hinzu.');
-  clearMissionError();resetAnalysisRows();setAppScreen('analyzing');
-  [450,950].forEach((t,i)=>setTimeout(()=>completeAnalysisRow(i),t));
+  const goalText=(document.getElementById('goalPrompt')?.value||'').trim();
+  const en=isEnglishLanguage();
+  if(!goalText&&!missionImageFile){
+    return showMissionError(en?'Please describe your goal or add a photo.':'Beschreibe dein Ziel oder füge ein Foto hinzu.');
+  }
+  if(typeof navigator!=='undefined'&&navigator.onLine===false){
+    clearAnalysisRowTimers();
+    return showMissionOfflineError();
+  }
+  if(!selectedMissionTypeValue)selectedMissionTypeValue=en?'Custom mission':'Eigene Mission';
+  if(!selectedMissionConfidenceValue)selectedMissionConfidenceValue=en?'50/50':'Teilsicher';
+  clearMissionError();
+  clearAnalysisRowTimers();
+  resetAnalysisRows();
+  setAppScreen('analyzing');
+  [450,950].forEach((t,i)=>analysisRowTimers.push(setTimeout(()=>completeAnalysisRow(i),t)));
   const button=document.getElementById('missionPlanButton');button?.classList.add('ai-loading');
   aiRequestController?.abort();aiRequestController=new AbortController();
   const timeout=setTimeout(()=>aiRequestController.abort(),120000);
@@ -73,7 +147,12 @@ async function analyzeGoal(){
     window.FocusModeApp.services.storage.setJSON('focus-mode-last-ai-plan',pendingAIPlan);
     setTimeout(()=>setAppScreen('confirm'),500);
   }catch(error){
+    clearAnalysisRowTimers();
     console.error('Focus AI request failed',error);
+    if(isOfflineOrNetworkFailure(error)){
+      showMissionOfflineError();
+      return;
+    }
     const message=error.name==='AbortError'?'Die Analyse hat zu lange gedauert. Bitte versuche es erneut.':'AI-Analyse nicht verfügbar: '+(error.message||'Unbekannter Fehler');
     showMissionError(message);
   }finally{clearTimeout(timeout);button?.classList.remove('ai-loading')}
@@ -93,4 +172,4 @@ function renderAIConfirmation(plan){
 }
 function formatMinutes(total){const m=Math.max(0,Math.round(Number(total)||0)),h=Math.floor(m/60),r=m%60;return h?(h+'h'+(r?' '+r+'m':'')):(r+' Min.')}
 function missionTypeLabel(type){return({exam:'Prüfung',assignment:'Aufgabe',project:'Projekt',custom:'Mission'})[type]||'Mission'}
-(function registerAIService(global){const App=global.FocusModeApp;if(App?.core?.registerModule&&!App.core.hasModule('services.ai')){App.services.ai=App.core.registerModule('services.ai',Object.freeze({endpoint:FOCUS_AI_ENDPOINT,adaptEndpoint:FOCUS_AI_ADAPT_ENDPOINT,timeoutMs:120000,analyzeGoal,normalizeAIPlan,missionTypeForAPI,confidenceForAPI,compressMissionImage}),{virtualPath:'src/services/ai-service.js',version:'15.4',status:'ai-boundary'});}})(window);
+(function registerAIService(global){const App=global.FocusModeApp;if(App?.core?.registerModule&&!App.core.hasModule('services.ai')){App.services.ai=App.core.registerModule('services.ai',Object.freeze({endpoint:FOCUS_AI_ENDPOINT,adaptEndpoint:FOCUS_AI_ADAPT_ENDPOINT,timeoutMs:120000,analyzeGoal,normalizeAIPlan,missionTypeForAPI,confidenceForAPI,compressMissionImage,showMissionOfflineError}),{virtualPath:'src/services/ai-service.js',version:'17.2',status:'ai-boundary'});}})(window);
