@@ -31,5 +31,5 @@
   document.getElementById('ucFocusCard')?.addEventListener('keydown',function(event){
     if(event.key==='Enter'||event.key===' '){event.preventDefault();showUcTask();}
   });
-  document.title='v15 Modular Baseline';
+  document.title='v17.3 Home System';
 })();

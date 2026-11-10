@@ -17,6 +17,17 @@ const oldResumeV115=resumeRecoveredSession;resumeRecoveredSession=function(){con
 const oldApplyScreenV115=applyAppScreenImmediately;applyAppScreenImmediately=function(screen){if(screen==='plan'){const m=missionRepository.getSelected();if(m){bindMissionCompatibilityV115(m);legacyRenderPlanV115(activeAIPlan)}}const r=oldApplyScreenV115.apply(this,arguments);if(screen==='home'||screen==='plan')setTimeout(renderMultiMissionUIV115,0);return r};
 document.addEventListener('DOMContentLoaded',()=>{migrateLegacyMissionV115();const st=loadMissionStoreV115(),initial=missionRepository.getById(st.selectedMissionId)||missionRepository.getPrimary();bindMissionCompatibilityV115(initial);if(initial)legacyRenderPlanV115(activeAIPlan);renderMultiMissionUIV115();console.info('[Missions]',{event:'v11_5_ready',active:missionRepository.getActive().length,selected:st.selectedMissionId,primary:st.primaryMissionId})},{once:true});
 
+function buildMissionNodesHTMLV173(steps){
+  if(!Array.isArray(steps)||!steps.length)return '';
+  return steps.map((s,idx)=>{
+    const num=String(idx+1).padStart(2,'0');
+    const stateClass=s.isCompleted?'completed':s.isCurrent?'active':'pending';
+    const dot=s.isCurrent?'<i class="mh-node-dot"></i>':'';
+    const line=idx<steps.length-1?'<span class="mh-node-line '+(s.isCompleted?'completed':'')+'"></span>':'';
+    return '<span class="mh-node '+stateClass+'"><span>'+num+'</span>'+dot+'</span>'+line;
+  }).join('');
+}
+
 function renderMultiMissionUIV115(){
   document.getElementById('secondaryMissionCard')?.remove();
   const active=missionRepository.getActive();
@@ -26,21 +37,37 @@ function renderMultiMissionUIV115(){
   const empty=document.getElementById('emptyMissionCard');
   const card=document.getElementById('activeMissionCard');
   if(home){
-    empty?.classList.add('hidden');card?.classList.remove('hidden');
-    const step=home.steps.find(x=>x.id===home.currentStepId);
-    const title=document.querySelector('#activeMissionCard h3');
-    const meta=document.querySelector('#activeMissionCard h3+p');
-    if(title)title.textContent=home.title;
-    if(meta)meta.textContent=home.subject+' · '+(home.deadlineText||'ohne Frist');
+    const vm=missionViewModelV116(home);
+    empty?.classList.add('hidden');
+    if(!document.getElementById('missionAuraShellV1181'))card?.classList.remove('hidden');
+    const roleEl=document.getElementById('homeMissionRoleLabel');
+    const stepCountEl=document.getElementById('homeMissionStepCounter');
+    const title=document.getElementById('homeMissionTitle')||document.querySelector('#activeMissionCard h3');
+    const meta=document.getElementById('homeMissionSubtitle')||document.querySelector('#activeMissionCard h3+p');
+    const durVal=document.getElementById('homeMissionDurationValue');
     const next=document.getElementById('homeMissionNextStep');
     const detail=document.getElementById('homeMissionMeta');
-    if(next)next.textContent=step?.title||'Mission abgeschlossen';
-    if(detail)detail.textContent=step?((step.task||step.reason)+' · ca. '+step.durationMinutes+' Min.'):'Alle Schritte bearbeitet';
-    const pct=home.steps.length?Math.round(home.progress.completedStepIds.length/home.steps.length*100):0;
+    const nodesRow=document.getElementById('homeMissionNodesRow');
     const percent=document.getElementById('homeMissionPercent');
     const bar=document.getElementById('homeMissionProgressBar');
-    if(percent)percent.textContent=pct+'%';if(bar)bar.style.width=pct+'%';
-    if(card)card.onclick=e=>{if(!e.target.closest('button')||e.target.closest('.active-mission-step'))openMission(home.id)};
+    const startBtn=document.getElementById('homeMissionStartStepBtn');
+    if(roleEl)roleEl.textContent=vm.isPrimary?'HAUPTMISSION':'AKTIVE MISSION';
+    if(stepCountEl)stepCountEl.textContent='SCHRITT '+String(vm.currentStepIndex).padStart(2,'0')+' / '+String(vm.totalSteps).padStart(2,'0');
+    if(title)title.textContent=vm.title;
+    if(meta)meta.textContent=vm.subject+' · '+vm.deadlineText;
+    if(durVal)durVal.textContent=String(vm.currentStepMinutes||25);
+    if(next)next.textContent=vm.currentStepTitle;
+    if(detail)detail.textContent=vm.currentStepTask;
+    if(nodesRow)nodesRow.innerHTML=buildMissionNodesHTMLV173(vm.steps);
+    if(percent)percent.textContent=vm.progressPercent+'%';
+    if(bar)bar.style.width=vm.progressPercent+'%';
+    if(startBtn){
+      startBtn.onclick=e=>{
+        e.stopPropagation();
+        prepareLearningSession(vm.id,vm.currentStepId);
+      };
+    }
+    if(card)card.onclick=e=>{if(!e.target.closest('button')||e.target.closest('.active-mission-step'))openMission(home.id,'home')};
   }else{
     empty?.classList.remove('hidden');card?.classList.add('hidden');
   }
@@ -56,11 +83,71 @@ function renderMultiMissionUIV115(){
 const MISSION_THEMES_V116=['violet','aqua'];
 let missionManagementFilterV116='active';
 function missionViewModelV116(m){
- const step=m?.steps?.find(x=>x.id===m.currentStepId)||null,total=m?.steps?.length||0,done=m?.progress?.completedStepIds?.length||0;
- return{id:m.id,title:m.title,subject:m.subject||'Allgemein',deadlineText:m.deadlineText||'ohne Frist',status:m.status,currentStepTitle:step?.title||'Mission abgeschlossen',currentStepMinutes:step?.durationMinutes||0,completedSteps:done,totalSteps:total,progressPercent:total?Math.min(100,Math.round(done/total*100)):0,isPrimary:m.id===missionRepository.getPrimaryId(),theme:MISSION_THEMES_V116[Math.abs([...m.id].reduce((a,c)=>a+c.charCodeAt(0),0))%MISSION_THEMES_V116.length]};
+ const stepsArr=Array.isArray(m?.steps)?m.steps:[];
+ const completedIds=Array.isArray(m?.progress?.completedStepIds)?m.progress.completedStepIds:[];
+ const stepIdx=stepsArr.findIndex(x=>x.id===m?.currentStepId);
+ const step=stepIdx>=0?stepsArr[stepIdx]:(stepsArr.find(x=>!completedIds.includes(x.id))||null);
+ const resolvedIdx=stepIdx>=0?stepIdx:(step?stepsArr.findIndex(x=>x.id===step.id):-1);
+ const total=stepsArr.length||0,done=completedIds.length||0;
+ const currentStepIndex=resolvedIdx>=0?(resolvedIdx+1):(total?Math.min(total,done+1):1);
+ const mappedSteps=stepsArr.map((s,idx)=>({
+   id:s.id,
+   index:idx+1,
+   title:s.title,
+   durationMinutes:s.durationMinutes||25,
+   isCompleted:completedIds.includes(s.id)||s.status==='completed',
+   isCurrent:Boolean(step&&s.id===step.id)
+ }));
+ return{
+   id:m.id,
+   title:m.title,
+   subject:m.subject||'Allgemein',
+   deadlineText:m.deadlineText||'ohne Frist',
+   status:m.status,
+   currentStepId:step?.id||m.currentStepId||null,
+   currentStepIndex,
+   currentStepTitle:step?.title||'Mission abgeschlossen',
+   currentStepTask:step?(step.task||step.reason||'Fokus-Schritt bearbeiten'):'Alle Schritte bearbeitet',
+   currentStepMinutes:step?.durationMinutes||0,
+   completedSteps:done,
+   totalSteps:total,
+   progressPercent:total?Math.min(100,Math.round(done/total*100)):0,
+   isPrimary:m.id===missionRepository.getPrimaryId(),
+   steps:mappedSteps,
+   createdAt:m.createdAt||Date.now(),
+   updatedAt:m.updatedAt||m.createdAt||Date.now(),
+   completedAt:m.completedAt||null,
+   archivedAt:m.archivedAt||null,
+   theme:MISSION_THEMES_V116[Math.abs([...m.id].reduce((a,c)=>a+c.charCodeAt(0),0))%MISSION_THEMES_V116.length]
+ };
 }
 function sortedActiveMissionsV116(){const active=missionRepository.getActive();const primary=missionRepository.getPrimaryId();return active.sort((a,b)=>a.id===primary?-1:b.id===primary?1:a.createdAt-b.createdAt)}
-function renderMissionHeroV116(vm){return '<button class="mission-hero-v116 theme-'+vm.theme+'" type="button" aria-label="Mission '+escapeHTML(vm.title)+' öffnen" onclick="openMission(\''+vm.id+'\')"><span class="mh-kicker"><i></i>'+(vm.isPrimary?'Hauptmission':'Focus Mission')+'</span><span class="mh-title">'+escapeHTML(vm.title)+'</span><span class="mh-meta">'+escapeHTML(vm.subject)+' · '+escapeHTML(vm.deadlineText)+'</span><span class="mh-step"><span class="mh-label">Nächster Schritt</span><span class="mh-step-title">'+escapeHTML(vm.currentStepTitle)+'</span>'+(vm.currentStepMinutes?'<span class="mh-duration">'+vm.currentStepMinutes+' Min.</span>':'')+'</span><span class="mh-progress"><span class="mh-progress-row"><span>Mission-Fortschritt</span><span>'+vm.progressPercent+'%</span></span><span class="mh-track"><i style="width:'+vm.progressPercent+'%"></i></span></span></button>'}
+function renderMissionHeroV116(vm){
+ const stepBadge='SCHRITT '+String(vm.currentStepIndex).padStart(2,'0')+' / '+String(vm.totalSteps).padStart(2,'0');
+ const roleLabel=vm.isPrimary?'HAUPTMISSION':'AKTIVE MISSION';
+ const durVal=vm.currentStepMinutes?String(vm.currentStepMinutes):'✓';
+ const durUnit=vm.currentStepMinutes?'MIN':'DONE';
+ const nodesHTML=buildMissionNodesHTMLV173(vm.steps);
+ const startCall=vm.currentStepId?('event.stopPropagation();prepareLearningSession(\''+vm.id+'\',\''+vm.currentStepId+'\')'):('event.stopPropagation();openMission(\''+vm.id+'\',\'home\')');
+ return '<article class="mission-hero-v116 theme-'+vm.theme+'" role="button" tabindex="0" aria-label="Mission '+escapeHTML(vm.title)+' öffnen" onclick="if(!event.target.closest(\'.mh-start-btn\'))openMission(\''+vm.id+'\',\'home\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openMission(\''+vm.id+'\',\'home\')}">'
+   +'<div class="mh-top-row"><span class="mh-kicker"><i></i><span>'+roleLabel+'</span></span><span class="mh-step-counter">'+stepBadge+'</span></div>'
+   +'<h3 class="mh-title">'+escapeHTML(vm.title)+'</h3>'
+   +'<p class="mh-meta">'+escapeHTML(vm.subject)+' · '+escapeHTML(vm.deadlineText)+'</p>'
+   +'<div class="mh-step">'
+     +'<div class="mh-duration-box"><span class="mh-duration-val">'+escapeHTML(durVal)+'</span><span class="mh-duration-unit">'+durUnit+'</span></div>'
+     +'<div class="mh-step-copy">'
+       +'<span class="mh-label">NÄCHSTER SCHRITT</span>'
+       +'<span class="mh-step-title">'+escapeHTML(vm.currentStepTitle)+'</span>'
+       +'<span class="mh-step-desc">'+escapeHTML(vm.currentStepTask)+'</span>'
+     +'</div>'
+   +'</div>'
+   +'<div class="mh-nodes-row">'+nodesHTML+'</div>'
+   +'<div class="mh-bottom-row">'
+     +'<button class="mh-start-btn" type="button" onclick="'+startCall+'"><span>Schritt starten</span><i data-lucide="play" class="w-3.5 h-3.5 fill-current"></i></button>'
+     +'<div class="mh-progress-readout"><span class="mh-progress-pct">'+vm.progressPercent+'%</span><span class="mh-progress-lbl">MISSION</span></div>'
+   +'</div>'
+ +'</article>';
+}
 function renderHomeCarouselV116(){
  const active=sortedActiveMissionsV116(),old=document.getElementById('missionCarouselV116'),card=document.getElementById('activeMissionCard'),empty=document.getElementById('emptyMissionCard');
  if(active.length<2){old?.remove();renderMultiMissionUIV115();return}
@@ -86,7 +173,36 @@ const openFocusChoicePreV116=openFocusChoice;openFocusChoice=function(){if(activ
 
 function ensureMissionManagementScreenV116(){
  if(document.getElementById('app-screen-missions'))return;
- const screen=document.createElement('div');screen.id='app-screen-missions';screen.className='app-screen hidden flex flex-col flex-1 min-h-0';screen.innerHTML='<div class="flex items-center justify-between mb-4 shrink-0"><div><div class="text-[8px] font-black uppercase tracking-[.16em] text-indigo-500">Focus Missions</div><h3 class="text-[19px] font-black text-slate-950 mt-0.5">Deine Missionen</h3></div><button class="w-11 h-11 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-sm" type="button" aria-label="Neue Focus Mission" onclick="newMissionFromManagerV116()"><i class="w-4 h-4" data-lucide="plus"></i></button></div><div class="mission-tabs-v116 mb-4"><button class="mission-tab-v116 active" type="button" data-filter="active" onclick="setMissionFilterV116(\'active\',this)">Aktiv</button><button class="mission-tab-v116" type="button" data-filter="completed" onclick="setMissionFilterV116(\'completed\',this)">Abgeschlossen</button><button class="mission-tab-v116" type="button" data-filter="archived" onclick="setMissionFilterV116(\'archived\',this)">Archiv</button></div><div id="missionManagementListV116" class="flex-1 space-y-2.5 pb-5"></div>';
+ const screen=document.createElement('div');
+ screen.id='app-screen-missions';
+ screen.className='app-screen hidden flex flex-col flex-1 min-h-0';
+ screen.innerHTML='<div class="flex items-center justify-between mb-3.5 shrink-0">'
+   +'<div><div class="text-[9px] font-extrabold uppercase tracking-[.16em] text-[#6D28D9]">Focus Missions</div><h3 class="text-[22px] font-black tracking-tight text-[#1D1A17] mt-0.5">Deine Missionen</h3></div>'
+   +'<button class="w-10 h-10 rounded-full bg-[#6D28D9] text-white flex items-center justify-center shadow-md shrink-0" type="button" aria-label="Neue Focus Mission" onclick="newMissionFromManagerV116()"><i class="w-4 h-4" data-lucide="plus"></i></button>'
+   +'</div>'
+   +'<div id="missionOverviewCardV173" class="dark-summary-card rounded-[22px] p-4 mb-3.5 shrink-0">'
+     +'<div class="flex items-center justify-between gap-3 mb-3">'
+       +'<div>'
+         +'<div class="text-[9px] font-extrabold uppercase tracking-[0.14em] text-white/60">MISSIONSSYSTEM</div>'
+         +'<div class="text-[22px] font-black tracking-tight text-white leading-none mt-1" id="missionOverviewActiveSlot">0 / 2 aktiv</div>'
+       +'</div>'
+       +'<div class="text-right">'
+         +'<div class="text-[10px] font-bold text-emerald-400" id="missionOverviewCapacityText">Slot frei</div>'
+         +'<div class="text-[9px] font-medium text-white/55 mt-0.5">Max. 2 parallel</div>'
+       +'</div>'
+     +'</div>'
+     +'<div class="grid grid-cols-3 gap-2 pt-2.5 border-t border-white/10">'
+       +'<div class="dark-summary-stat"><span class="dark-summary-val" id="missionOverviewActiveCount">0</span><span class="dark-summary-lbl">AKTIV</span></div>'
+       +'<div class="dark-summary-stat"><span class="dark-summary-val text-emerald-400" id="missionOverviewCompletedCount">0</span><span class="dark-summary-lbl">FERTIG</span></div>'
+       +'<div class="dark-summary-stat"><span class="dark-summary-val text-purple-300" id="missionOverviewStepsDoneCount">0</span><span class="dark-summary-lbl">SCHRITTE</span></div>'
+     +'</div>'
+   +'</div>'
+   +'<div class="mission-tabs-v116 mb-3.5 shrink-0">'
+     +'<button class="mission-tab-v116 active" type="button" data-filter="active" onclick="setMissionFilterV116(\'active\',this)">Aktiv</button>'
+     +'<button class="mission-tab-v116" type="button" data-filter="completed" onclick="setMissionFilterV116(\'completed\',this)">Abgeschlossen</button>'
+     +'<button class="mission-tab-v116" type="button" data-filter="archived" onclick="setMissionFilterV116(\'archived\',this)">Archiv</button>'
+   +'</div>'
+   +'<div id="missionManagementListV116" class="flex-1 space-y-2.5 pb-6 overflow-y-auto"></div>';
  document.getElementById('appBody').appendChild(screen);ensureMissionSheetV116();lucide.createIcons();
 }
 function ensureMissionSheetV116(){if(document.getElementById('missionSheetV116'))return;const sheet=document.createElement('div');sheet.id='missionSheetV116';sheet.onclick=e=>{if(e.target===sheet)closeMissionSheetV116()};sheet.innerHTML='<div class="mission-sheet-card-v116" id="missionSheetCardV116"></div>';document.getElementById('screenWrapper').appendChild(sheet)}
@@ -99,10 +215,83 @@ function archiveMissionV116(id){if(missionHasActiveSessionV116(id))return{ok:fal
 const repoArchiveV116=missionRepository.archive.bind(missionRepository);missionRepository.archive=function(id){const m=this.getById(id);if(!m)return{ok:false,error:'mission_not_found'};if(missionHasActiveSessionV116(id))return{ok:false,error:'active_session_exists'};const r=this.update(id,{status:'archived',archivedAt:Date.now(),archivedCurrentStepId:m.currentStepId,currentStepId:null});return r?{ok:true,mission:r}:{ok:false,error:'mission_not_found'}};
 missionRepository.rename=renameMissionV116;missionRepository.restore=restoreMissionV116;missionRepository.getCompleted=function(){return this.getAll().filter(x=>x.status==='completed')};missionRepository.getArchived=function(){return this.getAll().filter(x=>x.status==='archived')};
 function setMissionFilterV116(filter,button){missionManagementFilterV116=filter;document.querySelectorAll('.mission-tab-v116').forEach(x=>x.classList.toggle('active',x===button));renderMissionManagementV116()}
+function formatMissionShortDateV173(ts){
+ if(!ts)return '';
+ try{return new Intl.DateTimeFormat('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'}).format(new Date(ts));}catch{return '';}
+}
 function renderMissionManagementV116(){
- ensureMissionManagementScreenV116();const list=document.getElementById('missionManagementListV116');const all=missionRepository.getAll(),items=all.filter(x=>x.status===missionManagementFilterV116);list.replaceChildren();
- if(!items.length){const e=document.createElement('div');e.className='missions-empty-v116';e.innerHTML='<i data-lucide="folder-open"></i><div class="text-[14px] font-black text-slate-900">Keine Missionen</div><div class="text-[10px] leading-relaxed mt-2">In diesem Bereich gibt es noch keine Mission.</div>';list.append(e);lucide.createIcons();return}
- items.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).forEach(m=>{const v=missionViewModelV116(m),card=document.createElement('article');card.className='mission-manage-card-v116';card.innerHTML='<div class="mmc-top"><span class="mmc-icon"><i data-lucide="target"></i></span><span class="mmc-copy">'+(v.isPrimary?'<span class="mmc-primary">Hauptmission</span>':'')+'<span class="mmc-title">'+escapeHTML(v.title)+'</span><span class="mmc-meta">'+escapeHTML(v.subject)+' · '+v.completedSteps+' von '+v.totalSteps+' Schritten</span></span><button class="mmc-menu" type="button" aria-label="Mission verwalten"><i data-lucide="ellipsis"></i></button></div><div class="mmc-track"><i style="width:'+v.progressPercent+'%"></i></div><div class="mmc-foot"><span>'+v.currentStepTitle+'</span><span>'+v.progressPercent+'%</span></div>';card.querySelector('.mmc-copy').onclick=()=>openMission(m.id);card.querySelector('.mmc-menu').onclick=()=>openMissionActionsV116(m.id);list.append(card)});lucide.createIcons();
+ ensureMissionManagementScreenV116();
+ const list=document.getElementById('missionManagementListV116');
+ const all=missionRepository.getAll();
+ const activeList=all.filter(x=>x.status==='active');
+ const completedList=all.filter(x=>x.status==='completed');
+ const archivedList=all.filter(x=>x.status==='archived');
+ const totalStepsDone=all.reduce((acc,m)=>acc+(m.progress?.completedStepIds?.length||0),0);
+ const slotEl=document.getElementById('missionOverviewActiveSlot');
+ const capEl=document.getElementById('missionOverviewCapacityText');
+ const actCountEl=document.getElementById('missionOverviewActiveCount');
+ const compCountEl=document.getElementById('missionOverviewCompletedCount');
+ const stepsDoneEl=document.getElementById('missionOverviewStepsDoneCount');
+ if(slotEl)slotEl.textContent=activeList.length+' / 2 aktiv';
+ if(capEl){
+   capEl.textContent=activeList.length>=2?'Beide Plätze belegt':(2-activeList.length)+' Platz frei';
+   capEl.className='text-[10px] font-bold '+(activeList.length>=2?'text-amber-300':'text-emerald-400');
+ }
+ if(actCountEl)actCountEl.textContent=String(activeList.length);
+ if(compCountEl)compCountEl.textContent=String(completedList.length);
+ if(stepsDoneEl)stepsDoneEl.textContent=String(totalStepsDone);
+
+ const items=all.filter(x=>x.status===missionManagementFilterV116);
+ list.replaceChildren();
+ if(!items.length){
+   const emptyCopy={
+     active:{title:'Keine aktiven Missionen',sub:'Erstelle eine neue Focus Mission, um dein Ziel in klare Schritte aufzuteilen.',cta:true},
+     completed:{title:'Noch keine abgeschlossenen Missionen',sub:'Abgeschlossene Missionen erscheinen hier, sobald alle Schritte erledigt sind.',cta:false},
+     archived:{title:'Archiv ist leer',sub:'Archivierte Missionen werden hier gespeichert und können jederzeit wiederhergestellt werden.',cta:false}
+   }[missionManagementFilterV116]||{title:'Keine Missionen',sub:'In diesem Bereich gibt es noch keine Mission.',cta:false};
+   const e=document.createElement('div');
+   e.className='missions-empty-v116';
+   e.innerHTML='<i data-lucide="folder-open"></i><div class="text-[14px] font-black text-[#1D1A17]">'+emptyCopy.title+'</div><div class="text-[11px] text-[#766E65] leading-relaxed mt-1.5">'+emptyCopy.sub+'</div>'+(emptyCopy.cta?'<button type="button" class="mt-3.5 px-4 py-2 rounded-full bg-[#6D28D9] text-white text-[11px] font-extrabold shadow-sm" onclick="newMissionFromManagerV116()">+ Neue Mission starten</button>':'');
+   list.append(e);
+   lucide.createIcons();
+   return;
+ }
+ items.sort((a,b)=>a.id===missionRepository.getPrimaryId()?-1:b.id===missionRepository.getPrimaryId()?1:(b.updatedAt||0)-(a.updatedAt||0)).forEach(m=>{
+   const v=missionViewModelV116(m);
+   const card=document.createElement('article');
+   card.className='mission-manage-card-v116';
+   const dateStr=v.status==='completed'?('Abgeschlossen · '+formatMissionShortDateV173(v.completedAt||v.updatedAt)):v.status==='archived'?('Archiviert · '+formatMissionShortDateV173(v.archivedAt||v.updatedAt)):(v.deadlineText||'ohne Frist');
+   const badgeHTML=v.status==='active'
+     ?(v.isPrimary?'<span class="mmc-primary">Hauptmission</span>':'<span class="mmc-badge-secondary">Aktive Mission</span>')
+     :(v.status==='completed'?'<span class="mmc-badge-completed">Abgeschlossen</span>':'<span class="mmc-badge-archived">Archiviert</span>');
+   const stepInfo=v.status==='active'
+     ?('Nächster Schritt: '+escapeHTML(v.currentStepTitle)+(v.currentStepMinutes?(' · '+v.currentStepMinutes+' Min.'):''))
+     :('Alle '+v.completedSteps+' von '+v.totalSteps+' Schritten gespeichert');
+   const quickBtn=v.status==='active'&&v.currentStepId
+     ?'<button type="button" class="mmc-action-btn primary" onclick="event.stopPropagation();prepareLearningSession(\''+m.id+'\',\''+v.currentStepId+'\')"><i data-lucide="play" class="w-3 h-3 fill-current"></i><span>Schritt starten</span></button>'
+     :v.status==='archived'
+       ?'<button type="button" class="mmc-action-btn" onclick="event.stopPropagation();restoreMissionActionV116(\''+m.id+'\')"><i data-lucide="rotate-ccw" class="w-3 h-3"></i><span>Wiederherstellen</span></button>'
+       :'';
+   card.innerHTML='<div class="mmc-top">'
+     +'<span class="mmc-icon"><i data-lucide="'+(v.status==='completed'?'check-circle-2':v.status==='archived'?'archive':'target')+'"></i></span>'
+     +'<span class="mmc-copy">'
+       +'<span class="mmc-badges-row">'+badgeHTML+'<span class="mmc-subject-pill">'+escapeHTML(v.subject)+'</span></span>'
+       +'<span class="mmc-title">'+escapeHTML(v.title)+'</span>'
+       +'<span class="mmc-meta">'+escapeHTML(dateStr)+' · '+v.completedSteps+' von '+v.totalSteps+' Schritten</span>'
+     +'</span>'
+     +'<button class="mmc-menu" type="button" aria-label="Mission verwalten"><i data-lucide="ellipsis"></i></button>'
+   +'</div>'
+   +'<div class="mmc-track"><i style="width:'+v.progressPercent+'%"></i></div>'
+   +'<div class="mmc-foot"><span class="truncate">'+stepInfo+'</span><span class="font-extrabold text-[#1D1A17] shrink-0">'+v.progressPercent+'%</span></div>'
+   +'<div class="mmc-actions-row">'
+     +'<button type="button" class="mmc-action-btn outline" onclick="event.stopPropagation();openMission(\''+m.id+'\',\'missions\')">Mission öffnen</button>'
+     +quickBtn
+   +'</div>';
+   card.querySelector('.mmc-copy').onclick=()=>openMission(m.id,'missions');
+   card.querySelector('.mmc-menu').onclick=e=>{e.stopPropagation();openMissionActionsV116(m.id)};
+   list.append(card);
+ });
+ lucide.createIcons();
 }
 function openMissionManagementV116(){closeFocusChoice();ensureMissionManagementScreenV116();renderMissionManagementV116();if(typeof navigateToRoot==='function')navigateToRoot('missions');else setAppScreen('missions',{immediate:true})}
 function openMissionManagementFromSettings(){openMissionManagementV116()}
@@ -122,4 +311,4 @@ function deleteMissionActionV116(id){const r=missionRepository.delete(id);if(!r.
 function refreshMissionUIV116(){renderMultiMissionUIV115();renderHomeCarouselV116();renderFocusChoiceV116();if(document.getElementById('app-screen-missions'))renderMissionManagementV116();const selected=missionRepository.getSelected();if(selected){bindMissionCompatibilityV115(selected);if(!document.getElementById('app-screen-plan').classList.contains('hidden'))renderAIPlan(activeAIPlan)}}
 const applyScreenBeforeV116=applyAppScreenImmediately;applyAppScreenImmediately=function(screen){const r=applyScreenBeforeV116.apply(this,arguments);if(screen==='home')setTimeout(renderHomeCarouselV116,0);if(screen==='missions')setTimeout(renderMissionManagementV116,0);return r};
 const createBeforeV116=missionRepository.create.bind(missionRepository);missionRepository.create=function(input){const r=createBeforeV116(input);if(r.ok)setTimeout(refreshMissionUIV116,0);return r};
-document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{ensureMissionManagementScreenV116();refreshMissionUIV116();console.info('[MissionsUX]',{event:'v11_6_ready',active:missionRepository.getActive().length})},260),{once:true});
+document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{ensureMissionManagementScreenV116();refreshMissionUIV116();console.info('[MissionsUX]',{event:'v17_3_ready',active:missionRepository.getActive().length})},260),{once:true});

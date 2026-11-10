@@ -18,11 +18,11 @@
 
 .data-summary-card,
 .dm-card {
-  background: #ffffff;
-  border: 1px solid rgba(226, 232, 240, 0.85);
+  background: #FCF9F4;
+  border: 1px solid rgba(45, 35, 30, 0.10);
   border-radius: 20px;
   padding: 14px;
-  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03);
+  box-shadow: 0 4px 14px rgba(37, 22, 43, 0.04);
 }
 
 .data-summary-grid,
@@ -34,8 +34,8 @@
 
 .data-stat-box,
 .dm-stat-box {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: #EFE9DD;
+  border: 1px solid rgba(45, 35, 30, 0.08);
   border-radius: 14px;
   padding: 9px 11px;
   min-width: 0;
@@ -48,7 +48,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #64748b;
+  color: #766E65;
 }
 
 .data-stat-value,
@@ -56,7 +56,7 @@
   display: block;
   font-size: 13px;
   font-weight: 900;
-  color: #0f172a;
+  color: #1D1A17;
   margin-top: 2px;
   overflow-wrap: anywhere;
 }
@@ -66,19 +66,18 @@
   min-height: 52px;
   padding: 11px 13px;
   border-radius: 18px;
-  background: #ffffff;
-  border: 1px solid rgba(226, 232, 240, 0.9);
+  background: #FCF9F4;
+  border: 1px solid rgba(45, 35, 30, 0.10);
   display: flex;
   align-items: center;
   gap: 11px;
   text-align: left;
   transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
-  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.02);
+  box-shadow: 0 2px 8px rgba(37, 22, 43, 0.03);
 }
 
 .data-action-btn:hover {
-  background: #f8fafc;
-  border-color: #cbd5e1;
+  background: #EFE9DD;
 }
 
 .data-action-btn:active {
@@ -86,21 +85,21 @@
 }
 
 .data-action-btn.primary {
-  background: linear-gradient(135deg, #eef2ff 0%, #ffffff 100%);
-  border-color: #c7d2fe;
+  background: linear-gradient(135deg, #F3E8FF 0%, #FCF9F4 100%);
+  border-color: #C4B5FD;
 }
 
 .data-action-btn.danger {
-  background: linear-gradient(135deg, #fff1f2 0%, #ffffff 100%);
-  border-color: #fecdd3;
+  background: linear-gradient(135deg, #FFF1F2 0%, #FCF9F4 100%);
+  border-color: #FECDD3;
 }
 
 .data-action-icon {
   width: 34px;
   height: 34px;
   border-radius: 12px;
-  background: #f1f5f9;
-  color: #334155;
+  background: #EFE9DD;
+  color: #1D1A17;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -108,13 +107,13 @@
 }
 
 .data-action-btn.primary .data-action-icon {
-  background: #e0e7ff;
-  color: #4f46e5;
+  background: #E9D5FF;
+  color: #6D28D9;
 }
 
 .data-action-btn.danger .data-action-icon {
-  background: #ffe4e6;
-  color: #e11d48;
+  background: #FFE4E6;
+  color: #E11D48;
 }
 
 .data-action-copy {

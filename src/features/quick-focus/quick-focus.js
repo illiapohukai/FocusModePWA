@@ -4,8 +4,26 @@
 
 let quickDuration=25, quickBreak=5, distractionReturnScreen='quicksetup';
 function openQuickSetupFromChoice(){closeFocusChoice();setTimeout(()=>setAppScreen('quicksetup'),180)}
+function openQuickSetupFromHome(){
+  if(window.activeSession||window.sessionRecoveryCandidate||(typeof getRecoverableSessionV1151==='function'&&getRecoverableSessionV1151())){
+    if(typeof routeExistingSessionV1151==='function'){routeExistingSessionV1151();return;}
+  }
+  if(typeof navigateForward==='function'){
+    navigateForward('quicksetup',{parent:'home',rootSection:'home',reopenFocusChoice:false,options:{immediate:true}});
+  }else{
+    setAppScreen('quicksetup');
+  }
+}
+window.openQuickSetupFromHome=openQuickSetupFromHome;
 function selectQuickDuration(btn,value){quickDuration=value;updateQuickRing()}
-function updateQuickRing(){const v=document.getElementById('quickMinuteValue'),r=document.getElementById('quickRingProgress');if(v)v.textContent=quickDuration;if(r){const c=2*Math.PI*69,p=Math.max(0,Math.min(1,(quickDuration-5)/55));r.style.strokeDasharray=c;r.style.strokeDashoffset=c*(1-p)}document.querySelectorAll('#quickDurationButtons .quick-option').forEach(b=>b.classList.toggle('active',parseInt(b.textContent,10)===quickDuration))}
+function updateQuickRing(){
+  const v=document.getElementById('quickMinuteValue'),r=document.getElementById('quickRingProgress');
+  if(v)v.textContent=quickDuration;
+  const homeLbl=document.getElementById('homeQuickDurationLabel');
+  if(homeLbl)homeLbl.textContent=quickDuration+' MIN';
+  if(r){const c=2*Math.PI*69,p=Math.max(0,Math.min(1,(quickDuration-5)/55));r.style.strokeDasharray=c;r.style.strokeDashoffset=c*(1-p)}
+  document.querySelectorAll('#quickDurationButtons .quick-option').forEach(b=>b.classList.toggle('active',parseInt(b.textContent,10)===quickDuration));
+}
 function adjustQuickDuration(d){quickDuration=Math.max(5,Math.min(60,quickDuration+d));updateQuickRing()}
 function selectQuickBreak(btn,value){quickBreak=value;document.querySelectorAll('#quickBreakButtons .quick-option').forEach(x=>x.classList.remove('active'));btn.classList.add('active')}
 function openDistractionPicker(returnScreen){distractionReturnScreen=returnScreen||'quicksetup';setAppScreen('distractions')}
@@ -36,5 +54,5 @@ document.addEventListener("DOMContentLoaded",()=>{quickBreak=0;updateQuickRing()
     document.documentElement.classList.toggle('quick-focus-surface',screenName==='quicksetup');
     return result;
   };
-  document.title='v15 Modular Baseline';
+  document.title='v17.3 Home System';
 })();

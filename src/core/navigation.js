@@ -411,7 +411,7 @@ function finishLearningFlow(){
      document.body.classList.remove('zen-active');
    }
 
-let appScreenTransitionToken=0,appScreenAnimation=null;function getAppTransitionDuration(){if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return 0;return window.matchMedia('(max-width: 980px)').matches?760:520}function animateAppBody(frames,duration,easing){const body=document.getElementById('appBody');if(!body||duration===0)return Promise.resolve();if(appScreenAnimation)appScreenAnimation.cancel();appScreenAnimation=body.animate(frames,{duration,easing,fill:'forwards'});return appScreenAnimation.finished.catch(()=>{})}async function setAppScreen(screenName,options={}){const target=document.getElementById(`app-screen-${screenName}`);if(!target)return;const token=++appScreenTransitionToken,duration=options.immediate?0:getAppTransitionDuration(),visible=document.querySelector('.app-screen:not(.hidden)'),current=visible?.id?.replace('app-screen-','');if(duration===0||!visible||current===screenName){if(appScreenAnimation)appScreenAnimation.cancel();applyAppScreenImmediately(screenName);const body=document.getElementById('appBody');if(body){body.style.opacity='';body.style.transform='';body.style.filter=''}return}const out=Math.round(duration*.44),inside=duration-out;await animateAppBody([{opacity:1,transform:'translate3d(0,0,0) scale(1)',filter:'blur(0px)'},{opacity:.18,transform:'translate3d(0,-10px,0) scale(.992)',filter:'blur(5px)'}],out,'cubic-bezier(.4,0,.6,1)');if(token!==appScreenTransitionToken)return;applyAppScreenImmediately(screenName);await animateAppBody([{opacity:.18,transform:'translate3d(0,12px,0) scale(.992)',filter:'blur(5px)'},{opacity:1,transform:'translate3d(0,0,0) scale(1)',filter:'blur(0px)'}],inside,'cubic-bezier(.16,1,.3,1)');if(token!==appScreenTransitionToken)return;const body=document.getElementById('appBody');if(body){body.style.opacity='';body.style.transform='';body.style.filter=''}}
+let appScreenTransitionToken=0,appScreenAnimation=null;function getAppTransitionDuration(){if(document.body?.classList.contains('pwa-app')||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return 0;return window.matchMedia('(max-width: 980px)').matches?760:520}function animateAppBody(frames,duration,easing){const body=document.getElementById('appBody');if(!body||duration===0)return Promise.resolve();if(appScreenAnimation)appScreenAnimation.cancel();appScreenAnimation=body.animate(frames,{duration,easing,fill:'forwards'});return appScreenAnimation.finished.catch(()=>{})}async function setAppScreen(screenName,options={}){const target=document.getElementById(`app-screen-${screenName}`);if(!target)return;const token=++appScreenTransitionToken,duration=options.immediate?0:getAppTransitionDuration(),visible=document.querySelector('.app-screen:not(.hidden)'),current=visible?.id?.replace('app-screen-','');if(duration===0||!visible||current===screenName){if(appScreenAnimation)appScreenAnimation.cancel();applyAppScreenImmediately(screenName);const body=document.getElementById('appBody');if(body){body.style.opacity='';body.style.transform='';body.style.filter=''}return}const out=Math.round(duration*.44),inside=duration-out;await animateAppBody([{opacity:1,transform:'translate3d(0,0,0) scale(1)',filter:'blur(0px)'},{opacity:.18,transform:'translate3d(0,-10px,0) scale(.992)',filter:'blur(5px)'}],out,'cubic-bezier(.4,0,.6,1)');if(token!==appScreenTransitionToken)return;applyAppScreenImmediately(screenName);await animateAppBody([{opacity:.18,transform:'translate3d(0,12px,0) scale(.992)',filter:'blur(5px)'},{opacity:1,transform:'translate3d(0,0,0) scale(1)',filter:'blur(0px)'}],inside,'cubic-bezier(.16,1,.3,1)');if(token!==appScreenTransitionToken)return;const body=document.getElementById('appBody');if(body){body.style.opacity='';body.style.transform='';body.style.filter=''}}
 
 const chapters=[...document.querySelectorAll('.chapter')],mainMount=document.getElementById('mainMount'),modalMount=document.getElementById('modalMount'),device=document.getElementById('iphoneFrame');let last='home';
 function dismissDistractionPopup(){const p=document.getElementById('screen-popup-ablenkung'),c=document.getElementById('popupContentAblenkung');if(!p||p.classList.contains('hidden'))return;p.classList.add('opacity-0');p.classList.remove('opacity-100');if(c){c.classList.add('scale-95','opacity-0');c.classList.remove('scale-100','opacity-100')}setTimeout(()=>p.classList.add('hidden'),300)}
@@ -445,6 +445,7 @@ let activeChapterIndex=-1;
 let chapterUpdateQueued=false;
 function updateActiveChapter(){
  chapterUpdateQueued=false;
+ if(document.body?.classList.contains('pwa-app'))return;
  const focusLine=window.scrollY+(window.innerHeight*.52);
  let nextIndex=0;
  for(let i=0;i<chapters.length;i++){
@@ -476,7 +477,7 @@ const standalone=matchMedia('(display-mode: standalone)').matches||navigator.sta
 const darkScreens=new Set(['timer','premium','analyzing','feedbackprocessing','update']);
 function syncPWAChrome(screen){
  const dark=darkScreens.has(screen),isTimer=screen==='timer',root=document.documentElement;
- const bg=isTimer?'#050714':(dark?'#0f1328':'#f8fafc');
+ const bg=isTimer?'#050714':(dark?'#0f1328':'#F6F1E7');
  root.classList.toggle('pwa-dark-status',dark);
  root.classList.toggle('pwa-timer-active',isTimer);
  root.style.setProperty('--pwa-status-bg',bg);
@@ -903,6 +904,14 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
       if (typeof global.renderMissionManagementV116 === 'function') {
         global.renderMissionManagementV116();
       }
+    } else if (section === 'history') {
+      if (typeof global.renderSessionHistory === 'function') {
+        global.renderSessionHistory();
+      }
+    } else if (section === 'home') {
+      if (typeof global.refreshHomeStats === 'function') {
+        global.refreshHomeStats();
+      }
     }
 
     const fromScreen = getVisibleScreenName();
@@ -1018,13 +1027,17 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
     }
 
     if (current === 'quicksetup') {
+      const topEntry = navState.navigationStack.pop();
+      const shouldReopenChoice = topEntry ? Boolean(topEntry.reopenFocusChoice) : true;
       navState.navigationStack = [];
       global.setAppScreen('home', { immediate: true, __fromNavController: true });
-      setTimeout(() => {
-        if (typeof global.openFocusChoice === 'function') {
-          global.openFocusChoice();
-        }
-      }, 30);
+      if (shouldReopenChoice) {
+        setTimeout(() => {
+          if (typeof global.openFocusChoice === 'function') {
+            global.openFocusChoice();
+          }
+        }, 30);
+      }
       return true;
     }
 

@@ -1,4 +1,4 @@
-const CACHE = "focus-mode-v17-2-offline-ready";
+const CACHE = "focus-mode-v17-3-home-system";
 const CACHE_PREFIX = "focus-mode";
 
 const CORE = [

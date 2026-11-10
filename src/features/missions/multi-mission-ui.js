@@ -71,11 +71,41 @@
 })();
 
 (function(){
- const colors={violet:[99,102,241],aqua:[20,184,166],create:[124,58,237]};let raf=0;
- function createSlide(){return '<button class="mission-create-v1181" data-aura="create" type="button" onclick="openGoalIntake()"><span class="mc-icon"><i data-lucide="plus"></i></span><span class="mc-kicker">Neue Focus Mission</span><span class="mc-title">Weitere Mission erstellen</span><span class="mc-copy">Plane eine weitere wichtige Aufgabe und verwandle sie in klare Fokus-Schritte.</span></button>'}
+ const colors={violet:[109,40,217],aqua:[124,58,237],create:[109,40,217]};let raf=0;
  function mix(a,b,t){return a.map((v,i)=>Math.round(v+(b[i]-v)*t))}
  function paint(host){raf=0;const shell=host?.parentElement;if(!host||!shell)return;const slides=[...host.children];if(!slides.length)return;const center=host.scrollLeft+host.clientWidth/2;const ranked=slides.map(el=>({el,d:Math.abs(el.offsetLeft+el.offsetWidth/2-center)})).sort((a,b)=>a.d-b.d);const a=ranked[0],b=ranked[1]||a,span=Math.max(1,Math.abs((b.el.offsetLeft+b.el.offsetWidth/2)-(a.el.offsetLeft+a.el.offsetWidth/2))),t=Math.min(1,a.d/span),rgb=mix(colors[a.el.dataset.aura]||colors.violet,colors[b.el.dataset.aura]||colors.violet,t).join(',');shell.style.setProperty('--aura',rgb);shell.style.setProperty('--aura-shift',Math.max(-20,Math.min(20,(center-(a.el.offsetLeft+a.el.offsetWidth/2))*.13))+'px');document.querySelector('#app-screen-home .home-scroll-content')?.style.setProperty('--home-aura',rgb)}
- window.renderHomeCarouselV116=function(){const active=sortedActiveMissionsV116();document.getElementById('missionAuraShellV1181')?.remove();const card=document.getElementById('activeMissionCard'),empty=document.getElementById('emptyMissionCard');if(!active.length){document.body.classList.remove('mission-aura-active');renderMultiMissionUIV115();return}document.body.classList.add('mission-aura-active');card?.classList.add('hidden');empty?.classList.add('hidden');const shell=document.createElement('div');shell.id='missionAuraShellV1181';const host=document.createElement('div');host.id='missionCarouselV1181';host.innerHTML=active.map(m=>{const vm=missionViewModelV116(m);return renderMissionHeroV116(vm).replace('class="mission-hero-v116','data-aura="'+vm.theme+'" class="mission-hero-v116')}).join('')+(active.length===1?createSlide():'');shell.append(host);card.insertAdjacentElement('afterend',shell);host.addEventListener('scroll',()=>{if(!raf)raf=requestAnimationFrame(()=>paint(host))},{passive:true});requestAnimationFrame(()=>paint(host));lucide.createIcons();window.fitMissionCardTitlesV117?.()};
+ window.renderHomeCarouselV116=function(){
+   const active=sortedActiveMissionsV116();
+   document.getElementById('missionAuraShellV1181')?.remove();
+   const card=document.getElementById('activeMissionCard'),empty=document.getElementById('emptyMissionCard');
+   if(!active.length){
+     document.body.classList.remove('mission-aura-active','mission-carousel-active');
+     renderMultiMissionUIV115();
+     return;
+   }
+   document.body.classList.add('mission-aura-active');
+   document.body.classList.toggle('mission-carousel-active',active.length>1);
+   card?.classList.add('hidden');
+   empty?.classList.add('hidden');
+   const shell=document.createElement('div');
+   shell.id='missionAuraShellV1181';
+   shell.className=active.length===1?'single-mission-shell':'multi-mission-shell';
+   const host=document.createElement('div');
+   host.id='missionCarouselV1181';
+   host.className=active.length===1?'single-mission':'multi-mission';
+   host.innerHTML=active.map(m=>{
+     const vm=missionViewModelV116(m);
+     return renderMissionHeroV116(vm).replace('class="mission-hero-v116','data-aura="'+vm.theme+'" class="mission-hero-v116');
+   }).join('');
+   shell.append(host);
+   card.insertAdjacentElement('afterend',shell);
+   if(active.length>1){
+     host.addEventListener('scroll',()=>{if(!raf)raf=requestAnimationFrame(()=>paint(host))},{passive:true});
+   }
+   requestAnimationFrame(()=>paint(host));
+   lucide.createIcons();
+   window.fitMissionCardTitlesV117?.();
+ };
  const oldApply=window.applyAppScreenImmediately;window.applyAppScreenImmediately=function(screen){const r=oldApply.apply(this,arguments);if(screen==='home')setTimeout(renderHomeCarouselV116,0);return r};
  const oldRefresh=window.refreshMissionUIV116;if(typeof oldRefresh==='function')window.refreshMissionUIV116=function(){const r=oldRefresh.apply(this,arguments);renderHomeCarouselV116();return r};
  document.addEventListener('DOMContentLoaded',()=>setTimeout(renderHomeCarouselV116,360),{once:true});

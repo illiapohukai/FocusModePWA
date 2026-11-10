@@ -229,7 +229,22 @@ function renderAIPlan(plan){
 const oldFinishV81=finishLearningFlow;finishLearningFlow=function(){oldFinishV81();setTimeout(refreshHomeStats,20)};
 document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{refreshHomeStats();if(activeAIPlan)renderAIPlan(activeAIPlan)},30));
 
-function syncHomeHeroV103(){const empty=document.getElementById('emptyMissionCard'),active=document.getElementById('activeMissionCard'),current=(activeAIPlan&&typeof getCurrentMissionSession==='function')?getCurrentMissionSession():null,has=Boolean(activeAIPlan&&current);empty?.classList.toggle('hidden',has);active?.classList.toggle('hidden',!has);if(!has){lucide.createIcons();return}const title=document.querySelector('#activeMissionCard h3'),meta=document.querySelector('#activeMissionCard h3+p'),next=document.getElementById('homeMissionNextStep'),task=document.getElementById('homeMissionMeta'),step=document.querySelector('#activeMissionCard .active-mission-step');if(title){title.textContent=activeAIPlan.goal?.title||'Focus Mission';title.style.fontSize=title.textContent.length>76?'17.5px':title.textContent.length>58?'18.5px':''}if(meta)meta.textContent=(activeAIPlan.goal?.subject||'Allgemein')+' · '+(activeAIPlan.goal?.deadlineText||'ohne Frist');if(next)next.textContent=current.title||'Nächster Schritt';if(task)task.textContent=current.task||current.reason||'Nächsten Schritt bearbeiten';let b=document.getElementById('homeMissionDurationV103');if(!b&&step){b=document.createElement('span');b.id='homeMissionDurationV103';step.appendChild(b)}if(b)b.textContent=current.durationMinutes+' Min.';lucide.createIcons()}
+function syncHomeHeroV103(){
+  if(typeof window.renderHomeCarouselV116==='function'&&typeof missionRepository!=='undefined'){
+    window.renderHomeCarouselV116();
+    return;
+  }
+  const empty=document.getElementById('emptyMissionCard'),active=document.getElementById('activeMissionCard'),current=(activeAIPlan&&typeof getCurrentMissionSession==='function')?getCurrentMissionSession():null,has=Boolean(activeAIPlan&&current);
+  empty?.classList.toggle('hidden',has);active?.classList.toggle('hidden',!has);
+  if(!has){lucide.createIcons();return}
+  const title=document.getElementById('homeMissionTitle')||document.querySelector('#activeMissionCard h3'),meta=document.getElementById('homeMissionSubtitle')||document.querySelector('#activeMissionCard h3+p'),next=document.getElementById('homeMissionNextStep'),task=document.getElementById('homeMissionMeta'),durVal=document.getElementById('homeMissionDurationValue');
+  if(title){title.textContent=activeAIPlan.goal?.title||'Focus Mission'}
+  if(meta)meta.textContent=(activeAIPlan.goal?.subject||'Allgemein')+' · '+(activeAIPlan.goal?.deadlineText||'ohne Frist');
+  if(next)next.textContent=current.title||'Nächster Schritt';
+  if(task)task.textContent=current.task||current.reason||'Nächsten Schritt bearbeiten';
+  if(durVal)durVal.textContent=String(current.durationMinutes||25);
+  lucide.createIcons();
+}
 const oldU103=updateMissionHome;updateMissionHome=function(){oldU103.apply(this,arguments);syncHomeHeroV103()};const oldR103=revealCreatedMission;revealCreatedMission=function(){oldR103.apply(this,arguments);syncHomeHeroV103()};const oldA103=applyAppScreenImmediately;applyAppScreenImmediately=function(screen){const r=oldA103.apply(this,arguments);if(screen==='home')syncHomeHeroV103();return r};document.addEventListener('DOMContentLoaded',()=>setTimeout(syncHomeHeroV103,70));
 
 function applyMissionDepthV105(center=false){const list=document.getElementById('aiPlanSteps');if(!list)return;const cards=[...list.querySelectorAll('.flow-step-line')],ai=cards.findIndex(c=>c.classList.contains('mission-step-active'));cards.forEach((c,i)=>{c.classList.remove('mission-depth-near','mission-depth-far','mission-depth-before','mission-depth-after');if(ai<0||i===ai)return;c.classList.add(Math.abs(i-ai)===1?'mission-depth-near':'mission-depth-far',i<ai?'mission-depth-before':'mission-depth-after')});const active=cards[ai];if(active&&!active.querySelector('.mission-active-start')){const b=document.createElement('button');b.type='button';b.className='mission-active-start';b.innerHTML='<i data-lucide="play"></i><span>Schritt '+(ai+1)+' starten</span>';b.onclick=e=>{e.stopPropagation();prepareLearningSession()};active.appendChild(b)}lucide.createIcons();if(center&&active)requestAnimationFrame(()=>setTimeout(()=>active.scrollIntoView({behavior:'smooth',block:'center'}),80))}
@@ -249,5 +264,5 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
  const oldType=window.selectMissionType;window.selectMissionType=function(btn){oldType.call(this,btn);syncTypeUI(btn)};
  const oldConfidence=window.selectConfidence;window.selectConfidence=function(btn){oldConfidence.call(this,btn);const fill=document.querySelector('.mg-confidence-track i'),level=btn?.dataset?.confidence||'uncertain';if(fill){fill.style.removeProperty('width');fill.dataset.level=level}lucide.createIcons()};
  document.addEventListener('DOMContentLoaded',()=>{const carousel=document.getElementById('missionTypeCarousel');if(carousel){let timer;carousel.addEventListener('scroll',()=>{clearTimeout(timer);timer=setTimeout(()=>{const center=carousel.scrollLeft+carousel.clientWidth/2,cards=[...carousel.children],best=cards.reduce((a,b)=>Math.abs(b.offsetLeft+b.offsetWidth/2-center)<Math.abs(a.offsetLeft+a.offsetWidth/2-center)?b:a);if(best&&!best.classList.contains('active'))window.selectMissionType(best)},110)},{passive:true})}lucide.createIcons()});
- document.title='v17 Navigation Clarity';
+ document.title='v17.3 Home System';
 })();
