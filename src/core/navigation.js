@@ -282,21 +282,29 @@ let currentSlide = 1;
 let selectedTaskCount = 3;
 function openFocusChoice(){
   learningFlowActive=false;
+  if(window.MotionController&&typeof window.MotionController.openPlusSheet==='function'){
+    window.MotionController.openPlusSheet();
+    return;
+  }
   const overlay=document.getElementById('focusChoiceOverlay');
   overlay.classList.remove('hidden','focus-choice-leave');
   overlay.classList.add('focus-choice-enter');
   document.getElementById('screenWrapper').classList.add('focus-choice-open');
   lucide.createIcons();
 }
-function closeFocusChoice(){
+function closeFocusChoice(options){
+  if(window.MotionController&&typeof window.MotionController.closePlusSheet==='function'){
+    window.MotionController.closePlusSheet(options);
+    return;
+  }
   const overlay=document.getElementById('focusChoiceOverlay');
   overlay.classList.remove('focus-choice-enter');
   overlay.classList.add('focus-choice-leave');
   document.getElementById('screenWrapper').classList.remove('focus-choice-open');
   setTimeout(()=>overlay.classList.add('hidden'),240);
 }
-function startQuickFocusFromChoice(){ closeFocusChoice(); setTimeout(()=>startQuickFocus(),180); }
-function openAdaptiveFromChoice(){ closeFocusChoice(); setTimeout(()=>openGoalIntake({parent:'home',rootSection:'home',reopenFocusChoice:true}),180); }
+function startQuickFocusFromChoice(){ closeFocusChoice({immediate:true}); setTimeout(()=>startQuickFocus(),60); }
+function openAdaptiveFromChoice(){ closeFocusChoice({immediate:true}); setTimeout(()=>openGoalIntake({parent:'home',rootSection:'home',reopenFocusChoice:true}),60); }
 function openGoalIntake(context={}){ learningFlowActive=false; if(typeof navigateForward==='function') navigateForward('goal',context); else setAppScreen('goal'); }
 function showDemoFilePicker(){ if(typeof navigateForward==='function') navigateForward('filepicker',{parent:'goal'}); else setAppScreen('filepicker'); }
 function selectDemoFile(){
@@ -765,13 +773,25 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
   };
 
   function setMissionPlanSource(source) {
-    navState.missionPlanSource = (source === 'home' || source === 'missions') ? source : null;
+    let resolved = source;
+    if (resolved === 'home' || resolved === 'missions') {
+      const el = global.document?.getElementById(`app-screen-${resolved}`);
+      if (el && el.classList.contains('fm-motion-leave')) {
+        const active = getVisibleScreenName();
+        if (active === 'home' || active === 'missions') {
+          resolved = active;
+        }
+      }
+    }
+    navState.missionPlanSource = (resolved === 'home' || resolved === 'missions') ? resolved : null;
     navState.explicitMissionPlanSourceSet = true;
     return navState.missionPlanSource;
   }
 
   function getVisibleScreenName() {
-    const visible = global.document?.querySelector('.app-screen:not(.hidden)');
+    const visible =
+      global.document?.querySelector('.app-screen:not(.hidden):not(.fm-motion-leave)') ||
+      global.document?.querySelector('.app-screen:not(.hidden)');
     if (!visible || !visible.id) return navState.currentScreen || 'home';
     return visible.id.replace('app-screen-', '');
   }
@@ -883,6 +903,8 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
     return Boolean(s && s.status === 'running' && (getVisibleScreenName() === 'timer' || navState.pendingScreen === 'timer'));
   }
 
+  let isBackNavigationInProgress = false;
+
   function navigateToRoot(section) {
     if (!ROOT_SECTIONS.includes(section)) return false;
     if (hasRunningFocusSessionOnTimer()) {
@@ -891,10 +913,10 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
 
     const choiceOverlay = global.document?.getElementById('focusChoiceOverlay');
     if (choiceOverlay && !choiceOverlay.classList.contains('hidden') && typeof global.closeFocusChoice === 'function') {
-      global.closeFocusChoice();
+      global.closeFocusChoice({ immediate: true });
     }
     if (typeof global.closeMissionSheetV116 === 'function') {
-      global.closeMissionSheetV116();
+      global.closeMissionSheetV116({ immediate: true, skipFocusRestore: true });
     }
 
     if (section === 'missions') {
@@ -915,6 +937,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
     }
 
     const fromScreen = getVisibleScreenName();
+    const fromRoot = navState.currentRootSection || resolveActiveRootForScreen(fromScreen) || fromScreen;
     navState.previousScreen = fromScreen;
     navState.currentRootSection = section;
     navState.activeBottomNavigationSection = section;
@@ -924,8 +947,15 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
 
     if (fromScreen === section) {
       syncBottomNavigationForScreen(section);
+      if (global.MotionController && typeof global.MotionController.handleSameRootTabTap === 'function') {
+        global.MotionController.handleSameRootTabTap(section);
+      }
       return true;
     }
+
+    navState.__motionContext = isBackNavigationInProgress
+      ? { type: 'pop', direction: 'back', fromRoot, toRoot: section }
+      : { type: 'root', fromRoot, toRoot: section };
 
     global.setAppScreen(section, { immediate: true, __fromNavController: true });
     syncBottomNavigationForScreen(section);
@@ -936,6 +966,14 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
     if (!screen) return false;
     const fromScreen = context.parent || getVisibleScreenName();
     const rootSection = context.rootSection || resolveActiveRootForScreen(screen) || navState.currentRootSection || 'home';
+
+    const choiceOverlay = global.document?.getElementById('focusChoiceOverlay');
+    if (choiceOverlay && !choiceOverlay.classList.contains('hidden') && typeof global.closeFocusChoice === 'function') {
+      global.closeFocusChoice({ immediate: true });
+    }
+    if (typeof global.closeMissionSheetV116 === 'function') {
+      global.closeMissionSheetV116({ immediate: true, skipFocusRestore: true });
+    }
 
     if (screen === 'plan') {
       if (fromScreen === 'home' || fromScreen === 'missions') {
@@ -966,6 +1004,13 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
       global.renderMissionManagementV116?.();
     }
 
+    navState.__motionContext = {
+      type: 'push',
+      direction: 'forward',
+      fromRoot: navState.currentRootSection,
+      toRoot: rootSection
+    };
+
     const options = { immediate: true, ...(context.options || {}), __fromNavController: true };
     global.setAppScreen(screen, options);
     return true;
@@ -977,6 +1022,10 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
     if (ROOT_SECTIONS.includes(rootSection)) {
       navState.currentRootSection = rootSection;
     }
+    navState.__motionContext = {
+      type: context.motionType || 'push',
+      direction: context.direction || 'forward'
+    };
     const options = { immediate: true, ...(context.options || {}), __fromNavController: true };
     global.setAppScreen(screen, options);
     return true;
@@ -993,7 +1042,12 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
         }
         return false;
       }
-      return navigateToRoot('home');
+      isBackNavigationInProgress = true;
+      try {
+        return navigateToRoot('home');
+      } finally {
+        isBackNavigationInProgress = false;
+      }
     }
 
     // Root screens do not use Back navigation
@@ -1001,106 +1055,141 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
       return false;
     }
 
-    // Explicit logical parent contracts (Section 11)
-    if (current === 'data') {
-      if (typeof global.cancelPendingDataImport === 'function') global.cancelPendingDataImport();
-      if (typeof global.hideResetConfirmCard === 'function') global.hideResetConfirmCard();
-      return navigateToRoot('settings');
-    }
+    isBackNavigationInProgress = true;
+    try {
+      // Explicit logical parent contracts (Section 11)
+      if (current === 'data') {
+        if (typeof global.cancelPendingDataImport === 'function') global.cancelPendingDataImport();
+        if (typeof global.hideResetConfirmCard === 'function') global.hideResetConfirmCard();
+        return navigateToRoot('settings');
+      }
 
-    if (current === 'stats') {
-      return navigateToRoot('history');
-    }
+      if (current === 'stats') {
+        return navigateToRoot('history');
+      }
 
-    if (current === 'confirm' || current === 'filepicker') {
-      global.setAppScreen('goal', { immediate: true, __fromNavController: true });
-      return true;
-    }
-
-    if (current === 'distractions') {
-      if (typeof global.returnFromDistractionPicker === 'function') {
-        global.returnFromDistractionPicker();
+      if (current === 'confirm' || current === 'filepicker') {
+        navState.__motionContext = { type: 'pop', direction: 'back' };
+        global.setAppScreen('goal', { immediate: true, __fromNavController: true });
         return true;
       }
-      global.setAppScreen('quicksetup', { immediate: true, __fromNavController: true });
-      return true;
-    }
 
-    if (current === 'quicksetup') {
-      const topEntry = navState.navigationStack.pop();
-      const shouldReopenChoice = topEntry ? Boolean(topEntry.reopenFocusChoice) : true;
-      navState.navigationStack = [];
-      global.setAppScreen('home', { immediate: true, __fromNavController: true });
-      if (shouldReopenChoice) {
-        setTimeout(() => {
-          if (typeof global.openFocusChoice === 'function') {
-            global.openFocusChoice();
+      if (current === 'distractions') {
+        if (typeof global.returnFromDistractionPicker === 'function') {
+          global.returnFromDistractionPicker();
+          return true;
+        }
+        navState.__motionContext = { type: 'pop', direction: 'back' };
+        global.setAppScreen('quicksetup', { immediate: true, __fromNavController: true });
+        return true;
+      }
+
+      if (current === 'quicksetup') {
+        const topEntry = navState.navigationStack.pop();
+        const shouldReopenChoice = topEntry ? Boolean(topEntry.reopenFocusChoice) : true;
+        navState.navigationStack = [];
+        navState.__motionContext = { type: 'pop', direction: 'back' };
+        global.setAppScreen('home', { immediate: true, __fromNavController: true });
+        if (shouldReopenChoice) {
+          setTimeout(() => {
+            if (typeof global.openFocusChoice === 'function') {
+              global.openFocusChoice();
+            }
+          }, 30);
+        }
+        return true;
+      }
+
+      if (current === 'plan') {
+        const targetRoot = navState.missionPlanSource === 'home' ? 'home' : 'missions';
+        navState.missionPlanSource = null;
+        navState.explicitMissionPlanSourceSet = false;
+        return navigateToRoot(targetRoot);
+      }
+
+      // Stack-based return for goal, score, premium, chat, etc.
+      if (navState.navigationStack.length > 0) {
+        const prevEntry = navState.navigationStack.pop();
+        if (prevEntry && prevEntry.screen) {
+          navState.previousScreen = current;
+          if (ROOT_SECTIONS.includes(prevEntry.rootSection)) {
+            navState.currentRootSection = prevEntry.rootSection;
           }
-        }, 30);
+          if (prevEntry.screen === 'missions') {
+            return navigateToRoot('missions');
+          }
+          navState.__motionContext = { type: 'pop', direction: 'back' };
+          global.setAppScreen(prevEntry.screen, { immediate: true, __fromNavController: true });
+          if (prevEntry.reopenFocusChoice && prevEntry.screen === 'home') {
+            setTimeout(() => global.openFocusChoice?.(), 30);
+          }
+          return true;
+        }
       }
+
+      const fallbackParent = LOGICAL_PARENT_MAP[current] || 'home';
+      if (ROOT_SECTIONS.includes(fallbackParent)) {
+        return navigateToRoot(fallbackParent);
+      }
+      navState.__motionContext = { type: 'pop', direction: 'back' };
+      global.setAppScreen(fallbackParent, { immediate: true, __fromNavController: true });
       return true;
+    } finally {
+      isBackNavigationInProgress = false;
     }
-
-    if (current === 'plan') {
-      const targetRoot = navState.missionPlanSource === 'home' ? 'home' : 'missions';
-      navState.missionPlanSource = null;
-      navState.explicitMissionPlanSourceSet = false;
-      return navigateToRoot(targetRoot);
-    }
-
-    // Stack-based return for goal, score, premium, chat, etc.
-    if (navState.navigationStack.length > 0) {
-      const prevEntry = navState.navigationStack.pop();
-      if (prevEntry && prevEntry.screen) {
-        navState.previousScreen = current;
-        if (ROOT_SECTIONS.includes(prevEntry.rootSection)) {
-          navState.currentRootSection = prevEntry.rootSection;
-        }
-        if (prevEntry.screen === 'missions') {
-          return navigateToRoot('missions');
-        }
-        global.setAppScreen(prevEntry.screen, { immediate: true, __fromNavController: true });
-        if (prevEntry.reopenFocusChoice && prevEntry.screen === 'home') {
-          setTimeout(() => global.openFocusChoice?.(), 30);
-        }
-        return true;
-      }
-    }
-
-    const fallbackParent = LOGICAL_PARENT_MAP[current] || 'home';
-    if (ROOT_SECTIONS.includes(fallbackParent)) {
-      return navigateToRoot(fallbackParent);
-    }
-    global.setAppScreen(fallbackParent, { immediate: true, __fromNavController: true });
-    return true;
   }
+
+  let applySyncDepth = 0;
 
   function wrapApplyScreenV17() {
     const currentApply = global.applyAppScreenImmediately;
     if (typeof currentApply === 'function' && !currentApply.__v17NavWrapped) {
       function applyWithNavSyncV17(screenName) {
+        if (applySyncDepth > 0) {
+          return currentApply.apply(this, arguments);
+        }
+        applySyncDepth++;
         const prevVisible = getVisibleScreenName();
-        const result = currentApply.apply(this, arguments);
-        const actualScreen = getVisibleScreenName();
-        if (actualScreen === 'plan') {
-          if (navState.explicitMissionPlanSourceSet) {
-            navState.explicitMissionPlanSourceSet = false;
-          } else if (prevVisible === 'home' || prevVisible === 'missions') {
-            navState.missionPlanSource = prevVisible;
-          } else if (prevVisible !== 'plan' && prevVisible !== 'distractions') {
-            navState.missionPlanSource = null;
+        try {
+          const result = currentApply.apply(this, arguments);
+          const actualScreen = getVisibleScreenName();
+          if (actualScreen === 'plan') {
+            if (navState.explicitMissionPlanSourceSet) {
+              navState.explicitMissionPlanSourceSet = false;
+            } else if (prevVisible === 'home' || prevVisible === 'missions') {
+              navState.missionPlanSource = prevVisible;
+            } else if (prevVisible !== 'plan' && prevVisible !== 'distractions') {
+              navState.missionPlanSource = null;
+            }
           }
+          if (prevVisible && prevVisible !== actualScreen) {
+            navState.previousScreen = prevVisible;
+          }
+          navState.currentScreen = actualScreen;
+          navState.pendingScreen = null;
+          if (typeof global.syncPWAChrome === 'function') {
+            global.syncPWAChrome(actualScreen);
+          }
+          syncBottomNavigationForScreen(actualScreen);
+
+          const motionCtx = navState.__motionContext || {};
+          navState.__motionContext = null;
+          if (
+            prevVisible &&
+            actualScreen &&
+            prevVisible !== actualScreen &&
+            !motionCtx.skipMotion &&
+            global.MotionController &&
+            typeof global.MotionController.animateScreenTransition === 'function'
+          ) {
+            try {
+              global.MotionController.animateScreenTransition(prevVisible, actualScreen, motionCtx);
+            } catch (_) {}
+          }
+          return result;
+        } finally {
+          applySyncDepth--;
         }
-        if (prevVisible && prevVisible !== actualScreen) {
-          navState.previousScreen = prevVisible;
-        }
-        navState.currentScreen = actualScreen;
-        navState.pendingScreen = null;
-        if (typeof global.syncPWAChrome === 'function') {
-          global.syncPWAChrome(actualScreen);
-        }
-        syncBottomNavigationForScreen(actualScreen);
-        return result;
       }
       applyWithNavSyncV17.__v17NavWrapped = true;
       global.applyAppScreenImmediately = applyWithNavSyncV17;
@@ -1113,11 +1202,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
         if (!resolveActiveRootForScreen(screenName)) {
           hideBottomNavigation();
         }
-        const currentVisible = getVisibleScreenName();
-        const effectiveOptions = (screenName === 'timer' || currentVisible === 'timer' || screenName === 'plan' || currentVisible === 'plan')
-          ? { ...options, immediate: true }
-          : options;
-        return currentSet.call(this, screenName, effectiveOptions);
+        return currentSet.call(this, screenName, { ...options, immediate: true });
       }
       setAppScreenWithNavV17.__v17SetWrapped = true;
       global.setAppScreen = setAppScreenWithNavV17;
@@ -1128,15 +1213,13 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
       function openQuickSetupFromChoiceV17() {
         navState.pendingScreen = 'quicksetup';
         hideBottomNavigation();
-        global.closeFocusChoice?.();
-        setTimeout(() => {
-          navigateForward('quicksetup', {
-            parent: 'home',
-            rootSection: 'home',
-            reopenFocusChoice: true,
-            options: { immediate: true }
-          });
-        }, 180);
+        global.closeFocusChoice?.({ immediate: true });
+        navigateForward('quicksetup', {
+          parent: 'home',
+          rootSection: 'home',
+          reopenFocusChoice: true,
+          options: { immediate: true }
+        });
       }
       openQuickSetupFromChoiceV17.__v17QuickWrapped = true;
       global.openQuickSetupFromChoice = openQuickSetupFromChoiceV17;
@@ -1149,6 +1232,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
         global.distractionReturnScreen = targetReturn;
         navState.pendingScreen = 'distractions';
         hideBottomNavigation();
+        navState.__motionContext = { type: 'push', direction: 'forward' };
         global.setAppScreen('distractions', { immediate: true, __fromNavController: true });
       }
       openDistractionPickerV17.__v17Wrapped = true;
@@ -1165,6 +1249,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
         if (target === 'timer') {
           hideBottomNavigation();
         }
+        navState.__motionContext = { type: 'pop', direction: 'back' };
         global.setAppScreen(target, { immediate: true, __fromNavController: true });
       }
       returnFromDistractionPickerV17.__v17Wrapped = true;
@@ -1181,6 +1266,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
         if (target === 'timer') {
           hideBottomNavigation();
         }
+        navState.__motionContext = { type: 'pop', direction: 'back' };
         global.setAppScreen(target, { immediate: true, __fromNavController: true });
       }
       saveDistractionsV17.__v17Wrapped = true;
@@ -1190,7 +1276,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
 
   wrapApplyScreenV17();
 
-  // Wrap openFocusChoice and closeFocusChoice to hide/restore bottom navigation
+  // Wrap openFocusChoice and closeFocusChoice to coordinate bottom navigation
   const origOpenChoice = global.openFocusChoice;
   if (typeof origOpenChoice === 'function') {
     global.openFocusChoice = function openFocusChoiceWithNavV17() {
@@ -1202,15 +1288,16 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
 
   const origCloseChoice = global.closeFocusChoice;
   if (typeof origCloseChoice === 'function') {
-    global.closeFocusChoice = function closeFocusChoiceWithNavV17() {
+    global.closeFocusChoice = function closeFocusChoiceWithNavV17(options) {
       const res = origCloseChoice.apply(this, arguments);
+      const delayMs = options && options.immediate ? 0 : 210;
       setTimeout(() => {
         if (navState.pendingScreen && !resolveActiveRootForScreen(navState.pendingScreen)) {
           hideBottomNavigation();
           return;
         }
         syncBottomNavigationForScreen(getVisibleScreenName());
-      }, 250);
+      }, delayMs);
       return res;
     };
   }

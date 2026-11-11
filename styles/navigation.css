@@ -96,8 +96,7 @@ html:not(.pwa-dark-status) body::after {
 }
 
 #bottomNavigationV17.fm-bottom-nav.hidden,
-#screenWrapper:not(.has-bottom-nav) #bottomNavigationV17.fm-bottom-nav,
-#screenWrapper.focus-choice-open #bottomNavigationV17.fm-bottom-nav {
+#screenWrapper:not(.has-bottom-nav) #bottomNavigationV17.fm-bottom-nav {
   display: none !important;
   visibility: hidden !important;
   pointer-events: none !important;
@@ -834,7 +833,7 @@ html:not(.pwa-dark-status) body::after {
 /* =========================================
    SAFE AREA & ROOT SCREEN PADDING
    ========================================= */
-.app-screen:not(.hidden) {
+.app-screen:not(.hidden):not(.fm-motion-active) {
   animation: none !important;
   filter: none !important;
   transform: none !important;
