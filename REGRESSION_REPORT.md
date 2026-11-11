@@ -1,24 +1,25 @@
-# Regression & Verification Report — v17.3 Home System
+# Regression & Verification Report — v17.3.1 Motion System
 
 ## 1. Architecture & Structure Preservation
 - **Original Structure Preserved**: `index.html`, `src/`, `styles/`, `docs/`, `manifest.webmanifest`, `service-worker.js`, and all root PWA icons remain in their exact root locations.
-- **No Framework Contamination**: Zero React, Vite, TypeScript, or build-step dependencies exist in the project. All scripts load in their original order from `index.html`.
-- **Syntax Validation**: All JavaScript files across `src/` and `service-worker.js` passed `node --check` with `0` syntax errors.
+- **No Framework Contamination**: Zero React, Vite, TypeScript, or external animation library dependencies exist in the project.
+- **Authoritative Ownership Preserved**: `src/core/motion.js` and `styles/motion.css` layer hardware-accelerated (`transform`, `opacity`) transitions onto `applyAppScreenImmediately` and existing overlay handlers without delaying synchronous state updates, storage persistence, or Session Recovery priority.
 
-## 2. Functional & Visual Regression Matrix
+## 2. Motion & Functional Regression Matrix
 
 | Test Area | Scenarios Checked | Result |
 | :--- | :--- | :--- |
-| **Home — 0 Active Missions** | `#emptyMissionCard` visible when no active missions exist; `#activeMissionHeroCard` hidden; CTA opens Mission Creation flow. | PASS |
-| **Home — 1 Active Mission** | `#activeMissionHeroCard` visible in `.single-mission` mode; no second-card peek or multi-mission pager shown; primary CTA starts mission step. | PASS |
-| **Home — 2 Active Missions & Swipe** | `#activeMissionHeroCard` in `.multi-mission` mode; `1 / 2 aktiv` pill and 2 interactive dots rendered; horizontal swipe (`scroll-snap-type: x mandatory`) switches `selectedMissionId` and updates active dot; right-side peek of second mission card visible. | PASS |
-| **Duration Badge (`5`–`120` min)** | Tested `5`, `25`, `35`, `40`, and `120` minute step durations inside `.mh-duration-box`; zero text clipping or horizontal/vertical overflow (`scrollWidth <= clientWidth`). | PASS |
-| **Home Statistics & History Link** | `Sessions`, `Fokuszeit`, and `Erfolgsquote` reflect real data from `SessionHistoryRepository`; `Verlauf` top pill and `Verlauf ansehen` bottom link open `#app-screen-history`. | PASS |
-| **Quick Focus Flow** | Compact Quick Focus row (`#quickFocusCompactCard`) opens `#app-screen-setup`; duration presets (`15`, `25`, `45`, `60` min) and custom slider update display; top-left back button returns cleanly to Home. | PASS |
-| **Bottom Navigation & Plus Sheet** | All 4 root tabs (`Home`, `Verlauf`, `Missionen`, `Einstellungen`) switch cleanly with zero layout jump or blur; central `+` button opens `#focusChoiceOverlay`. | PASS |
-| **Cosmic Timer Isolation** | Starting a Quick Focus or Mission step transitions into `#app-screen-select` and `#app-screen-timer`; dark cosmic timer (`ultraCosmicV91` / `styles/timer.css`) remains completely intact. | PASS |
-| **Session History (`#app-screen-history`)** | Dark aubergine `#historyOverviewCard` displays accurate totals (`Gesamt`, `Fokuszeit`, `Erfolg`); filter tabs (`Alle`, `Abgeschlossen`, `Abgebrochen`) filter session cards properly. | PASS |
-| **Mission Management (`#app-screen-missions`)** | Dark aubergine `#missionOverviewCardV173` displays `X / 2 aktiv`, completed count, and archived count; mission cards support continue, open plan, set primary, rename, archive, restore, and delete. | PASS |
-| **Settings & Data Backup (`#app-screen-settings`, `#app-screen-data`)** | 5 grouped card sections render cleanly; language toggle (`DE` / `EN`) works; backup export/import/reset screen opens and returns to Settings; version badge reads `v17.3 Home System`. | PASS |
-| **Responsive Viewport Checks** | Verified at `320×568`, `375×812`, `390×844`, and `430×932`: zero unintended horizontal page overflow (`overflowX: false`) and no bottom-nav content overlap. | PASS |
-| **Runtime Console & Page Errors** | Automated headless Chromium walkthrough across all screens and states recorded `0` console errors and `0` uncaught page errors. | PASS |
+| **Cold Startup & Splash Screen (`#fmStartupSplash`)** | Appears immediately on first paint with warm cream (`#F6F1E7`) background, real `./icon-192.png` icon, `FOCUS MODE+` title, and `Wird vorbereitet …` status; zero white flash; dismisses cleanly into `#app-screen-home` after minimum visual duration. | PASS |
+| **Session Recovery Priority on Startup** | When an interrupted active session exists in `localStorage`, splash remains visible until `resolveInitialAppStateV112` routes directly to `#app-screen-session-recovery`; zero flash of Home screen before Recovery. | PASS |
+| **Recovery -> Cosmic Timer Transition** | Tapping primary resume button in `#app-screen-session-recovery` triggers dark session-start transition (`#fmFocusLaunchPortal` + `#app-screen-timer.fm-timer-staged-enter`) and resumes the existing session without resetting duration or creating a duplicate. | PASS |
+| **Global Screen Transitions (`src/core/motion.js`)** | Forward push (`+18px` in / `-12px` out), backward pop (`-16px` in / `+12px` out), root-tab crossfade (`6px` vertical shift, `170ms–200ms`), and modal/overlay transitions (`distractions`, `filepicker`, `confirm`, `update`) animate smoothly and remove all transition classes on completion. | PASS |
+| **Quick Focus Setup & Session Start/Exit** | Home -> Quick Focus setup forward transition; starting Quick Focus triggers radial dark-violet portal expansion (`#fmFocusLaunchPortal`) and staged Cosmic Timer reveal; completing Quick Focus contracts/fades smoothly back to Home and records session in History & Activity. | PASS |
+| **Focus Mission Creation, Plan & Session Flow** | Home -> Mission Creation (`#app-screen-goal`), AI offline/error state preservation (`#missionError`), Mission Plan (`#app-screen-plan`) step expansion (`toggleFutureStepV81` scrolls later steps smoothly without scrolling step 1), starting a Mission Step (`25 Min.` duration preserved), completing Mission Step -> `#app-screen-result` -> `continueMissionWithoutAdaptation()` and Optional Adaptation. | PASS |
+| **Central Plus Action & Sheet (`#focusChoiceOverlay`)** | `#bottomNavPlus` compresses on press and rotates `45deg` while `#focusChoiceOverlay` is open; warm-cream bottom sheet slides up/down with dim backdrop fade; closes on outside tap, `Escape`, or navigation. | PASS |
+| **Mission Carousel (`#missionCarouselV1181`)** | Preserves native CSS `scroll-snap-type: x mandatory` touch scrolling; centered card (`scale(1)`, `opacity: 1`) and adjacent card (`scale(0.97)`, `opacity: 0.92`) transition smoothly without horizontal page overflow. | PASS |
+| **Three-Dot Mission Menus (`#missionSheetV116`)** | `.mmc-menu` press feedback; bottom sheet scales/slides in (`220ms`) with subtle action stagger and animates out (`185ms`); supports `Escape` key, returns focus to trigger button on close, and preserves Archive, Restore, Rename, Primary, and Delete confirmation flows. | PASS |
+| **Activity & History Motion** | Initial Home entry applies restrained stagger to first visible `#homeActivityList` entries once; new sessions animate in smoothly at top of Activity; History and Mission filter switches crossfade list containers (`#sessionHistoryList`, `#missionManagementListV116`); tapping `.history-card` expands/collapses session details. | PASS |
+| **Animation Safety & Rapid Taps** | Rapid repeated taps across root tabs and forward/back actions interrupt cleanly without leaving two screens visible or locking navigation; `visibilitychange` resets in-flight transitions immediately. | PASS |
+| **Reduced Motion (`prefers-reduced-motion: reduce`)** | Disables translations, scaling, radial portal expansion, and staged animations; uses short opacity crossfades (`<= 100ms`). | PASS |
+| **Responsive Viewports (`320px`–`430px`)** | Verified at `320×844`, `375×844`, `390×844`, and `430×844`: zero horizontal document or `#appBody` overflow (`docOverflow: false`, `bodyOverflow: false`) and zero uncaught JavaScript errors (`errors: []`). | PASS |
+| **PWA Manifest & Service Worker** | `manifest.webmanifest` loads; `service-worker.js` registers cleanly with cache `focus-mode-v17-3-1-motion-system` including `./styles/motion.css` and `./src/core/motion.js`; existing `v17.3` local storage data remains 100% compatible. | PASS |
