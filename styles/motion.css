@@ -301,7 +301,11 @@ html body #screenWrapper #appBody.fm-dual-transition > .app-screen.fm-layer-inco
 }
 
 #app-screen-timer .uc-protect {
-  position: relative;
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  z-index: 10;
   transition:
     transform var(--motion-normal) var(--ease-soft-spring),
     background-color var(--motion-emphasized) var(--ease-emphasized),

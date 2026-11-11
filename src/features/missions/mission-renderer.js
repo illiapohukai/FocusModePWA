@@ -264,5 +264,819 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
  const oldType=window.selectMissionType;window.selectMissionType=function(btn){oldType.call(this,btn);syncTypeUI(btn)};
  const oldConfidence=window.selectConfidence;window.selectConfidence=function(btn){oldConfidence.call(this,btn);const fill=document.querySelector('.mg-confidence-track i'),level=btn?.dataset?.confidence||'uncertain';if(fill){fill.style.removeProperty('width');fill.dataset.level=level}lucide.createIcons()};
  document.addEventListener('DOMContentLoaded',()=>{const carousel=document.getElementById('missionTypeCarousel');if(carousel){let timer;carousel.addEventListener('scroll',()=>{clearTimeout(timer);timer=setTimeout(()=>{const center=carousel.scrollLeft+carousel.clientWidth/2,cards=[...carousel.children],best=cards.reduce((a,b)=>Math.abs(b.offsetLeft+b.offsetWidth/2-center)<Math.abs(a.offsetLeft+a.offsetWidth/2-center)?b:a);if(best&&!best.classList.contains('active'))window.selectMissionType(best)},110)},{passive:true})}lucide.createIcons()});
- document.title='v17.3 Home System';
+ document.title='v17.4 Mission Scheduling UI';
 })();
+
+/* ============================================================================
+   v17.4 Mission Scheduling UI (Client-Side State, Calendar, Timeline, Validation)
+   ============================================================================ */
+(function(){
+  'use strict';
+
+  if (typeof I18N_MAP !== 'undefined' && I18N_MAP.en) {
+    Object.assign(I18N_MAP.en, {
+      'ZEITPLAN': 'SCHEDULE',
+      'OPTIONAL': 'OPTIONAL',
+      'Plane, wann du beginnen möchtest und bis wann dein Ziel erreicht sein soll.': 'Plan when you want to start and when your goal should be reached.',
+      'PRÜFUNG / ABGABE': 'EXAM / DEADLINE',
+      'Datum auswählen': 'Select date',
+      'START DER VORBEREITUNG': 'PREPARATION START',
+      'Sofort': 'Immediately',
+      '1 Woche vorher': '1 week before',
+      '2 Wochen vorher': '2 weeks before',
+      'Eigene Wahl': 'Custom date',
+      'Wähle zuerst einen Prüfungstermin oder eine Abgabe.': 'Select an exam date or deadline first.',
+      'START': 'START',
+      'PRÜFUNG': 'DEADLINE',
+      'WANN KANNST DU LERNEN?': 'WHEN CAN YOU STUDY?',
+      'Keine Auswahl bedeutet, dass dein Plan flexibel verteilt werden kann.': 'No selection means your plan can be distributed flexibly.',
+      'Unter der Woche': 'Weekdays',
+      'Wochenende': 'Weekend',
+      'Flexibel': 'Flexible',
+      'BEVORZUGTE SITZUNGSDAUER': 'PREFERRED SESSION LENGTH',
+      '20 Min.': '20 min',
+      '30 Min.': '30 min',
+      '45 Min.': '45 min',
+      'AI entscheidet': 'AI decides',
+      'Übernehmen': 'Apply',
+      'Abbrechen': 'Cancel'
+    });
+  }
+
+  const missionScheduleState = {
+    deadlineDate: null,           // ISO string YYYY-MM-DD or null
+    preparationStartDate: null,   // ISO string YYYY-MM-DD or null
+    startMode: 'immediate',       // "immediate" | "one_week_before" | "two_weeks_before" | "custom"
+    preferredWeekdays: [],        // e.g. [1, 2, 3, 4, 5] for Mon-Fri
+    preferredSessionMinutes: null // 20 | 30 | 45 | null (AI decides)
+  };
+  window.missionScheduleState = missionScheduleState;
+
+  let userManuallyChoseStartMode = false;
+  let startClampedNotice = false;
+  let calendarSheetMode = 'deadline'; // 'deadline' | 'start'
+  let calendarViewYear = new Date().getFullYear();
+  let calendarViewMonth = new Date().getMonth(); // 0..11
+  let calendarPendingDate = null;
+  let lastConfiguredScheduleSnapshot = null;
+
+  function getActiveLang() {
+    const raw = (window.FocusModeApp?.services?.storage?.getText('focus-mode-language', 'de') || document.documentElement.lang || 'de').toLowerCase();
+    return raw === 'en' ? 'en' : 'de';
+  }
+
+  function toLocalISODate(d) {
+    if (!(d instanceof Date) || isNaN(d.getTime())) return null;
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return y + '-' + m + '-' + day;
+  }
+
+  function parseLocalISODate(iso) {
+    if (!iso || typeof iso !== 'string') return null;
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso.trim());
+    if (!m) return null;
+    const y = Number(m[1]);
+    const mo = Number(m[2]) - 1;
+    const d = Number(m[3]);
+    const dt = new Date(y, mo, d, 0, 0, 0, 0);
+    if (dt.getFullYear() !== y || dt.getMonth() !== mo || dt.getDate() !== d) return null;
+    return dt;
+  }
+
+  function getTodayISO() {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    return toLocalISODate(now);
+  }
+
+  function addDaysISO(iso, deltaDays) {
+    const dt = parseLocalISODate(iso);
+    if (!dt) return null;
+    dt.setDate(dt.getDate() + Number(deltaDays || 0));
+    return toLocalISODate(dt);
+  }
+
+  function diffCalendarDays(startISO, endISO) {
+    const a = parseLocalISODate(startISO);
+    const b = parseLocalISODate(endISO);
+    if (!a || !b) return 0;
+    const utcA = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
+    const utcB = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
+    return Math.round((utcB - utcA) / 86400000);
+  }
+
+  function getISOWeekday(iso) {
+    const dt = parseLocalISODate(iso);
+    if (!dt) return 1;
+    return ((dt.getDay() + 6) % 7) + 1; // 1 = Monday .. 7 = Sunday
+  }
+
+  function formatLongDate(iso) {
+    const dt = parseLocalISODate(iso);
+    if (!dt) return '';
+    const locale = getActiveLang() === 'en' ? 'en-US' : 'de-DE';
+    try {
+      return new Intl.DateTimeFormat(locale, {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      }).format(dt);
+    } catch {
+      return iso;
+    }
+  }
+
+  function formatShortDate(iso, allowTodayLabel) {
+    const dt = parseLocalISODate(iso);
+    if (!dt) return '';
+    const todayISO = getTodayISO();
+    const lang = getActiveLang();
+    if (allowTodayLabel && iso === todayISO) {
+      return lang === 'en' ? 'Today' : 'Heute';
+    }
+    const locale = lang === 'en' ? 'en-US' : 'de-DE';
+    try {
+      return new Intl.DateTimeFormat(locale, {
+        day: '2-digit',
+        month: 'short'
+      }).format(dt);
+    } catch {
+      return iso;
+    }
+  }
+
+  function getRecommendedStartMode(deadlineISO) {
+    if (!deadlineISO) return 'immediate';
+    const days = diffCalendarDays(getTodayISO(), deadlineISO);
+    if (days <= 7) return 'immediate';
+    if (days <= 21) return 'one_week_before';
+    if (days <= 60) return 'two_weeks_before';
+    return 'custom';
+  }
+
+  function getModeLabel(mode) {
+    const isEn = getActiveLang() === 'en';
+    switch (mode) {
+      case 'immediate': return isEn ? 'Immediately' : 'Sofort';
+      case 'one_week_before': return isEn ? '1 week before' : '1 Woche vorher';
+      case 'two_weeks_before': return isEn ? '2 weeks before' : '2 Wochen vorher';
+      case 'custom': return isEn ? 'Custom date' : 'Eigene Wahl';
+      default: return isEn ? 'Immediately' : 'Sofort';
+    }
+  }
+
+  function recomputePreparationStartDate() {
+    startClampedNotice = false;
+    const deadlineISO = missionScheduleState.deadlineDate;
+    if (!deadlineISO) {
+      missionScheduleState.preparationStartDate = null;
+      return;
+    }
+    const todayISO = getTodayISO();
+    const mode = missionScheduleState.startMode || 'immediate';
+    if (mode === 'immediate') {
+      missionScheduleState.preparationStartDate = todayISO;
+      return;
+    }
+    if (mode === 'one_week_before' || mode === 'two_weeks_before') {
+      const offset = mode === 'one_week_before' ? -7 : -14;
+      const candidate = addDaysISO(deadlineISO, offset);
+      if (diffCalendarDays(todayISO, candidate) < 0) {
+        missionScheduleState.preparationStartDate = todayISO;
+        startClampedNotice = true;
+      } else {
+        missionScheduleState.preparationStartDate = candidate;
+      }
+      return;
+    }
+    if (mode === 'custom') {
+      if (!missionScheduleState.preparationStartDate) {
+        const fallback = addDaysISO(deadlineISO, -14);
+        missionScheduleState.preparationStartDate = diffCalendarDays(todayISO, fallback) >= 0 ? fallback : todayISO;
+      }
+    }
+  }
+
+  function hasMatchingWeekdayInRange(startISO, endISO, weekdays) {
+    if (!Array.isArray(weekdays) || weekdays.length === 0) return true;
+    const span = diffCalendarDays(startISO, endISO);
+    if (span < 0) return false;
+    const maxCheck = Math.min(span, 7);
+    const set = new Set(weekdays.map(Number));
+    for (let i = 0; i <= maxCheck; i++) {
+      const cur = addDaysISO(startISO, i);
+      if (set.has(getISOWeekday(cur))) return true;
+    }
+    return false;
+  }
+
+  function validateMissionScheduleState() {
+    const isEn = getActiveLang() === 'en';
+    const deadlineISO = missionScheduleState.deadlineDate;
+    if (!deadlineISO) {
+      return { valid: true, level: null, message: null };
+    }
+    const todayISO = getTodayISO();
+    const daysToDeadline = diffCalendarDays(todayISO, deadlineISO);
+    if (daysToDeadline < 0) {
+      return {
+        valid: false,
+        level: 'error',
+        message: isEn
+          ? 'The exam or deadline date cannot be in the past.'
+          : 'Das Prüfungs- oder Abgabedatum darf nicht in der Vergangenheit liegen.'
+      };
+    }
+
+    const startISO = missionScheduleState.preparationStartDate || todayISO;
+    const prepSpan = diffCalendarDays(startISO, deadlineISO);
+    if (prepSpan < 0) {
+      return {
+        valid: false,
+        level: 'error',
+        message: isEn
+          ? 'Preparation start must be on or before the exam or deadline.'
+          : 'Der Vorbereitungsstart muss vor der Prüfung oder Abgabe liegen.'
+      };
+    }
+
+    if (missionScheduleState.preferredWeekdays.length > 0) {
+      if (!hasMatchingWeekdayInRange(startISO, deadlineISO, missionScheduleState.preferredWeekdays)) {
+        return {
+          valid: false,
+          level: 'error',
+          message: isEn
+            ? 'No selected study day falls within the chosen period.'
+            : 'Im gewählten Zeitraum liegt kein ausgewählter Lerntag.'
+        };
+      }
+    }
+
+    if (daysToDeadline === 0) {
+      return {
+        valid: true,
+        level: 'info',
+        message: isEn ? 'The schedule starts today.' : 'Der Zeitplan beginnt heute.'
+      };
+    }
+
+    if (startClampedNotice) {
+      return {
+        valid: true,
+        level: 'info',
+        message: isEn
+          ? 'Start date was adjusted to today.'
+          : 'Der Zeitplan beginnt heute.'
+      };
+    }
+
+    if (prepSpan <= 2) {
+      return {
+        valid: true,
+        level: 'warn',
+        message: isEn ? 'Very little preparation time.' : 'Sehr wenig Vorbereitungszeit.'
+      };
+    }
+
+    return { valid: true, level: null, message: null };
+  }
+  window.validateMissionScheduleState = validateMissionScheduleState;
+
+  function syncMissionScheduleUI() {
+    const isEn = getActiveLang() === 'en';
+    const deadlineTrigger = document.getElementById('mgDeadlineTrigger');
+    const deadlineVal = document.getElementById('mgDeadlineValue');
+    const clearBtn = document.getElementById('mgDeadlineClearBtn');
+    const prepBlock = document.getElementById('mgPrepStartBlock');
+    const recBadge = document.getElementById('mgStartRecBadge');
+    const timelineEmpty = document.getElementById('mgTimelineEmpty');
+    const timelineActive = document.getElementById('mgTimelineActive');
+    const startLabel = document.getElementById('mgTimelineStartLabel');
+    const endLabel = document.getElementById('mgTimelineEndLabel');
+    const daysBadge = document.getElementById('mgTimelineDaysBadge');
+    const noticeBox = document.getElementById('mgScheduleNotice');
+    const noticeText = document.getElementById('mgScheduleNoticeText');
+
+    const hasDeadline = Boolean(missionScheduleState.deadlineDate);
+
+    if (deadlineTrigger) {
+      deadlineTrigger.classList.toggle('has-value', hasDeadline);
+    }
+    if (deadlineVal) {
+      if (hasDeadline) {
+        deadlineVal.textContent = formatLongDate(missionScheduleState.deadlineDate);
+        deadlineVal.classList.remove('is-placeholder');
+      } else {
+        deadlineVal.textContent = isEn ? 'Select date' : 'Datum auswählen';
+        deadlineVal.classList.add('is-placeholder');
+      }
+    }
+    if (clearBtn) {
+      clearBtn.classList.toggle('hidden', !hasDeadline);
+    }
+
+    if (prepBlock) {
+      prepBlock.classList.toggle('hidden', !hasDeadline);
+    }
+
+    const recommendedMode = getRecommendedStartMode(missionScheduleState.deadlineDate);
+    if (recBadge && hasDeadline) {
+      recBadge.textContent = (isEn ? 'Recommended: ' : 'Empfohlen: ') + getModeLabel(recommendedMode);
+    }
+
+    document.querySelectorAll('#mgStartModeChips .mg-start-chip').forEach(btn => {
+      const mode = btn.getAttribute('data-start-mode');
+      const isSelected = mode === missionScheduleState.startMode;
+      const isRec = hasDeadline && mode === recommendedMode;
+      btn.classList.toggle('active', isSelected);
+      btn.classList.toggle('is-recommended', isRec);
+      btn.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+      const span = btn.querySelector('span');
+      if (span && mode === 'custom' && missionScheduleState.startMode === 'custom' && missionScheduleState.preparationStartDate) {
+        span.textContent = (isEn ? 'Custom · ' : 'Eigene Wahl · ') + formatShortDate(missionScheduleState.preparationStartDate, false);
+      } else if (span && mode === 'custom') {
+        span.textContent = isEn ? 'Custom date' : 'Eigene Wahl';
+      }
+    });
+
+    if (timelineEmpty && timelineActive) {
+      timelineEmpty.classList.toggle('hidden', hasDeadline);
+      timelineActive.classList.toggle('hidden', !hasDeadline);
+    }
+
+    if (hasDeadline) {
+      const startISO = missionScheduleState.preparationStartDate || getTodayISO();
+      const endISO = missionScheduleState.deadlineDate;
+      if (startLabel) startLabel.textContent = formatShortDate(startISO, true);
+      if (endLabel) endLabel.textContent = formatShortDate(endISO, false);
+      const rawDiff = diffCalendarDays(startISO, endISO);
+      const prepDays = Math.max(0, rawDiff);
+      if (daysBadge) {
+        if (rawDiff < 0) {
+          daysBadge.textContent = isEn ? 'INVALID PERIOD' : 'UNGÜLTIGER ZEITRAUM';
+        } else if (prepDays === 0) {
+          daysBadge.textContent = isEn ? 'TODAY · 1 DAY PREP' : 'HEUTE · 1 TAG VORBEREITUNG';
+        } else if (prepDays === 1) {
+          daysBadge.textContent = isEn ? '1 DAY PREPARATION' : '1 TAG VORBEREITUNG';
+        } else {
+          daysBadge.textContent = prepDays + (isEn ? ' DAYS PREPARATION' : ' TAGE VORBEREITUNG');
+        }
+      }
+    }
+
+    // Weekday buttons & presets
+    const wkSet = new Set(missionScheduleState.preferredWeekdays.map(Number));
+    document.querySelectorAll('#mgWeekdayRow .mg-weekday-btn').forEach(btn => {
+      const dayNum = Number(btn.getAttribute('data-weekday'));
+      const active = wkSet.has(dayNum);
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+
+    const sortedWk = [...wkSet].sort((a, b) => a - b).join(',');
+    const isWeekdaysPreset = sortedWk === '1,2,3,4,5';
+    const isWeekendPreset = sortedWk === '6,7';
+    const isFlexiblePreset = wkSet.size === 0;
+    document.querySelectorAll('#mgWeekdayPresets .mg-preset-chip').forEach(chip => {
+      const preset = chip.getAttribute('data-preset');
+      const active =
+        (preset === 'weekdays' && isWeekdaysPreset) ||
+        (preset === 'weekend' && isWeekendPreset) ||
+        (preset === 'flexible' && isFlexiblePreset);
+      chip.classList.toggle('active', active);
+    });
+
+    // Preferred session duration chips
+    document.querySelectorAll('#mgDurationPrefChips .mg-dur-chip').forEach(chip => {
+      const val = chip.getAttribute('data-minutes');
+      const active = val === 'auto'
+        ? missionScheduleState.preferredSessionMinutes === null
+        : Number(val) === missionScheduleState.preferredSessionMinutes;
+      chip.classList.toggle('active', active);
+      chip.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+
+    // Validation & Notice
+    const validation = validateMissionScheduleState();
+    if (noticeBox && noticeText) {
+      if (validation.message) {
+        noticeBox.classList.remove('hidden', 'is-info', 'is-warn', 'is-error');
+        noticeBox.classList.add('is-' + (validation.level || 'info'));
+        noticeText.textContent = validation.message;
+      } else {
+        noticeBox.classList.add('hidden');
+        noticeText.textContent = '';
+      }
+    }
+
+    if (typeof window.lucide?.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
+  }
+  window.syncMissionScheduleUI = syncMissionScheduleUI;
+
+  function selectDeadlineDate(iso) {
+    const parsed = parseLocalISODate(iso);
+    if (!parsed) return false;
+    const todayISO = getTodayISO();
+    if (diffCalendarDays(todayISO, iso) < 0) return false;
+
+    missionScheduleState.deadlineDate = iso;
+    const recommended = getRecommendedStartMode(iso);
+    if (!userManuallyChoseStartMode) {
+      missionScheduleState.startMode = recommended === 'custom' ? 'two_weeks_before' : recommended;
+    }
+    recomputePreparationStartDate();
+    syncMissionScheduleUI();
+    return true;
+  }
+
+  function clearMissionDeadline(ev) {
+    if (ev && typeof ev.stopPropagation === 'function') ev.stopPropagation();
+    missionScheduleState.deadlineDate = null;
+    missionScheduleState.preparationStartDate = null;
+    missionScheduleState.startMode = 'immediate';
+    userManuallyChoseStartMode = false;
+    startClampedNotice = false;
+    syncMissionScheduleUI();
+  }
+  window.clearMissionDeadline = clearMissionDeadline;
+
+  function selectMissionStartMode(mode) {
+    if (!['immediate', 'one_week_before', 'two_weeks_before', 'custom'].includes(mode)) return;
+    userManuallyChoseStartMode = true;
+    missionScheduleState.startMode = mode;
+    if (mode === 'custom') {
+      if (!missionScheduleState.preparationStartDate) {
+        recomputePreparationStartDate();
+      }
+      syncMissionScheduleUI();
+      openMissionCalendarSheet('start');
+      return;
+    }
+    recomputePreparationStartDate();
+    syncMissionScheduleUI();
+  }
+  window.selectMissionStartMode = selectMissionStartMode;
+
+  function toggleMissionWeekday(dayNum) {
+    const n = Number(dayNum);
+    if (n < 1 || n > 7) return;
+    const idx = missionScheduleState.preferredWeekdays.indexOf(n);
+    if (idx >= 0) {
+      missionScheduleState.preferredWeekdays.splice(idx, 1);
+    } else {
+      missionScheduleState.preferredWeekdays.push(n);
+      missionScheduleState.preferredWeekdays.sort((a, b) => a - b);
+    }
+    syncMissionScheduleUI();
+  }
+  window.toggleMissionWeekday = toggleMissionWeekday;
+
+  function applyMissionWeekdayPreset(preset) {
+    if (preset === 'weekdays') {
+      missionScheduleState.preferredWeekdays = [1, 2, 3, 4, 5];
+    } else if (preset === 'weekend') {
+      missionScheduleState.preferredWeekdays = [6, 7];
+    } else {
+      missionScheduleState.preferredWeekdays = [];
+    }
+    syncMissionScheduleUI();
+  }
+  window.applyMissionWeekdayPreset = applyMissionWeekdayPreset;
+
+  function selectMissionPreferredDuration(minutes) {
+    if (minutes === null || minutes === undefined || minutes === 'auto') {
+      missionScheduleState.preferredSessionMinutes = null;
+    } else {
+      const m = Number(minutes);
+      missionScheduleState.preferredSessionMinutes = [20, 30, 45].includes(m) ? m : null;
+    }
+    syncMissionScheduleUI();
+  }
+  window.selectMissionPreferredDuration = selectMissionPreferredDuration;
+
+  /* Calendar Bottom Sheet */
+  function renderMissionCalendarGrid() {
+    const titleEl = document.getElementById('mgCalMonthTitle');
+    const kickerEl = document.getElementById('mgCalKicker');
+    const gridEl = document.getElementById('mgCalGrid');
+    const prevBtn = document.getElementById('mgCalPrevBtn');
+    const weekdaysEl = document.getElementById('mgCalWeekdays');
+    if (!gridEl || !titleEl) return;
+
+    const isEn = getActiveLang() === 'en';
+    const locale = isEn ? 'en-US' : 'de-DE';
+
+    if (kickerEl) {
+      kickerEl.textContent = calendarSheetMode === 'start'
+        ? (isEn ? 'PREPARATION START' : 'START DER VORBEREITUNG')
+        : (isEn ? 'EXAM / DEADLINE' : 'PRÜFUNG / ABGABE');
+    }
+
+    if (weekdaysEl) {
+      const names = isEn ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] : ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+      weekdaysEl.innerHTML = names.map(n => '<span>' + n + '</span>').join('');
+    }
+
+    const viewDate = new Date(calendarViewYear, calendarViewMonth, 1);
+    try {
+      const formattedMonth = new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(viewDate);
+      titleEl.textContent = formattedMonth.charAt(0).toUpperCase() + formattedMonth.slice(1);
+    } catch {
+      titleEl.textContent = (calendarViewMonth + 1) + ' / ' + calendarViewYear;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayISO = toLocalISODate(today);
+
+    if (prevBtn) {
+      const isCurrentOrPastMonth =
+        calendarViewYear < today.getFullYear() ||
+        (calendarViewYear === today.getFullYear() && calendarViewMonth <= today.getMonth());
+      prevBtn.disabled = isCurrentOrPastMonth;
+    }
+
+    const firstDayOfMonth = new Date(calendarViewYear, calendarViewMonth, 1);
+    const leadingEmptyCount = (firstDayOfMonth.getDay() + 6) % 7; // Monday = 0 .. Sunday = 6
+    const daysInMonth = new Date(calendarViewYear, calendarViewMonth + 1, 0).getDate();
+
+    const rangeStartISO = calendarSheetMode === 'start'
+      ? calendarPendingDate
+      : (missionScheduleState.preparationStartDate || todayISO);
+    const rangeEndISO = calendarSheetMode === 'deadline'
+      ? calendarPendingDate
+      : missionScheduleState.deadlineDate;
+
+    gridEl.replaceChildren();
+
+    for (let i = 0; i < leadingEmptyCount; i++) {
+      const emptyCell = document.createElement('span');
+      emptyCell.className = 'mg-cal-day is-empty';
+      emptyCell.setAttribute('aria-hidden', 'true');
+      gridEl.appendChild(emptyCell);
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const cellDate = new Date(calendarViewYear, calendarViewMonth, day, 0, 0, 0, 0);
+      const cellISO = toLocalISODate(cellDate);
+      const isPast = diffCalendarDays(todayISO, cellISO) < 0;
+      const isToday = cellISO === todayISO;
+      const isSelected = cellISO === calendarPendingDate;
+      const isInRange = Boolean(
+        rangeStartISO &&
+        rangeEndISO &&
+        diffCalendarDays(rangeStartISO, cellISO) > 0 &&
+        diffCalendarDays(cellISO, rangeEndISO) > 0
+      );
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'mg-cal-day'
+        + (isPast ? ' is-disabled' : '')
+        + (isToday ? ' is-today' : '')
+        + (isSelected ? ' is-selected' : '')
+        + (isInRange ? ' is-in-range' : '');
+      btn.textContent = String(day);
+      btn.dataset.iso = cellISO;
+      btn.disabled = isPast;
+      btn.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+      if (!isPast) {
+        btn.onclick = function () {
+          calendarPendingDate = cellISO;
+          renderMissionCalendarGrid();
+        };
+      }
+      gridEl.appendChild(btn);
+    }
+  }
+
+  function openMissionCalendarSheet(mode) {
+    calendarSheetMode = mode === 'start' ? 'start' : 'deadline';
+    const todayISO = getTodayISO();
+    const initialISO = calendarSheetMode === 'start'
+      ? (missionScheduleState.preparationStartDate || todayISO)
+      : (missionScheduleState.deadlineDate || todayISO);
+    const dt = parseLocalISODate(initialISO) || new Date();
+    calendarViewYear = dt.getFullYear();
+    calendarViewMonth = dt.getMonth();
+    calendarPendingDate = initialISO;
+
+    const sheet = document.getElementById('missionCalendarSheet');
+    if (!sheet) return;
+    renderMissionCalendarGrid();
+    sheet.classList.remove('hidden');
+    if (typeof window.lucide?.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
+  }
+  window.openMissionCalendarSheet = openMissionCalendarSheet;
+
+  function closeMissionCalendarSheet() {
+    const sheet = document.getElementById('missionCalendarSheet');
+    if (sheet) sheet.classList.add('hidden');
+  }
+  window.closeMissionCalendarSheet = closeMissionCalendarSheet;
+
+  function shiftMissionCalendarMonth(delta) {
+    const d = new Date(calendarViewYear, calendarViewMonth + Number(delta || 0), 1);
+    const today = new Date();
+    const minMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    if (d < minMonth) return;
+    calendarViewYear = d.getFullYear();
+    calendarViewMonth = d.getMonth();
+    renderMissionCalendarGrid();
+  }
+  window.shiftMissionCalendarMonth = shiftMissionCalendarMonth;
+
+  function applyMissionCalendarSelection() {
+    if (!calendarPendingDate) {
+      closeMissionCalendarSheet();
+      return;
+    }
+    const todayISO = getTodayISO();
+    if (diffCalendarDays(todayISO, calendarPendingDate) < 0) {
+      return;
+    }
+    if (calendarSheetMode === 'start') {
+      userManuallyChoseStartMode = true;
+      missionScheduleState.startMode = 'custom';
+      missionScheduleState.preparationStartDate = calendarPendingDate;
+      startClampedNotice = false;
+      syncMissionScheduleUI();
+    } else {
+      selectDeadlineDate(calendarPendingDate);
+    }
+    closeMissionCalendarSheet();
+  }
+  window.applyMissionCalendarSelection = applyMissionCalendarSelection;
+
+  function resetMissionScheduleState() {
+    missionScheduleState.deadlineDate = null;
+    missionScheduleState.preparationStartDate = null;
+    missionScheduleState.startMode = 'immediate';
+    missionScheduleState.preferredWeekdays = [];
+    missionScheduleState.preferredSessionMinutes = null;
+    userManuallyChoseStartMode = false;
+    startClampedNotice = false;
+    closeMissionCalendarSheet();
+    syncMissionScheduleUI();
+  }
+  window.resetMissionScheduleState = resetMissionScheduleState;
+
+  function getMissionScheduleState() {
+    return {
+      deadlineDate: missionScheduleState.deadlineDate,
+      preparationStartDate: missionScheduleState.preparationStartDate,
+      startMode: missionScheduleState.startMode,
+      preferredWeekdays: [...missionScheduleState.preferredWeekdays],
+      preferredSessionMinutes: missionScheduleState.preferredSessionMinutes
+    };
+  }
+  window.getMissionScheduleState = getMissionScheduleState;
+
+  function setMissionScheduleState(patch) {
+    if (!patch || typeof patch !== 'object') return getMissionScheduleState();
+    if ('deadlineDate' in patch) {
+      missionScheduleState.deadlineDate = patch.deadlineDate || null;
+    }
+    if ('startMode' in patch && ['immediate', 'one_week_before', 'two_weeks_before', 'custom'].includes(patch.startMode)) {
+      missionScheduleState.startMode = patch.startMode;
+      userManuallyChoseStartMode = true;
+    }
+    if ('preparationStartDate' in patch) {
+      missionScheduleState.preparationStartDate = patch.preparationStartDate || null;
+    } else if (missionScheduleState.deadlineDate && missionScheduleState.startMode !== 'custom') {
+      recomputePreparationStartDate();
+    }
+    if (Array.isArray(patch.preferredWeekdays)) {
+      missionScheduleState.preferredWeekdays = patch.preferredWeekdays
+        .map(Number)
+        .filter(n => n >= 1 && n <= 7)
+        .sort((a, b) => a - b);
+    }
+    if ('preferredSessionMinutes' in patch) {
+      const m = patch.preferredSessionMinutes === null ? null : Number(patch.preferredSessionMinutes);
+      missionScheduleState.preferredSessionMinutes = [20, 30, 45].includes(m) ? m : null;
+    }
+    syncMissionScheduleUI();
+    return getMissionScheduleState();
+  }
+  window.setMissionScheduleState = setMissionScheduleState;
+
+  /* Optional Schedule Summary Preview on #app-screen-plan */
+  function syncPlanSchedulePreview() {
+    const existing = document.getElementById('aiPlanSchedulePreview');
+    const snap = lastConfiguredScheduleSnapshot;
+    const hasConfigured = Boolean(
+      snap && (snap.deadlineDate || snap.preferredWeekdays.length > 0 || snap.preferredSessionMinutes !== null)
+    );
+    if (!hasConfigured) {
+      existing?.remove();
+      return;
+    }
+    const planScreen = document.getElementById('app-screen-plan');
+    const anchor = document.getElementById('missionProtectionCard') || document.getElementById('aiPlanSteps');
+    if (!planScreen || !anchor) return;
+
+    let banner = existing;
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'aiPlanSchedulePreview';
+      banner.className = 'ai-plan-schedule-preview';
+      anchor.insertAdjacentElement('beforebegin', banner);
+    }
+    const isEn = getActiveLang() === 'en';
+    const parts = [];
+    if (snap.deadlineDate) {
+      const startTxt = formatShortDate(snap.preparationStartDate || getTodayISO(), true);
+      const endTxt = formatShortDate(snap.deadlineDate, false);
+      parts.push(startTxt + ' → ' + endTxt);
+    }
+    if (snap.preferredWeekdays.length > 0) {
+      const dayNames = isEn ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] : ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+      parts.push(snap.preferredWeekdays.map(d => dayNames[d - 1]).join(', '));
+    }
+    if (snap.preferredSessionMinutes) {
+      parts.push(snap.preferredSessionMinutes + (isEn ? ' min' : ' Min.'));
+    }
+    banner.innerHTML =
+      '<span class="ai-plan-schedule-preview-icon"><i data-lucide="calendar-check"></i></span>' +
+      '<div class="min-w-0 flex-1">' +
+        '<div class="text-[9px] font-black uppercase tracking-[0.11em] text-[#6D28D9]">' + (isEn ? 'SCHEDULE PREVIEW' : 'ZEITPLAN-VORSCHAU') + '</div>' +
+        '<div class="text-[11.5px] font-extrabold text-[#1D1A17] truncate">' + parts.join(' · ') + '</div>' +
+      '</div>';
+    if (typeof window.lucide?.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
+  }
+
+  /* Pre-validation hook on analyzeGoal without altering AI request payload or ai-service.js */
+  const origAnalyzeGoal = window.analyzeGoal;
+  if (typeof origAnalyzeGoal === 'function') {
+    window.analyzeGoal = function () {
+      const check = validateMissionScheduleState();
+      if (!check.valid) {
+        syncMissionScheduleUI();
+        const noticeEl = document.getElementById('mgScheduleNotice');
+        noticeEl?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return false;
+      }
+      lastConfiguredScheduleSnapshot = getMissionScheduleState();
+      return origAnalyzeGoal.apply(this, arguments);
+    };
+  }
+
+  /* Reset schedule state cleanly when opening a new Mission creation intake */
+  const origOpenGoalIntake = window.openGoalIntake;
+  if (typeof origOpenGoalIntake === 'function') {
+    window.openGoalIntake = function () {
+      resetMissionScheduleState();
+      return origOpenGoalIntake.apply(this, arguments);
+    };
+  }
+
+  /* Hook renderAIPlan for optional schedule preview */
+  const origRenderAIPlanV174 = window.renderAIPlan;
+  if (typeof origRenderAIPlanV174 === 'function') {
+    window.renderAIPlan = function () {
+      const res = origRenderAIPlanV174.apply(this, arguments);
+      syncPlanSchedulePreview();
+      return res;
+    };
+  }
+
+  /* Hook setLanguage so Home date header and Schedule UI stay localized */
+  const origSetLanguageV174 = window.setLanguage;
+  if (typeof origSetLanguageV174 === 'function') {
+    window.setLanguage = function () {
+      const res = origSetLanguageV174.apply(this, arguments);
+      if (typeof window.updateHomeDateHeaderV173 === 'function') {
+        window.updateHomeDateHeaderV173();
+      }
+      syncMissionScheduleUI();
+      return res;
+    };
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      const sheet = document.getElementById('missionCalendarSheet');
+      if (sheet && !sheet.classList.contains('hidden')) {
+        closeMissionCalendarSheet();
+      }
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', function () {
+    syncMissionScheduleUI();
+    if (typeof window.updateHomeDateHeaderV173 === 'function') {
+      window.updateHomeDateHeaderV173();
+    }
+  });
+})();
+

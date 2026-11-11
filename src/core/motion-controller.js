@@ -753,9 +753,9 @@
           protectBtn.classList.add('fm-protect-activating');
           protectBtn.animate(
             [
-              { transform: 'scale(0.92)', opacity: 0.35 },
-              { transform: 'scale(1.04)', opacity: 1, offset: 0.7 },
-              { transform: 'scale(1)', opacity: 1 }
+              { transform: 'translateX(-50%) scale(0.92)', opacity: 0.35 },
+              { transform: 'translateX(-50%) scale(1.04)', opacity: 1, offset: 0.7 },
+              { transform: 'translateX(-50%) scale(1)', opacity: 1 }
             ],
             {
               duration: 460,

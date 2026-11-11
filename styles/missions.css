@@ -775,3 +775,736 @@ body.mission-carousel-active #emptyMissionCard{
 #aiPlanExplanation{display:block!important;min-width:0!important;width:100%!important;height:auto!important;max-height:none!important;margin:0!important;font-size:15px!important;line-height:1.55!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:anywhere!important;word-break:normal!important;-webkit-line-clamp:unset!important;-webkit-box-orient:initial!important;color:#1D1A17!important}
 #aiPlanExplanation strong{display:block!important;margin-bottom:7px!important;font-size:16px!important;line-height:1.25!important}
 @media (max-width:370px){#aiPlanSteps .step-time{top:11px!important;right:11px!important}#aiPlanSteps .step-title{padding-right:70px!important}#aiPlanSteps .mission-step-active .step-time{top:15px!important;right:15px!important}#aiPlanSteps .mission-step-active .step-title{padding-right:86px!important}.mission-explanation-card-v1332{min-height:144px!important;padding:17px!important;gap:11px!important}#aiPlanExplanation{font-size:14px!important;line-height:1.5!important}}
+
+/* === v17.4 Mission Scheduling UI & Home Refinements === */
+
+/* 1. Empty Mission Card: lift ONLY headline + subcopy ~10px upward while keeping top row, ERSTER SCHRITT box, and card height unchanged */
+#emptyMissionCard .home-hero-content h3.mh-empty-title {
+  margin-top: 0px !important;
+}
+#emptyMissionCard .mh-next-box.mh-empty-next-box {
+  margin-top: 24px !important;
+}
+
+/* 2. Mission Creation Vertical Scroll & Final Action Flow */
+#app-screen-goal {
+  background: radial-gradient(circle at 88% 18%, rgba(196, 181, 253, 0.22), transparent 28%), #F6F1E7 !important;
+  color: #1D1A17 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+#app-screen-goal .mission-goal-shell {
+  height: auto !important;
+  min-height: 100% !important;
+  overflow: visible !important;
+  padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px)) !important;
+}
+#app-screen-goal .mg-plan-button {
+  position: relative !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: 60px !important;
+  margin-top: 20px !important;
+  border-radius: 22px !important;
+  background: linear-gradient(105deg, #7C3AED 0%, #6D28D9 60%, #5B21B6 100%) !important;
+  box-shadow: 0 16px 32px rgba(109, 40, 217, 0.28), inset 0 1px rgba(255, 255, 255, 0.24) !important;
+  flex: 0 0 auto !important;
+}
+#app-screen-goal .mg-plan-button:disabled {
+  background: #CFC7DC !important;
+  color: #FFFFFF !important;
+  box-shadow: none !important;
+  opacity: 0.68 !important;
+}
+
+/* 3. ZEITPLAN Section (#missionScheduleSection) */
+#missionScheduleSection.mg-schedule {
+  margin-top: 18px !important;
+  position: relative;
+  z-index: 3;
+}
+.mg-schedule-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+#missionScheduleSection .mg-schedule-head h4 {
+  margin: 0 !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  color: #5C544D !important;
+}
+.mg-schedule-opt-pill,
+.mg-sub-opt {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #EFE9DD;
+  border: 1px solid rgba(45, 35, 30, 0.08);
+  color: #766E65;
+  font-size: 8.5px;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.mg-schedule-intro {
+  margin: 0 0 10px !important;
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: 500;
+  color: #766E65;
+}
+.mg-schedule-card {
+  padding: 15px;
+  border-radius: 22px;
+  background: #FCF9F4;
+  border: 1px solid rgba(45, 35, 30, 0.10);
+  box-shadow: 0 10px 26px rgba(37, 22, 43, 0.055), inset 0 1px 0 #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Part A: Deadline Trigger Row */
+.mg-deadline-row-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mg-deadline-trigger {
+  flex: 1;
+  min-width: 0;
+  min-height: 58px;
+  padding: 10px 13px;
+  border-radius: 17px;
+  background: #F4EFE6;
+  border: 1px solid rgba(45, 35, 30, 0.09);
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.16s ease, background-color 0.16s ease, transform 0.12s ease;
+}
+.mg-deadline-trigger:hover {
+  border-color: rgba(109, 40, 217, 0.28);
+  background: #F7F3EB;
+}
+.mg-deadline-trigger:active {
+  transform: scale(0.99);
+}
+.mg-deadline-trigger.has-value {
+  background: #F3E8FF;
+  border-color: #C4B5FD;
+}
+.mg-deadline-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: #FCF9F4;
+  border: 1px solid rgba(45, 35, 30, 0.08);
+  color: #6D28D9;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(37, 22, 43, 0.04);
+}
+.mg-deadline-trigger.has-value .mg-deadline-icon {
+  background: #6D28D9;
+  border-color: #6D28D9;
+  color: #FFFFFF;
+}
+.mg-deadline-icon svg {
+  width: 18px;
+  height: 18px;
+}
+.mg-deadline-copy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.mg-deadline-kicker {
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #766E65;
+}
+.mg-deadline-trigger.has-value .mg-deadline-kicker {
+  color: #6D28D9;
+}
+.mg-deadline-val {
+  font-size: 13.5px;
+  font-weight: 850;
+  color: #1D1A17;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mg-deadline-val.is-placeholder {
+  color: #5C544D;
+  font-weight: 750;
+}
+.mg-deadline-arrow {
+  color: #766E65;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.mg-deadline-arrow svg {
+  width: 16px;
+  height: 16px;
+}
+.mg-deadline-clear {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid rgba(45, 35, 30, 0.10);
+  background: #F4EFE6;
+  color: #766E65;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background-color 0.14s ease, color 0.14s ease;
+}
+.mg-deadline-clear:hover {
+  background: #EFE9DD;
+  color: #1D1A17;
+}
+.mg-deadline-clear svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* Sub-section headers inside schedule card */
+.mg-sub-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.mg-sub-label {
+  font-size: 9.5px;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: #5C544D;
+}
+.mg-sub-copy {
+  margin: 3px 0 0;
+  font-size: 11px;
+  line-height: 1.35;
+  color: #766E65;
+}
+.mg-rec-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #F3E8FF;
+  border: 1px solid #E9D5FF;
+  color: #6D28D9;
+  font-size: 8.5px;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+}
+
+/* Part B: Preparation Start Chips */
+.mg-prep-start-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mg-start-chips {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+.mg-start-chip {
+  min-height: 36px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(45, 35, 30, 0.10);
+  background: #F4EFE6;
+  color: #1D1A17;
+  font-size: 11px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.mg-start-chip.is-recommended:not(.active) {
+  border-color: #C4B5FD;
+  background: #FAF5FF;
+}
+.mg-start-chip.active {
+  background: #6D28D9;
+  border-color: #6D28D9;
+  color: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(109, 40, 217, 0.22);
+}
+.mg-start-chip:active {
+  transform: scale(0.97);
+}
+
+/* Part C: Preparation Timeline */
+.mg-timeline-box {
+  padding: 11px 13px;
+  border-radius: 16px;
+  background: #F4EFE6;
+  border: 1px solid rgba(45, 35, 30, 0.07);
+}
+.mg-timeline-empty {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #766E65;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+.mg-timeline-empty svg {
+  width: 16px;
+  height: 16px;
+  color: #6D28D9;
+  flex-shrink: 0;
+}
+.mg-timeline-active {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.mg-timeline-dates {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11.5px;
+  font-weight: 850;
+  color: #1D1A17;
+}
+.mg-timeline-track {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 2px 0;
+}
+.mg-timeline-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #6D28D9;
+  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.16);
+  flex-shrink: 0;
+}
+.mg-timeline-bar {
+  flex: 1;
+  height: 3px;
+  background: linear-gradient(90deg, #6D28D9 0%, #8B5CF6 100%);
+  border-radius: 999px;
+  margin: 0 4px;
+}
+.mg-timeline-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.mg-timeline-role {
+  font-size: 8.5px;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #766E65;
+}
+.mg-timeline-days {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #F3E8FF;
+  border: 1px solid #DDD6FE;
+  color: #6D28D9;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Inline Schedule Notice / Validation */
+.mg-schedule-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 9px 11px;
+  border-radius: 13px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.mg-schedule-notice svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.mg-schedule-notice.is-info {
+  background: #F3E8FF;
+  border: 1px solid #DDD6FE;
+  color: #5B21B6;
+}
+.mg-schedule-notice.is-warn {
+  background: #FEF3C7;
+  border: 1px solid #FDE68A;
+  color: #92400E;
+}
+.mg-schedule-notice.is-error {
+  background: #FFF1F2;
+  border: 1px solid #FECDD3;
+  color: #BE123C;
+}
+
+.mg-schedule-divider {
+  height: 1px;
+  background: rgba(45, 35, 30, 0.08);
+  margin: 1px 0;
+}
+
+/* Part D: Weekdays & Presets */
+.mg-weekdays-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mg-weekday-row {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 5px;
+  margin-top: 2px;
+}
+.mg-weekday-btn {
+  height: 38px;
+  border-radius: 11px;
+  border: 1px solid rgba(45, 35, 30, 0.10);
+  background: #F4EFE6;
+  color: #1D1A17;
+  font-size: 11.5px;
+  font-weight: 850;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.14s ease;
+  padding: 0;
+}
+.mg-weekday-btn.active {
+  background: #6D28D9;
+  border-color: #6D28D9;
+  color: #FFFFFF;
+  box-shadow: 0 4px 10px rgba(109, 40, 217, 0.22);
+}
+.mg-weekday-btn:active {
+  transform: scale(0.95);
+}
+.mg-weekday-presets {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.mg-preset-chip {
+  flex: 1 1 auto;
+  min-height: 30px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(45, 35, 30, 0.09);
+  background: #FCF9F4;
+  color: #5C544D;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.14s ease;
+  white-space: nowrap;
+}
+.mg-preset-chip.active {
+  background: #F3E8FF;
+  border-color: #C4B5FD;
+  color: #6D28D9;
+}
+
+/* Part E: Preferred Session Duration */
+.mg-duration-pref-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mg-duration-chips {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+.mg-dur-chip {
+  min-height: 34px;
+  padding: 4px 6px;
+  border-radius: 11px;
+  border: 1px solid rgba(45, 35, 30, 0.10);
+  background: #F4EFE6;
+  color: #1D1A17;
+  font-size: 10.5px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.14s ease;
+  white-space: nowrap;
+}
+.mg-dur-chip.active {
+  background: #6D28D9;
+  border-color: #6D28D9;
+  color: #FFFFFF;
+  box-shadow: 0 4px 10px rgba(109, 40, 217, 0.20);
+}
+
+/* Calendar Bottom Sheet */
+.mg-cal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 180;
+  background: rgba(29, 26, 23, 0.46);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 12px 12px calc(12px + env(safe-area-inset-bottom, 0px));
+}
+.mg-cal-backdrop.hidden {
+  display: none !important;
+}
+.mg-cal-sheet {
+  width: 100%;
+  max-width: 406px;
+  padding: 14px 16px 16px;
+  border-radius: 26px;
+  background: #FCF9F4;
+  border: 1px solid rgba(45, 35, 30, 0.12);
+  box-shadow: 0 24px 64px rgba(29, 26, 23, 0.32);
+  color: #1D1A17;
+  animation: mgCalSheetIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes mgCalSheetIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.mg-cal-handle {
+  width: 38px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(45, 35, 30, 0.16);
+  margin: 0 auto 12px;
+}
+.mg-cal-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.mg-cal-kicker {
+  display: block;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #6D28D9;
+}
+.mg-cal-title {
+  margin: 2px 0 0 !important;
+  font-size: 17px !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.02em !important;
+  color: #1D1A17 !important;
+  text-transform: none !important;
+}
+.mg-cal-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mg-cal-nav-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  border: 1px solid rgba(45, 35, 30, 0.10);
+  background: #F4EFE6;
+  color: #1D1A17;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.mg-cal-nav-btn:disabled {
+  opacity: 0.38;
+  cursor: default;
+}
+.mg-cal-nav-btn svg {
+  width: 16px;
+  height: 16px;
+}
+.mg-cal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  text-align: center;
+  margin-bottom: 6px;
+}
+.mg-cal-weekdays span {
+  font-size: 10px;
+  font-weight: 850;
+  color: #766E65;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.mg-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+.mg-cal-day {
+  height: 38px;
+  border-radius: 11px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #1D1A17;
+  font-size: 12.5px;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+  padding: 0;
+}
+.mg-cal-day.is-empty {
+  pointer-events: none;
+  cursor: default;
+}
+.mg-cal-day:disabled,
+.mg-cal-day.is-disabled {
+  color: rgba(118, 110, 101, 0.36);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.mg-cal-day.is-today:not(.is-selected) {
+  border-color: #6D28D9;
+  color: #6D28D9;
+  font-weight: 900;
+}
+.mg-cal-day.is-in-range:not(.is-selected) {
+  background: #F3E8FF;
+  color: #5B21B6;
+}
+.mg-cal-day.is-selected {
+  background: #6D28D9 !important;
+  border-color: #6D28D9 !important;
+  color: #FFFFFF !important;
+  font-weight: 900;
+  box-shadow: 0 4px 12px rgba(109, 40, 217, 0.28);
+}
+.mg-cal-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 14px;
+}
+.mg-cal-btn {
+  min-height: 44px;
+  border-radius: 14px;
+  font-size: 12.5px;
+  font-weight: 850;
+  cursor: pointer;
+  transition: transform 0.12s ease, opacity 0.14s ease;
+}
+.mg-cal-btn.secondary {
+  border: 1px solid rgba(45, 35, 30, 0.12);
+  background: #F4EFE6;
+  color: #1D1A17;
+}
+.mg-cal-btn.primary {
+  border: 0;
+  background: #6D28D9;
+  color: #FFFFFF;
+  box-shadow: 0 8px 18px rgba(109, 40, 217, 0.24);
+}
+.mg-cal-btn:active {
+  transform: scale(0.98);
+}
+
+/* Optional Schedule Preview Banner on #app-screen-plan */
+.ai-plan-schedule-preview {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: #FCF9F4;
+  border: 1px solid rgba(45, 35, 30, 0.10);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #1D1A17;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.ai-plan-schedule-preview-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: #F3E8FF;
+  color: #6D28D9;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.ai-plan-schedule-preview-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+@media (max-width: 360px) {
+  .mg-duration-chips {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .mg-weekday-btn {
+    height: 34px;
+    font-size: 10.5px;
+  }
+}
+

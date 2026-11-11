@@ -137,16 +137,24 @@ function renderHomeActivityTimelineV173(){
  });
 }
 function updateHomeDateHeaderV173(){
+ const brandEl=document.getElementById('homeBrandTitle');
+ if(brandEl){
+   if(brandEl.textContent!=='Focus Mode+')brandEl.textContent='Focus Mode+';
+   if(brandEl.firstChild)brandEl.firstChild.__deOriginal='Focus Mode+';
+ }
  const dateEl=document.getElementById('homeCurrentDate');
  if(!dateEl)return;
- const lang=(window.FocusModeApp?.services?.storage?.getText('focus-mode-language','de')||document.documentElement.lang||'de')==='en'?'en-US':'de-DE';
+ const rawLang=(window.FocusModeApp?.services?.storage?.getText('focus-mode-language','de')||document.documentElement.lang||'de').toLowerCase();
+ const locale=rawLang==='en'?'en-US':rawLang==='ru'?'ru-RU':'de-DE';
  try{
-   const formatted=new Intl.DateTimeFormat(lang,{weekday:'long',day:'numeric',month:'long'}).format(new Date());
+   const formatted=new Intl.DateTimeFormat(locale,{weekday:'long',day:'numeric',month:'long'}).format(new Date()).toUpperCase();
    dateEl.textContent=formatted;
+   if(dateEl.firstChild)dateEl.firstChild.__deOriginal=formatted;
  }catch{
    dateEl.textContent='';
  }
 }
+window.updateHomeDateHeaderV173=updateHomeDateHeaderV173;
 function refreshHomeStats(){
  updateHomeDateHeaderV173();
  const today=sessionRepository.getToday().filter(countedFocus);

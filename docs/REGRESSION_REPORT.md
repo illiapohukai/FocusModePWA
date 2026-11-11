@@ -1,27 +1,20 @@
-# Regression & Verification Report — v17.3.2 Fluid Motion System
+# Regression & Verification Report — v17.4 Mission Scheduling UI
 
 ## 1. Architecture, Boundary & Visual System Preservation
 - **Original Structure Preserved**: `index.html`, `src/`, `styles/`, `docs/`, `manifest.webmanifest`, `service-worker.js`, and all root PWA icons remain in their exact root locations.
-- **Strict File Addition Boundary Respected**: Added only `styles/motion.css` and `src/core/motion-controller.js`, with minimal integration inside `src/core/navigation.js`, `index.html`, `src/core/bootstrap.js`, and `service-worker.js`.
-- **Visual System & Business Logic Locked**: Cream background (`#F6F1E7`), aubergine Mission surfaces (`#25162B`), typography, floating bottom dock (`#bottomNavigationV17`), central Plus button (`#bottomNavPlus`), Cosmic Timer (`#app-screen-timer`), and all `localStorage` keys and repositories remain untouched.
-- **Unit & Syntax Validation**:
-  - `node --test src/core/motion-controller.js`: 15/15 pure unit tests passed (state machine transitions, lock timeouts, directional root-tab metrics, push/pop/shared-planet intent classification, reduced-motion clamping).
-  - `node --check`: 0 syntax errors across `src/core/motion-controller.js`, `src/core/navigation.js`, `src/core/bootstrap.js`, and `service-worker.js`.
+- **Backend & AI Contract Untouched**: `src/services/ai-service.js`, Cloudflare Worker endpoints, AI prompts, and `FormData` fields (`goalText`, `missionType`, `confidence`, `image`) remain 100% unmodified.
+- **Syntax Validation**: `node --check` passed with 0 errors across all JavaScript files in `src/` and `service-worker.js`.
 
-## 2. 62-Point Playwright Browser Regression Matrix (`http://localhost:3000`)
+## 2. Playwright Chromium Verification Matrix (`v17.4 Mission Scheduling UI`)
 
-| # | Test Scenario | Result |
+| Category | Test Scenario | Result |
 | :--- | :--- | :--- |
-| **1–2** | Normal startup splash (`520ms–1150ms`), 220ms exit dissolve, staggered Home arrival (`#fmStartupSplash` hidden, `MotionController` state `idle`); Session Recovery startup (`#app-screen-session-recovery`) with active session in `localStorage`. | PASS |
-| **3–14** | All 12 directional root-tab transitions across `Home` (0), `Missionen` (1), `Verlauf` (2), and `Einstellungen` (3) covering distances 1, 2, and 3 in both directions. | PASS |
-| **15** | Same-tab tap on active root section (`Home` while on `Home`): smooth scroll-to-top and active icon pulse without full screen transition. | PASS |
-| **16–20** | Central Plus (`#bottomNavPlus`) morph into Focus Choice sheet (`#focusChoiceOverlay`), close via X button, close via backdrop click, close via `Escape`, and 3× repeated open/close cycle with `#bottomNavigationV17` restored every time. | PASS |
-| **21–26** | Quick Focus from Focus Choice (`#app-screen-quicksetup`), duration chip selection (`15`, `25`, `45`, `60` Min.), Back to Home, Distractions push (`#app-screen-distractions`), app toggle & counter update, and Back to Quick Focus. | PASS |
-| **27–32** | Quick Focus start -> shared planet expansion into Cosmic Timer (`#app-screen-timer`), green protection badge (`#ucProtectBadge`) pulse, timer pause/resume, timer end -> planet-to-Plus contraction into Home, Home statistics update, and `.home-activity-row` timeline insertion. | PASS |
-| **33–40** | Focus Mission from Focus Choice (`#app-screen-goal`), Mission type cards selection (`offsetWidth`/`offsetHeight` unchanged — zero layout shift), Confidence cards & progress bar update, Mission creation -> Plan (`#app-screen-plan`), single active Mission card on Home (`#missionCarouselV1181.single-mission`), Mission card -> Plan shared hero morph, Plan step expand/collapse 2× without scroll jump, and Back from Plan (`source=home`) -> Home. | PASS |
-| **41–46** | Mission session start -> shared planet entry into Cosmic Timer, Mission session end -> Result screen (`#app-screen-result`), Continue without adaptation -> Update screen (`#app-screen-update`) -> Zum Dashboard -> Home, and Optional Adaptation flow. | PASS |
-| **47–48** | Second active Mission creation -> 2-Mission horizontal carousel on Home (`#missionCarouselV1181.multi-mission`) with swipe & pagination dots; Mission Plan opened from `Missionen` (`source=missions`) -> Back returns to `Missionen`. | PASS |
-| **49–52** | Mission Management (`#app-screen-missions`): action sheet (`#missionSheetV116`) open/close, filter tab switching (`Aktiv`, `Abgeschlossen`, `Archiv`), Archive mission, and Restore mission. | PASS |
-| **53–54** | Session History (`#app-screen-history`) filter pills (`Heute`, `Diese Woche`, `Alle`) and forward/back navigation between `Verlauf` and `Statistik` (`#app-screen-stats`). | PASS |
-| **55–58** | Settings (`#app-screen-settings`) language toggle (`DE` / `EN`), Data & Backup (`#app-screen-data`) push/pop navigation, and Reset confirmation card (`#dataResetConfirmCard`) reveal/dismiss. | PASS |
-| **59–62** | Rapid tap stress test across all root tabs (no lock or dual visible screens), `prefers-reduced-motion: reduce` mode, unsupported `document.startViewTransition` fallback path, and `visibilitychange` / `pagehide` active transition cleanup. | PASS |
+| **Home Header Typography** | First line `#homeCurrentDate` shows dynamic localized current date in uppercase (`MITTWOCH, 11. NOVEMBER` / `WEDNESDAY, NOVEMBER 11`); second line `#homeBrandTitle` shows `Focus Mode+` in heavy display weight (`font-weight: 900`, `36px–38.7px` on `390px–430px`); right-side `BEREIT` pill and profile icon button do not collide or wrap across `320px`, `375px`, `390px`, `430px`. | PASS |
+| **Empty Mission Card** | Main text group (`h3.mh-empty-title` + `p.mh-empty-copy`) moved upward by `10px` (`titleOffset: 63px` vs `73px`), while `.mh-top-row` (`39px`), `.mh-empty-next-box` (`231px`), and overall `#emptyMissionCard` height (`330px`) remain unchanged. | PASS |
+| **Cosmic Timer Fokus-Schutz** | `#app-screen-timer .uc-protect` (`Fokusschutz aktiv`) positioned directly below `.uc-planet` / `.uc-readout` (`protectTop: 365px > readoutBottom: 306px`) and above `#ucFocusCard` (`protectBottom: 412px <= taskCardTop: 431px`), horizontally centered (`protectCenterX: 195px` on `390px` viewport). | PASS |
+| **Mission Creation Layout** | Upper Mission Creation sections (`Mission-Typ`, `#goalPrompt`, file upload, `Wie sicher fühlst du dich?`) preserved; vertical scrolling reaches `#missionScheduleSection` (`ZEITPLAN`) and `#missionPlanButton` (`Mission planen`) without overlap. | PASS |
+| **Calendar Bottom Sheet** | Opens on `#mgDeadlineTrigger` or `Eigene Wahl`; renders Monday-first week (`Mo–So`); navigates months (`November 2026: 30d`, `Dezember 2026: 31d`, `Januar 2027: 31d`, `Februar 2027: 28d`, `Februar 2028 leap year: 29d`); disables past dates; highlights today and selected date; `Abbrechen` discards pending change; `Übernehmen` commits selection. | PASS |
+| **Preparation Start & Timeline** | Auto-recommends `Sofort` (`1–7d`), `1 Woche vorher` (`8–21d`), `2 Wochen vorher` (`22–60d`), `Eigene Wahl` (`>60d`) without overriding manual user choice; clamps start date to today when offset precedes today; updates timeline labels and `X TAGE VORBEREITUNG`. | PASS |
+| **Weekdays & Session Duration** | Individual toggles `Mo..So` (`1..7`), presets `Unter der Woche` (`[1,2,3,4,5]`), `Wochenende` (`[6,7]`), `Flexibel` (`[]`), and preferred session duration chips (`20 Min.`, `30 Min.`, `45 Min.`, `AI entscheidet`) update `window.missionScheduleState`. | PASS |
+| **Client-Side Validation** | Past dates disabled; deadline today shows info (`Der Zeitplan beginnt heute.`); short prep shows warning (`Sehr wenig Vorbereitungszeit.`); start after deadline blocks submission with error (`Der Vorbereitungsstart muss vor der Prüfung oder Abgabe liegen.`); no matching weekday in range blocks submission with error (`Im gewählten Zeitraum liegt kein ausgewählter Lerntag.`); no deadline remains valid and optional. | PASS |
+| **Core App Regressions** | Home with 0, 1, and 2 active Missions; Mission Management (`Aktiv`, `Abgeschlossen`, `Archiv`); Session History (`Heute`, `Diese Woche`, `Alle Sitzungen`); Statistics; Settings language switch (`DE` / `EN`); Backup & Restore (`Daten & Backup`). | PASS |

@@ -296,43 +296,55 @@ html:not(.pwa-dark-status) body::after {
   display: none !important;
 }
 
-/* 1. Home Header */
+/* 1. Home Header (v17.4 Restored Display Hierarchy) */
 .home-header-v173 {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
   padding-top: 2px;
 }
 
 .home-header-left {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
+.home-current-date,
 .home-brand-label {
-  font-size: 9.5px;
-  font-weight: 850;
-  letter-spacing: 0.16em;
+  margin: 0;
+  font-size: clamp(17px, 4.5vw, 22px);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  line-height: 1.1;
   text-transform: uppercase;
-  color: var(--text-secondary);
+  color: #7B8496;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
+.home-brand-title,
 .home-date-title {
   margin: 0;
-  font-size: 20px;
-  line-height: 1.15;
+  font-size: clamp(36px, 9vw, 48px);
+  line-height: 1.0;
   font-weight: 900;
-  letter-spacing: -0.025em;
-  color: var(--text-primary);
+  letter-spacing: -0.045em;
+  color: #14161B;
+  white-space: nowrap;
 }
 
 .home-header-right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   flex-shrink: 0;
+  align-self: flex-start;
+  margin-top: 4px;
 }
 
 .home-status-pill {
@@ -340,7 +352,7 @@ html:not(.pwa-dark-status) body::after {
   align-items: center;
   gap: 6px;
   height: 30px;
-  padding: 0 11px;
+  padding: 0 10px;
   border-radius: 999px;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -353,14 +365,16 @@ html:not(.pwa-dark-status) body::after {
   border-radius: 50%;
   background: var(--success);
   box-shadow: 0 0 8px rgba(22, 163, 74, 0.55);
+  flex-shrink: 0;
 }
 
+#homeReadyStatusText,
 .home-status-text {
-  font-size: 9.5px;
+  font-size: 10px;
   font-weight: 850;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.11em;
   text-transform: uppercase;
-  color: var(--text-primary);
+  color: #14161B;
 }
 
 .home-profile-btn {
@@ -384,6 +398,27 @@ html:not(.pwa-dark-status) body::after {
 
 .home-profile-btn:active {
   transform: scale(0.94);
+}
+
+@media (max-width: 389px) {
+  .home-current-date {
+    font-size: clamp(14px, 4.1vw, 17px);
+  }
+  .home-brand-title {
+    font-size: clamp(30px, 8.4vw, 35px);
+  }
+  .home-status-pill {
+    height: 28px;
+    padding: 0 8px;
+    gap: 5px;
+  }
+  #homeReadyStatusText {
+    font-size: 9px;
+  }
+  .home-profile-btn {
+    width: 34px;
+    height: 34px;
+  }
 }
 
 /* Home Section Blocks & Headers */
