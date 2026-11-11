@@ -1,0 +1,1233 @@
+/* ==========================================================================
+   Focus Mode+ — v17.3.1 Motion System
+   Consistent, calm, hardware-accelerated motion tokens, splash screen,
+   directional screen transitions, focus-session portal & staged reveal,
+   bottom sheets, dialogs, carousel settling, and micro-interactions.
+   ========================================================================== */
+
+:root {
+  --motion-instant: 100ms;
+  --motion-fast: 160ms;
+  --motion-normal: 240ms;
+  --motion-slow: 380ms;
+  --motion-splash: 650ms;
+
+  --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --ease-spring-soft: cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+
+/* Prevent any initial flash before or after startup splash */
+html,
+body,
+body.pwa-app,
+#screenWrapper {
+  background-color: #F6F1E7;
+}
+
+/* ==========================================================================
+   1. STARTUP SPLASH SCREEN (#fmStartupSplash)
+   ========================================================================== */
+
+.fm-startup-splash {
+  position: absolute;
+  inset: 0;
+  z-index: 9995;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding:
+    calc(24px + env(safe-area-inset-top, 0px))
+    calc(24px + env(safe-area-inset-right, 0px))
+    calc(28px + env(safe-area-inset-bottom, 0px))
+    calc(24px + env(safe-area-inset-left, 0px));
+  background: #F6F1E7;
+  color: #17131D;
+  opacity: 1;
+  transform: scale(1);
+  will-change: opacity, transform;
+  transition:
+    opacity 320ms var(--ease-standard),
+    transform 320ms var(--ease-standard);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.pwa-app .fm-startup-splash {
+  position: fixed;
+  inset: 0;
+}
+
+.fm-startup-splash.fm-splash-exiting {
+  opacity: 0;
+  transform: scale(1.025);
+  pointer-events: none;
+}
+
+.fm-startup-splash.fm-splash-hidden {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+.fm-startup-splash-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  transform: translateY(-6px);
+}
+
+.fm-startup-splash-icon-wrap {
+  width: 84px;
+  height: 84px;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #221429;
+  box-shadow:
+    0 18px 38px -14px rgba(34, 20, 41, 0.34),
+    0 0 0 1px rgba(124, 58, 237, 0.16);
+  overflow: hidden;
+  animation: fmSplashIconEnter 520ms var(--ease-spring-soft) both;
+}
+
+.fm-startup-splash-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.fm-startup-splash-brand {
+  margin-top: 18px;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: #18131F;
+  animation: fmSplashTextEnter 460ms var(--ease-enter) 70ms both;
+}
+
+.fm-startup-splash-status {
+  margin-top: 7px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: #776D7E;
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  animation: fmSplashTextEnter 460ms var(--ease-enter) 120ms both;
+}
+
+.fm-splash-dots {
+  display: inline-flex;
+  margin-left: 2px;
+}
+
+.fm-splash-dots span {
+  animation: fmSubtleDotPulse 1.2s ease-in-out infinite;
+}
+
+.fm-splash-dots span:nth-child(2) {
+  animation-delay: 0.18s;
+}
+
+.fm-splash-dots span:nth-child(3) {
+  animation-delay: 0.36s;
+}
+
+@keyframes fmSplashIconEnter {
+  0% {
+    opacity: 0;
+    transform: scale(0.88) translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes fmSplashTextEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fmSubtleDotPulse {
+  0%, 80%, 100% {
+    opacity: 0.28;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+/* ==========================================================================
+   2. GLOBAL SCREEN TRANSITIONS
+   ========================================================================== */
+
+/* Keep resting screens clean, but allow active transition classes to animate */
+.app-screen:not(.hidden):not(.fm-screen-incoming):not(.fm-screen-outgoing) {
+  animation: none !important;
+  filter: none !important;
+  transform: none !important;
+  opacity: 1 !important;
+}
+
+#appBody.fm-body-transitioning {
+  position: relative;
+  overflow-x: hidden !important;
+}
+
+/* Outgoing screen layer (synchronously .hidden in DOM, visually animating out) */
+.app-screen.hidden.fm-screen-outgoing {
+  display: var(--fm-outgoing-display, flex) !important;
+  position: absolute !important;
+  top: var(--fm-outgoing-top, 0px) !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  min-height: 100%;
+  z-index: 2 !important;
+  pointer-events: none !important;
+  user-select: none !important;
+  will-change: transform, opacity;
+  filter: none !important;
+}
+
+/* Incoming screen layer */
+.app-screen:not(.hidden).fm-screen-incoming {
+  position: relative;
+  z-index: 3 !important;
+  pointer-events: none !important;
+  will-change: transform, opacity;
+  filter: none !important;
+}
+
+/* Forward Navigation (push right -> left) */
+.app-screen.fm-screen-outgoing.fm-dir-forward {
+  animation: fmScreenLeaveForward var(--motion-normal) var(--ease-exit) both !important;
+}
+.app-screen.fm-screen-incoming.fm-dir-forward {
+  animation: fmScreenEnterForward 250ms var(--ease-enter) both !important;
+}
+
+@keyframes fmScreenLeaveForward {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(-12px, 0, 0);
+  }
+}
+
+@keyframes fmScreenEnterForward {
+  0% {
+    opacity: 0;
+    transform: translate3d(18px, 0, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Backward Navigation (pop left -> right) */
+.app-screen.fm-screen-outgoing.fm-dir-back {
+  animation: fmScreenLeaveBack 220ms var(--ease-exit) both !important;
+}
+.app-screen.fm-screen-incoming.fm-dir-back {
+  animation: fmScreenEnterBack 240ms var(--ease-enter) both !important;
+}
+
+@keyframes fmScreenLeaveBack {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(12px, 0, 0);
+  }
+}
+
+@keyframes fmScreenEnterBack {
+  0% {
+    opacity: 0;
+    transform: translate3d(-16px, 0, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Root-Tab Navigation (short crossfade + 6px vertical shift) */
+.app-screen.fm-screen-outgoing.fm-dir-root {
+  animation: fmScreenLeaveRoot 170ms var(--ease-exit) both !important;
+}
+.app-screen.fm-screen-incoming.fm-dir-root {
+  animation: fmScreenEnterRoot 200ms var(--ease-enter) both !important;
+}
+
+@keyframes fmScreenLeaveRoot {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(0, -4px, 0);
+  }
+}
+
+@keyframes fmScreenEnterRoot {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Modal / Overlay Screen Navigation (distractions, filepicker, confirm, update) */
+.app-screen.fm-screen-outgoing.fm-dir-overlay {
+  animation: fmScreenLeaveOverlay 190ms var(--ease-exit) both !important;
+}
+.app-screen.fm-screen-incoming.fm-dir-overlay {
+  animation: fmScreenEnterOverlay 230ms var(--ease-enter) both !important;
+}
+
+@keyframes fmScreenLeaveOverlay {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  100% {
+    opacity: 0.25;
+    transform: translate3d(0, -4px, 0) scale(0.99);
+  }
+}
+
+@keyframes fmScreenEnterOverlay {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0) scale(0.99);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+/* ==========================================================================
+   3. FOCUS-SESSION START & EXIT TRANSITIONS
+   ========================================================================== */
+
+.fm-focus-launch-portal {
+  position: absolute;
+  inset: 0;
+  z-index: 95;
+  pointer-events: none;
+  opacity: 0;
+  overflow: hidden;
+  display: none;
+}
+
+.pwa-app .fm-focus-launch-portal {
+  position: fixed;
+}
+
+.fm-focus-launch-portal.fm-portal-active {
+  display: block;
+  animation: fmFocusPortalFade 520ms var(--ease-standard) both;
+}
+
+.fm-focus-launch-portal::before {
+  content: "";
+  position: absolute;
+  left: var(--fm-portal-x, 50%);
+  top: var(--fm-portal-y, 78%);
+  width: 36px;
+  height: 36px;
+  margin-left: -18px;
+  margin-top: -18px;
+  border-radius: 999px;
+  background: radial-gradient(
+    circle,
+    rgba(124, 58, 237, 0.92) 0%,
+    rgba(46, 22, 82, 0.96) 44%,
+    #060816 100%
+  );
+  transform: scale(0.2);
+  will-change: transform, opacity;
+}
+
+.fm-focus-launch-portal.fm-portal-active::before {
+  animation: fmFocusPortalExpand 480ms var(--ease-enter) both;
+}
+
+@keyframes fmFocusPortalExpand {
+  0% {
+    opacity: 0.92;
+    transform: scale(0.35);
+  }
+  65% {
+    opacity: 1;
+    transform: scale(48);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(56);
+  }
+}
+
+@keyframes fmFocusPortalFade {
+  0% {
+    opacity: 1;
+  }
+  72% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Focus Session Incoming / Outgoing Screen states */
+.app-screen.fm-screen-outgoing.fm-dir-session-start {
+  animation: fmSessionStartOutgoing 260ms var(--ease-exit) both !important;
+}
+.app-screen.fm-screen-incoming.fm-dir-session-start {
+  animation: fmSessionStartIncoming 420ms var(--ease-enter) both !important;
+}
+
+@keyframes fmSessionStartOutgoing {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.975);
+  }
+}
+
+@keyframes fmSessionStartIncoming {
+  0% {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Staged Reveal Inside Cosmic Timer (#app-screen-timer.fm-timer-staged-enter) */
+#app-screen-timer.fm-timer-staged-enter .uc-header {
+  animation: fmTimerStageFadeUp 340ms var(--ease-enter) 40ms both;
+}
+#app-screen-timer.fm-timer-staged-enter .uc-planet,
+#app-screen-timer.fm-timer-staged-enter .uc-ring {
+  animation: fmTimerStagePlanet 440ms var(--ease-spring-soft) 70ms both;
+}
+#app-screen-timer.fm-timer-staged-enter .uc-readout {
+  animation: fmTimerStageFadeUp 360ms var(--ease-enter) 115ms both;
+}
+#app-screen-timer.fm-timer-staged-enter .uc-protect {
+  animation: fmTimerStageFadeUp 340ms var(--ease-enter) 155ms both;
+}
+#app-screen-timer.fm-timer-staged-enter .uc-focus-card {
+  animation: fmTimerStageFadeUp 360ms var(--ease-enter) 195ms both;
+}
+#app-screen-timer.fm-timer-staged-enter .uc-actions {
+  animation: fmTimerStageFadeUp 360ms var(--ease-enter) 235ms both;
+}
+
+@keyframes fmTimerStageFadeUp {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes fmTimerStagePlanet {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Focus Session Exit Transition (Timer -> Result or Home) */
+.app-screen.fm-screen-outgoing.fm-dir-session-exit {
+  animation: fmSessionExitOutgoing 260ms var(--ease-exit) both !important;
+}
+.app-screen.fm-screen-incoming.fm-dir-session-exit {
+  animation: fmSessionExitIncoming 300ms var(--ease-enter) both !important;
+}
+
+@keyframes fmSessionExitOutgoing {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.965);
+  }
+}
+
+@keyframes fmSessionExitIncoming {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0) scale(0.99);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+/* ==========================================================================
+   4. FLOATING BOTTOM NAVIGATION & CENTRAL PLUS ACTION
+   ========================================================================== */
+
+#bottomNavigationV17 .fm-nav-item {
+  position: relative;
+  transition:
+    color var(--motion-fast) var(--ease-standard),
+    transform var(--motion-instant) var(--ease-standard);
+}
+
+#bottomNavigationV17 .fm-nav-item:active {
+  transform: scale(0.95);
+}
+
+#bottomNavigationV17 .fm-nav-item::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  width: 28px;
+  height: 3px;
+  border-radius: 999px;
+  background: #7C3AED;
+  opacity: 0;
+  transform: translateX(-50%) scaleX(0.4);
+  transition:
+    opacity var(--motion-normal) var(--ease-enter),
+    transform var(--motion-normal) var(--ease-spring-soft);
+}
+
+#bottomNavigationV17 .fm-nav-item.is-active::before {
+  opacity: 1;
+  transform: translateX(-50%) scaleX(1);
+}
+
+#bottomNavigationV17 .fm-nav-icon {
+  transition:
+    transform var(--motion-normal) var(--ease-spring-soft),
+    background-color var(--motion-fast) var(--ease-standard),
+    color var(--motion-fast) var(--ease-standard);
+}
+
+#bottomNavigationV17 .fm-nav-item.is-active .fm-nav-icon {
+  transform: translateY(-1px);
+  background: rgba(124, 58, 237, 0.11);
+  border-radius: 999px;
+}
+
+#bottomNavigationV17 .fm-nav-label {
+  transition:
+    color var(--motion-fast) var(--ease-standard),
+    font-weight var(--motion-fast) var(--ease-standard),
+    transform var(--motion-fast) var(--ease-standard);
+}
+
+/* Central Plus Button */
+#bottomNavPlus.fm-nav-plus-btn {
+  transition:
+    transform var(--motion-normal) var(--ease-spring-soft),
+    box-shadow var(--motion-normal) var(--ease-standard),
+    background-color var(--motion-fast) var(--ease-standard);
+  will-change: transform;
+}
+
+#bottomNavPlus.fm-nav-plus-btn:active,
+#bottomNavPlus.fm-nav-plus-btn.fm-btn-pressed {
+  transform: translateY(2px) scale(0.94);
+  box-shadow:
+    0 8px 16px -6px rgba(109, 40, 217, 0.48),
+    0 0 0 4px rgba(246, 241, 231, 0.94);
+}
+
+#bottomNavPlus.fm-nav-plus-btn svg,
+#bottomNavPlus.fm-nav-plus-btn i {
+  transition: transform var(--motion-normal) var(--ease-spring-soft);
+}
+
+#screenWrapper.focus-choice-open #bottomNavPlus.fm-nav-plus-btn,
+body.fm-choice-sheet-open #bottomNavPlus.fm-nav-plus-btn {
+  transform: scale(0.96);
+  box-shadow:
+    0 10px 20px -8px rgba(109, 40, 217, 0.45),
+    0 0 0 4px rgba(246, 241, 231, 0.95);
+}
+
+#screenWrapper.focus-choice-open #bottomNavPlus.fm-nav-plus-btn svg,
+#screenWrapper.focus-choice-open #bottomNavPlus.fm-nav-plus-btn i,
+body.fm-choice-sheet-open #bottomNavPlus.fm-nav-plus-btn svg,
+body.fm-choice-sheet-open #bottomNavPlus.fm-nav-plus-btn i {
+  transform: rotate(45deg);
+}
+
+/* Plus Action Sheet (#focusChoiceOverlay) — Warm Cream Visual System */
+#focusChoiceOverlay {
+  background: rgba(20, 14, 28, 0.44) !important;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  opacity: 1;
+  transition: opacity 200ms var(--ease-standard);
+}
+
+#focusChoiceOverlay:not(.hidden):not(.fm-sheet-closing) {
+  animation: fmOverlayBackdropIn 200ms var(--ease-standard) both;
+}
+
+#focusChoiceOverlay.fm-sheet-closing {
+  display: flex !important;
+  pointer-events: none !important;
+  animation: fmOverlayBackdropOut 190ms var(--ease-exit) both;
+}
+
+#focusChoiceSheet {
+  background: #F6F1E7 !important;
+  color: #17131D !important;
+  border: 1px solid rgba(35, 22, 43, 0.1) !important;
+  border-radius: 30px 30px 26px 26px !important;
+  box-shadow:
+    0 -10px 36px rgba(20, 14, 28, 0.22),
+    0 20px 44px -18px rgba(20, 14, 28, 0.28) !important;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)) !important;
+  transform-origin: bottom center;
+  will-change: transform, opacity;
+}
+
+#focusChoiceOverlay:not(.hidden):not(.fm-sheet-closing) #focusChoiceSheet {
+  animation: fmBottomSheetEnter 240ms var(--ease-enter) both;
+}
+
+#focusChoiceOverlay.fm-sheet-closing #focusChoiceSheet {
+  animation: fmBottomSheetLeave 190ms var(--ease-exit) both;
+}
+
+#focusChoiceSheet h3 {
+  color: #17131D !important;
+}
+
+#focusChoiceSheet p {
+  color: #6E6476 !important;
+}
+
+#focusChoiceSheet > div:first-child > button {
+  background: #EAE2D3 !important;
+  color: #3D3347 !important;
+  transition: transform var(--motion-instant) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard);
+}
+
+#focusChoiceSheet > div:first-child > button:active {
+  transform: scale(0.93);
+}
+
+#focusChoiceSheet .space-y-3 > button:first-child {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(35, 22, 43, 0.09) !important;
+  box-shadow: 0 10px 24px -16px rgba(28, 19, 38, 0.22) !important;
+  transition: transform var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard);
+}
+
+#focusChoiceSheet .space-y-3 > button:first-child p:first-child {
+  color: #17131D !important;
+}
+
+#focusChoiceSheet .space-y-3 > button:first-child p:last-child {
+  color: #6E6476 !important;
+}
+
+#focusChoiceSheet .space-y-3 > button:last-child {
+  background: linear-gradient(145deg, #2B1833 0%, #1F1226 100%) !important;
+  border: 1px solid rgba(167, 139, 250, 0.24) !important;
+  box-shadow: 0 16px 30px -16px rgba(34, 20, 41, 0.5) !important;
+  transition: transform var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard);
+}
+
+#focusChoiceSheet .space-y-3 > button:active {
+  transform: scale(0.98);
+}
+
+/* ==========================================================================
+   5. MISSION CAROUSEL MOTION (#missionCarouselV1181)
+   ========================================================================== */
+
+#missionCarouselV1181 {
+  scroll-behavior: smooth;
+}
+
+#missionCarouselV1181 > .mission-hero-v116,
+#missionCarouselV1181 .mission-carousel-slide .mission-hero-v116 {
+  transition:
+    transform 220ms var(--ease-standard),
+    opacity 220ms var(--ease-standard),
+    box-shadow 220ms var(--ease-standard);
+  will-change: transform, opacity;
+}
+
+#missionCarouselV1181 > .mission-hero-v116.is-centered-card,
+#missionCarouselV1181 .mission-carousel-slide.is-centered-card .mission-hero-v116 {
+  transform: scale(1);
+  opacity: 1;
+}
+
+#missionCarouselV1181 > .mission-hero-v116.is-adjacent-card,
+#missionCarouselV1181 .mission-carousel-slide.is-adjacent-card .mission-hero-v116 {
+  transform: scale(0.97);
+  opacity: 0.92;
+}
+
+#missionCarouselV1181 > .mission-hero-v116:active,
+#missionCarouselV1181 .mission-carousel-slide .mission-hero-v116:active {
+  transform: scale(0.985);
+}
+
+#missionCarouselV1181 .mission-carousel-dot,
+.mh-dot {
+  transition:
+    width 220ms var(--ease-spring-soft),
+    background-color 180ms var(--ease-standard),
+    transform 180ms var(--ease-standard);
+}
+
+/* ==========================================================================
+   6. THREE-DOT MISSION MENUS (#missionSheetV116) & UNIFIED BOTTOM SHEETS/DIALOGS
+   ========================================================================== */
+
+/* Three-dot trigger button pressed feedback */
+.mmc-menu,
+.mission-manage-card-v116 .mmc-menu {
+  transition:
+    transform var(--motion-fast) var(--ease-spring-soft),
+    background-color var(--motion-fast) var(--ease-standard),
+    color var(--motion-fast) var(--ease-standard);
+}
+
+.mmc-menu:active,
+.mmc-menu.fm-trigger-active {
+  transform: scale(0.9);
+  background: rgba(124, 58, 237, 0.16) !important;
+}
+
+/* Mission Bottom Sheet (#missionSheetV116) */
+#missionSheetV116 {
+  transition: opacity 200ms var(--ease-standard);
+}
+
+#missionSheetV116.open:not(.fm-sheet-closing) {
+  animation: fmOverlayBackdropIn 200ms var(--ease-standard) both;
+}
+
+#missionSheetV116.fm-sheet-closing {
+  display: flex !important;
+  pointer-events: none !important;
+  animation: fmOverlayBackdropOut 185ms var(--ease-exit) both;
+}
+
+.mission-sheet-card-v116 {
+  padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px)) !important;
+  transform-origin: bottom center;
+  will-change: transform, opacity;
+}
+
+#missionSheetV116.open:not(.fm-sheet-closing) .mission-sheet-card-v116 {
+  animation: fmMissionSheetEnter 220ms var(--ease-enter) both;
+}
+
+#missionSheetV116.fm-sheet-closing .mission-sheet-card-v116 {
+  animation: fmMissionSheetLeave 185ms var(--ease-exit) both;
+}
+
+#missionSheetV116.open:not(.fm-sheet-closing) .mission-sheet-action-v116 {
+  animation: fmSheetItemStagger 200ms var(--ease-enter) both;
+}
+#missionSheetV116.open:not(.fm-sheet-closing) .mission-sheet-action-v116:nth-child(1) { animation-delay: 15ms; }
+#missionSheetV116.open:not(.fm-sheet-closing) .mission-sheet-action-v116:nth-child(2) { animation-delay: 30ms; }
+#missionSheetV116.open:not(.fm-sheet-closing) .mission-sheet-action-v116:nth-child(3) { animation-delay: 45ms; }
+#missionSheetV116.open:not(.fm-sheet-closing) .mission-sheet-action-v116:nth-child(4) { animation-delay: 60ms; }
+#missionSheetV116.open:not(.fm-sheet-closing) .mission-sheet-action-v116:nth-child(5) { animation-delay: 75ms; }
+#missionSheetV116.open:not(.fm-sheet-closing) .mission-sheet-action-v116:nth-child(6) { animation-delay: 90ms; }
+
+.mission-sheet-action-v116 {
+  transition:
+    transform var(--motion-instant) var(--ease-standard),
+    background-color var(--motion-fast) var(--ease-standard),
+    border-color var(--motion-fast) var(--ease-standard);
+}
+
+.mission-sheet-action-v116:active {
+  transform: scale(0.98);
+}
+
+/* Task Details Bottom Sheet (#ucTaskPopup) & Blocked Apps Popup (#blockedAppsPopup) */
+#ucTaskPopup.show:not(.fm-sheet-closing) {
+  animation: fmOverlayBackdropIn 200ms var(--ease-standard) both;
+}
+#ucTaskPopup.show:not(.fm-sheet-closing) > div {
+  animation: fmBottomSheetEnter 230ms var(--ease-enter) both;
+}
+#ucTaskPopup.fm-sheet-closing {
+  display: flex !important;
+  pointer-events: none !important;
+  animation: fmOverlayBackdropOut 185ms var(--ease-exit) both;
+}
+#ucTaskPopup.fm-sheet-closing > div {
+  animation: fmBottomSheetLeave 185ms var(--ease-exit) both;
+}
+
+/* Centered Dialogs (#blockedAppsPopup, #screen-popup-*, #dataImportPreviewCard, #dataResetConfirmCard) */
+#dataImportPreviewCard:not(.hidden),
+#dataResetConfirmCard:not(.hidden) {
+  animation: fmCenteredDialogEnter 210ms var(--ease-enter) both;
+}
+
+@keyframes fmOverlayBackdropIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes fmOverlayBackdropOut {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes fmBottomSheetEnter {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 26px, 0) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes fmBottomSheetLeave {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 22px, 0) scale(0.98);
+  }
+}
+
+@keyframes fmMissionSheetEnter {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes fmMissionSheetLeave {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0) scale(0.96);
+  }
+}
+
+@keyframes fmSheetItemStagger {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes fmCenteredDialogEnter {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+/* ==========================================================================
+   7. MISSION PLAN TRANSITIONS (#app-screen-plan)
+   ========================================================================== */
+
+.flow-step-line,
+.mission-active-step,
+.mission-future-step {
+  transition:
+    transform var(--motion-fast) var(--ease-standard),
+    border-color var(--motion-fast) var(--ease-standard),
+    box-shadow var(--motion-fast) var(--ease-standard),
+    background-color var(--motion-fast) var(--ease-standard);
+}
+
+.flow-step-line.mission-step-future:active,
+.mission-future-step:active {
+  transform: scale(0.99);
+}
+
+.flow-step-line.mission-step-future.expanded .step-task,
+.mission-future-detail {
+  animation: fmStepDetailReveal 200ms var(--ease-enter) both;
+}
+
+.mission-progress-bar > span {
+  transition: width 360ms var(--ease-enter);
+}
+
+@keyframes fmStepDetailReveal {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -4px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* ==========================================================================
+   8. ACTIVITY & HISTORY MOTION
+   ========================================================================== */
+
+/* Initial Home entry stagger (applied once via .fm-activity-initial-enter) */
+#homeActivityList.fm-activity-initial-enter > .home-activity-row:nth-child(-n+6) {
+  animation: fmActivityRowEnter 240ms var(--ease-enter) both;
+}
+#homeActivityList.fm-activity-initial-enter > .home-activity-row:nth-child(1) { animation-delay: 20ms; }
+#homeActivityList.fm-activity-initial-enter > .home-activity-row:nth-child(2) { animation-delay: 45ms; }
+#homeActivityList.fm-activity-initial-enter > .home-activity-row:nth-child(3) { animation-delay: 70ms; }
+#homeActivityList.fm-activity-initial-enter > .home-activity-row:nth-child(4) { animation-delay: 95ms; }
+#homeActivityList.fm-activity-initial-enter > .home-activity-row:nth-child(5) { animation-delay: 120ms; }
+#homeActivityList.fm-activity-initial-enter > .home-activity-row:nth-child(6) { animation-delay: 145ms; }
+
+/* Smooth insertion when a single new session is added at top of Activity */
+#homeActivityList > .home-activity-row.fm-activity-new-item {
+  animation: fmNewActivityInsert 300ms var(--ease-spring-soft) both;
+}
+
+@keyframes fmActivityRowEnter {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes fmNewActivityInsert {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -8px, 0) scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+/* History Filter Indicator & Crossfade */
+.history-filter-btn,
+.mission-tab-v116 {
+  transition:
+    background-color var(--motion-fast) var(--ease-standard),
+    color var(--motion-fast) var(--ease-standard),
+    border-color var(--motion-fast) var(--ease-standard),
+    transform var(--motion-instant) var(--ease-standard),
+    box-shadow var(--motion-fast) var(--ease-standard);
+}
+
+.history-filter-btn:active,
+.mission-tab-v116:active {
+  transform: scale(0.96);
+}
+
+#sessionHistoryList.fm-list-crossfade,
+#missionManagementListV116.fm-list-crossfade {
+  animation: fmListCrossfade 190ms var(--ease-standard) both;
+}
+
+@keyframes fmListCrossfade {
+  0% {
+    opacity: 0.15;
+    transform: translate3d(0, 4px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Expandable History Card Details */
+.history-card {
+  cursor: pointer;
+  transition:
+    transform var(--motion-fast) var(--ease-standard),
+    border-color var(--motion-fast) var(--ease-standard),
+    box-shadow var(--motion-fast) var(--ease-standard);
+}
+
+.history-card:active {
+  transform: scale(0.992);
+}
+
+.fm-history-extra-details {
+  display: none;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(35, 22, 43, 0.12);
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: #5E5568;
+}
+
+.history-card.fm-history-expanded .fm-history-extra-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 10px;
+  animation: fmStepDetailReveal 180ms var(--ease-enter) both;
+}
+
+.fm-history-detail-chip {
+  background: rgba(124, 58, 237, 0.06);
+  border-radius: 10px;
+  padding: 6px 8px;
+}
+
+.fm-history-detail-chip strong {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #7A6F84;
+}
+
+.fm-history-detail-chip span {
+  font-weight: 700;
+  color: #1F1826;
+}
+
+/* ==========================================================================
+   9. SETTINGS, FORM CONTROLS, BUTTONS & RECOVERY MICRO-INTERACTIONS
+   ========================================================================== */
+
+/* Interactive buttons press feedback */
+.home-mission-start-btn,
+.home-secondary-card,
+.mh-start-btn,
+.mh-plan-btn,
+.mission-active-start,
+.qb-bottom button,
+.qb-presets .quick-option,
+.mc-type-card,
+.mc-primary-btn,
+.confidence-option,
+.result-Optional-btn,
+.recovery-primary,
+.recovery-secondary,
+.recovery-ghost,
+.dm-btn {
+  transition:
+    transform var(--motion-fast) var(--ease-standard),
+    box-shadow var(--motion-fast) var(--ease-standard),
+    background-color var(--motion-fast) var(--ease-standard),
+    border-color var(--motion-fast) var(--ease-standard),
+    opacity var(--motion-fast) var(--ease-standard);
+}
+
+.home-mission-start-btn:active,
+.home-secondary-card:active,
+.mh-start-btn:active,
+.mh-plan-btn:active,
+.mission-active-start:active,
+.qb-bottom button:active,
+.mc-primary-btn:active,
+.recovery-primary:active,
+.recovery-secondary:active,
+.dm-btn:active {
+  transform: scale(0.975);
+}
+
+/* Duration Presets & Mission Type Cards */
+.qb-presets .quick-option.active,
+.mc-type-card.selected,
+.confidence-option.selected {
+  transform: translateY(-1px);
+}
+
+/* Inputs: border transition + 16px minimum font-size on mobile to prevent iOS zoom */
+#quickTaskInput,
+#goalInput,
+#goalNotesInput,
+#goalDeadlineInput,
+#renameMissionInputV116,
+.mission-sheet-input-v116 {
+  font-size: 16px !important;
+  transition:
+    border-color var(--motion-fast) var(--ease-standard),
+    box-shadow var(--motion-fast) var(--ease-standard),
+    background-color var(--motion-fast) var(--ease-standard);
+}
+
+/* Status & Feedback Banners */
+#dataFeedbackBanner:not(.hidden),
+#aiServiceNotice:not(.hidden),
+#resultAdaptationFallback:not(.hidden) {
+  animation: fmBannerEnter 220ms var(--ease-enter) both;
+}
+
+@keyframes fmBannerEnter {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -6px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Recovery card discard exit animation */
+#app-screen-session-recovery.fm-recovery-discarding .recovery-shell {
+  animation: fmRecoveryDiscardOut 210ms var(--ease-exit) both;
+}
+
+@keyframes fmRecoveryDiscardOut {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.96) translateY(10px);
+  }
+}
+
+/* Mission card archive / delete / restore transition */
+.mission-manage-card-v116 {
+  transition:
+    transform 200ms var(--ease-standard),
+    opacity 200ms var(--ease-standard);
+}
+
+/* ==========================================================================
+   10. REDUCED MOTION ACCESSIBILITY (@media (prefers-reduced-motion: reduce))
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-instant: 1ms;
+    --motion-fast: 80ms;
+    --motion-normal: 100ms;
+    --motion-slow: 120ms;
+    --motion-splash: 120ms;
+  }
+
+  .fm-startup-splash-icon-wrap,
+  .fm-startup-splash-brand,
+  .fm-startup-splash-status,
+  .fm-splash-dots span,
+  #app-screen-timer.fm-timer-staged-enter .uc-header,
+  #app-screen-timer.fm-timer-staged-enter .uc-planet,
+  #app-screen-timer.fm-timer-staged-enter .uc-ring,
+  #app-screen-timer.fm-timer-staged-enter .uc-readout,
+  #app-screen-timer.fm-timer-staged-enter .uc-protect,
+  #app-screen-timer.fm-timer-staged-enter .uc-focus-card,
+  #app-screen-timer.fm-timer-staged-enter .uc-actions,
+  #homeActivityList.fm-activity-initial-enter > .home-activity-row,
+  #homeActivityList > .home-activity-row.fm-activity-new-item,
+  #missionSheetV116.open .mission-sheet-action-v116 {
+    animation: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+
+  .fm-focus-launch-portal,
+  .fm-focus-launch-portal.fm-portal-active,
+  .fm-focus-launch-portal::before {
+    display: none !important;
+    animation: none !important;
+  }
+
+  .app-screen.fm-screen-outgoing.fm-dir-forward,
+  .app-screen.fm-screen-outgoing.fm-dir-back,
+  .app-screen.fm-screen-outgoing.fm-dir-root,
+  .app-screen.fm-screen-outgoing.fm-dir-overlay,
+  .app-screen.fm-screen-outgoing.fm-dir-session-start,
+  .app-screen.fm-screen-outgoing.fm-dir-session-exit {
+    animation: fmReducedFadeOut 90ms linear both !important;
+  }
+
+  .app-screen.fm-screen-incoming.fm-dir-forward,
+  .app-screen.fm-screen-incoming.fm-dir-back,
+  .app-screen.fm-screen-incoming.fm-dir-root,
+  .app-screen.fm-screen-incoming.fm-dir-overlay,
+  .app-screen.fm-screen-incoming.fm-dir-session-start,
+  .app-screen.fm-screen-incoming.fm-dir-session-exit {
+    animation: fmReducedFadeIn 90ms linear both !important;
+  }
+
+  #missionCarouselV1181 .mission-carousel-slide.is-adjacent-card .mission-hero-v116 {
+    transform: none !important;
+  }
+
+  @keyframes fmReducedFadeOut {
+    from { opacity: 1; transform: none; }
+    to { opacity: 0; transform: none; }
+  }
+
+  @keyframes fmReducedFadeIn {
+    from { opacity: 0; transform: none; }
+    to { opacity: 1; transform: none; }
+  }
+}
