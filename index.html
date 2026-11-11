@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 
-<html class="dark" lang="de"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/><meta content="#F6F1E7" name="theme-color"/><meta content="Focus Mode+ verbindet klare nächste Schritte, geschützte Fokus-Sitzungen und adaptive Focus Missions in einem interaktiven Prototyp." name="description"/><title>v17.3 Home System</title><script src="https://cdn.tailwindcss.com"></script><script>window.tailwind=window.tailwind||{};tailwind.config={darkMode:'class'}</script><script src="https://unpkg.com/lucide@latest"></script><script>window.lucide=window.lucide||{createIcons:function(){}}</script><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>  <link rel="stylesheet" href="./styles/app.css" />
+<html class="dark" lang="de"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/><meta content="#F6F1E7" name="theme-color"/><meta content="Focus Mode+ verbindet klare nächste Schritte, geschützte Fokus-Sitzungen und adaptive Focus Missions in einem interaktiven Prototyp." name="description"/><title>v17.3.1 Motion System</title><script src="https://cdn.tailwindcss.com"></script><script>window.tailwind=window.tailwind||{};tailwind.config={darkMode:'class'}</script><script src="https://unpkg.com/lucide@latest"></script><script>window.lucide=window.lucide||{createIcons:function(){}}</script><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>  <link rel="stylesheet" href="./styles/app.css" />
   <link rel="stylesheet" href="./styles/timer.css" />
   <link rel="stylesheet" href="./styles/recovery.css" />
   <link rel="stylesheet" href="./styles/quick-focus.css" />
   <link rel="stylesheet" href="./styles/missions.css" />
   <link rel="stylesheet" href="./styles/data-management.css" />
-  <link rel="stylesheet" href="./styles/navigation.css" /><link rel="manifest" href="./manifest.webmanifest"/><link rel="icon" type="image/png" href="./icon-192.png"/><link rel="apple-touch-icon" href="./apple-touch-icon.png"/><meta name="apple-mobile-web-app-capable" content="yes"/><meta id="appleStatusBarStyle" name="apple-mobile-web-app-status-bar-style" content="black-translucent"/><meta name="apple-mobile-web-app-title" content="Focus Mode+"/>
+  <link rel="stylesheet" href="./styles/navigation.css" /><link rel="stylesheet" href="./styles/motion.css" /><link rel="manifest" href="./manifest.webmanifest"/><link rel="icon" type="image/png" href="./icon-192.png"/><link rel="apple-touch-icon" href="./apple-touch-icon.png"/><meta name="apple-mobile-web-app-capable" content="yes"/><meta id="appleStatusBarStyle" name="apple-mobile-web-app-status-bar-style" content="black-translucent"/><meta name="apple-mobile-web-app-title" content="Focus Mode+"/>
 
 </head><body>
 <script id="architectureShellV122" src="./src/core/architecture-shell.js"></script>
@@ -90,7 +90,7 @@
 </div></section>
 </div><aside class="phone-side"><span class="preview-label">LIVE PRODUCT PREVIEW</span><div class="phone-wrap" id="mainMount"><div class="relative w-[340px] h-[640px] bg-slate-950 dark:bg-black rounded-[52px] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)] dark:shadow-[0_0_40px_rgba(168,85,247,0.15),0_25px_60px_-15px_rgba(0,0,0,0.7)] border-[12px] border-slate-900 dark:border-black ring-1 ring-black/5 dark:ring-white/15 select-none transition-all duration-500" id="iphoneFrame">
 <!-- Внутренний экран -->
-<div class="relative w-full h-full bg-slate-50 flex flex-col overflow-hidden rounded-[40px] isolate transition-colors duration-300" id="screenWrapper">
+<div class="relative w-full h-full bg-slate-50 flex flex-col overflow-hidden rounded-[40px] isolate transition-colors duration-300" id="screenWrapper"><div aria-label="Focus Mode+ wird vorbereitet" aria-live="polite" class="fm-startup-splash" id="fmStartupSplash" role="status"><div class="fm-startup-splash-inner"><div class="fm-startup-splash-icon-wrap"><img alt="Focus Mode+" class="fm-startup-splash-icon" decoding="sync" height="84" src="./icon-192.png" width="84"/></div><div class="fm-startup-splash-brand">FOCUS MODE+</div><div class="fm-startup-splash-status" id="fmStartupSplashStatus"><span>Wird vorbereitet</span><span aria-hidden="true" class="fm-splash-dots"><span>.</span><span>.</span><span>.</span></span></div></div></div><div aria-hidden="true" class="fm-focus-launch-portal" id="fmFocusLaunchPortal"></div>
 <!-- Dynamic Island -->
 <div class="absolute top-3 left-1/2 -translate-x-1/2 w-28 h-7 bg-black rounded-full z-[60] flex items-center justify-between px-2.5 transition-all hover:w-36 cursor-pointer" id="dynamicIsland" onclick="if(timerInterval) setAppScreen('timer')">
 <div class="w-2.5 h-2.5 bg-slate-900 rounded-full"></div>
@@ -708,7 +708,7 @@
               <div class="settings-row-sub">Offline-fähig · Lokale Speicherung</div>
             </div>
           </div>
-          <span class="text-[10px] font-bold text-slate-600">v17.3 Home System</span>
+          <span class="text-[10px] font-bold text-slate-600">v17.3.1 Motion System</span>
         </div>
       </div>
     </div>
@@ -725,7 +725,7 @@
 <span class="text-[9px] font-black uppercase tracking-wider text-indigo-600 block">Lokale Datenstabilität</span>
 <h3 class="text-base font-black text-slate-900 truncate">Daten &amp; Backup</h3>
 </div>
-<span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100" id="dataAppVersionBadge">v17.3 Home System</span>
+<span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100" id="dataAppVersionBadge">v17.3.1 Motion System</span>
 </div>
 
 <div class="data-summary-card">
@@ -1706,7 +1706,7 @@ END V13.2.5 ARCHITECTURE STABILIZATION MANIFEST -->
 <script id="dataExportV16" src="./src/data/data-export.js"></script>
 <script id="dataImportV16" src="./src/data/data-import.js"></script>
 <script id="dataResetV16" src="./src/data/data-reset.js"></script>
-<script id="dataManagementControllerV16" src="./src/features/data-management/data-management-controller.js"></script>
+<script id="dataManagementControllerV16" src="./src/features/data-management/data-management-controller.js"></script><script id="motionSystemV1731" src="./src/core/motion.js"></script>
 
 <!-- Restored from v13.3.2 without replacing newer runtime features. -->
 
