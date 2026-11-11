@@ -1,4 +1,4 @@
-const CACHE = "focus-mode-v17-3-home-system";
+const CACHE = "focus-mode-v17-3-1-motion-system";
 const CACHE_PREFIX = "focus-mode";
 
 const CORE = [
@@ -16,7 +16,7 @@ const CORE = [
   "./styles/timer.css",
   "./styles/recovery.css",
   "./styles/quick-focus.css",
-  "./styles/data-management.css",
+  "./styles/data-management.css", "./styles/motion.css",
   "./src/core/architecture-shell.js",
   "./src/core/runtime-ownership.js",
   "./src/services/storage-service.js",
@@ -45,7 +45,7 @@ const CORE = [
   "./src/features/missions/mission-management.js",
   "./src/features/missions/multi-mission-ui.js",
   "./src/core/navigation.js",
-  "./src/core/bootstrap.js"
+  "./src/core/bootstrap.js", "./src/core/motion.js"
 ];
 
 const EXTERNAL_CDN_URLS = [
