@@ -1,5 +1,26 @@
 # Changelog — Focus Mode+
 
+## v17.4.1 Mission Generation Repair (2026-11-13)
+
+### Viewport-Fixed Calendar Bottom Sheet, ZEITPLAN Study-Planning Board, Image Pipeline & Generation Reliability
+- **Calendar Bottom Sheet Viewport Positioning Fix (`index.html`, `styles/missions.css`, `src/features/missions/mission-renderer.js`, `src/core/navigation.js`)**:
+  - Moved `#missionCalendarSheet` directly under `document.body` (outside `#app-screen-goal` scroll container and `#appBody` transform/will-change context) with defensive `document.body.appendChild` mounting.
+  - Configured `.mg-cal-backdrop` with `position: fixed; inset: 0; width: 100%; height: 100vh; height: 100dvh; z-index: 1200;` and anchored `.mg-cal-sheet` to `bottom: 0; bottom: var(--mg-cal-vv-bottom, 0px); left: 0; right: 0;` respecting `env(safe-area-inset-bottom)` and iOS Safari `visualViewport` insets.
+  - Added scroll-position preservation (`#app-screen-goal.scrollTop` and window scroll) and scroll locking on open, reverse slide-down closing animation, focus restoration (`preventScroll: true`) to `#mgDeadlineTrigger` (or invoking control), and `Escape` / critical-modal coordination in `navigation.js`.
+- **ZEITPLAN Study-Planning Board Redesign (`index.html`, `styles/missions.css`, `src/features/missions/mission-renderer.js`)**:
+  - Restructured `#missionScheduleSection` into a 3-layer Study-Planning Board using approved Focus Mode+ tokens (`#F6F1E7` cream, `#25162B` aubergine, `#6D28D9` purple, `#1D1A17` graphite):
+    - Layer A: Deep aubergine hero board (`#mgScheduleBoard`) with intentional empty state and active `START` → preparation trajectory dots (`#mgTrajectoryNodes`) → `ZIEL` visualization plus live summary and reset button.
+    - Layer B: Preparation Start selector (`Sofort`, `1 Woche vorher`, `2 Wochen vorher`, `Eigene Wahl`) with clear non-overriding recommendation indicator.
+    - Layer C: Expandable optional learning preferences accordion (`Lernrhythmus anpassen`) with live summary (`#mgPrefsSummary`), connected 7-day weekday strip (`Mo..So`) + presets (`Unter der Woche`, `Wochenende`, `Flexibel`), and 2×2 session duration grid (`20 Min.`, `30 Min.`, `45 Min.`, `AI wählt`).
+  - Fixed `I18N_MAP` → `I18N` bug in `mission-renderer.js` so English translations apply to all schedule and calendar labels.
+- **Mission Generation, Image Pipeline & Optional Schedule Integration (`src/services/ai-service.js`, `index.html`, `service-worker.js`)**:
+  - Added single-flight request lock (`isMissionAnalyzeInFlight`), explicit button disabling during flight, aligned bounded timeouts (`38s` text / `52s` image), explicit cancellation (`cancelMissionAnalysis()` + `pagehide`), structured error parsing (`parseMissionErrorResponse`, fixing `[object Object]` bug), preserved form/schedule/image inputs across errors, and retryable inline error UI.
+  - Restored reliable photo/camera input (`image/jpeg`, `image/png`, `image/webp`, 20 MB original limit, EXIF-aware canvas compression to max 1800px / <= 1.5 MB JPEG `File` in `FormData` `image`, preview & remove button, `ObjectURL` cleanup).
+  - Integrated optional `schedule` JSON in `FormData` only when `deadlineDate` is selected, with strict `normalizeAIPlan` validation (`title`, `type`, 1–6 sessions, `scheduledDate <= deadlineDate`, `scheduleWarning` rendering).
+  - Bumped Service Worker cache name (`focus-mode-v17-4-1-mission-generation-repair`) and synced `index.html` metadata.
+- **Worker Source Gap (`WORKER_REQUIRED.md`)**:
+  - Documented that the Cloudflare Worker source (`create-mission` / `adapt-mission`) was absent from the input ZIP and listed exact missing files and required Worker fixes.
+
 ## v17.4 Mission Scheduling UI (2026-11-11)
 
 ### Home Header Typography Restoration, Empty Card Rhythm, Cosmic Timer Protection Pill & Mission Creation Scheduling UI

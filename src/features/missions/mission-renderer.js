@@ -55,7 +55,9 @@ let selectedConfidenceRating=3;
 function updateMissionPlanButton(){
   const btn=document.getElementById('missionPlanButton');
   if(!btn) return;
-  const ready=Boolean(selectedMissionTypeValue&&selectedMissionConfidenceValue);
+  const inFlight=typeof window.isMissionAnalyzeInFlight==='function'&&window.isMissionAnalyzeInFlight();
+  const scheduleOk=typeof window.validateMissionScheduleState==='function'?window.validateMissionScheduleState().valid:true;
+  const ready=Boolean(selectedMissionTypeValue&&selectedMissionConfidenceValue&&scheduleOk&&!inFlight);
   btn.disabled=!ready;
   btn.classList.toggle('opacity-40',!ready);
   btn.classList.toggle('cursor-not-allowed',!ready);
@@ -264,44 +266,64 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
  const oldType=window.selectMissionType;window.selectMissionType=function(btn){oldType.call(this,btn);syncTypeUI(btn)};
  const oldConfidence=window.selectConfidence;window.selectConfidence=function(btn){oldConfidence.call(this,btn);const fill=document.querySelector('.mg-confidence-track i'),level=btn?.dataset?.confidence||'uncertain';if(fill){fill.style.removeProperty('width');fill.dataset.level=level}lucide.createIcons()};
  document.addEventListener('DOMContentLoaded',()=>{const carousel=document.getElementById('missionTypeCarousel');if(carousel){let timer;carousel.addEventListener('scroll',()=>{clearTimeout(timer);timer=setTimeout(()=>{const center=carousel.scrollLeft+carousel.clientWidth/2,cards=[...carousel.children],best=cards.reduce((a,b)=>Math.abs(b.offsetLeft+b.offsetWidth/2-center)<Math.abs(a.offsetLeft+a.offsetWidth/2-center)?b:a);if(best&&!best.classList.contains('active'))window.selectMissionType(best)},110)},{passive:true})}lucide.createIcons()});
- document.title='v17.4 Mission Scheduling UI';
+ document.title='v17.4.1 Mission Generation Repair';
 })();
 
 /* ============================================================================
-   v17.4 Mission Scheduling UI (Client-Side State, Calendar, Timeline, Validation)
+   v17.4.1 Mission Scheduling UI, Viewport-Fixed Calendar & Generation Integration
    ============================================================================ */
 (function(){
   'use strict';
 
-  if (typeof I18N_MAP !== 'undefined' && I18N_MAP.en) {
-    Object.assign(I18N_MAP.en, {
-      'ZEITPLAN': 'SCHEDULE',
-      'OPTIONAL': 'OPTIONAL',
-      'Plane, wann du beginnen möchtest und bis wann dein Ziel erreicht sein soll.': 'Plan when you want to start and when your goal should be reached.',
-      'PRÜFUNG / ABGABE': 'EXAM / DEADLINE',
-      'Datum auswählen': 'Select date',
-      'START DER VORBEREITUNG': 'PREPARATION START',
-      'Sofort': 'Immediately',
-      '1 Woche vorher': '1 week before',
-      '2 Wochen vorher': '2 weeks before',
-      'Eigene Wahl': 'Custom date',
-      'Wähle zuerst einen Prüfungstermin oder eine Abgabe.': 'Select an exam date or deadline first.',
-      'START': 'START',
-      'PRÜFUNG': 'DEADLINE',
-      'WANN KANNST DU LERNEN?': 'WHEN CAN YOU STUDY?',
-      'Keine Auswahl bedeutet, dass dein Plan flexibel verteilt werden kann.': 'No selection means your plan can be distributed flexibly.',
-      'Unter der Woche': 'Weekdays',
-      'Wochenende': 'Weekend',
-      'Flexibel': 'Flexible',
-      'BEVORZUGTE SITZUNGSDAUER': 'PREFERRED SESSION LENGTH',
-      '20 Min.': '20 min',
-      '30 Min.': '30 min',
-      '45 Min.': '45 min',
-      'AI entscheidet': 'AI decides',
-      'Übernehmen': 'Apply',
-      'Abbrechen': 'Cancel'
-    });
+  function registerScheduleI18N() {
+    if (typeof I18N !== 'undefined' && I18N.en) {
+      Object.assign(I18N.en, {
+        'ZEITPLAN': 'SCHEDULE',
+        'OPTIONAL': 'OPTIONAL',
+        'Optional': 'Optional',
+        'Plane, wann du beginnen möchtest und bis wann dein Ziel erreicht sein soll.': 'Plan when you want to start and when your goal should be reached.',
+        'ZIELTERMIN': 'DEADLINE',
+        'Wann ist deine Prüfung oder Abgabe?': 'When is your exam or deadline?',
+        'Wähle ein Datum, um deinen Vorbereitungszeitraum sichtbar zu planen.': 'Choose a date to visualize your preparation window.',
+        'Zurücksetzen': 'Reset',
+        'Auswählen': 'Select',
+        'Ändern': 'Change',
+        'PRÜFUNG / ABGABE': 'EXAM / DEADLINE',
+        'Datum auswählen': 'Select date',
+        'START DER VORBEREITUNG': 'PREPARATION START',
+        'Sofort': 'Immediately',
+        '1 Woche vorher': '1 week before',
+        '2 Wochen vorher': '2 weeks before',
+        'Eigene Wahl': 'Custom date',
+        'Empfohlen': 'Recommended',
+        'Wähle zuerst einen Prüfungstermin oder eine Abgabe.': 'Select an exam date or deadline first.',
+        'START': 'START',
+        'ZIEL': 'GOAL',
+        'PRÜFUNG': 'DEADLINE',
+        'Lernrhythmus anpassen': 'Adjust study rhythm',
+        'WANN KANNST DU LERNEN?': 'WHEN CAN YOU STUDY?',
+        'Keine Auswahl bedeutet, dass dein Plan flexibel verteilt werden kann.': 'No selection means your plan can be distributed flexibly.',
+        'Unter der Woche': 'Weekdays',
+        'Wochenende': 'Weekend',
+        'Flexibel': 'Flexible',
+        'BEVORZUGTE SITZUNGSDAUER': 'PREFERRED SESSION LENGTH',
+        '20 Min.': '20 min',
+        '30 Min.': '30 min',
+        '45 Min.': '45 min',
+        'AI wählt': 'AI picks',
+        'AI entscheidet': 'AI decides',
+        'Kurz & fokussiert': 'Short & focused',
+        'Ausgewogen': 'Balanced',
+        'Tiefer Fokus': 'Deep focus',
+        'Übernehmen': 'Apply',
+        'Abbrechen': 'Cancel',
+        'Erneut versuchen': 'Try Again',
+        'Schließen': 'Dismiss',
+        'Foto entfernen': 'Remove photo'
+      });
+    }
   }
+  registerScheduleI18N();
 
   const missionScheduleState = {
     deadlineDate: null,           // ISO string YYYY-MM-DD or null
@@ -314,14 +336,29 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
 
   let userManuallyChoseStartMode = false;
   let startClampedNotice = false;
+  let prefsExpanded = false;
+  let prefsUserInteracted = false;
   let calendarSheetMode = 'deadline'; // 'deadline' | 'start'
   let calendarViewYear = new Date().getFullYear();
   let calendarViewMonth = new Date().getMonth(); // 0..11
   let calendarPendingDate = null;
   let lastConfiguredScheduleSnapshot = null;
 
+  /* Calendar Viewport Scroll-Lock & Focus Restoration State */
+  let calendarCloseTimer = null;
+  let calendarReturnFocusEl = null;
+  let savedGoalScrollTop = 0;
+  let savedPageScrollTop = 0;
+  let savedWindowScrollX = 0;
+  let savedWindowScrollY = 0;
+  let savedGoalOverflowY = '';
+  let savedGoalTouchAction = '';
+  let calendarScrollLocked = false;
+  let visualViewportCleanup = null;
+
   function getActiveLang() {
-    const raw = (window.FocusModeApp?.services?.storage?.getText('focus-mode-language', 'de') || document.documentElement.lang || 'de').toLowerCase();
+    const saved = window.FocusModeApp?.services?.storage?.getText('focus-mode-language', '');
+    const raw = (saved || document.documentElement.lang || 'de').toLowerCase();
     return raw === 'en' ? 'en' : 'de';
   }
 
@@ -545,10 +582,81 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
   }
   window.validateMissionScheduleState = validateMissionScheduleState;
 
+  function formatWeekdayList(weekdays, isEn) {
+    const wk = [...new Set((weekdays || []).map(Number).filter(n => n >= 1 && n <= 7))].sort((a, b) => a - b);
+    if (wk.length === 0) return isEn ? 'Flexible' : 'Flexibel';
+    const joined = wk.join(',');
+    if (joined === '1,2,3,4,5') return isEn ? 'Weekdays' : 'Unter der Woche';
+    if (joined === '6,7') return isEn ? 'Weekend' : 'Wochenende';
+    const names = isEn ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] : ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+    return wk.map(d => names[d - 1]).join(', ');
+  }
+
+  function renderScheduleTrajectoryNodes(startISO, endISO, isEn) {
+    const container = document.getElementById('mgTrajectoryNodes');
+    if (!container) return;
+    const span = diffCalendarDays(startISO, endISO);
+    if (span < 0) {
+      container.replaceChildren();
+      return;
+    }
+    const maxNodes = 7;
+    const count = Math.min(maxNodes, Math.max(2, span + 1));
+    const sampledISOs = [];
+    for (let i = 0; i < count; i++) {
+      const offset = count === 1 ? 0 : Math.round((i * span) / (count - 1));
+      sampledISOs.push(addDaysISO(startISO, offset));
+    }
+    const dayLabels = isEn ? ['M', 'T', 'W', 'T', 'F', 'S', 'S'] : ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+    const prefSet = new Set(missionScheduleState.preferredWeekdays.map(Number));
+
+    container.replaceChildren();
+    sampledISOs.forEach((iso, idx) => {
+      const wd = getISOWeekday(iso);
+      const isEndpoint = idx === 0;
+      const isDeadline = idx === sampledISOs.length - 1;
+      const isAvailable = prefSet.size === 0 || prefSet.has(wd);
+      const step = document.createElement('span');
+      step.className = 'mg-traj-step'
+        + (isAvailable ? ' is-available' : '')
+        + (isEndpoint ? ' is-endpoint' : '')
+        + (isDeadline ? ' is-deadline' : '');
+      const dot = document.createElement('span');
+      dot.className = 'mg-traj-dot';
+      const lbl = document.createElement('span');
+      lbl.className = 'mg-traj-lbl';
+      lbl.textContent = dayLabels[wd - 1] || '';
+      step.appendChild(dot);
+      step.appendChild(lbl);
+      container.appendChild(step);
+    });
+  }
+
+  function updatePrefsAccordionUI() {
+    const toggleBtn = document.getElementById('mgPrefsToggleBtn');
+    const panel = document.getElementById('mgPrefsPanel');
+    if (!toggleBtn || !panel) return;
+    panel.classList.toggle('hidden', !prefsExpanded);
+    toggleBtn.setAttribute('aria-expanded', prefsExpanded ? 'true' : 'false');
+  }
+
+  function toggleMissionSchedulePrefs(forceState) {
+    if (typeof forceState === 'boolean') {
+      prefsExpanded = forceState;
+    } else {
+      prefsUserInteracted = true;
+      prefsExpanded = !prefsExpanded;
+    }
+    updatePrefsAccordionUI();
+  }
+  window.toggleMissionSchedulePrefs = toggleMissionSchedulePrefs;
+
   function syncMissionScheduleUI() {
     const isEn = getActiveLang() === 'en';
+    const board = document.getElementById('mgScheduleBoard');
     const deadlineTrigger = document.getElementById('mgDeadlineTrigger');
     const deadlineVal = document.getElementById('mgDeadlineValue');
+    const ctaTag = document.getElementById('mgDeadlineCtaTag');
     const clearBtn = document.getElementById('mgDeadlineClearBtn');
     const prepBlock = document.getElementById('mgPrepStartBlock');
     const recBadge = document.getElementById('mgStartRecBadge');
@@ -557,11 +665,16 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
     const startLabel = document.getElementById('mgTimelineStartLabel');
     const endLabel = document.getElementById('mgTimelineEndLabel');
     const daysBadge = document.getElementById('mgTimelineDaysBadge');
+    const liveSummary = document.getElementById('mgScheduleLiveSummary');
+    const prefsSummary = document.getElementById('mgPrefsSummary');
     const noticeBox = document.getElementById('mgScheduleNotice');
     const noticeText = document.getElementById('mgScheduleNoticeText');
 
     const hasDeadline = Boolean(missionScheduleState.deadlineDate);
 
+    if (board) {
+      board.classList.toggle('has-deadline', hasDeadline);
+    }
     if (deadlineTrigger) {
       deadlineTrigger.classList.toggle('has-value', hasDeadline);
     }
@@ -574,10 +687,15 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
         deadlineVal.classList.add('is-placeholder');
       }
     }
+    if (ctaTag) {
+      ctaTag.textContent = hasDeadline ? (isEn ? 'Change' : 'Ändern') : (isEn ? 'Select' : 'Auswählen');
+    }
     if (clearBtn) {
       clearBtn.classList.toggle('hidden', !hasDeadline);
     }
-
+    if (daysBadge) {
+      daysBadge.classList.toggle('hidden', !hasDeadline);
+    }
     if (prepBlock) {
       prepBlock.classList.toggle('hidden', !hasDeadline);
     }
@@ -594,17 +712,33 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
       btn.classList.toggle('active', isSelected);
       btn.classList.toggle('is-recommended', isRec);
       btn.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
-      const span = btn.querySelector('span');
-      if (span && mode === 'custom' && missionScheduleState.startMode === 'custom' && missionScheduleState.preparationStartDate) {
-        span.textContent = (isEn ? 'Custom · ' : 'Eigene Wahl · ') + formatShortDate(missionScheduleState.preparationStartDate, false);
-      } else if (span && mode === 'custom') {
-        span.textContent = isEn ? 'Custom date' : 'Eigene Wahl';
+      const labelEl = btn.querySelector('.mg-start-chip-label') || btn.querySelector('span');
+      if (labelEl && mode === 'custom') {
+        if (missionScheduleState.startMode === 'custom' && missionScheduleState.preparationStartDate) {
+          labelEl.textContent = (isEn ? 'Custom · ' : 'Eigene Wahl · ') + formatShortDate(missionScheduleState.preparationStartDate, false);
+        } else {
+          labelEl.textContent = isEn ? 'Custom date' : 'Eigene Wahl';
+        }
+      }
+      const recMark = btn.querySelector('.mg-start-rec-mark');
+      if (recMark) {
+        recMark.classList.toggle('hidden', !isRec);
+        recMark.textContent = isEn ? 'Recommended' : 'Empfohlen';
       }
     });
 
     if (timelineEmpty && timelineActive) {
       timelineEmpty.classList.toggle('hidden', hasDeadline);
       timelineActive.classList.toggle('hidden', !hasDeadline);
+    }
+
+    const rhythmTxt = formatWeekdayList(missionScheduleState.preferredWeekdays, isEn);
+    const durTxt = missionScheduleState.preferredSessionMinutes
+      ? (missionScheduleState.preferredSessionMinutes + (isEn ? ' min' : ' Min.'))
+      : (isEn ? 'AI picks' : 'AI wählt');
+
+    if (prefsSummary) {
+      prefsSummary.textContent = rhythmTxt + ' · ' + durTxt;
     }
 
     if (hasDeadline) {
@@ -625,13 +759,23 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
           daysBadge.textContent = prepDays + (isEn ? ' DAYS PREPARATION' : ' TAGE VORBEREITUNG');
         }
       }
+      renderScheduleTrajectoryNodes(startISO, endISO, isEn);
+      if (liveSummary) {
+        liveSummary.textContent = rhythmTxt + ' · ' + (missionScheduleState.preferredSessionMinutes
+          ? (missionScheduleState.preferredSessionMinutes + (isEn ? ' min sessions' : ' Min.-Blöcke'))
+          : (isEn ? 'AI picks session length' : 'AI wählt Sitzungsdauer'));
+      }
+    } else if (liveSummary) {
+      liveSummary.textContent = '';
     }
 
     // Weekday buttons & presets
+    const wkLabels = isEn ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] : ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
     const wkSet = new Set(missionScheduleState.preferredWeekdays.map(Number));
     document.querySelectorAll('#mgWeekdayRow .mg-weekday-btn').forEach(btn => {
       const dayNum = Number(btn.getAttribute('data-weekday'));
       const active = wkSet.has(dayNum);
+      if (wkLabels[dayNum - 1]) btn.textContent = wkLabels[dayNum - 1];
       btn.classList.toggle('active', active);
       btn.setAttribute('aria-pressed', active ? 'true' : 'false');
     });
@@ -647,6 +791,7 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
         (preset === 'weekend' && isWeekendPreset) ||
         (preset === 'flexible' && isFlexiblePreset);
       chip.classList.toggle('active', active);
+      chip.setAttribute('aria-pressed', active ? 'true' : 'false');
     });
 
     // Preferred session duration chips
@@ -659,6 +804,12 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
       chip.setAttribute('aria-pressed', active ? 'true' : 'false');
     });
 
+    const hasCustomPrefs = missionScheduleState.preferredWeekdays.length > 0 || missionScheduleState.preferredSessionMinutes !== null;
+    if (hasCustomPrefs && !prefsUserInteracted) {
+      prefsExpanded = true;
+    }
+    updatePrefsAccordionUI();
+
     // Validation & Notice
     const validation = validateMissionScheduleState();
     if (noticeBox && noticeText) {
@@ -670,6 +821,10 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
         noticeBox.classList.add('hidden');
         noticeText.textContent = '';
       }
+    }
+
+    if (typeof window.updateMissionPlanButton === 'function') {
+      window.updateMissionPlanButton();
     }
 
     if (typeof window.lucide?.createIcons === 'function') {
@@ -714,7 +869,7 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
         recomputePreparationStartDate();
       }
       syncMissionScheduleUI();
-      openMissionCalendarSheet('start');
+      openMissionCalendarSheet('start', document.querySelector('#mgStartModeChips [data-start-mode="custom"]'));
       return;
     }
     recomputePreparationStartDate();
@@ -759,7 +914,97 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
   }
   window.selectMissionPreferredDuration = selectMissionPreferredDuration;
 
-  /* Calendar Bottom Sheet */
+  /* Viewport-Level Calendar Bottom Sheet */
+  function ensureCalendarMountedToBody(sheet) {
+    if (sheet && document.body && sheet.parentElement !== document.body) {
+      document.body.appendChild(sheet);
+    }
+  }
+
+  function syncVisualViewportInset(sheet) {
+    if (!sheet) return;
+    const vv = window.visualViewport;
+    if (!vv) {
+      sheet.style.setProperty('--mg-cal-vv-bottom', '0px');
+      return;
+    }
+    const bottomInset = Math.max(0, Math.round(window.innerHeight - (vv.offsetTop + vv.height)));
+    sheet.style.setProperty('--mg-cal-vv-bottom', bottomInset + 'px');
+  }
+
+  function bindVisualViewportListener(sheet) {
+    if (visualViewportCleanup) {
+      visualViewportCleanup();
+      visualViewportCleanup = null;
+    }
+    const update = () => syncVisualViewportInset(sheet);
+    update();
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', update, { passive: true });
+      window.visualViewport.addEventListener('scroll', update, { passive: true });
+    }
+    window.addEventListener('resize', update, { passive: true });
+    visualViewportCleanup = () => {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', update);
+        window.visualViewport.removeEventListener('scroll', update);
+      }
+      window.removeEventListener('resize', update);
+      sheet?.style?.removeProperty('--mg-cal-vv-bottom');
+    };
+  }
+
+  function lockBackgroundScrollForCalendar() {
+    if (calendarScrollLocked) return;
+    const goalScreen = document.getElementById('app-screen-goal');
+    const pageEl = document.querySelector('main.page');
+    savedGoalScrollTop = goalScreen ? goalScreen.scrollTop : 0;
+    savedPageScrollTop = pageEl ? pageEl.scrollTop : 0;
+    savedWindowScrollX = window.scrollX || window.pageXOffset || 0;
+    savedWindowScrollY = window.scrollY || window.pageYOffset || 0;
+
+    if (goalScreen) {
+      savedGoalOverflowY = goalScreen.style.overflowY || '';
+      savedGoalTouchAction = goalScreen.style.touchAction || '';
+      goalScreen.style.overflowY = 'hidden';
+      goalScreen.style.touchAction = 'none';
+      goalScreen.scrollTop = savedGoalScrollTop;
+    }
+    document.documentElement.classList.add('mg-cal-scroll-locked');
+    document.body.classList.add('mg-cal-scroll-locked');
+    calendarScrollLocked = true;
+  }
+
+  function unlockBackgroundScrollForCalendar() {
+    if (!calendarScrollLocked) return;
+    document.documentElement.classList.remove('mg-cal-scroll-locked');
+    document.body.classList.remove('mg-cal-scroll-locked');
+
+    const goalScreen = document.getElementById('app-screen-goal');
+    const pageEl = document.querySelector('main.page');
+    if (goalScreen) {
+      goalScreen.style.overflowY = savedGoalOverflowY;
+      goalScreen.style.touchAction = savedGoalTouchAction;
+      goalScreen.scrollTop = savedGoalScrollTop;
+    }
+    if (pageEl) {
+      pageEl.scrollTop = savedPageScrollTop;
+    }
+    try {
+      window.scrollTo(savedWindowScrollX, savedWindowScrollY);
+    } catch (_) {}
+
+    requestAnimationFrame(() => {
+      if (goalScreen) goalScreen.scrollTop = savedGoalScrollTop;
+      if (pageEl) pageEl.scrollTop = savedPageScrollTop;
+      try {
+        window.scrollTo(savedWindowScrollX, savedWindowScrollY);
+      } catch (_) {}
+    });
+
+    calendarScrollLocked = false;
+  }
+
   function renderMissionCalendarGrid() {
     const titleEl = document.getElementById('mgCalMonthTitle');
     const kickerEl = document.getElementById('mgCalKicker');
@@ -855,7 +1100,7 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
     }
   }
 
-  function openMissionCalendarSheet(mode) {
+  function openMissionCalendarSheet(mode, triggerEl) {
     calendarSheetMode = mode === 'start' ? 'start' : 'deadline';
     const todayISO = getTodayISO();
     const initialISO = calendarSheetMode === 'start'
@@ -868,17 +1113,90 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
 
     const sheet = document.getElementById('missionCalendarSheet');
     if (!sheet) return;
+
+    if (calendarCloseTimer) {
+      clearTimeout(calendarCloseTimer);
+      calendarCloseTimer = null;
+    }
+
+    ensureCalendarMountedToBody(sheet);
+
+    // Dismiss active keyboard focus on Goal textarea/inputs without jumping scroll
+    const activeEl = document.activeElement;
+    if (activeEl && activeEl !== document.body && typeof activeEl.blur === 'function' && activeEl.matches('input, textarea, select')) {
+      activeEl.blur();
+    }
+
+    calendarReturnFocusEl = (triggerEl instanceof HTMLElement && triggerEl.isConnected)
+      ? triggerEl
+      : (activeEl instanceof HTMLElement && activeEl !== document.body && !activeEl.matches('input, textarea, select')
+        ? activeEl
+        : document.getElementById('mgDeadlineTrigger'));
+
+    lockBackgroundScrollForCalendar();
     renderMissionCalendarGrid();
-    sheet.classList.remove('hidden');
+    bindVisualViewportListener(sheet);
+
+    sheet.classList.remove('hidden', 'is-closing', 'is-open');
+    void sheet.offsetWidth;
+    requestAnimationFrame(() => {
+      if (!sheet.classList.contains('hidden')) {
+        sheet.classList.add('is-open');
+      }
+    });
+
     if (typeof window.lucide?.createIcons === 'function') {
       window.lucide.createIcons();
     }
   }
   window.openMissionCalendarSheet = openMissionCalendarSheet;
 
-  function closeMissionCalendarSheet() {
+  function closeMissionCalendarSheet(options = {}) {
     const sheet = document.getElementById('missionCalendarSheet');
-    if (sheet) sheet.classList.add('hidden');
+    if (!sheet) {
+      unlockBackgroundScrollForCalendar();
+      return;
+    }
+
+    if (calendarCloseTimer) {
+      clearTimeout(calendarCloseTimer);
+      calendarCloseTimer = null;
+    }
+
+    if (visualViewportCleanup) {
+      visualViewportCleanup();
+      visualViewportCleanup = null;
+    }
+
+    const prefersReduced = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const isAlreadyHidden = sheet.classList.contains('hidden');
+    const immediate = Boolean(options?.immediate) || prefersReduced || isAlreadyHidden;
+
+    const finalizeClose = () => {
+      sheet.classList.remove('is-open', 'is-closing');
+      sheet.classList.add('hidden');
+      unlockBackgroundScrollForCalendar();
+      if (!options?.skipFocusRestore) {
+        const focusTarget = (calendarReturnFocusEl && calendarReturnFocusEl.isConnected)
+          ? calendarReturnFocusEl
+          : document.getElementById('mgDeadlineTrigger');
+        if (focusTarget && typeof focusTarget.focus === 'function') {
+          try { focusTarget.focus({ preventScroll: true }); } catch (_) { focusTarget.focus(); }
+        }
+      }
+    };
+
+    if (immediate) {
+      finalizeClose();
+      return;
+    }
+
+    sheet.classList.remove('is-open');
+    sheet.classList.add('is-closing');
+    calendarCloseTimer = setTimeout(() => {
+      calendarCloseTimer = null;
+      finalizeClose();
+    }, 240);
   }
   window.closeMissionCalendarSheet = closeMissionCalendarSheet;
 
@@ -923,7 +1241,9 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
     missionScheduleState.preferredSessionMinutes = null;
     userManuallyChoseStartMode = false;
     startClampedNotice = false;
-    closeMissionCalendarSheet();
+    prefsExpanded = false;
+    prefsUserInteracted = false;
+    closeMissionCalendarSheet({ immediate: true, skipFocusRestore: true });
     syncMissionScheduleUI();
   }
   window.resetMissionScheduleState = resetMissionScheduleState;
@@ -954,14 +1274,17 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
       recomputePreparationStartDate();
     }
     if (Array.isArray(patch.preferredWeekdays)) {
-      missionScheduleState.preferredWeekdays = patch.preferredWeekdays
+      missionScheduleState.preferredWeekdays = [...new Set(patch.preferredWeekdays
         .map(Number)
-        .filter(n => n >= 1 && n <= 7)
+        .filter(n => n >= 1 && n <= 7))]
         .sort((a, b) => a - b);
     }
     if ('preferredSessionMinutes' in patch) {
       const m = patch.preferredSessionMinutes === null ? null : Number(patch.preferredSessionMinutes);
       missionScheduleState.preferredSessionMinutes = [20, 30, 45].includes(m) ? m : null;
+    }
+    if (missionScheduleState.preferredWeekdays.length > 0 || missionScheduleState.preferredSessionMinutes !== null) {
+      prefsExpanded = true;
     }
     syncMissionScheduleUI();
     return getMissionScheduleState();
@@ -971,9 +1294,11 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
   /* Optional Schedule Summary Preview on #app-screen-plan */
   function syncPlanSchedulePreview() {
     const existing = document.getElementById('aiPlanSchedulePreview');
-    const snap = lastConfiguredScheduleSnapshot;
+    const snap = (typeof activeAIPlan === 'object' && activeAIPlan?.schedule)
+      ? activeAIPlan.schedule
+      : lastConfiguredScheduleSnapshot;
     const hasConfigured = Boolean(
-      snap && (snap.deadlineDate || snap.preferredWeekdays.length > 0 || snap.preferredSessionMinutes !== null)
+      snap && (snap.deadlineDate || (Array.isArray(snap.preferredWeekdays) && snap.preferredWeekdays.length > 0) || snap.preferredSessionMinutes !== null && snap.preferredSessionMinutes !== undefined)
     );
     if (!hasConfigured) {
       existing?.remove();
@@ -997,25 +1322,29 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
       const endTxt = formatShortDate(snap.deadlineDate, false);
       parts.push(startTxt + ' → ' + endTxt);
     }
-    if (snap.preferredWeekdays.length > 0) {
+    if (Array.isArray(snap.preferredWeekdays) && snap.preferredWeekdays.length > 0) {
       const dayNames = isEn ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] : ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
       parts.push(snap.preferredWeekdays.map(d => dayNames[d - 1]).join(', '));
     }
     if (snap.preferredSessionMinutes) {
       parts.push(snap.preferredSessionMinutes + (isEn ? ' min' : ' Min.'));
     }
+    const warningHtml = (typeof activeAIPlan === 'object' && activeAIPlan?.scheduleWarning)
+      ? '<div class="text-[10px] font-semibold text-amber-700 mt-0.5">' + escapeHTML(activeAIPlan.scheduleWarning) + '</div>'
+      : '';
     banner.innerHTML =
       '<span class="ai-plan-schedule-preview-icon"><i data-lucide="calendar-check"></i></span>' +
       '<div class="min-w-0 flex-1">' +
         '<div class="text-[9px] font-black uppercase tracking-[0.11em] text-[#6D28D9]">' + (isEn ? 'SCHEDULE PREVIEW' : 'ZEITPLAN-VORSCHAU') + '</div>' +
-        '<div class="text-[11.5px] font-extrabold text-[#1D1A17] truncate">' + parts.join(' · ') + '</div>' +
+        '<div class="text-[11.5px] font-extrabold text-[#1D1A17] truncate">' + escapeHTML(parts.join(' · ')) + '</div>' +
+        warningHtml +
       '</div>';
     if (typeof window.lucide?.createIcons === 'function') {
       window.lucide.createIcons();
     }
   }
 
-  /* Pre-validation hook on analyzeGoal without altering AI request payload or ai-service.js */
+  /* Pre-validation hook on analyzeGoal preserving Promise return and user inputs */
   const origAnalyzeGoal = window.analyzeGoal;
   if (typeof origAnalyzeGoal === 'function') {
     window.analyzeGoal = function () {
@@ -1024,18 +1353,20 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
         syncMissionScheduleUI();
         const noticeEl = document.getElementById('mgScheduleNotice');
         noticeEl?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return false;
+        return Promise.resolve(false);
       }
       lastConfiguredScheduleSnapshot = getMissionScheduleState();
       return origAnalyzeGoal.apply(this, arguments);
     };
   }
 
-  /* Reset schedule state cleanly when opening a new Mission creation intake */
+  /* Reset schedule, errors, and temporary image cleanly when opening a fresh Mission creation intake */
   const origOpenGoalIntake = window.openGoalIntake;
   if (typeof origOpenGoalIntake === 'function') {
     window.openGoalIntake = function () {
       resetMissionScheduleState();
+      if (typeof window.clearMissionImage === 'function') window.clearMissionImage();
+      if (typeof window.clearMissionError === 'function') window.clearMissionError();
       return origOpenGoalIntake.apply(this, arguments);
     };
   }
@@ -1067,16 +1398,35 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
     if (e.key === 'Escape') {
       const sheet = document.getElementById('missionCalendarSheet');
       if (sheet && !sheet.classList.contains('hidden')) {
+        e.stopImmediatePropagation?.();
+        e.preventDefault();
         closeMissionCalendarSheet();
       }
     }
-  });
+  }, true);
 
   document.addEventListener('DOMContentLoaded', function () {
+    registerScheduleI18N();
+    const sheet = document.getElementById('missionCalendarSheet');
+    ensureCalendarMountedToBody(sheet);
+    if (typeof window.setLanguage === 'function') {
+      window.setLanguage(getActiveLang(), false);
+    }
     syncMissionScheduleUI();
     if (typeof window.updateHomeDateHeaderV173 === 'function') {
       window.updateHomeDateHeaderV173();
     }
+    if (typeof window.confirmAIPlan === 'function' && !window.confirmAIPlan.__v1741Wrapped) {
+      const origConfirm = window.confirmAIPlan;
+      window.confirmAIPlan = function () {
+        const res = origConfirm.apply(this, arguments);
+        const planScreen = document.getElementById('app-screen-plan');
+        if (planScreen && !planScreen.classList.contains('hidden') && typeof window.clearMissionImage === 'function') {
+          window.clearMissionImage();
+        }
+        return res;
+      };
+      window.confirmAIPlan.__v1741Wrapped = true;
+    }
   });
 })();
-

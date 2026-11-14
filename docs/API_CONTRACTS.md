@@ -24,22 +24,36 @@
 
 ### 2.1. Метаданные интеграции
 * **URL эндпоинта:** `https://focusmodedemoai.illia-pohukai.workers.dev/create-mission` (константа `FOCUS_AI_ENDPOINT`).
-* **Клиентская функция:** `analyzeGoal()` (скрипт `realAIMissionV6`, строки 2637–2659).
+* **Клиентская функция:** `analyzeGoal()` (`src/services/ai-service.js`).
 * **HTTP Метод:** `POST`.
 * **Тип содержимого (Payload Type):** `multipart/form-data` (объект `FormData`).
-* **Таймаут:** 120 000 мс (120 секунд) через нативный `AbortController`.
+* **Таймаут (v17.4.1):** `38 000` мс для текстовых запросов и `52 000` мс при наличии изображения (через `AbortController`, с защитой от повторных одновременных отправок `isMissionAnalyzeInFlight` и явной отменой через `cancelMissionAnalysis()`).
 
 ### 2.2. Формат входящего запроса (Client Payload)
 Формируется в функции `analyzeGoal()`:
-* `goalText` *(string, required if no image)*: текст описания цели, введенный пользователем в поле `#goalPrompt`.
-* `missionType` *(string, required)*: нормализованный тип миссии (`'exam' | 'assignment' | 'project' | 'custom'`), преобразованный функцией `missionTypeForAPI()`.
-* `confidence` *(string, required)*: нормализованный уровень уверенности (`'uncertain' | 'partial' | 'confident'`), преобразованный функцией `confidenceForAPI()`.
-* `image` *(File, optional)*: файл изображения учебного материала (JPEG, сжатый клиентом через Canvas до максимальной стороны 1800px, качество 0.82).
+* `goalText` *(string, required if no image)*: текст описания цели из поля `#goalPrompt`.
+* `missionType` *(string, required)*: `exam | assignment | project | custom` (`missionTypeForAPI()`).
+* `confidence` *(string, required)*: `uncertain | partial | confident` (`confidenceForAPI()`).
+* `schedule` *(JSON string, optional — отправляется только при выбранном `deadlineDate`)*:
+  ```json
+  {
+    "currentLocalDate": "YYYY-MM-DD",
+    "deadlineDate": "YYYY-MM-DD",
+    "preparationStartDate": "YYYY-MM-DD",
+    "preparationDays": 14,
+    "startMode": "immediate | one_week_before | two_weeks_before | custom",
+    "timezone": "Europe/Berlin",
+    "preferredWeekdays": [1, 3, 5],
+    "preferredSessionMinutes": 30
+  }
+  ```
+  (`preferredWeekdays` не отправляется, если список пуст; `preferredSessionMinutes` не отправляется, если выбрано `AI wählt` / `null`).
+* `image` *(File, optional)*: файл изображения (`image/jpeg`, `image/png`, `image/webp`; исходный файл до 20 МБ, клиентское сжатие в JPEG до 1800px и `<= 1.5 MB` с учетом EXIF-ориентации).
 
 ### 2.3. Ожидаемый ответ сервера (Response Shape)
-* **HTTP Status:** `200 OK`.
+* **HTTP Status:** `200 OK` (при ошибке: `4xx`/`5xx` с `{ "ok": false, "error": { "code": "...", "message": "...", "retryable": true|false } }`).
 * **Формат:** `application/json`.
-* **Ожидаемая JSON-структура:**
+* **Ожидаемая JSON-структура (успех):**
   ```json
   {
     "ok": true,
@@ -63,12 +77,14 @@
         "difficulty": "leicht | mittel | anspruchsvoll | unknown",
         "explanation": "string"
       },
+      "scheduleWarning": "string (optional)",
       "sessions": [
         {
           "id": "session-1",
           "title": "string",
           "task": "string",
           "durationMinutes": 25,
+          "scheduledDate": "YYYY-MM-DD (optional)",
           "reason": "string",
           "requiredTools": ["string"],
           "recommendedApps": ["string"]
@@ -79,30 +95,19 @@
   ```
 
 ### 2.4. Клиентская нормализация (`normalizeAIPlan`)
-Ответ сервера считается недоверенным и подвергается строгой санитизации в клиенте:
-* Массив `sessions` обрезается максимум до 6 элементов (`slice(0, 6)`);
-* Если массив `sessions` пуст или отсутствует, выбрасывается исключение `'Der AI-Plan enthält keine Sitzungen'`;
-* Длительность каждого шага принудительно ограничивается диапазоном от 5 до 60 минут:  
-  `Math.max(5, Math.min(60, Number(s.durationMinutes) || 20))`;
-* Строковые поля защищаются fallback-значениями по умолчанию;
-* Поля HTML-экранируются функцией `escapeHTML()` перед рендерингом в DOM для защиты от XSS.
+* Проверяется наличие непустых `goal.title` и от 1 до 6 корректных `sessions` (с непустыми `title`, `task`/`reason` и положительным `durationMinutes`).
+* Длительность каждого шага ограничивается диапазоном от 5 до 60 минут.
+* Если у шага указана дата `scheduledDate` и в запросе был `deadlineDate`, проверяется `scheduledDate <= deadlineDate`.
+* Поля экранируются функцией `escapeHTML()` перед рендерингом в DOM.
 
 ### 2.5. Обработка ошибок и Fallback
-* При отмене по таймауту (`AbortError`) выводится сообщение: *«Die Analyse hat zu lange gedauert. Bitte versuche es erneut.»*.
-* При ошибках сети или `ok !== true` выводится: *«AI-Analyse nicht verfügbar: [error.message]»*.
-* Пользователь возвращается на экран ввода цели `app-screen-goal`, введенный текст и прикрепленный файл сохраняются.
+* `parseMissionErrorResponse()` корректно обрабатывает как структурированный `{ error: { code, message, retryable } }`, так и строковые/HTTP ошибки (без `[object Object]`).
+* При отмене по таймауту (`AbortError`) или статусах `504`/`524`, `429`, `502`/`503` выводится понятное сообщение и кнопка повторной попытки; при `AbortError` от ручной отмены (`cancelMissionAnalysis()`) пользователь возвращается на `#app-screen-goal` без ошибки.
+* Введенный текст, выбранный `schedule` и прикрепленное изображение сохраняются при любой ошибке.
 
 ### 2.6. Границы валидации
-* **Подтверждено клиентским кодом:**
-  * Проверка наличия хотя бы одного источника данных (текст цели или файл);
-  * Валидация MIME-типов (`image/jpeg`, `image/png`, `image/webp`);
-  * Клиентское сжатие картинок крупнее 1.8 МБ;
-  * Таймаут 120 секунд.
-* **Требует аудита Cloudflare Worker (не подтверждено в клиенте):**
-  * Максимальный допустимый размер тела запроса (body limit);
-  * Наличие rate limiting / защиты от DDoS;
-  * Модель LLM (Gemini, Claude, GPT), системный промпт и температура генерации;
-  * Формат промпта при анализе изображений (multimodal OCR).
+* **Подтверждено клиентским кодом:** single-flight lock, валидация MIME/размера и сжатие изображений до 1.5 МБ, валидация `schedule`, таймауты `38s`/`52s`, строгая нормализация ответа.
+* **Требует исходников Cloudflare Worker (`WORKER_REQUIRED.md`):** см. `WORKER_REQUIRED.md` для списка отсутствующих серверных файлов и требуемых правок Worker.
 
 ---
 

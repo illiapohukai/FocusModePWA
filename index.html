@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 
-<html class="dark" lang="de"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/><meta content="#F6F1E7" name="theme-color"/><title>v17.4 Mission Scheduling UI</title>
-<meta name="description" content="Focus Mode+ v17.4 Mission Scheduling UI — Plane deine Focus Missions mit Prüfungsdatum, Vorbereitungsstart und Lerntagen.">
-<meta property="og:title" content="v17.4 Mission Scheduling UI">
-<meta property="og:description" content="Focus Mode+ v17.4 Mission Scheduling UI — Plane deine Focus Missions mit Prüfungsdatum, Vorbereitungsstart und Lerntagen."><script src="https://cdn.tailwindcss.com"></script><script>window.tailwind=window.tailwind||{};tailwind.config={darkMode:'class'}</script><script src="https://unpkg.com/lucide@latest"></script><script>window.lucide=window.lucide||{createIcons:function(){}}</script><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>  <link rel="stylesheet" href="./styles/app.css" />
+<html class="dark" lang="de"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/><meta content="#F6F1E7" name="theme-color"/><title>v17.4.1 Mission Generation Repair</title>
+<meta name="description" content="Focus Mode+ v17.4.1 Mission Generation Repair — Zuverlässige AI-Missionserstellung mit Kalender-Sheet, Bild-Upload und Zeitplan-Integration.">
+<meta property="og:title" content="v17.4.1 Mission Generation Repair">
+<meta property="og:description" content="Focus Mode+ v17.4.1 Mission Generation Repair — Zuverlässige AI-Missionserstellung mit Kalender-Sheet, Bild-Upload und Zeitplan-Integration."><script src="https://cdn.tailwindcss.com"></script><script>window.tailwind=window.tailwind||{};tailwind.config={darkMode:'class'}</script><script src="https://unpkg.com/lucide@latest"></script><script>window.lucide=window.lucide||{createIcons:function(){}}</script><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>  <link rel="stylesheet" href="./styles/app.css" />
   <link rel="stylesheet" href="./styles/timer.css" />
   <link rel="stylesheet" href="./styles/recovery.css" />
   <link rel="stylesheet" href="./styles/quick-focus.css" />
@@ -296,13 +296,22 @@
     <div class="mg-input-card">
       <textarea aria-label="Lernziel" id="goalPrompt" rows="4" placeholder="Beschreibe dein Ziel, die Frist und was du schaffen möchtest …"></textarea>
       <div class="mg-input-actions">
-        <div><button onclick="openRealFilePicker(false)" title="Datei hinzufügen"><i data-lucide="paperclip"></i></button><button onclick="mockVoiceInput()" title="Diktieren"><i data-lucide="mic"></i></button><button onclick="openRealFilePicker(true)" title="Foto aufnehmen"><i data-lucide="camera"></i></button></div>
+        <div><button type="button" onclick="openRealFilePicker(false)" title="Datei hinzufügen" aria-label="Datei hinzufügen"><i data-lucide="paperclip"></i></button><button type="button" onclick="mockVoiceInput()" title="Diktieren" aria-label="Diktieren"><i data-lucide="mic"></i></button><button type="button" onclick="openRealFilePicker(true)" title="Foto aufnehmen" aria-label="Foto aufnehmen"><i data-lucide="camera"></i></button></div>
         <span id="goalInputHint">Text oder Foto hinzufügen</span>
       </div>
     </div>
     <input id="missionFileInput" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" onchange="handleMissionFile(event)"/>
-    <div id="missionError" class="hidden mg-error"></div>
-    <button class="flow-file hidden mg-file" id="selectedFileCard" onclick="openRealFilePicker(false)"><div class="flex items-center gap-3"><div class="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-100 to-orange-50 text-amber-600 flex items-center justify-center"><i class="w-5 h-5" data-lucide="image"></i></div><div class="min-w-0 flex-1"><div id="selectedFileName">Material.jpg</div><div id="selectedFileMeta">Foto wird für die Analyse vorbereitet</div></div><i class="w-4 h-4 text-emerald-500" data-lucide="check-circle-2"></i></div></button>
+    <div id="missionError" class="hidden mg-error" role="alert"></div>
+    <div class="flow-file hidden mg-file" id="selectedFileCard">
+      <button type="button" class="mg-file-main" onclick="openRealFilePicker(false)" aria-label="Ausgewähltes Lernmaterial ändern">
+        <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-100 to-orange-50 text-amber-600 flex items-center justify-center shrink-0" id="selectedFilePreviewBox"><i class="w-5 h-5" data-lucide="image"></i></div>
+        <div class="min-w-0 flex-1 text-left"><div id="selectedFileName">Material.jpg</div><div id="selectedFileMeta">Foto wird für die Analyse vorbereitet</div></div>
+        <i class="w-4 h-4 text-emerald-500 shrink-0" data-lucide="check-circle-2"></i>
+      </button>
+      <button type="button" class="mg-file-remove" id="clearMissionFileBtn" onclick="clearMissionImage(event)" aria-label="Foto entfernen" title="Foto entfernen">
+        <i class="w-3.5 h-3.5" data-lucide="x"></i>
+      </button>
+    </div>
     <section class="mg-section">
       <h4>Mission-Typ</h4>
       <div class="mg-type-carousel" id="missionTypeCarousel">
@@ -328,10 +337,50 @@
         <span class="mg-schedule-opt-pill">OPTIONAL</span>
       </div>
       <p class="mg-schedule-intro">Plane, wann du beginnen möchtest und bis wann dein Ziel erreicht sein soll.</p>
-      <div class="mg-schedule-card">
-        <!-- Part A: Deadline / Target Date Selector -->
-        <div class="mg-deadline-row-wrap">
-          <button type="button" class="mg-deadline-trigger" id="mgDeadlineTrigger" onclick="openMissionCalendarSheet('deadline')" aria-label="Prüfung oder Abgabe auswählen">
+
+      <!-- Layer A: Prominent Aubergine Schedule Summary Hero Board -->
+      <div class="mg-plan-board" id="mgScheduleBoard">
+        <div class="mg-plan-board-grid" aria-hidden="true"></div>
+        <div class="mg-plan-board-inner">
+          <div class="mg-board-top">
+            <span class="mg-board-kicker">
+              <span class="mg-board-dot" aria-hidden="true"></span>
+              <span id="mgBoardKickerText">ZIELTERMIN</span>
+            </span>
+            <span class="mg-timeline-days hidden" id="mgTimelineDaysBadge">14 TAGE VORBEREITUNG</span>
+            <button type="button" class="mg-board-reset hidden" id="mgDeadlineClearBtn" onclick="clearMissionDeadline(event)" aria-label="Datum zurücksetzen" title="Datum zurücksetzen">
+              <i data-lucide="rotate-ccw" aria-hidden="true"></i>
+              <span>Zurücksetzen</span>
+            </button>
+          </div>
+
+          <!-- Intentional Empty State (No Fake Timeline) -->
+          <div class="mg-board-empty" id="mgTimelineEmpty">
+            <h5 class="mg-board-empty-title">Wann ist deine Prüfung oder Abgabe?</h5>
+            <p class="mg-board-empty-copy">Wähle ein Datum, um deinen Vorbereitungszeitraum sichtbar zu planen.</p>
+          </div>
+
+          <!-- Active Study-Period Trajectory -->
+          <div class="mg-timeline-active hidden" id="mgTimelineActive">
+            <div class="mg-route-nodes">
+              <div class="mg-route-node is-start">
+                <span class="mg-route-role">START</span>
+                <strong class="mg-route-date" id="mgTimelineStartLabel">Heute</strong>
+              </div>
+              <div class="mg-route-connector" aria-hidden="true">
+                <span class="mg-route-line"></span>
+                <div class="mg-trajectory-nodes" id="mgTrajectoryNodes"></div>
+              </div>
+              <div class="mg-route-node is-end">
+                <span class="mg-route-role">ZIEL</span>
+                <strong class="mg-route-date" id="mgTimelineEndLabel">18. Dez.</strong>
+              </div>
+            </div>
+            <div class="mg-board-live-summary" id="mgScheduleLiveSummary"></div>
+          </div>
+
+          <!-- Single Authoritative Deadline Trigger (Empty & Selected States) -->
+          <button type="button" class="mg-deadline-trigger" id="mgDeadlineTrigger" onclick="openMissionCalendarSheet('deadline', this)" aria-label="Prüfung oder Abgabe auswählen">
             <span class="mg-deadline-icon" aria-hidden="true">
               <i data-lucide="calendar"></i>
             </span>
@@ -339,139 +388,112 @@
               <span class="mg-deadline-kicker">PRÜFUNG / ABGABE</span>
               <strong class="mg-deadline-val is-placeholder" id="mgDeadlineValue">Datum auswählen</strong>
             </span>
+            <span class="mg-deadline-cta-tag" id="mgDeadlineCtaTag">Auswählen</span>
             <span class="mg-deadline-arrow" aria-hidden="true">
               <i data-lucide="chevron-right"></i>
             </span>
           </button>
-          <button type="button" class="mg-deadline-clear hidden" id="mgDeadlineClearBtn" onclick="clearMissionDeadline(event)" aria-label="Datum zurücksetzen" title="Datum entfernen">
-            <i data-lucide="x"></i>
+        </div>
+      </div>
+
+      <!-- Layer B: Preparation Start Controls (shown once deadline is selected) -->
+      <div class="mg-prep-start-block hidden" id="mgPrepStartBlock">
+        <div class="mg-sub-head">
+          <span class="mg-sub-label">START DER VORBEREITUNG</span>
+          <span class="mg-rec-badge" id="mgStartRecBadge">Empfohlen: Sofort</span>
+        </div>
+        <div class="mg-start-chips" id="mgStartModeChips" role="group" aria-label="Start der Vorbereitung">
+          <button type="button" class="mg-start-chip active" data-start-mode="immediate" onclick="selectMissionStartMode('immediate')">
+            <span class="mg-start-chip-label">Sofort</span>
+            <span class="mg-start-rec-mark hidden" aria-hidden="true">Empfohlen</span>
+          </button>
+          <button type="button" class="mg-start-chip" data-start-mode="one_week_before" onclick="selectMissionStartMode('one_week_before')">
+            <span class="mg-start-chip-label">1 Woche vorher</span>
+            <span class="mg-start-rec-mark hidden" aria-hidden="true">Empfohlen</span>
+          </button>
+          <button type="button" class="mg-start-chip" data-start-mode="two_weeks_before" onclick="selectMissionStartMode('two_weeks_before')">
+            <span class="mg-start-chip-label">2 Wochen vorher</span>
+            <span class="mg-start-rec-mark hidden" aria-hidden="true">Empfohlen</span>
+          </button>
+          <button type="button" class="mg-start-chip" data-start-mode="custom" onclick="selectMissionStartMode('custom')">
+            <span class="mg-start-chip-label">Eigene Wahl</span>
+            <span class="mg-start-rec-mark hidden" aria-hidden="true">Empfohlen</span>
           </button>
         </div>
+      </div>
 
-        <!-- Part B: Preparation Start (shown once deadline is selected) -->
-        <div class="mg-prep-start-block hidden" id="mgPrepStartBlock">
-          <div class="mg-sub-head">
-            <span class="mg-sub-label">START DER VORBEREITUNG</span>
-            <span class="mg-rec-badge" id="mgStartRecBadge">Empfohlen: Sofort</span>
-          </div>
-          <div class="mg-start-chips" id="mgStartModeChips" role="group" aria-label="Start der Vorbereitung">
-            <button type="button" class="mg-start-chip active" data-start-mode="immediate" onclick="selectMissionStartMode('immediate')">
-              <span>Sofort</span>
-            </button>
-            <button type="button" class="mg-start-chip" data-start-mode="one_week_before" onclick="selectMissionStartMode('one_week_before')">
-              <span>1 Woche vorher</span>
-            </button>
-            <button type="button" class="mg-start-chip" data-start-mode="two_weeks_before" onclick="selectMissionStartMode('two_weeks_before')">
-              <span>2 Wochen vorher</span>
-            </button>
-            <button type="button" class="mg-start-chip" data-start-mode="custom" onclick="selectMissionStartMode('custom')">
-              <span>Eigene Wahl</span>
-            </button>
-          </div>
-        </div>
+      <!-- Inline Notice / Validation -->
+      <div class="mg-schedule-notice hidden" id="mgScheduleNotice" role="status" aria-live="polite">
+        <i data-lucide="info" class="mg-notice-icon" aria-hidden="true"></i>
+        <span id="mgScheduleNoticeText"></span>
+      </div>
 
-        <!-- Part C: Preparation Timeline -->
-        <div class="mg-timeline-box" id="mgTimelineBox">
-          <div class="mg-timeline-empty" id="mgTimelineEmpty">
-            <i data-lucide="calendar-clock" aria-hidden="true"></i>
-            <span>Wähle zuerst einen Prüfungstermin oder eine Abgabe.</span>
-          </div>
-          <div class="mg-timeline-active hidden" id="mgTimelineActive">
-            <div class="mg-timeline-dates">
-              <strong id="mgTimelineStartLabel">Heute</strong>
-              <strong id="mgTimelineEndLabel">18. Dez.</strong>
+      <!-- Layer C: Expandable Optional Learning Preferences -->
+      <div class="mg-prefs-accordion" id="mgPrefsAccordion">
+        <button type="button" class="mg-prefs-toggle" id="mgPrefsToggleBtn" onclick="toggleMissionSchedulePrefs()" aria-expanded="false" aria-controls="mgPrefsPanel">
+          <span class="mg-prefs-toggle-left">
+            <span class="mg-prefs-title-row">
+              <strong class="mg-prefs-title">Lernrhythmus anpassen</strong>
+              <span class="mg-prefs-opt-dot">Optional</span>
+            </span>
+            <span class="mg-prefs-summary" id="mgPrefsSummary">Flexibel · AI entscheidet</span>
+          </span>
+          <span class="mg-prefs-chevron" aria-hidden="true">
+            <i data-lucide="chevron-down"></i>
+          </span>
+        </button>
+
+        <div class="mg-prefs-panel hidden" id="mgPrefsPanel">
+          <div class="mg-weekdays-block">
+            <div class="mg-sub-head">
+              <span class="mg-sub-label">WANN KANNST DU LERNEN?</span>
             </div>
-            <div class="mg-timeline-track" aria-hidden="true">
-              <span class="mg-timeline-dot start"></span>
-              <span class="mg-timeline-bar"></span>
-              <span class="mg-timeline-dot end"></span>
+            <p class="mg-sub-copy">Keine Auswahl bedeutet, dass dein Plan flexibel verteilt werden kann.</p>
+            <div class="mg-weekday-row" id="mgWeekdayRow" role="group" aria-label="Verfügbare Lerntage">
+              <button type="button" class="mg-weekday-btn" data-weekday="1" onclick="toggleMissionWeekday(1)" aria-pressed="false">Mo</button>
+              <button type="button" class="mg-weekday-btn" data-weekday="2" onclick="toggleMissionWeekday(2)" aria-pressed="false">Di</button>
+              <button type="button" class="mg-weekday-btn" data-weekday="3" onclick="toggleMissionWeekday(3)" aria-pressed="false">Mi</button>
+              <button type="button" class="mg-weekday-btn" data-weekday="4" onclick="toggleMissionWeekday(4)" aria-pressed="false">Do</button>
+              <button type="button" class="mg-weekday-btn" data-weekday="5" onclick="toggleMissionWeekday(5)" aria-pressed="false">Fr</button>
+              <button type="button" class="mg-weekday-btn" data-weekday="6" onclick="toggleMissionWeekday(6)" aria-pressed="false">Sa</button>
+              <button type="button" class="mg-weekday-btn" data-weekday="7" onclick="toggleMissionWeekday(7)" aria-pressed="false">So</button>
             </div>
-            <div class="mg-timeline-foot">
-              <span class="mg-timeline-role">START</span>
-              <span class="mg-timeline-days" id="mgTimelineDaysBadge">14 TAGE VORBEREITUNG</span>
-              <span class="mg-timeline-role">PRÜFUNG</span>
+            <div class="mg-weekday-presets" id="mgWeekdayPresets">
+              <button type="button" class="mg-preset-chip" data-preset="weekdays" onclick="applyMissionWeekdayPreset('weekdays')">Unter der Woche</button>
+              <button type="button" class="mg-preset-chip" data-preset="weekend" onclick="applyMissionWeekdayPreset('weekend')">Wochenende</button>
+              <button type="button" class="mg-preset-chip active" data-preset="flexible" onclick="applyMissionWeekdayPreset('flexible')">Flexibel</button>
             </div>
           </div>
-        </div>
 
-        <!-- Inline Notice / Validation -->
-        <div class="mg-schedule-notice hidden" id="mgScheduleNotice" role="status" aria-live="polite">
-          <i data-lucide="info" class="mg-notice-icon" aria-hidden="true"></i>
-          <span id="mgScheduleNoticeText"></span>
-        </div>
+          <div class="mg-schedule-divider"></div>
 
-        <div class="mg-schedule-divider"></div>
-
-        <!-- Part D: Optional Available Weekdays -->
-        <div class="mg-weekdays-block">
-          <div class="mg-sub-head">
-            <span class="mg-sub-label">WANN KANNST DU LERNEN?</span>
-            <span class="mg-sub-opt">OPTIONAL</span>
-          </div>
-          <p class="mg-sub-copy">Keine Auswahl bedeutet, dass dein Plan flexibel verteilt werden kann.</p>
-          <div class="mg-weekday-row" id="mgWeekdayRow" role="group" aria-label="Verfügbare Lerntage">
-            <button type="button" class="mg-weekday-btn" data-weekday="1" onclick="toggleMissionWeekday(1)" aria-pressed="false">Mo</button>
-            <button type="button" class="mg-weekday-btn" data-weekday="2" onclick="toggleMissionWeekday(2)" aria-pressed="false">Di</button>
-            <button type="button" class="mg-weekday-btn" data-weekday="3" onclick="toggleMissionWeekday(3)" aria-pressed="false">Mi</button>
-            <button type="button" class="mg-weekday-btn" data-weekday="4" onclick="toggleMissionWeekday(4)" aria-pressed="false">Do</button>
-            <button type="button" class="mg-weekday-btn" data-weekday="5" onclick="toggleMissionWeekday(5)" aria-pressed="false">Fr</button>
-            <button type="button" class="mg-weekday-btn" data-weekday="6" onclick="toggleMissionWeekday(6)" aria-pressed="false">Sa</button>
-            <button type="button" class="mg-weekday-btn" data-weekday="7" onclick="toggleMissionWeekday(7)" aria-pressed="false">So</button>
-          </div>
-          <div class="mg-weekday-presets" id="mgWeekdayPresets">
-            <button type="button" class="mg-preset-chip" data-preset="weekdays" onclick="applyMissionWeekdayPreset('weekdays')">Unter der Woche</button>
-            <button type="button" class="mg-preset-chip" data-preset="weekend" onclick="applyMissionWeekdayPreset('weekend')">Wochenende</button>
-            <button type="button" class="mg-preset-chip active" data-preset="flexible" onclick="applyMissionWeekdayPreset('flexible')">Flexibel</button>
-          </div>
-        </div>
-
-        <div class="mg-schedule-divider"></div>
-
-        <!-- Part E: Optional Session Duration -->
-        <div class="mg-duration-pref-block">
-          <div class="mg-sub-head">
-            <span class="mg-sub-label">BEVORZUGTE SITZUNGSDAUER</span>
-            <span class="mg-sub-opt">OPTIONAL</span>
-          </div>
-          <div class="mg-duration-chips" id="mgDurationPrefChips" role="group" aria-label="Bevorzugte Sitzungsdauer">
-            <button type="button" class="mg-dur-chip" data-minutes="20" onclick="selectMissionPreferredDuration(20)">20 Min.</button>
-            <button type="button" class="mg-dur-chip" data-minutes="30" onclick="selectMissionPreferredDuration(30)">30 Min.</button>
-            <button type="button" class="mg-dur-chip" data-minutes="45" onclick="selectMissionPreferredDuration(45)">45 Min.</button>
-            <button type="button" class="mg-dur-chip active" data-minutes="auto" onclick="selectMissionPreferredDuration(null)">AI entscheidet</button>
+          <div class="mg-duration-pref-block">
+            <div class="mg-sub-head">
+              <span class="mg-sub-label">BEVORZUGTE SITZUNGSDAUER</span>
+            </div>
+            <div class="mg-duration-chips" id="mgDurationPrefChips" role="group" aria-label="Bevorzugte Sitzungsdauer">
+              <button type="button" class="mg-dur-chip" data-minutes="20" onclick="selectMissionPreferredDuration(20)">
+                <strong>20 Min.</strong>
+                <span>Kurz &amp; fokussiert</span>
+              </button>
+              <button type="button" class="mg-dur-chip" data-minutes="30" onclick="selectMissionPreferredDuration(30)">
+                <strong>30 Min.</strong>
+                <span>Ausgewogen</span>
+              </button>
+              <button type="button" class="mg-dur-chip" data-minutes="45" onclick="selectMissionPreferredDuration(45)">
+                <strong>45 Min.</strong>
+                <span>Tiefer Fokus</span>
+              </button>
+              <button type="button" class="mg-dur-chip active" data-minutes="auto" onclick="selectMissionPreferredDuration(null)">
+                <strong>AI wählt</strong>
+                <span>AI entscheidet</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </section>
-    <button class="mg-plan-button opacity-40 cursor-not-allowed" disabled id="missionPlanButton" onclick="analyzeGoal()">Mission planen <i data-lucide="arrow-up"></i></button>
-  </div>
-
-  <!-- Calendar Bottom Sheet (Deadline & Custom Start Date) -->
-  <div class="mg-cal-backdrop hidden" id="missionCalendarSheet" onclick="if(event.target===this)closeMissionCalendarSheet()" role="dialog" aria-modal="true" aria-labelledby="mgCalMonthTitle">
-    <div class="mg-cal-sheet">
-      <div class="mg-cal-handle" aria-hidden="true"></div>
-      <div class="mg-cal-top">
-        <div>
-          <span class="mg-cal-kicker" id="mgCalKicker">PRÜFUNG / ABGABE</span>
-          <h4 class="mg-cal-title" id="mgCalMonthTitle">November 2026</h4>
-        </div>
-        <div class="mg-cal-nav">
-          <button type="button" class="mg-cal-nav-btn" id="mgCalPrevBtn" onclick="shiftMissionCalendarMonth(-1)" aria-label="Vorheriger Monat">
-            <i data-lucide="chevron-left"></i>
-          </button>
-          <button type="button" class="mg-cal-nav-btn" id="mgCalNextBtn" onclick="shiftMissionCalendarMonth(1)" aria-label="Nächster Monat">
-            <i data-lucide="chevron-right"></i>
-          </button>
-        </div>
-      </div>
-      <div class="mg-cal-weekdays" id="mgCalWeekdays" aria-hidden="true">
-        <span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span>
-      </div>
-      <div class="mg-cal-grid" id="mgCalGrid" role="grid" aria-label="Kalender"></div>
-      <div class="mg-cal-actions">
-        <button type="button" class="mg-cal-btn secondary" id="mgCalCancelBtn" onclick="closeMissionCalendarSheet()">Abbrechen</button>
-        <button type="button" class="mg-cal-btn primary" id="mgCalApplyBtn" onclick="applyMissionCalendarSelection()">Übernehmen</button>
-      </div>
-    </div>
+    <button type="button" class="mg-plan-button opacity-40 cursor-not-allowed" disabled id="missionPlanButton" onclick="analyzeGoal()">Mission planen <i data-lucide="arrow-up"></i></button>
   </div>
 </div>
 <!-- LEARNING FLOW: Mock-Dateiauswahl -->
@@ -500,6 +522,7 @@
 <div class="analysis-row opacity-40 p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-3"><span class="analysis-icon w-6 h-6 rounded-full bg-white/10 flex items-center justify-center"><span class="flow-loader-dot w-1.5 h-1.5 bg-indigo-300 rounded-full"></span></span><span class="text-[10px] text-slate-300">Ziel in Missionsschritte teilen</span></div>
 <div class="analysis-row opacity-40 p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-3"><span class="analysis-icon w-6 h-6 rounded-full bg-white/10 flex items-center justify-center"><span class="flow-loader-dot w-1.5 h-1.5 bg-indigo-300 rounded-full"></span></span><span class="text-[10px] text-slate-300">Dauer und Lernumgebung anpassen</span></div>
 </div>
+<button type="button" id="cancelAnalysisBtn" onclick="cancelMissionAnalysis()" class="mt-6 px-4 py-2 rounded-full border border-white/15 bg-white/5 text-[11px] font-bold text-slate-300 hover:bg-white/10 transition">Abbrechen</button>
 </div>
 <!-- REAL AI: Erkannte Angaben bestätigen -->
 <div class="app-screen flow-screen p-5 flex flex-col flex-1 hidden bg-slate-50" id="app-screen-confirm">
@@ -1240,6 +1263,33 @@
 </div>
 </div>
 </div></div><span class="hint">Scrollen, um den Prototyp zu steuern</span></aside></main><div class="modal" id="modal"><button class="close" onclick="closeProto()">×</button><div class="modal-content"><div class="tools"><button onclick="setAppScreen('home')">HOME</button><button onclick="openGoalIntake()">FOCUS MISSION</button><button onclick="setAppScreen('stats')">STATS</button><button onclick="setAppScreen('score')">SCORE</button><button onclick="setAppScreen('premium')">PREMIUM</button><button onclick="setAppScreen('chat')">AI COACH</button><button onclick="triggerAppAblenkung()">DISTRACTION</button></div><div id="modalMount"></div></div></div><script id="realTimeScreenTransitions" src="./src/core/navigation.js"></script><script id="focusProtectionLogic" src="./src/features/quick-focus/quick-focus.js"></script>
+<div class="mg-cal-backdrop hidden" id="missionCalendarSheet" onclick="if(event.target===this)closeMissionCalendarSheet()" role="dialog" aria-modal="true" aria-labelledby="mgCalMonthTitle">
+  <div class="mg-cal-sheet" role="document">
+    <div class="mg-cal-handle" aria-hidden="true"></div>
+    <div class="mg-cal-top">
+      <div>
+        <span class="mg-cal-kicker" id="mgCalKicker">PRÜFUNG / ABGABE</span>
+        <h4 class="mg-cal-title" id="mgCalMonthTitle">November 2026</h4>
+      </div>
+      <div class="mg-cal-nav">
+        <button type="button" class="mg-cal-nav-btn" id="mgCalPrevBtn" onclick="shiftMissionCalendarMonth(-1)" aria-label="Vorheriger Monat">
+          <i data-lucide="chevron-left"></i>
+        </button>
+        <button type="button" class="mg-cal-nav-btn" id="mgCalNextBtn" onclick="shiftMissionCalendarMonth(1)" aria-label="Nächster Monat">
+          <i data-lucide="chevron-right"></i>
+        </button>
+      </div>
+    </div>
+    <div class="mg-cal-weekdays" id="mgCalWeekdays" aria-hidden="true">
+      <span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span>
+    </div>
+    <div class="mg-cal-grid" id="mgCalGrid" role="grid" aria-label="Kalender"></div>
+    <div class="mg-cal-actions">
+      <button type="button" class="mg-cal-btn secondary" id="mgCalCancelBtn" onclick="closeMissionCalendarSheet()">Abbrechen</button>
+      <button type="button" class="mg-cal-btn primary" id="mgCalApplyBtn" onclick="applyMissionCalendarSelection()">Übernehmen</button>
+    </div>
+  </div>
+</div>
 <div id="pwaInstallHelp"><div id="pwaInstallCard"><h2>Focus Mode+ installieren</h2><p>Öffne diese Seite in Safari und füge sie zum Home-Bildschirm hinzu.</p><ol><li>Tippe auf „Teilen“.</li><li>Wähle „Zum Home-Bildschirm“.</li><li>Tippe auf „Hinzufügen“.</li></ol><button id="pwaInstallClose">Verstanden</button></div></div><script src="./src/services/ai-service.js"></script>
 <script id="mobileUIV81" src="./src/features/missions/mission-renderer.js"></script>
 
