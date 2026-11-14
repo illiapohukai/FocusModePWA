@@ -1,0 +1,482 @@
+/* ==========================================================================
+   Focus Mode+ v17.3.2 Fluid Motion System
+   Authoritative Motion Tokens, Layering, Shared-Element Proxies & Fallbacks
+   ========================================================================== */
+
+:root {
+  --motion-instant: 90ms;
+  --motion-fast: 150ms;
+  --motion-normal: 260ms;
+  --motion-emphasized: 420ms;
+  --motion-focus-enter: 620ms;
+  --motion-splash-min: 650ms;
+  --motion-splash-max: 1400ms;
+
+  --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --ease-emphasized: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-soft-spring: cubic-bezier(0.34, 1.16, 0.64, 1);
+}
+
+/* ==========================================================================
+   1. SCREEN TRANSITION LAYERING & COMPOSITOR RULES
+   ========================================================================== */
+#screenWrapper #appBody {
+  position: relative !important;
+  isolation: isolate;
+}
+
+/* Allow MotionController Web Animations / CSS transitions on active screens */
+html body #screenWrapper #appBody > .app-screen.fm-motion-active:not(.hidden) {
+  animation: none !important;
+  will-change: transform, opacity;
+}
+
+/* Outgoing screen layer kept visually rendered while remaining .hidden for business logic */
+html body #screenWrapper #appBody.fm-dual-transition > .app-screen.fm-layer-outgoing.hidden,
+html body #screenWrapper.has-bottom-nav #appBody.fm-dual-transition > #app-screen-home.fm-layer-outgoing.hidden,
+html body #screenWrapper #appBody.fm-dual-transition > #app-screen-quicksetup.fm-layer-outgoing.hidden,
+html body #screenWrapper #appBody.fm-dual-transition > #app-screen-missions.fm-layer-outgoing.hidden {
+  display: flex !important;
+  flex-direction: column !important;
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  pointer-events: none !important;
+  z-index: 14 !important;
+  will-change: transform, opacity, filter;
+  animation: none !important;
+}
+
+html body #screenWrapper.has-bottom-nav #appBody.fm-dual-transition > #app-screen-home.fm-layer-outgoing.hidden {
+  padding: 16px 18px calc(var(--fm-nav-total-height) + 24px) !important;
+  overflow: hidden !important;
+}
+
+html body #screenWrapper #appBody.fm-dual-transition > .app-screen.fm-layer-outgoing.fm-layer-top.hidden {
+  z-index: 22 !important;
+}
+
+html body #screenWrapper #appBody.fm-dual-transition > .app-screen.fm-layer-incoming:not(.hidden) {
+  position: relative !important;
+  z-index: 18 !important;
+  will-change: transform, opacity;
+}
+
+/* ==========================================================================
+   2. STARTUP SPLASH OVERLAY (#fmStartupSplash)
+   ========================================================================== */
+#fmStartupSplash {
+  position: absolute;
+  inset: 0;
+  z-index: 240;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+  background: #F6F1E7;
+  color: #1D1A17;
+  user-select: none;
+  -webkit-user-select: none;
+  pointer-events: auto;
+  will-change: opacity, transform;
+}
+
+#fmStartupSplash.fm-splash-hidden {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.fm-splash-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 14px;
+}
+
+.fm-splash-icon-wrap {
+  position: relative;
+  width: 76px;
+  height: 76px;
+  border-radius: 22px;
+  padding: 2px;
+  background: linear-gradient(145deg, rgba(109, 40, 217, 0.22), rgba(37, 22, 43, 0.08));
+  box-shadow: 0 18px 40px rgba(37, 22, 43, 0.16), 0 4px 12px rgba(109, 40, 217, 0.12);
+  transform: scale(0.94);
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.fm-splash-icon {
+  width: 100%;
+  height: 100%;
+  border-radius: 20px;
+  object-fit: cover;
+  display: block;
+}
+
+.fm-splash-title {
+  margin: 2px 0 0;
+  font-size: 19px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #1D1A17;
+  opacity: 0;
+  transform: translateY(6px);
+  will-change: transform, opacity;
+}
+
+.fm-splash-status {
+  margin: -4px 0 0;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #766E65;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  opacity: 0;
+  transform: translateY(5px);
+  will-change: transform, opacity;
+}
+
+.fm-splash-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #6D28D9;
+  box-shadow: 0 0 8px rgba(109, 40, 217, 0.55);
+}
+
+/* ==========================================================================
+   3. FLOATING BOTTOM NAVIGATION DOCK & CENTRAL PLUS BUTTON MORPH
+   ========================================================================== */
+#bottomNavigationV17.fm-bottom-nav {
+  will-change: transform, opacity;
+}
+
+/* Keep bottom navigation visible during Focus Choice so Plus button can rotate and morph */
+#screenWrapper.focus-choice-open #bottomNavigationV17.fm-bottom-nav,
+#screenWrapper.focus-choice-open #bottomNavigationV17.fm-bottom-nav.hidden {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: none !important;
+  z-index: 84 !important;
+}
+
+#screenWrapper.focus-choice-open #bottomNavigationV17.fm-bottom-nav .fm-nav-item {
+  opacity: 0.32;
+  pointer-events: none !important;
+  transition: opacity var(--motion-fast) var(--ease-standard);
+}
+
+#screenWrapper.focus-choice-open #bottomNavigationV17.fm-bottom-nav #bottomNavPlus {
+  pointer-events: auto !important;
+}
+
+#bottomNavigationV17 .fm-nav-item {
+  transition:
+    background-color var(--motion-normal) var(--ease-standard),
+    border-color var(--motion-normal) var(--ease-standard),
+    color var(--motion-normal) var(--ease-standard),
+    transform var(--motion-fast) var(--ease-soft-spring);
+}
+
+#bottomNavigationV17 .fm-nav-item .fm-nav-indicator {
+  transition:
+    width var(--motion-normal) var(--ease-soft-spring),
+    opacity var(--motion-fast) var(--ease-standard),
+    transform var(--motion-normal) var(--ease-soft-spring),
+    background-color var(--motion-normal) var(--ease-standard);
+}
+
+#bottomNavigationV17 .fm-nav-item .fm-nav-icon {
+  transition: transform var(--motion-normal) var(--ease-soft-spring);
+}
+
+#bottomNavigationV17 .fm-nav-item.active .fm-nav-icon {
+  transform: scale(1.06);
+}
+
+#bottomNavigationV17 .fm-nav-item .fm-nav-label {
+  transition:
+    opacity var(--motion-fast) var(--ease-standard),
+    color var(--motion-fast) var(--ease-standard),
+    transform var(--motion-fast) var(--ease-standard);
+}
+
+#bottomNavPlus {
+  transition:
+    transform var(--motion-normal) var(--ease-soft-spring),
+    background var(--motion-normal) var(--ease-standard),
+    box-shadow var(--motion-normal) var(--ease-standard);
+  will-change: transform;
+}
+
+#bottomNavPlus svg,
+#bottomNavPlus i {
+  transition: transform var(--motion-normal) var(--ease-soft-spring);
+  will-change: transform;
+}
+
+#bottomNavPlus.fm-plus-open {
+  transform: scale(0.92);
+  background: linear-gradient(145deg, #5B21B6 0%, #4C1D95 100%);
+  box-shadow: 0 6px 18px rgba(91, 33, 182, 0.38);
+}
+
+#bottomNavPlus.fm-plus-open svg,
+#bottomNavPlus.fm-plus-open i {
+  transform: rotate(45deg);
+}
+
+/* Disable legacy one-shot CSS animation on focusChoiceOverlay so WAAPI controls every open/close */
+#focusChoiceOverlay.focus-choice-enter .focus-choice-backdrop,
+#focusChoiceOverlay.focus-choice-enter > div:last-child,
+#focusChoiceOverlay .focus-choice-backdrop,
+#focusChoiceOverlay .focus-choice-sheet {
+  animation: none !important;
+}
+
+#focusChoiceOverlay {
+  padding-bottom: calc(var(--fm-nav-total-height, 74px) + 12px) !important;
+}
+
+#focusChoiceOverlay .focus-choice-backdrop {
+  will-change: opacity;
+}
+
+#focusChoiceOverlay .focus-choice-sheet {
+  transform-origin: 50% 100%;
+  will-change: transform, opacity;
+}
+
+/* Shared morph proxy between Plus button / Start trigger / Planet */
+.fm-shared-morph-proxy {
+  position: fixed;
+  z-index: 230;
+  pointer-events: none !important;
+  will-change: transform, opacity, border-radius;
+  transform-origin: center center;
+}
+
+/* ==========================================================================
+   4. MISSION MANAGEMENT THREE-DOT ACTION SHEET (#missionSheetV116)
+   ========================================================================== */
+#missionSheetV116 {
+  will-change: opacity;
+  transition: none;
+}
+
+#missionSheetV116 .mission-sheet-card-v116 {
+  transform-origin: var(--fm-sheet-origin-x, 88%) var(--fm-sheet-origin-y, 100%);
+  will-change: transform, opacity;
+}
+
+#missionSheetV116 .mission-sheet-action-v116 {
+  transition:
+    transform var(--motion-instant) var(--ease-standard),
+    background-color var(--motion-fast) var(--ease-standard),
+    border-color var(--motion-fast) var(--ease-standard);
+}
+
+#missionSheetV116 .mission-sheet-action-v116:active {
+  transform: scale(0.98);
+}
+
+/* ==========================================================================
+   5. FOCUS MODE ENTRY & EXIT — COSMIC TIMER & PROTECTION BADGE
+   ========================================================================== */
+#app-screen-timer .uc-planet {
+  will-change: transform, opacity;
+}
+
+#app-screen-timer .uc-protect {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  z-index: 10;
+  transition:
+    transform var(--motion-normal) var(--ease-soft-spring),
+    background-color var(--motion-emphasized) var(--ease-emphasized),
+    border-color var(--motion-emphasized) var(--ease-emphasized),
+    box-shadow var(--motion-emphasized) var(--ease-emphasized),
+    opacity var(--motion-normal) var(--ease-standard);
+}
+
+#app-screen-timer .uc-protect > span:first-child {
+  transition:
+    transform var(--motion-emphasized) var(--ease-soft-spring),
+    background-color var(--motion-emphasized) var(--ease-emphasized),
+    box-shadow var(--motion-emphasized) var(--ease-emphasized);
+}
+
+#app-screen-timer .uc-protect.fm-protect-activating {
+  box-shadow: 0 0 0 8px rgba(34, 197, 94, 0.18), 0 10px 26px rgba(16, 185, 129, 0.25);
+}
+
+/* ==========================================================================
+   6. MISSION CREATION, PLAN, CAROUSEL & PROGRESS INTERPOLATION
+   ========================================================================== */
+#app-screen-goal .mg-type-card {
+  transform: scale(0.96) !important;
+  opacity: 0.72 !important;
+  filter: none !important;
+  transition:
+    transform var(--motion-normal) var(--ease-soft-spring) !important,
+    opacity var(--motion-normal) var(--ease-standard) !important,
+    box-shadow var(--motion-normal) var(--ease-standard) !important,
+    background var(--motion-normal) var(--ease-standard) !important,
+    border-color var(--motion-normal) var(--ease-standard) !important;
+}
+
+#app-screen-goal .mg-type-card.active {
+  transform: scale(1.02) !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+#app-screen-goal .mg-confidence-card {
+  transition:
+    opacity var(--motion-normal) var(--ease-standard) !important,
+    filter var(--motion-normal) var(--ease-standard) !important,
+    transform var(--motion-normal) var(--ease-soft-spring) !important,
+    color var(--motion-normal) var(--ease-standard) !important;
+}
+
+#app-screen-goal .mg-confidence-track i {
+  transition:
+    width var(--motion-emphasized) var(--ease-emphasized) !important,
+    background var(--motion-normal) var(--ease-standard) !important,
+    box-shadow var(--motion-normal) var(--ease-standard) !important;
+}
+
+#app-screen-goal #missionPlanButton {
+  transition:
+    opacity var(--motion-normal) var(--ease-standard),
+    transform var(--motion-fast) var(--ease-soft-spring),
+    background var(--motion-normal) var(--ease-standard),
+    box-shadow var(--motion-normal) var(--ease-standard);
+}
+
+/* Mission Progress Bars & Step Nodes */
+.mmc-track i,
+#homeMissionProgressBar,
+#ucProgressBar,
+#recoveryProgressBar {
+  transition: width var(--motion-emphasized) var(--ease-emphasized);
+}
+
+.mh-node,
+.mh-node-dot,
+.mh-node-line {
+  transition:
+    background-color var(--motion-normal) var(--ease-standard),
+    color var(--motion-normal) var(--ease-standard),
+    transform var(--motion-normal) var(--ease-soft-spring),
+    border-color var(--motion-normal) var(--ease-standard);
+}
+
+#aiPlanSteps .flow-step-line {
+  transition:
+    transform var(--motion-normal) var(--ease-standard),
+    box-shadow var(--motion-normal) var(--ease-standard),
+    background-color var(--motion-normal) var(--ease-standard),
+    border-color var(--motion-normal) var(--ease-standard);
+  will-change: transform, opacity;
+}
+
+/* ==========================================================================
+   7. HISTORY FILTERS & TACTILE PRESS FEEDBACK
+   ========================================================================== */
+#historyFilters .history-filter,
+.mission-tabs-v116 .mission-tab-v116,
+.settings-lang-pills .settings-lang-pill {
+  transition:
+    background-color var(--motion-fast) var(--ease-standard),
+    color var(--motion-fast) var(--ease-standard),
+    border-color var(--motion-fast) var(--ease-standard),
+    box-shadow var(--motion-fast) var(--ease-standard),
+    transform var(--motion-instant) var(--ease-standard);
+}
+
+.mh-start-btn,
+.home-quick-row,
+.home-today-cell,
+.home-profile-btn,
+.fm-top-back-btn,
+.mg-back,
+.mmc-menu,
+.mmc-action-btn,
+.settings-nav-row,
+.data-action-btn,
+.qb-bottom button,
+.qb-presets button,
+.distraction-row,
+.recovery-primary,
+.recovery-secondary,
+.recovery-danger,
+.optional-adaptation-primary,
+.optional-adaptation-secondary {
+  transition:
+    transform var(--motion-instant) var(--ease-standard),
+    opacity var(--motion-instant) var(--ease-standard),
+    background-color var(--motion-fast) var(--ease-standard);
+}
+
+.mh-start-btn:active,
+.home-quick-row:active,
+.home-today-cell:active,
+.home-profile-btn:active,
+.fm-top-back-btn:active,
+.mg-back:active,
+.mmc-menu:active,
+.mmc-action-btn:active,
+.settings-nav-row:active,
+.data-action-btn:active,
+.qb-bottom button:active,
+.qb-presets button:active,
+.distraction-row:active,
+.recovery-primary:active,
+.recovery-secondary:active,
+.recovery-danger:active,
+.optional-adaptation-primary:active,
+.optional-adaptation-secondary:active {
+  transform: scale(0.97);
+}
+
+/* ==========================================================================
+   8. REDUCED MOTION COMPLIANCE (@media (prefers-reduced-motion: reduce))
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-instant: 1ms;
+    --motion-fast: 80ms;
+    --motion-normal: 110ms;
+    --motion-emphasized: 120ms;
+    --motion-focus-enter: 120ms;
+    --motion-splash-min: 220ms;
+    --motion-splash-max: 500ms;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+
+  #app-screen-timer .uc-planet {
+    animation: none !important;
+  }
+}

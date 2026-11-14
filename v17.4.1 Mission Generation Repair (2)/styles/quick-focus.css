@@ -1,0 +1,73 @@
+/* === quickFocusRoutingFixV1337 === */
+/* Smooth only the Quick Focus progress arc. Existing geometry and routing stay untouched. */
+#quickRingProgress{
+  transition:stroke-dashoffset .42s cubic-bezier(.22,1,.36,1);
+  will-change:stroke-dashoffset;
+}
+.qb-task input::placeholder{
+  color:#9ca3af;
+  opacity:1;
+  font-weight:700;
+}
+@media(prefers-reduced-motion:reduce){
+  #quickRingProgress{transition-duration:.01ms}
+}
+
+/* === cleanQuickFocusV13313 === */
+/* v13.3.13: clean card surfaces and let Quick Focus paint through the full app viewport. */
+#app-screen-quicksetup{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:100%!important;
+  display:flex!important;
+  flex-direction:column!important;
+  overflow:hidden!important;
+  background:radial-gradient(circle at 85% 18%,rgba(196,181,253,.18),transparent 28%),#F6F1E7!important;
+  padding-bottom:0!important;
+}
+#app-screen-quicksetup.hidden{display:none!important}
+#app-screen-quicksetup .qb-main{
+  flex:1 1 auto!important;
+  min-height:0!important;
+}
+#app-screen-quicksetup .qb-bottom{
+  flex:0 0 auto!important;
+  margin-top:0!important;
+  background:transparent!important;
+}
+#app-screen-quicksetup .qb-task,
+#app-screen-quicksetup .qb-app{
+  background:#FCF9F4!important;
+  border:1px solid rgba(45,35,30,.10)!important;
+  background-image:none!important;
+  filter:none!important;
+  -webkit-filter:none!important;
+}
+#app-screen-quicksetup .qb-task::after,
+#app-screen-quicksetup .qb-app::after{
+  content:none!important;
+  display:none!important;
+  background:none!important;
+  filter:none!important;
+}
+#app-screen-quicksetup .qb-task{
+  box-shadow:0 14px 28px -12px rgba(37,22,43,.14)!important;
+}
+#app-screen-quicksetup .qb-app{
+  box-shadow:0 14px 28px -12px rgba(37,22,43,.14)!important;
+}
+#app-screen-quicksetup .qb-bottom button{
+  background:linear-gradient(105deg,#7C3AED,#6D28D9 60%,#4C1D95)!important;
+  box-shadow:0 16px 30px rgba(109,40,217,.30)!important;
+}
+html.quick-focus-surface,
+html.quick-focus-surface body,
+html.quick-focus-surface #screenWrapper,
+html.quick-focus-surface #appBody{
+  background:#F6F1E7!important;
+}
+html.quick-focus-surface body::after{
+  background:#F6F1E7!important;
+}

@@ -1,0 +1,1892 @@
+/* === missionDepthV1338 === */
+#app-screen-goal{position:absolute!important;inset:0!important;overflow-y:auto!important;background:radial-gradient(circle at 88% 29%,rgba(147,197,253,.30),transparent 24%),radial-gradient(circle at 12% 57%,rgba(196,181,253,.25),transparent 25%),#fbfbfa!important;color:#080b18!important;scrollbar-width:none}#app-screen-goal::-webkit-scrollbar{display:none}.mission-goal-shell{min-height:100%;padding:calc(18px + env(safe-area-inset-top)) 20px calc(18px + env(safe-area-inset-bottom));display:flex;flex-direction:column}.mg-topbar{display:grid;grid-template-columns:46px 1fr 46px;align-items:center}.mg-topbar>span{text-align:center;color:#654bc2;font-size:12px;font-weight:900;letter-spacing:.13em;text-transform:uppercase}.mg-back{width:46px;height:46px;border:1px solid #d9dbe2;border-radius:17px;background:rgba(255,255,255,.72);display:grid;place-items:center;box-shadow:inset 0 1px #fff}.mg-back svg{width:21px}.mg-intro{margin-top:25px}.mg-badge{display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border-radius:999px;color:#6248bd;background:linear-gradient(110deg,#eee9ff,#e6e2ff);font-size:11px;font-weight:850}.mg-badge svg{width:16px}.mg-intro h3{margin:15px 0 0;font-size:clamp(34px,9vw,45px);line-height:1.01;font-weight:950;letter-spacing:-.055em;white-space:nowrap}.mg-intro p{margin:9px 0 0;color:#667085;font-size:14px;line-height:1.45}.mg-input-card{height:211px;margin-top:22px;padding:17px;border:1px solid rgba(148,163,184,.27);border-radius:28px;background:rgba(255,255,255,.72);box-shadow:0 26px 50px rgba(76,69,121,.10),inset 0 1px #fff;backdrop-filter:blur(18px);display:flex;flex-direction:column}.mg-input-card textarea{width:100%;flex:1;resize:none;border:0;outline:0;background:transparent;color:#111827;font:650 16px/1.45 Inter,sans-serif}.mg-input-card textarea::placeholder{color:#aeb8ca}.mg-input-actions{padding-top:13px;border-top:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;gap:8px}.mg-input-actions>div{display:flex;gap:7px}.mg-input-actions button{width:39px;height:39px;border:0;border-radius:14px;background:#eef0f6;color:#5e6880;display:grid;place-items:center}.mg-input-actions svg{width:19px}.mg-input-actions>span{color:#8e9ab0;font-size:12px}.mg-error{margin-top:9px;padding:10px;border-radius:14px;background:#fff1f2;color:#be123c;font-size:11px}.mg-file{width:100%;margin-top:10px;padding:10px;border:1px solid #c7d2fe;border-radius:18px;background:#fff;text-align:left}.mg-file #selectedFileName{font-size:11px;font-weight:800}.mg-file #selectedFileMeta{font-size:9px;color:#94a3b8}.mg-section{margin-top:18px}.mg-section h4{margin:0 0 10px;font-size:12px;font-weight:950;letter-spacing:.035em;text-transform:uppercase}.mg-type-carousel{display:flex;gap:11px;margin:0 -20px;padding:0 calc(50% - 72px) 15px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}.mg-type-carousel::-webkit-scrollbar{display:none}.mg-type-card{flex:0 0 144px;height:130px;border:1px solid rgba(255,255,255,.68)!important;border-radius:25px!important;background:rgba(255,255,255,.42)!important;scroll-snap-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#7d8492!important;box-shadow:0 15px 29px rgba(60,64,90,.07);opacity:.57;filter:blur(.5px);transform:scale(.91);transition:.38s cubic-bezier(.16,1,.3,1)!important}.mg-type-card .mg-emoji{font-size:43px;filter:saturate(.75)}.mg-type-card b{margin-top:9px;font-size:18px;font-weight:900}.mg-type-card.active{opacity:1;filter:none;transform:scale(1);color:#06080d!important;background:linear-gradient(145deg,rgba(255,255,255,.97),rgba(255,255,255,.74))!important;border-color:#fff!important;box-shadow:0 24px 42px rgba(36,38,52,.18),inset 0 1px #fff!important}.mg-type-card.active .mg-emoji{filter:none;transform:scale(1.08)}.mg-dots{height:7px;display:flex;justify-content:center;gap:7px}.mg-dots i{width:7px;height:7px;border-radius:999px;background:#cfd2d8}.mg-dots i.active{width:25px;background:#90939a}.mg-confidence{margin-top:18px}.mg-confidence-options{height:102px;display:grid;grid-template-columns:1fr 1.12fr 1fr;gap:8px;align-items:end}.mg-confidence-card{height:80px;border:0!important;border-radius:23px!important;background:transparent!important;font-size:14px;font-weight:900;line-height:1.15;position:relative;transition:.35s!important}.mg-confidence-card.uncertain{color:#d85f67!important;background:radial-gradient(circle,#ffb4b877,transparent 70%)!important}.mg-confidence-card.partial{color:#c89114!important;background:radial-gradient(circle,#ffd77170,transparent 70%)!important}.mg-confidence-card.secure{color:#111!important;background:radial-gradient(circle,#79efad65,transparent 70%)!important}.mg-confidence-card:not(.active){opacity:.55;filter:blur(1.1px)}.mg-confidence-card.active{height:96px;opacity:1;filter:none;border:3px solid currentColor!important;background:rgba(255,255,255,.74)!important;box-shadow:0 0 30px color-mix(in srgb,currentColor 38%,transparent),inset 0 1px #fff!important;font-size:20px}.mg-confidence-card.active:after{content:"";position:absolute;left:50%;bottom:-9px;width:16px;height:16px;background:#fff;border-right:3px solid currentColor;border-bottom:3px solid currentColor;transform:translateX(-50%) rotate(45deg)}.mg-check{display:none;width:31px;height:31px;margin:0 auto 5px;border-radius:50%;background:#10c968;color:#fff;place-items:center;box-shadow:0 7px 16px #10c96855}.mg-check svg{width:20px}.mg-confidence-card.secure.active .mg-check{display:grid}.mg-confidence-track{height:7px;margin-top:9px;border-radius:999px;background:linear-gradient(90deg,#ff4d61,#ffad4d 35%,#f1df3a 57%,#1fd66f);position:relative}.mg-confidence-track i{position:absolute;left:0;top:0;width:0;height:100%;border-radius:inherit;background:#08cb66;box-shadow:0 0 15px #11d46b;transition:.35s}.mg-plan-button{flex:0 0 auto;width:100%;height:64px;margin-top:28px;border:0;border-radius:24px;color:#fff;background:linear-gradient(105deg,#8158ee,#5d35d4);box-shadow:0 18px 34px rgba(92,55,216,.33),inset 0 1px rgba(255,255,255,.28);display:flex;align-items:center;justify-content:center;gap:9px;font-size:17px;font-weight:900;transition:.3s}.mg-plan-button svg{width:21px}.mg-plan-button:disabled{background:#a9a3e5;opacity:.62!important}.mg-plan-button:not(:disabled){opacity:1!important;cursor:pointer!important}@media(max-height:760px){.mission-goal-shell{padding-top:12px}.mg-intro{margin-top:14px}.mg-intro h3{font-size:31px}.mg-intro p{font-size:12px}.mg-input-card{height:170px;margin-top:13px}.mg-section{margin-top:12px}.mg-type-card{height:105px}.mg-type-card .mg-emoji{font-size:33px}.mg-confidence-options{height:82px}.mg-confidence-card{height:65px}.mg-confidence-card.active{height:78px}.mg-plan-button{height:56px;margin-top:18px}}
+
+/* === singleScreenMissionV1339 === */
+/* Narrow patch over v13.3.8. Upper layout is intentionally preserved. */
+#app-screen-goal{overflow:hidden!important}
+.mission-goal-shell{
+  height:100%!important;
+  min-height:0!important;
+  overflow:hidden!important;
+  position:relative!important;
+  padding-bottom:calc(94px + env(safe-area-inset-bottom))!important;
+}
+/* Only upper-area adjustment: keep the title inside the viewport. */
+.mg-intro h3{
+  font-size:clamp(31px,8.25vw,40px)!important;
+  letter-spacing:-.052em!important;
+}
+/* Compact only the controls below the text input. */
+.mg-section{margin-top:13px!important}
+.mg-section h4{margin-bottom:7px!important}
+.mg-type-carousel{
+  gap:9px!important;
+  padding-top:2px!important;
+  padding-bottom:10px!important;
+  padding-left:calc(50% - 59px)!important;
+  padding-right:calc(50% - 59px)!important;
+}
+.mg-type-card{
+  flex-basis:118px!important;
+  height:91px!important;
+  border-radius:21px!important;
+  transform:scale(.92)!important;
+  box-shadow:0 12px 24px rgba(60,64,90,.065)!important;
+}
+.mg-type-card .mg-emoji{font-size:30px!important}
+.mg-type-card b{margin-top:5px!important;font-size:14px!important}
+.mg-type-card.active{
+  transform:scale(1)!important;
+  box-shadow:0 18px 34px rgba(36,38,52,.16),inset 0 1px #fff!important;
+}
+.mg-dots{display:none!important}
+/* Let the upper cloud shadow continue over the former hard section edge. */
+.mg-section:not(.mg-confidence){isolation:isolate}
+.mg-section:not(.mg-confidence)::after{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  pointer-events:none;
+  left:-28px;right:-28px;
+  top:37px;height:154px;
+  background:radial-gradient(ellipse at 50% 30%,rgba(91,75,135,.18),rgba(147,197,253,.10) 38%,rgba(196,181,253,.07) 58%,transparent 82%);
+  filter:blur(19px);
+}
+.mg-confidence{margin-top:8px!important}
+.mg-confidence-options{height:73px!important;gap:7px!important}
+.mg-confidence-card{height:57px!important;border-radius:19px!important;font-size:12px!important}
+.mg-confidence-card.active{height:70px!important;border-width:2px!important;font-size:16px!important}
+.mg-confidence-card.active:after{width:12px!important;height:12px!important;bottom:-7px!important;border-width:0 2px 2px 0!important}
+.mg-check{width:23px!important;height:23px!important;margin-bottom:3px!important}
+.mg-check svg{width:15px!important}
+.mg-confidence-track{height:5px!important;margin-top:7px!important}
+.mg-plan-button{
+  position:absolute!important;
+  z-index:30!important;
+  left:20px!important;right:20px!important;
+  bottom:calc(10px + env(safe-area-inset-bottom))!important;
+  width:auto!important;
+  height:64px!important;
+  margin:0!important;
+}
+@media(max-height:760px){
+  .mission-goal-shell{padding-bottom:calc(82px + env(safe-area-inset-bottom))!important}
+  .mg-intro h3{font-size:30px!important}
+  .mg-type-card{height:76px!important;flex-basis:108px!important}
+  .mg-type-card .mg-emoji{font-size:25px!important}
+  .mg-type-card b{font-size:12px!important}
+  .mg-confidence{margin-top:5px!important}
+  .mg-confidence-options{height:60px!important}
+  .mg-confidence-card{height:47px!important}
+  .mg-confidence-card.active{height:58px!important;font-size:14px!important}
+  .mg-plan-button{height:56px!important}
+}
+
+/* === stableMissionScrollV13310 === */
+/* v13.3.10: preserve v13.3.9 visuals, restore vertical scroll and isolate horizontal movement. */
+#app-screen-goal{
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  overscroll-behavior-y:contain!important;
+  overscroll-behavior-x:none!important;
+  touch-action:pan-y!important;
+  -webkit-overflow-scrolling:touch!important;
+  max-width:100%!important;
+}
+.mission-goal-shell{
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  height:auto!important;
+  min-height:100%!important;
+  overflow:visible!important;
+  padding-bottom:calc(94px + env(safe-area-inset-bottom))!important;
+}
+.mission-goal-shell>*{max-width:100%;min-width:0}
+.mg-section{width:100%;max-width:100%;min-width:0}
+.mg-type-carousel{
+  width:calc(100% + 40px)!important;
+  max-width:calc(100% + 40px)!important;
+  overscroll-behavior-x:contain!important;
+  touch-action:pan-x!important;
+  contain:layout paint!important;
+}
+.mg-type-card{min-width:0!important}
+/* The depth shadow now visibly crosses the seam and lies over the beginning
+   of the confidence section, while all labels and controls stay readable. */
+.mg-section:not(.mg-confidence)::after{display:none!important}
+.mg-confidence{
+  position:relative!important;
+  isolation:isolate!important;
+  overflow:visible!important;
+}
+.mg-confidence::before{
+  content:"";
+  position:absolute;
+  z-index:1;
+  pointer-events:none;
+  left:-20px;
+  right:-20px;
+  top:-35px;
+  height:92px;
+  background:
+    radial-gradient(ellipse at 50% 0%,rgba(48,43,72,.22) 0%,rgba(91,75,135,.16) 27%,rgba(147,197,253,.10) 49%,rgba(196,181,253,.06) 65%,transparent 86%);
+  filter:blur(17px);
+  transform:translateZ(0);
+}
+.mg-confidence>h4,
+.mg-confidence>.mg-confidence-options,
+.mg-confidence>.mg-confidence-track{
+  position:relative;
+  z-index:2;
+}
+/* Keep the CTA behavior and appearance from the accepted version. */
+.mg-plan-button{max-width:calc(100% - 40px)!important}
+@media(max-height:760px){
+  .mission-goal-shell{padding-bottom:calc(82px + env(safe-area-inset-bottom))!important}
+}
+
+/* === headerBadgeFitV13311 === */
+/* Move the Focus Mission pill into the navigation row and reclaim its old space. */
+.mg-topbar{
+  grid-template-columns:46px minmax(0,1fr) 46px!important;
+}
+.mg-topbar>.mg-top-badge{
+  justify-self:center!important;
+  width:max-content!important;
+  max-width:100%!important;
+  padding:8px 13px!important;
+  color:#6248bd!important;
+  background:linear-gradient(110deg,#eee9ff,#e6e2ff)!important;
+  border-radius:999px!important;
+  font-size:11px!important;
+  font-weight:850!important;
+  letter-spacing:0!important;
+  line-height:1!important;
+  text-transform:none!important;
+  white-space:nowrap!important;
+}
+.mg-topbar>.mg-top-badge svg{width:16px!important;height:16px!important}
+/* Intro now starts where the removed pill used to begin. */
+.mg-intro{margin-top:20px!important}
+.mg-intro h3{margin-top:0!important}
+/* Reclaim a little more vertical room without changing component designs. */
+.mg-intro p{margin-top:8px!important}
+.mg-input-card{margin-top:18px!important}
+.mg-section{margin-top:11px!important}
+.mg-confidence{margin-top:6px!important}
+@media(max-height:760px){
+  .mg-intro{margin-top:10px!important}
+  .mg-input-card{margin-top:10px!important}
+  .mg-section{margin-top:8px!important}
+  .mg-confidence{margin-top:3px!important}
+}
+
+/* === confidenceGlowV13312 === */
+/* v13.3.12: compact, borderless confidence selector with color-aware progress. */
+.mg-confidence-options{align-items:center!important}
+.mg-confidence-card{
+  --confidence-rgb:100,116,139;
+  height:57px!important;
+  border:0!important;
+  outline:0!important;
+  border-radius:19px!important;
+  padding:4px 3px!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:4px!important;
+  color:#64748b!important;
+  font-size:11px!important;
+  line-height:1!important;
+  opacity:.56!important;
+  filter:saturate(.72)!important;
+  transform:scale(.96)!important;
+  transition:opacity .28s ease,filter .28s ease,transform .34s cubic-bezier(.16,1,.3,1),color .28s ease!important;
+  position:relative!important;
+}
+.mg-confidence-card.uncertain{--confidence-rgb:244,63,94;color:#e3485c!important}
+.mg-confidence-card.partial{--confidence-rgb:234,179,8;color:#b98508!important}
+.mg-confidence-card.secure{--confidence-rgb:16,185,129;color:#0b9f70!important}
+.mg-confidence-card::before{
+  content:"";position:absolute;z-index:-1;inset:3px 0;border-radius:22px;
+  background:radial-gradient(ellipse at 50% 52%,rgba(var(--confidence-rgb),.10),rgba(var(--confidence-rgb),.035) 48%,transparent 76%);
+  filter:blur(8px);opacity:.38;transform:scale(.82);transition:.32s ease;pointer-events:none;
+}
+.mg-confidence-card.active{
+  height:57px!important;border:0!important;background:transparent!important;box-shadow:none!important;
+  opacity:1!important;filter:none!important;transform:scale(1.035)!important;font-size:11px!important;
+}
+.mg-confidence-card.active::before{
+  opacity:1;transform:scale(1.08);
+  background:radial-gradient(ellipse at 50% 52%,rgba(var(--confidence-rgb),.34),rgba(var(--confidence-rgb),.16) 43%,rgba(var(--confidence-rgb),.04) 66%,transparent 80%);
+  filter:blur(10px);
+}
+.mg-confidence-card.active::after{display:none!important;content:none!important}
+.mg-confidence-icon{
+  width:25px;height:25px;border-radius:50%;display:grid;place-items:center;flex:0 0 25px;
+  color:#fff;background:rgb(var(--confidence-rgb));box-shadow:0 6px 14px rgba(var(--confidence-rgb),.18);
+  transition:transform .3s cubic-bezier(.16,1,.3,1),box-shadow .3s ease;
+}
+.mg-confidence-card.active .mg-confidence-icon{transform:scale(1.08);box-shadow:0 7px 18px rgba(var(--confidence-rgb),.42)}
+.mg-confidence-icon svg{width:15px!important;height:15px!important;stroke-width:3!important}
+.mg-confidence-half{font-size:7px!important;font-weight:950!important;letter-spacing:-.06em!important}
+.mg-confidence-label{font-size:11px!important;font-weight:900!important;line-height:1!important;white-space:nowrap}
+.mg-confidence-track{height:5px!important;margin-top:7px!important;background:#e7e9ee!important;overflow:visible!important;box-shadow:inset 0 1px 2px rgba(15,23,42,.08)!important}
+.mg-confidence-track i{
+  width:0;height:100%;border-radius:inherit;background:#e7e9ee;box-shadow:none;
+  transition:width .38s cubic-bezier(.22,1,.36,1),background .32s ease,box-shadow .32s ease!important;
+}
+.mg-confidence-track i[data-level="uncertain"]{width:33.333%!important;background:linear-gradient(90deg,#fb7185,#f43f5e)!important;box-shadow:0 0 12px rgba(244,63,94,.36)!important}
+.mg-confidence-track i[data-level="partial"]{width:66.666%!important;background:linear-gradient(90deg,#fb7185 0%,#f59e0b 72%,#eab308 100%)!important;box-shadow:0 0 12px rgba(234,179,8,.32)!important}
+.mg-confidence-track i[data-level="secure"]{width:100%!important;background:linear-gradient(90deg,#fb7185 0%,#facc15 51%,#10b981 100%)!important;box-shadow:0 0 13px rgba(16,185,129,.34)!important}
+@media(max-height:760px){
+ .mg-confidence-card,.mg-confidence-card.active{height:47px!important}
+ .mg-confidence-icon{width:21px;height:21px;flex-basis:21px}
+ .mg-confidence-icon svg{width:13px!important;height:13px!important}
+ .mg-confidence-label{font-size:10px!important}
+}
+@media(prefers-reduced-motion:reduce){.mg-confidence-card,.mg-confidence-card::before,.mg-confidence-icon,.mg-confidence-track i{transition-duration:.01ms!important}}
+
+/* === multiMissionV115Styles === */
+#missionSwitcherV115{display:flex;gap:7px;margin:-3px 0 14px;overflow-x:auto;scrollbar-width:none}#missionSwitcherV115 button{flex:1;min-width:0;padding:9px 10px;border:1px solid rgba(45,35,30,.12);border-radius:14px;background:#FCF9F4;color:#766E65;font-size:10px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#missionSwitcherV115 button.active{border-color:#C4B5FD;background:#F3E8FF;color:#6D28D9}
+
+/* === v17.3 Home System Mission Hero & Mission Management === */
+#emptyMissionCard.home-hero-card{
+  position:relative;
+  isolation:isolate;
+  box-sizing:border-box;
+  min-height:268px!important;
+  height:auto!important;
+  max-height:none!important;
+  padding:0!important;
+  border-radius:26px!important;
+  background-color:#25162B!important;
+  background-image:
+    linear-gradient(rgba(255,255,255,.032) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.032) 1px,transparent 1px),
+    radial-gradient(circle at 88% 16%,rgba(124,58,237,.30),transparent 34%),
+    linear-gradient(155deg,#25162B 0%,#1B1020 62%,#160D1B 100%)!important;
+  background-size:24px 24px,24px 24px,100% 100%,100% 100%!important;
+  border:1px solid rgba(255,255,255,.08)!important;
+  box-shadow:0 16px 38px rgba(37,22,43,.18)!important;
+  display:block!important;
+  overflow:hidden!important;
+}
+#emptyMissionCard.hidden{display:none!important}
+.home-hero-content{
+  position:relative;
+  z-index:3;
+  width:100%;
+  height:100%;
+  padding:20px 18px 18px!important;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  justify-content:flex-start;
+}
+.home-hero-create{
+  width:100%;
+  height:46px!important;
+  min-height:46px!important;
+  flex:0 0 46px!important;
+  margin-top:14px!important;
+  padding:0 16px!important;
+  border:0;
+  border-radius:999px!important;
+  background:#F6F1E7!important;
+  color:#1D1A17!important;
+  font-size:13px!important;
+  font-weight:900;
+  display:grid;
+  grid-template-columns:18px 1fr 18px;
+  align-items:center;
+  gap:8px;
+  box-shadow:0 10px 24px rgba(0,0,0,.24)!important;
+}
+
+/* Redesigned Aubergine Mission Card (.mission-hero-v116 & #activeMissionCard) */
+.mission-hero-v116,
+#app-screen-home #activeMissionCard{
+  position:relative!important;
+  box-sizing:border-box!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:292px!important;
+  max-height:none!important;
+  padding:18px!important;
+  border-radius:26px!important;
+  border:1px solid rgba(255,255,255,.09)!important;
+  background-color:#25162B!important;
+  background-image:
+    linear-gradient(rgba(255,255,255,.032) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.032) 1px,transparent 1px),
+    radial-gradient(circle at 88% 12%,rgba(124,58,237,.28),transparent 36%),
+    linear-gradient(155deg,#25162B 0%,#1B1020 62%,#160D1B 100%)!important;
+  background-size:24px 24px,24px 24px,100% 100%,100% 100%!important;
+  color:#FFFFFF!important;
+  text-align:left!important;
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:flex-start!important;
+  overflow:hidden!important;
+  isolation:isolate!important;
+  box-shadow:0 16px 38px rgba(37,22,43,.18)!important;
+  cursor:pointer;
+}
+.mission-hero-v116.theme-aqua{
+  background-image:
+    linear-gradient(rgba(255,255,255,.032) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.032) 1px,transparent 1px),
+    radial-gradient(circle at 88% 12%,rgba(139,92,246,.32),transparent 38%),
+    linear-gradient(155deg,#281730 0%,#1D1124 62%,#150C1B 100%)!important;
+}
+#app-screen-home #activeMissionCard.hidden{display:none!important}
+#app-screen-home #activeMissionCard > div.relative{
+  display:flex!important;
+  flex-direction:column!important;
+  height:auto!important;
+  gap:0!important;
+}
+#app-screen-home #activeMissionCard button.mh-start-btn{
+  display:inline-flex!important;
+}
+
+.mh-top-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  width:100%;
+}
+.mh-kicker{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  color:rgba(255,255,255,.88)!important;
+  font-size:10px!important;
+  font-weight:850!important;
+  letter-spacing:.14em!important;
+  text-transform:uppercase;
+}
+.mh-kicker i{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#22C55E;
+  box-shadow:0 0 8px rgba(34,197,94,.65);
+  display:inline-block;
+}
+.mh-step-counter{
+  display:inline-flex;
+  align-items:center;
+  padding:4px 9px;
+  border-radius:999px;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.10);
+  color:rgba(255,255,255,.82);
+  font-size:9.5px;
+  font-weight:850;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+
+.mission-hero-v116 .mh-title,
+#app-screen-home #activeMissionCard h3.mh-title{
+  width:100%!important;
+  max-width:100%!important;
+  margin:12px 0 0!important;
+  font-size:23px!important;
+  line-height:1.12!important;
+  letter-spacing:-.03em!important;
+  font-weight:900!important;
+  color:#FFFFFF!important;
+  display:-webkit-box!important;
+  -webkit-box-orient:vertical!important;
+  -webkit-line-clamp:2!important;
+  overflow:hidden!important;
+}
+
+.mission-hero-v116 .mh-meta,
+#app-screen-home #activeMissionCard p.mh-meta{
+  margin:5px 0 0!important;
+  color:rgba(255,255,255,.64)!important;
+  font-size:12px!important;
+  font-weight:500!important;
+  line-height:1.3!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+
+.mh-empty-title{
+  margin:10px 0 0!important;
+  font-size:22px!important;
+  line-height:1.12!important;
+  font-weight:900!important;
+  letter-spacing:-.03em!important;
+  color:#FFFFFF!important;
+}
+.mh-empty-copy{
+  margin:6px 0 0!important;
+  font-size:12px!important;
+  line-height:1.38!important;
+  font-weight:500!important;
+  color:rgba(255,255,255,.72)!important;
+}
+
+.mission-hero-v116 .mh-step,
+.mission-hero-v116 .mh-next-box,
+#emptyMissionCard .mh-next-box,
+#app-screen-home #activeMissionCard .mh-step,
+#app-screen-home #activeMissionCard .mh-next-box{
+  position:relative!important;
+  left:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  width:100%!important;
+  min-height:76px!important;
+  max-height:none!important;
+  height:auto!important;
+  margin-top:14px!important;
+  padding:11px 12px!important;
+  border-radius:18px!important;
+  background:rgba(255,255,255,.075)!important;
+  border:1px solid rgba(255,255,255,.11)!important;
+  backdrop-filter:blur(8px);
+  display:flex!important;
+  align-items:center!important;
+  gap:12px!important;
+  flex:0 0 auto!important;
+  cursor:pointer;
+}
+
+.mh-duration-box,
+.mh-duration-badge{
+  flex:0 0 auto;
+  min-width:54px;
+  height:54px;
+  padding:0 8px;
+  border-radius:14px;
+  background:#F6F1E7;
+  color:#1D1A17;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 4px 12px rgba(0,0,0,.20);
+}
+.mh-duration-val,
+.mh-duration-badge strong{
+  font-size:18px;
+  font-weight:900;
+  line-height:1;
+  letter-spacing:-.03em;
+  color:#1D1A17;
+  font-variant-numeric:tabular-nums;
+}
+.mh-duration-unit,
+.mh-duration-badge span{
+  font-size:8.5px;
+  font-weight:850;
+  letter-spacing:.08em;
+  color:#766E65;
+  margin-top:2px;
+  text-transform:uppercase;
+}
+
+.mh-step-copy,
+.mh-next-copy{
+  flex:1;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+}
+.mh-label{
+  color:#C4B5FD!important;
+  font-size:9px!important;
+  font-weight:850!important;
+  text-transform:uppercase;
+  letter-spacing:.12em!important;
+  line-height:1.1!important;
+}
+.mh-step-title,
+#homeMissionNextStep{
+  margin-top:3px!important;
+  font-size:14px!important;
+  font-weight:850!important;
+  color:#FFFFFF!important;
+  line-height:1.24!important;
+  display:-webkit-box!important;
+  -webkit-box-orient:vertical!important;
+  -webkit-line-clamp:2!important;
+  overflow:hidden!important;
+  white-space:normal!important;
+}
+.mh-step-desc,
+.mh-step-sub,
+#homeMissionMeta{
+  margin-top:2px!important;
+  font-size:11px!important;
+  color:rgba(255,255,255,.62)!important;
+  line-height:1.3!important;
+  display:-webkit-box!important;
+  -webkit-box-orient:vertical!important;
+  -webkit-line-clamp:1!important;
+  overflow:hidden!important;
+}
+
+/* Step Progress Nodes Row */
+.mh-nodes-row{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  width:100%;
+  margin-top:14px;
+  padding:2px 0;
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+.mh-nodes-row::-webkit-scrollbar{display:none}
+.mh-node{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  font-size:10px;
+  font-weight:800;
+  font-variant-numeric:tabular-nums;
+  color:rgba(255,255,255,.35);
+  flex-shrink:0;
+}
+.mh-node.completed{
+  color:rgba(255,255,255,.85);
+}
+.mh-node.active{
+  color:#FFFFFF;
+  font-weight:900;
+  padding:2px 7px;
+  border-radius:999px;
+  background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.18);
+}
+.mh-node-dot{
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:#22C55E;
+  box-shadow:0 0 8px #22C55E;
+  display:inline-block;
+}
+.mh-node-line{
+  flex:1;
+  min-width:10px;
+  max-width:26px;
+  height:1.5px;
+  background:rgba(255,255,255,.14);
+  border-radius:999px;
+}
+.mh-node-line.completed{
+  background:rgba(167,139,250,.65);
+}
+
+/* Bottom Action Row inside Mission Card */
+.mh-bottom-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  width:100%;
+  margin-top:14px;
+  padding-top:12px;
+  border-top:1px solid rgba(255,255,255,.08);
+}
+.mh-start-btn{
+  height:40px!important;
+  min-height:40px!important;
+  padding:0 16px!important;
+  border-radius:999px!important;
+  border:0!important;
+  background:#F6F1E7!important;
+  color:#1D1A17!important;
+  font-size:12px!important;
+  font-weight:900!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:7px!important;
+  box-shadow:0 8px 20px rgba(0,0,0,.22)!important;
+  cursor:pointer;
+  transition:transform .14s ease,background-color .14s ease;
+}
+.mh-start-btn svg{
+  width:13px!important;
+  height:13px!important;
+}
+.mh-start-btn:hover{
+  background:#FFFFFF!important;
+}
+.mh-start-btn:active{
+  transform:scale(.96);
+}
+.mh-progress-readout,
+.mh-percent-box{
+  text-align:right;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  flex-shrink:0;
+}
+.mh-progress-pct,
+.mh-percent-box strong{
+  font-size:16px;
+  font-weight:900;
+  color:#FFFFFF;
+  line-height:1;
+  font-variant-numeric:tabular-nums;
+}
+.mh-progress-lbl,
+.mh-percent-box span{
+  font-size:8px;
+  font-weight:850;
+  letter-spacing:.12em;
+  color:rgba(255,255,255,.52);
+  margin-top:3px;
+  text-transform:uppercase;
+}
+
+/* Single vs Multi-Mission Carousel Geometry */
+#missionAuraShellV1181{
+  --aura:109,40,217;
+  position:relative;
+  width:calc(100% + 36px);
+  margin:0 -18px;
+  padding:0;
+  isolation:isolate;
+  overflow:visible;
+  z-index:2;
+}
+#missionAuraShellV1181::before,
+#missionAuraShellV1181::after{
+  display:none!important;
+}
+#missionCarouselV1181{
+  position:relative;
+  z-index:2;
+  display:flex;
+  gap:12px;
+  width:100%;
+  padding:0 18px 4px;
+  overflow-x:auto;
+  overflow-y:visible;
+  scroll-snap-type:x mandatory;
+  scroll-padding-inline:18px;
+  overscroll-behavior-x:contain;
+  scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+  background:transparent;
+}
+#missionCarouselV1181::-webkit-scrollbar{display:none}
+#missionCarouselV1181.single-mission > .mission-hero-v116{
+  flex:0 0 100%!important;
+  width:100%!important;
+  scroll-snap-align:start;
+}
+#missionCarouselV1181.multi-mission > .mission-hero-v116{
+  flex:0 0 calc(100% - 34px)!important;
+  scroll-snap-align:start;
+  scroll-snap-stop:always;
+}
+body.mission-aura-active #activeMissionCard,
+body.mission-aura-active #emptyMissionCard,
+body.mission-carousel-active #activeMissionCard,
+body.mission-carousel-active #emptyMissionCard{
+  display:none!important;
+}
+
+/* Focus Choice Sheet Items */
+#focusChoiceOverlay .focus-choice-sheet{max-height:min(78vh,620px);overflow-y:auto}
+.focus-section-v116{margin-top:13px}
+.focus-section-label-v116{margin:0 3px 7px;color:#766E65;font-size:8.5px;font-weight:900;letter-spacing:.13em;text-transform:uppercase}
+.focus-mission-v116{width:100%;display:flex;align-items:center;gap:11px;padding:12px;border:1px solid rgba(45,35,30,.10);border-radius:17px;background:#FCF9F4;text-align:left;margin-top:7px}
+.focus-mission-v116 .fm-icon{width:39px;height:39px;border-radius:14px;display:grid;place-items:center;color:#fff;background:linear-gradient(145deg,#7C3AED,#6D28D9);flex:0 0 auto}
+.fm-copy{min-width:0;flex:1}
+.fm-title{display:block;color:#1D1A17;font-size:11.5px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fm-meta{display:block;margin-top:3px;color:#766E65;font-size:9.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.focus-new-v116{width:100%;margin-top:9px;min-height:44px;border:1px dashed #C4B5FD;border-radius:15px;background:#F3E8FF;color:#6D28D9;font-size:10.5px;font-weight:900}
+
+/* Mission Management Screen (#app-screen-missions) */
+#app-screen-missions{overflow:hidden!important;padding:18px!important;background:#F6F1E7!important}
+.mission-tabs-v116{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:4px;border-radius:15px;background:#EFE9DD;border:1px solid rgba(45,35,30,.08)}
+.mission-tab-v116{min-height:36px;border:0;border-radius:11px;background:transparent;color:#766E65;font-size:10px;font-weight:850;cursor:pointer;transition:.16s ease}
+.mission-tab-v116.active{background:#FCF9F4;color:#6D28D9;box-shadow:0 3px 10px rgba(37,22,43,.07)}
+#missionManagementListV116{overflow-y:auto;min-height:0;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+#missionManagementListV116::-webkit-scrollbar{display:none}
+.mission-manage-card-v116{padding:15px;border:1px solid rgba(45,35,30,.10);border-radius:22px;background:#FCF9F4;box-shadow:0 8px 22px rgba(37,22,43,.045)}
+.mmc-top{display:flex;align-items:flex-start;gap:11px}
+.mmc-icon{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;color:#6D28D9;background:#F3E8FF;border:1px solid #E9D5FF;flex:0 0 auto}
+.mmc-copy{min-width:0;flex:1;cursor:pointer}
+.mmc-badges-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px}
+.mmc-primary{display:inline-flex;padding:2px 7px;border-radius:999px;background:#F3E8FF;color:#6D28D9;font-size:8px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.mmc-badge-secondary{display:inline-flex;padding:2px 7px;border-radius:999px;background:#DCFCE7;color:#15803D;font-size:8px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.mmc-badge-completed{display:inline-flex;padding:2px 7px;border-radius:999px;background:#DCFCE7;color:#15803D;font-size:8px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.mmc-badge-archived{display:inline-flex;padding:2px 7px;border-radius:999px;background:#EFE9DD;color:#766E65;font-size:8px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.mmc-subject-pill{display:inline-flex;font-size:8.5px;font-weight:700;color:#766E65}
+.mmc-title{display:block!important;font-size:14px;font-weight:900;color:#1D1A17;line-height:1.25;overflow-wrap:anywhere}
+.mmc-meta{display:block!important;margin-top:3px;color:#766E65;font-size:10px;font-weight:600}
+.mmc-menu{width:36px;height:36px;border:1px solid rgba(45,35,30,.08);border-radius:12px;background:#EFE9DD;color:#1D1A17;display:grid;place-items:center;cursor:pointer;flex-shrink:0}
+.mmc-track{height:6px;margin-top:12px;border-radius:999px;background:#EFE9DD;overflow:hidden}
+.mmc-track i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#6D28D9,#8B5CF6)}
+.mmc-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:7px;color:#766E65;font-size:9.5px;font-weight:750}
+.mmc-actions-row{display:flex;align-items:center;gap:8px;margin-top:11px;padding-top:10px;border-top:1px solid rgba(45,35,30,.08)}
+.mmc-action-btn{flex:1;min-height:36px;padding:0 12px;border-radius:12px;font-size:10.5px;font-weight:850;display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;border:1px solid rgba(45,35,30,.12);background:#EFE9DD;color:#1D1A17;transition:.15s ease}
+.mmc-action-btn.outline{background:#FCF9F4}
+.mmc-action-btn.primary{background:#6D28D9;border-color:#6D28D9;color:#FFFFFF}
+.missions-empty-v116{min-height:240px;padding:24px;border-radius:22px;background:#FCF9F4;border:1px solid rgba(45,35,30,.10);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#766E65}
+.missions-empty-v116 i,.missions-empty-v116 svg{width:48px;height:48px;padding:12px;border-radius:16px;background:#F3E8FF;color:#6D28D9;margin-bottom:12px}
+
+#missionSheetV116{position:absolute;inset:0;z-index:160;display:none;align-items:flex-end;padding:16px 16px calc(16px + env(safe-area-inset-bottom));background:rgba(29,26,23,.42);backdrop-filter:blur(11px)}
+#missionSheetV116.open{display:flex}
+.mission-sheet-card-v116{width:100%;max-height:77%;overflow-y:auto;padding:18px;border-radius:27px;background:#FCF9F4;color:#1D1A17;border:1px solid rgba(45,35,30,.12);box-shadow:0 25px 70px rgba(29,26,23,.3)}
+.mission-sheet-card-v116 h3{margin:0;font-size:18px;font-weight:900}
+.mission-sheet-card-v116 p{margin:7px 0 15px;color:#766E65;font-size:11px;line-height:1.45}
+.mission-sheet-action-v116{width:100%;min-height:47px;margin-top:7px;border:1px solid rgba(45,35,30,.10);border-radius:15px;background:#FFFFFF;color:#1D1A17;font-size:11px;font-weight:800;cursor:pointer}
+.mission-sheet-action-v116.primary{border-color:#C4B5FD;background:#F3E8FF;color:#6D28D9}
+.mission-sheet-action-v116.danger{border-color:#FECDD3;background:#FFF1F2;color:#E11D48}
+.mission-sheet-input-v116{width:100%;padding:13px;border:1px solid rgba(45,35,30,.18);border-radius:15px;background:#FFFFFF;color:#1D1A17;outline:none}
+.mission-sheet-input-v116:focus{border-color:#6D28D9;box-shadow:0 0 0 3px rgba(109,40,217,.12)}
+
+/* === planDurationProtectionRestoreV13315 === */
+@media (hover:none) and (pointer:coarse) and (max-width:900px){input,textarea,select{font-size:16px!important}}
+#aiPlanSteps .flow-step-line{position:relative!important;background:#FCF9F4!important;border-color:rgba(45,35,30,.10)!important}
+#aiPlanSteps .step-head{position:static!important;display:block!important}
+#aiPlanSteps .step-time{position:absolute!important;top:13px!important;right:13px!important;z-index:3!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;width:max-content!important;min-width:64px!important;max-width:calc(100% - 26px)!important;padding:6px 10px!important;margin:0!important;border:1px solid #E9D5FF!important;border-radius:999px!important;background:#FCF9F4!important;color:#6D28D9!important;box-shadow:0 4px 12px rgba(109,40,217,.10)!important;font-size:12px!important;line-height:1!important;white-space:nowrap!important;flex:none!important}
+#aiPlanSteps .step-title{padding-right:76px!important;color:#1D1A17!important}
+#aiPlanSteps .mission-step-active{background:linear-gradient(148deg,#FCF9F4,#F3E8FF)!important;border-color:#C4B5FD!important}
+#aiPlanSteps .mission-step-active .step-time{top:18px!important;right:18px!important;padding:8px 12px!important;font-size:14px!important}
+#aiPlanSteps .mission-step-active .step-title{padding-right:94px!important}
+#missionProtectionCard{margin-top:0!important;margin-bottom:14px!important;background:#FCF9F4!important;border-color:rgba(45,35,30,.10)!important}
+.mission-explanation-card-v1332{display:flex!important;align-items:flex-start!important;gap:14px!important;width:100%!important;min-height:132px!important;height:auto!important;padding:20px!important;margin:0 0 18px!important;border-radius:24px!important;overflow:visible!important;box-sizing:border-box!important;background:#FCF9F4!important;border-color:rgba(45,35,30,.10)!important}
+.mission-explanation-card-v1332>svg,.mission-explanation-card-v1332>i{width:22px!important;height:22px!important;min-width:22px!important;margin-top:2px!important}
+#aiPlanExplanation{display:block!important;min-width:0!important;width:100%!important;height:auto!important;max-height:none!important;margin:0!important;font-size:15px!important;line-height:1.55!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:anywhere!important;word-break:normal!important;-webkit-line-clamp:unset!important;-webkit-box-orient:initial!important;color:#1D1A17!important}
+#aiPlanExplanation strong{display:block!important;margin-bottom:7px!important;font-size:16px!important;line-height:1.25!important}
+@media (max-width:370px){#aiPlanSteps .step-time{top:11px!important;right:11px!important}#aiPlanSteps .step-title{padding-right:70px!important}#aiPlanSteps .mission-step-active .step-time{top:15px!important;right:15px!important}#aiPlanSteps .mission-step-active .step-title{padding-right:86px!important}.mission-explanation-card-v1332{min-height:144px!important;padding:17px!important;gap:11px!important}#aiPlanExplanation{font-size:14px!important;line-height:1.5!important}}
+
+/* === v17.4 Mission Scheduling UI & Home Refinements === */
+
+/* 1. Empty Mission Card: lift ONLY headline + subcopy ~10px upward while keeping top row, ERSTER SCHRITT box, and card height unchanged */
+#emptyMissionCard .home-hero-content h3.mh-empty-title {
+  margin-top: 0px !important;
+}
+#emptyMissionCard .mh-next-box.mh-empty-next-box {
+  margin-top: 24px !important;
+}
+
+/* 2. Mission Creation Vertical Scroll & Final Action Flow */
+#app-screen-goal {
+  background: radial-gradient(circle at 88% 18%, rgba(196, 181, 253, 0.22), transparent 28%), #F6F1E7 !important;
+  color: #1D1A17 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+#app-screen-goal .mission-goal-shell {
+  height: auto !important;
+  min-height: 100% !important;
+  max-width: 100% !important;
+  overflow-x: clip !important;
+  overflow-y: visible !important;
+  padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px)) !important;
+}
+#app-screen-goal .mg-plan-button {
+  position: relative !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: 60px !important;
+  margin-top: 20px !important;
+  border-radius: 22px !important;
+  background: linear-gradient(105deg, #7C3AED 0%, #6D28D9 60%, #5B21B6 100%) !important;
+  box-shadow: 0 16px 32px rgba(109, 40, 217, 0.28), inset 0 1px rgba(255, 255, 255, 0.24) !important;
+  flex: 0 0 auto !important;
+}
+#app-screen-goal .mg-plan-button:disabled {
+  background: #CFC7DC !important;
+  color: #FFFFFF !important;
+  box-shadow: none !important;
+  opacity: 0.68 !important;
+}
+
+/* 3. ZEITPLAN Study-Planning Board & Viewport-Fixed Calendar Sheet (v17.4.1) */
+
+/* File attachment split layout & retryable error card */
+.mg-file {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px !important;
+  border-radius: 18px !important;
+  border: 1px solid rgba(109, 40, 217, 0.24) !important;
+  background: #FCF9F4 !important;
+  box-shadow: 0 8px 20px rgba(37, 22, 43, 0.06);
+}
+.mg-file-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+.mg-file-remove {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  border: 1px solid rgba(45, 35, 30, 0.10);
+  background: #F4EFE6;
+  color: #5C544D;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background-color 0.14s ease, color 0.14s ease;
+}
+.mg-file-remove:hover {
+  background: #EFE9DD;
+  color: #1D1A17;
+}
+.mg-error-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 2px;
+}
+.mg-error-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 11.5px;
+  font-weight: 750;
+  line-height: 1.4;
+  color: #9F1239;
+}
+.mg-error-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.mg-error-btn {
+  min-height: 34px;
+  padding: 6px 12px;
+  border-radius: 11px;
+  font-size: 11px;
+  font-weight: 850;
+  cursor: pointer;
+  border: 0;
+}
+.mg-error-btn.primary {
+  background: #6D28D9;
+  color: #FFFFFF;
+}
+.mg-error-btn.secondary {
+  background: #FFFFFF;
+  border: 1px solid rgba(190, 18, 60, 0.22);
+  color: #9F1239;
+}
+
+/* ZEITPLAN Section */
+#missionScheduleSection.mg-schedule {
+  margin-top: 20px !important;
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mg-schedule-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 0;
+}
+#missionScheduleSection .mg-schedule-head h4 {
+  margin: 0 !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  color: #5C544D !important;
+}
+.mg-schedule-opt-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #EFE9DD;
+  border: 1px solid rgba(45, 35, 30, 0.08);
+  color: #766E65;
+  font-size: 8.5px;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.mg-schedule-intro {
+  margin: -4px 0 2px !important;
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: 500;
+  color: #766E65;
+}
+
+/* Layer A: Aubergine Schedule Summary Hero Board */
+.mg-plan-board {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  background-color: #25162B;
+  background-image:
+    radial-gradient(circle at 90% 14%, rgba(124, 58, 237, 0.34), transparent 44%),
+    linear-gradient(155deg, #25162B 0%, #1B1020 64%, #160D1B 100%);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 16px 36px rgba(37, 22, 43, 0.17);
+  color: #FFFFFF;
+}
+.mg-plan-board-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.032) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.032) 1px, transparent 1px);
+  background-size: 22px 22px;
+  pointer-events: none;
+}
+.mg-plan-board-inner {
+  position: relative;
+  z-index: 2;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.mg-board-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.mg-board-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 9.5px;
+  font-weight: 850;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.80);
+}
+.mg-board-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #A78BFA;
+  box-shadow: 0 0 8px rgba(167, 139, 250, 0.65);
+}
+.mg-plan-board.has-deadline .mg-board-dot {
+  background: #22C55E;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.65);
+}
+.mg-timeline-days {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(167, 139, 250, 0.18);
+  border: 1px solid rgba(196, 181, 253, 0.28);
+  color: #EDE9FE;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+.mg-board-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 26px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 10px;
+  font-weight: 750;
+  cursor: pointer;
+  margin-left: auto;
+  transition: background-color 0.14s ease, color 0.14s ease;
+}
+.mg-board-reset:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+}
+.mg-board-reset svg {
+  width: 11px;
+  height: 11px;
+}
+
+/* Empty State inside Aubergine Board */
+.mg-board-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.mg-board-empty-title {
+  margin: 0 !important;
+  font-size: 18px !important;
+  line-height: 1.16 !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.025em !important;
+  color: #FFFFFF !important;
+}
+.mg-board-empty-copy {
+  margin: 0 !important;
+  font-size: 11.5px !important;
+  line-height: 1.4 !important;
+  color: rgba(255, 255, 255, 0.72) !important;
+}
+
+/* Active Study-Period Trajectory inside Aubergine Board */
+.mg-timeline-active {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mg-route-nodes {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.065);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+}
+.mg-route-node {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.mg-route-node.is-end {
+  text-align: right;
+  align-items: flex-end;
+}
+.mg-route-role {
+  font-size: 8.5px;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #C4B5FD;
+}
+.mg-route-date {
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.15;
+  color: #FFFFFF;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.mg-route-connector {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  padding: 2px 0;
+}
+.mg-route-line {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  top: 50%;
+  height: 2px;
+  transform: translateY(-50%);
+  background: rgba(196, 181, 253, 0.25);
+  border-radius: 999px;
+}
+.mg-trajectory-nodes {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 3px;
+  width: 100%;
+  padding: 0 2px;
+}
+.mg-traj-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+}
+.mg-traj-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.24);
+  border: 1.5px solid rgba(255, 255, 255, 0.30);
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+.mg-traj-step.is-available .mg-traj-dot {
+  background: #A78BFA;
+  border-color: #EDE9FE;
+  box-shadow: 0 0 8px rgba(167, 139, 250, 0.55);
+}
+.mg-traj-step.is-endpoint .mg-traj-dot {
+  width: 10px;
+  height: 10px;
+  background: #FFFFFF;
+  border-color: #C4B5FD;
+}
+.mg-traj-step.is-deadline .mg-traj-dot {
+  background: #22C55E;
+  border-color: #DCFCE7;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+}
+.mg-traj-lbl {
+  font-size: 7.5px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.45);
+  line-height: 1;
+}
+.mg-traj-step.is-available .mg-traj-lbl {
+  color: rgba(255, 255, 255, 0.88);
+}
+.mg-board-live-summary {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.35;
+  padding: 0 2px;
+}
+
+/* Authoritative Deadline Trigger Button */
+.mg-deadline-trigger {
+  width: 100%;
+  min-width: 0;
+  min-height: 52px;
+  padding: 9px 12px;
+  border-radius: 16px;
+  background: #F6F1E7;
+  border: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
+  transition: background-color 0.14s ease, transform 0.12s ease;
+}
+.mg-deadline-trigger:hover {
+  background: #FFFFFF;
+}
+.mg-deadline-trigger:active {
+  transform: scale(0.988);
+}
+.mg-deadline-trigger.has-value {
+  background: rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: none;
+}
+.mg-deadline-trigger.has-value:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+.mg-deadline-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  background: #6D28D9;
+  color: #FFFFFF;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.mg-deadline-trigger.has-value .mg-deadline-icon {
+  background: rgba(167, 139, 250, 0.22);
+  border: 1px solid rgba(196, 181, 253, 0.30);
+  color: #EDE9FE;
+}
+.mg-deadline-icon svg {
+  width: 17px;
+  height: 17px;
+}
+.mg-deadline-copy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.mg-deadline-kicker {
+  font-size: 8.5px;
+  font-weight: 850;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: #6D28D9;
+}
+.mg-deadline-trigger.has-value .mg-deadline-kicker {
+  color: #C4B5FD;
+}
+.mg-deadline-val {
+  font-size: 13px;
+  font-weight: 850;
+  color: #1D1A17;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mg-deadline-val.is-placeholder {
+  color: #1D1A17;
+  font-weight: 900;
+}
+.mg-deadline-trigger.has-value .mg-deadline-val {
+  color: #FFFFFF;
+}
+.mg-deadline-cta-tag {
+  font-size: 10.5px;
+  font-weight: 850;
+  color: #6D28D9;
+  flex-shrink: 0;
+}
+.mg-deadline-trigger.has-value .mg-deadline-cta-tag {
+  color: #EDE9FE;
+}
+.mg-deadline-arrow {
+  color: #6D28D9;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.mg-deadline-trigger.has-value .mg-deadline-arrow {
+  color: rgba(255, 255, 255, 0.72);
+}
+.mg-deadline-arrow svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* Layer B: Preparation Start Selector */
+.mg-prep-start-block {
+  padding: 13px 14px;
+  border-radius: 20px;
+  background: #FCF9F4;
+  border: 1px solid rgba(45, 35, 30, 0.10);
+  box-shadow: 0 6px 18px rgba(37, 22, 43, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.mg-sub-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.mg-sub-label {
+  font-size: 9.5px;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: #5C544D;
+}
+.mg-sub-copy {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.38;
+  color: #766E65;
+}
+.mg-rec-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 750;
+  color: #6D28D9;
+}
+.mg-start-chips {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+.mg-start-chip {
+  min-height: 48px;
+  padding: 7px 10px;
+  border-radius: 13px;
+  border: 1px solid rgba(45, 35, 30, 0.10);
+  background: #F4EFE6;
+  color: #1D1A17;
+  font-size: 11px;
+  font-weight: 800;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 3px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+.mg-start-chip-label {
+  width: 100%;
+  min-width: 0;
+  line-height: 1.2;
+}
+.mg-start-rec-mark {
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 5px;
+  border-radius: 6px;
+  background: #EFE4FF;
+  color: #6D28D9;
+  flex-shrink: 0;
+}
+.mg-start-chip.is-recommended:not(.active) {
+  border-color: #C4B5FD;
+  background: #FAF5FF;
+}
+.mg-start-chip.active {
+  background: #6D28D9;
+  border-color: #6D28D9;
+  color: #FFFFFF;
+  box-shadow: 0 5px 14px rgba(109, 40, 217, 0.24);
+}
+.mg-start-chip.active .mg-start-rec-mark {
+  background: rgba(255, 255, 255, 0.20);
+  color: #FFFFFF;
+}
+.mg-start-chip:active {
+  transform: scale(0.975);
+}
+
+/* Inline Schedule Notice / Validation */
+.mg-schedule-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.38;
+}
+.mg-schedule-notice svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.mg-schedule-notice.is-info {
+  background: #F3E8FF;
+  border: 1px solid #DDD6FE;
+  color: #5B21B6;
+}
+.mg-schedule-notice.is-warn {
+  background: #FEF3C7;
+  border: 1px solid #FDE68A;
+  color: #92400E;
+}
+.mg-schedule-notice.is-error {
+  background: #FFF1F2;
+  border: 1px solid #FECDD3;
+  color: #BE123C;
+}
+
+/* Layer C: Expandable Optional Learning Preferences */
+.mg-prefs-accordion {
+  border-radius: 20px;
+  background: #FCF9F4;
+  border: 1px solid rgba(45, 35, 30, 0.10);
+  box-shadow: 0 6px 18px rgba(37, 22, 43, 0.04);
+  overflow: hidden;
+}
+.mg-prefs-toggle {
+  width: 100%;
+  min-height: 56px;
+  padding: 12px 14px;
+  border: 0;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  text-align: left;
+  cursor: pointer;
+}
+.mg-prefs-toggle-left {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.mg-prefs-title-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.mg-prefs-title {
+  font-size: 13px;
+  font-weight: 850;
+  color: #1D1A17;
+  line-height: 1.2;
+}
+.mg-prefs-opt-dot {
+  font-size: 9px;
+  font-weight: 800;
+  color: #766E65;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.mg-prefs-summary {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6D28D9;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mg-prefs-chevron {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: #F4EFE6;
+  color: #5C544D;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.18s ease, background-color 0.15s ease;
+}
+.mg-prefs-toggle[aria-expanded="true"] .mg-prefs-chevron {
+  transform: rotate(180deg);
+  background: #F3E8FF;
+  color: #6D28D9;
+}
+.mg-prefs-chevron svg {
+  width: 16px;
+  height: 16px;
+}
+.mg-prefs-panel {
+  padding: 2px 14px 14px;
+  border-top: 1px solid rgba(45, 35, 30, 0.07);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.mg-prefs-panel.hidden {
+  display: none !important;
+}
+.mg-schedule-divider {
+  height: 1px;
+  background: rgba(45, 35, 30, 0.08);
+  margin: 0;
+}
+
+/* Weekdays Strip & Presets */
+.mg-weekdays-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+}
+.mg-weekday-presets {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.mg-preset-chip {
+  flex: 1 1 auto;
+  min-height: 32px;
+  padding: 5px 10px;
+  border-radius: 11px;
+  border: 1px solid rgba(45, 35, 30, 0.09);
+  background: #F4EFE6;
+  color: #5C544D;
+  font-size: 10.5px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.14s ease;
+  white-space: nowrap;
+}
+.mg-preset-chip.active {
+  background: #F3E8FF;
+  border-color: #C4B5FD;
+  color: #6D28D9;
+}
+.mg-weekday-row {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border-radius: 15px;
+  background: #F4EFE6;
+  border: 1px solid rgba(45, 35, 30, 0.07);
+}
+.mg-weekday-btn {
+  height: 38px;
+  min-width: 0;
+  border-radius: 11px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #1D1A17;
+  font-size: 11.5px;
+  font-weight: 850;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.14s ease, color 0.14s ease, box-shadow 0.14s ease;
+  padding: 0;
+}
+.mg-weekday-btn.active {
+  background: #6D28D9;
+  color: #FFFFFF;
+  box-shadow: 0 4px 10px rgba(109, 40, 217, 0.24);
+}
+.mg-weekday-btn:active {
+  transform: scale(0.95);
+}
+
+/* 2x2 Session Duration Grid */
+.mg-duration-pref-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mg-duration-chips {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+.mg-dur-chip {
+  min-height: 48px;
+  padding: 7px 11px;
+  border-radius: 13px;
+  border: 1px solid rgba(45, 35, 30, 0.10);
+  background: #F4EFE6;
+  color: #1D1A17;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.14s ease;
+}
+.mg-dur-chip strong {
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+.mg-dur-chip span {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #766E65;
+  line-height: 1.2;
+}
+.mg-dur-chip.active {
+  background: #6D28D9;
+  border-color: #6D28D9;
+  color: #FFFFFF;
+  box-shadow: 0 5px 14px rgba(109, 40, 217, 0.24);
+}
+.mg-dur-chip.active span {
+  color: rgba(255, 255, 255, 0.84);
+}
+
+@media (max-width: 340px) {
+  .mg-plan-board-inner { padding: 13px; }
+  .mg-route-nodes { gap: 6px; padding: 9px 10px; }
+  .mg-route-date { font-size: 12.5px; }
+  .mg-start-chips { gap: 6px; }
+  .mg-start-chip { padding: 6px 8px; font-size: 10.5px; }
+  .mg-weekday-btn { height: 34px; font-size: 10.5px; }
+}
+
+/* Viewport-Fixed Calendar Bottom Sheet (mounted directly under document.body) */
+html.mg-cal-scroll-locked,
+body.mg-cal-scroll-locked {
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+}
+.mg-cal-backdrop {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  z-index: 1200;
+  background: rgba(29, 26, 23, 0.50);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 0;
+  transition: opacity 0.20s ease;
+  overflow: hidden;
+  overscroll-behavior: contain;
+  touch-action: none;
+  pointer-events: auto;
+}
+.mg-cal-backdrop.hidden {
+  display: none !important;
+}
+.mg-cal-backdrop.is-open {
+  opacity: 1;
+}
+.mg-cal-backdrop.is-closing {
+  opacity: 0;
+  pointer-events: none;
+}
+.mg-cal-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  bottom: var(--mg-cal-vv-bottom, 0px);
+  margin: 0 auto;
+  width: 100%;
+  max-width: 440px;
+  max-height: calc(100vh - 18px);
+  max-height: calc(100dvh - 18px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  box-sizing: border-box;
+  padding: 12px 16px calc(18px + env(safe-area-inset-bottom, 0px));
+  border-radius: 26px 26px 0 0;
+  background: #FCF9F4;
+  border: 1px solid rgba(45, 35, 30, 0.12);
+  border-bottom: 0;
+  box-shadow: 0 -16px 48px rgba(29, 26, 23, 0.28);
+  color: #1D1A17;
+  transform: translate3d(0, 100%, 0);
+  transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+.mg-cal-backdrop.is-open .mg-cal-sheet {
+  transform: translate3d(0, 0, 0);
+}
+.mg-cal-backdrop.is-closing .mg-cal-sheet {
+  transform: translate3d(0, 100%, 0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .mg-cal-backdrop,
+  .mg-cal-sheet {
+    transition-duration: 0.01ms !important;
+  }
+}
+.mg-cal-handle {
+  width: 38px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(45, 35, 30, 0.16);
+  margin: 0 auto 12px;
+}
+.mg-cal-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.mg-cal-kicker {
+  display: block;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #6D28D9;
+}
+.mg-cal-title {
+  margin: 2px 0 0 !important;
+  font-size: 17px !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.02em !important;
+  color: #1D1A17 !important;
+  text-transform: none !important;
+}
+.mg-cal-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mg-cal-nav-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  border: 1px solid rgba(45, 35, 30, 0.10);
+  background: #F4EFE6;
+  color: #1D1A17;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.mg-cal-nav-btn:disabled {
+  opacity: 0.38;
+  cursor: default;
+}
+.mg-cal-nav-btn svg {
+  width: 16px;
+  height: 16px;
+}
+.mg-cal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  text-align: center;
+  margin-bottom: 6px;
+}
+.mg-cal-weekdays span {
+  font-size: 10px;
+  font-weight: 850;
+  color: #766E65;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.mg-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+.mg-cal-day {
+  height: 38px;
+  border-radius: 11px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #1D1A17;
+  font-size: 12.5px;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+  padding: 0;
+}
+.mg-cal-day.is-empty {
+  pointer-events: none;
+  cursor: default;
+}
+.mg-cal-day:disabled,
+.mg-cal-day.is-disabled {
+  color: rgba(118, 110, 101, 0.36);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.mg-cal-day.is-today:not(.is-selected) {
+  border-color: #6D28D9;
+  color: #6D28D9;
+  font-weight: 900;
+}
+.mg-cal-day.is-in-range:not(.is-selected) {
+  background: #F3E8FF;
+  color: #5B21B6;
+}
+.mg-cal-day.is-selected {
+  background: #6D28D9 !important;
+  border-color: #6D28D9 !important;
+  color: #FFFFFF !important;
+  font-weight: 900;
+  box-shadow: 0 4px 12px rgba(109, 40, 217, 0.28);
+}
+.mg-cal-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 14px;
+}
+.mg-cal-btn {
+  min-height: 44px;
+  border-radius: 14px;
+  font-size: 12.5px;
+  font-weight: 850;
+  cursor: pointer;
+  transition: transform 0.12s ease, opacity 0.14s ease;
+}
+.mg-cal-btn.secondary {
+  border: 1px solid rgba(45, 35, 30, 0.12);
+  background: #F4EFE6;
+  color: #1D1A17;
+}
+.mg-cal-btn.primary {
+  border: 0;
+  background: #6D28D9;
+  color: #FFFFFF;
+  box-shadow: 0 8px 18px rgba(109, 40, 217, 0.24);
+}
+.mg-cal-btn:active {
+  transform: scale(0.98);
+}
+
+/* Optional Schedule Preview Banner on #app-screen-plan */
+.ai-plan-schedule-preview {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: #FCF9F4;
+  border: 1px solid rgba(45, 35, 30, 0.10);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #1D1A17;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.ai-plan-schedule-preview-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: #F3E8FF;
+  color: #6D28D9;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.ai-plan-schedule-preview-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+@media (max-width: 360px) {
+  .mg-duration-chips {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .mg-weekday-btn {
+    height: 34px;
+    font-size: 10.5px;
+  }
+}
+
