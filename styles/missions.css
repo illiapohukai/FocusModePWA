@@ -749,15 +749,37 @@ body.mission-carousel-active #emptyMissionCard{
 .missions-empty-v116{min-height:240px;padding:24px;border-radius:22px;background:#FCF9F4;border:1px solid rgba(45,35,30,.10);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#766E65}
 .missions-empty-v116 i,.missions-empty-v116 svg{width:48px;height:48px;padding:12px;border-radius:16px;background:#F3E8FF;color:#6D28D9;margin-bottom:12px}
 
-#missionSheetV116{position:absolute;inset:0;z-index:160;display:none;align-items:flex-end;padding:16px 16px calc(16px + env(safe-area-inset-bottom));background:rgba(29,26,23,.42);backdrop-filter:blur(11px)}
+#missionSheetV116{position:absolute;inset:0;z-index:160;display:none;align-items:flex-end;padding:16px 16px calc(16px + env(safe-area-inset-bottom));background:rgba(24,16,32,.46);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 #missionSheetV116.open{display:flex}
-.mission-sheet-card-v116{width:100%;max-height:77%;overflow-y:auto;padding:18px;border-radius:27px;background:#FCF9F4;color:#1D1A17;border:1px solid rgba(45,35,30,.12);box-shadow:0 25px 70px rgba(29,26,23,.3)}
-.mission-sheet-card-v116 h3{margin:0;font-size:18px;font-weight:900}
-.mission-sheet-card-v116 p{margin:7px 0 15px;color:#766E65;font-size:11px;line-height:1.45}
-.mission-sheet-action-v116{width:100%;min-height:47px;margin-top:7px;border:1px solid rgba(45,35,30,.10);border-radius:15px;background:#FFFFFF;color:#1D1A17;font-size:11px;font-weight:800;cursor:pointer}
-.mission-sheet-action-v116.primary{border-color:#C4B5FD;background:#F3E8FF;color:#6D28D9}
+.mission-sheet-card-v116{width:100%;max-height:80%;overflow-y:auto;padding:14px 16px 16px;border-radius:26px;background:#FCF9F4;color:#1D1A17;border:1px solid rgba(45,35,30,.12);box-shadow:0 24px 64px rgba(24,16,32,.32)}
+.mission-sheet-handle-v175{width:36px;height:4px;border-radius:999px;background:rgba(45,35,30,.16);margin:0 auto 12px}
+.mission-sheet-head-v175{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px;padding:0 2px}
+.mission-sheet-head-copy{flex:1;min-width:0}
+.mission-sheet-close-btn{width:32px;height:32px;border-radius:50%;border:1px solid rgba(45,35,30,.10);background:#EFE9DD;color:#5C544D;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:transform .14s ease,background-color .14s ease}
+.mission-sheet-close-btn:active{transform:scale(.93)}
+.mission-sheet-close-btn svg{width:15px!important;height:15px!important}
+.mission-sheet-card-v116 h3{margin:0;font-size:17px;font-weight:900;letter-spacing:-.02em;color:#1D1A17}
+.mission-sheet-card-v116 p{margin:4px 0 0;color:#766E65;font-size:11px;font-weight:600;line-height:1.4}
+.mission-sheet-actions-group,.mission-sheet-actions-list-v175{display:flex;flex-direction:column;gap:7px;margin-top:10px}
+.mission-sheet-separator-v116{height:1px;background:rgba(45,35,30,.09);margin:4px 2px}
+.mission-sheet-action-v116{width:100%;min-height:48px;margin-top:0;padding:7px 12px;border:1px solid rgba(45,35,30,.10);border-radius:16px;background:#FFFFFF;color:#1D1A17;font-size:12.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:11px;text-align:left;transition:transform .12s ease,background-color .15s ease,border-color .15s ease}
+.mission-sheet-action-v116 + .mission-sheet-action-v116{margin-top:0}
+.mission-sheet-card-v116 > .mission-sheet-action-v116{margin-top:7px}
+.mission-sheet-trailing-icon{width:15px!important;height:15px!important;color:#7C3AED;flex-shrink:0}
+.mission-sheet-action-icon{width:32px;height:32px;border-radius:10px;background:#F4EFE6;color:#4B433C;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.mission-sheet-action-icon svg{width:16px!important;height:16px!important;stroke-width:2.1!important}
+.mission-sheet-action-label{flex:1;min-width:0;line-height:1.25;overflow-wrap:anywhere}
+.mission-sheet-action-v116.primary{border-color:#C4B5FD;background:#F3E8FF;color:#5B21B6}
+.mission-sheet-action-v116.primary .mission-sheet-action-icon{background:#E9D5FF;color:#6D28D9}
+.mission-sheet-action-v116.archive-neutral{border-color:rgba(109,40,217,.16);background:#F8F5EE;color:#3F3731}
+.mission-sheet-action-v116.archive-neutral .mission-sheet-action-icon{background:#EDE7F6;color:#5B21B6}
+.mission-sheet-action-v116.archive-confirm{border-color:#C4B5FD;background:#5B21B6;color:#FFFFFF}
+.mission-sheet-action-v116.archive-confirm .mission-sheet-action-icon{background:rgba(255,255,255,.16);color:#FFFFFF}
 .mission-sheet-action-v116.danger{border-color:#FECDD3;background:#FFF1F2;color:#E11D48}
-.mission-sheet-input-v116{width:100%;padding:13px;border:1px solid rgba(45,35,30,.18);border-radius:15px;background:#FFFFFF;color:#1D1A17;outline:none}
+.mission-sheet-action-v116.danger .mission-sheet-action-icon{background:#FFE4E6;color:#E11D48}
+.mission-sheet-action-v116.cancel{border-color:rgba(45,35,30,.08);background:#EFE9DD;color:#5C544D;margin-top:4px}
+.mission-sheet-action-v116.cancel .mission-sheet-action-icon{background:#E5DEC9;color:#5C544D}
+.mission-sheet-input-v116{width:100%;margin-top:10px;padding:12px 13px;border:1px solid rgba(45,35,30,.18);border-radius:15px;background:#FFFFFF;color:#1D1A17;font-size:13px;font-weight:700;outline:none}
 .mission-sheet-input-v116:focus{border-color:#6D28D9;box-shadow:0 0 0 3px rgba(109,40,217,.12)}
 
 /* === planDurationProtectionRestoreV13315 === */

@@ -1,4 +1,4 @@
-const CACHE = "focus-mode-v17-4-2-gemini-3-8-flash-integration";
+const CACHE = "focus-mode-v17-5-interaction-polish";
 const CACHE_PREFIX = "focus-mode";
 
 const CORE = [

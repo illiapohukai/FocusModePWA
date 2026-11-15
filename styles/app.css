@@ -50,102 +50,33 @@ html,body{width:100%;max-width:100%;overflow-x:clip!important;overscroll-behavio
 #focusChoiceOverlay .focus-choice-backdrop{
   position:absolute;
   inset:0;
-  background:rgba(15,23,42,.34);
-  -webkit-backdrop-filter:blur(12px) saturate(.82);
-  backdrop-filter:blur(12px) saturate(.82);
-}
-
-.focus-choice-enter{animation:focusChoiceEnter .48s cubic-bezier(.16,1,.3,1) both}
-.focus-choice-leave{animation:focusChoiceLeave .25s ease both}
-@keyframes focusChoiceEnter{from{opacity:0}to{opacity:1}}
-@keyframes focusChoiceLeave{from{opacity:1}to{opacity:0}}
-#focusChoiceOverlay>div:last-child{animation:focusSheetUp .55s cubic-bezier(.16,1,.3,1) both}
-@keyframes focusSheetUp{from{transform:translateY(105%);opacity:.6}to{transform:translateY(0);opacity:1}}
-#app-screen-feedbackprocessing,#app-screen-update{position:absolute;inset:0;z-index:70;min-height:100%;background:linear-gradient(160deg,#0f172a 0%,#17143a 48%,#312e81 100%)!important}
-
-
-/* Strong full-phone focus-choice blur */
-#screenWrapper.focus-choice-open #appBody{
-  filter:blur(15px) saturate(.72) brightness(.80);
-  transform:scale(1.055);
-  transition:filter .38s ease,transform .45s cubic-bezier(.16,1,.3,1);
-  pointer-events:none;
-}
-#appBody{transition:filter .32s ease,transform .42s cubic-bezier(.16,1,.3,1),background-color .3s ease!important}
-#screenWrapper.focus-choice-open #statusBar,
-#screenWrapper.focus-choice-open #homeBar{
-  background:rgba(241,245,249,.58)!important;
-  -webkit-backdrop-filter:blur(18px) saturate(.75);
-  backdrop-filter:blur(18px) saturate(.75);
-  transition:background .3s ease,backdrop-filter .3s ease;
-}
-#screenWrapper.focus-choice-open #statusBar{
-  position:relative;
-  z-index:91!important;
-  box-shadow:0 8px 28px rgba(15,23,42,.06);
-}
-#screenWrapper.focus-choice-open #statusBar>*{
-  position:relative;
-  z-index:2;
-  filter:none!important;
-}
-#screenWrapper.focus-choice-open #homeBar{
-  position:relative;
-  z-index:91!important;
-}
-#screenWrapper.focus-choice-open #homeBar>div{
-  position:relative;
-  z-index:2;
-  filter:none!important;
-}
-#focusChoiceOverlay{
-  z-index:90!important;
-}
-#focusChoiceOverlay .focus-choice-backdrop{
-  background:rgba(15,23,42,.42)!important;
+  background:rgba(15,10,28,.44);
   -webkit-backdrop-filter:none!important;
   backdrop-filter:none!important;
 }
 
+.focus-choice-enter{animation:focusChoiceEnter .24s cubic-bezier(.22,1,.36,1) both}
+.focus-choice-leave{animation:focusChoiceLeave .2s cubic-bezier(.4,0,.2,1) both}
+@keyframes focusChoiceEnter{from{opacity:0}to{opacity:1}}
+@keyframes focusChoiceLeave{from{opacity:1}to{opacity:0}}
+#app-screen-feedbackprocessing,#app-screen-update{position:absolute;inset:0;z-index:70;min-height:100%;background:linear-gradient(160deg,#0f172a 0%,#17143a 48%,#312e81 100%)!important}
 
-/* v6: one continuous blur across the complete phone surface */
+/* v17.5: Keep floating bottom navigation and page crisp without blur when Plus panel is open */
 #screenWrapper.focus-choice-open #appBody{
   filter:none!important;
   transform:none!important;
   pointer-events:none;
 }
-#focusChoiceOverlay{
-  z-index:90!important;
-  pointer-events:none;
-}
-#focusChoiceOverlay .focus-choice-backdrop{
-  position:absolute;
-  inset:0;
-  z-index:0;
-  pointer-events:auto;
-  background:rgba(15,23,42,.28)!important;
-  -webkit-backdrop-filter:blur(17px) saturate(.72) brightness(.78)!important;
-  backdrop-filter:blur(17px) saturate(.72) brightness(.78)!important;
-}
-#focusChoiceOverlay .focus-choice-sheet{
-  position:relative;
-  z-index:110;
-  pointer-events:auto;
-}
-#screenWrapper.focus-choice-open #dynamicIsland{
-  z-index:105!important;
-  opacity:1!important;
-  visibility:visible!important;
-  filter:none!important;
-}
+#appBody{transition:background-color .3s ease!important}
 #screenWrapper.focus-choice-open #statusBar,
 #screenWrapper.focus-choice-open #homeBar{
-  z-index:100!important;
+  z-index:126!important;
   background:transparent!important;
   -webkit-backdrop-filter:none!important;
   backdrop-filter:none!important;
   box-shadow:none!important;
   border:0!important;
+  opacity:1!important;
 }
 #screenWrapper.focus-choice-open #statusBar::before,
 #screenWrapper.focus-choice-open #homeBar::before{
@@ -158,30 +89,31 @@ html,body{width:100%;max-width:100%;overflow-x:clip!important;overscroll-behavio
   filter:none!important;
   opacity:1!important;
 }
-
-
-/* v7: reliable blur with crisp replicated system chrome */
-#screenWrapper.focus-choice-open #appBody{
-  filter:blur(14px) saturate(.68) brightness(.78)!important;
-  transform:scale(1.045)!important;
-  transform-origin:center center;
+#screenWrapper.focus-choice-open #dynamicIsland{
+  z-index:127!important;
+  opacity:1!important;
+  visibility:visible!important;
+  filter:none!important;
+}
+#focusChoiceOverlay{
+  z-index:115!important;
   pointer-events:none;
 }
-#screenWrapper.focus-choice-open #statusBar,
-#screenWrapper.focus-choice-open #homeBar{
-  z-index:40!important;
-  background:transparent!important;
-  opacity:0!important;
-  box-shadow:none!important;
-}
-#focusChoiceOverlay{z-index:90!important}
 #focusChoiceOverlay .focus-choice-backdrop{
+  position:absolute;
+  inset:0;
   z-index:0!important;
-  background:rgba(15,23,42,.34)!important;
-  -webkit-backdrop-filter:blur(10px) saturate(.72)!important;
-  backdrop-filter:blur(10px) saturate(.72)!important;
+  pointer-events:auto;
+  background:rgba(18,12,32,.46)!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
 }
-#focusChoiceChrome{z-index:105}
+#focusChoiceOverlay .focus-choice-sheet{
+  position:relative;
+  z-index:116;
+  pointer-events:auto;
+}
+#focusChoiceChrome{z-index:105;display:none!important}
 #focusChoiceChrome .choice-status{
   position:absolute;left:0;right:0;top:0;height:44px;padding:0 28px 6px;
   display:flex;align-items:flex-end;justify-content:space-between;

@@ -1,5 +1,32 @@
 # Changelog — Focus Mode+
 
+## v17.5 Interaction Polish (2026-11-15)
+
+### Plus Panel Hub Redesign, Sharp Floating Navigation Dock, Mission Three-Dot Menu Icons, Continuous Focus Session Transition & Interactive Edge-Swipe Navigation
+- **Plus Panel Hub Redesign (`src/features/missions/mission-management.js`, `styles/navigation.css`, `index.html`, `src/core/bootstrap.js`)**:
+  - Redesigned `#focusChoiceOverlay` into a warm-cream creation and Mission-access hub (`#F6F1E7`, `border-radius: 30px 30px 0 0`) anchored cleanly above the floating bottom navigation dock.
+  - Added localized header (`Was möchtest du fokussieren?` / `What would you like to focus on?`), subtitle (`Starte direkt oder arbeite an einer Mission weiter.`), and compact close button (`x`).
+  - Built two equal-height side-by-side primary Focus cards (`.fm-plus-primary-grid`):
+    - **Left Card (`#plusQuickFocusCard`)**: `Kurzer Fokus` (`Eine Aufgabe, direkt starten.`) with timer/stopwatch icon (`timer`) on warm cream card surface (`#FFFDF9`) with subtle purple border, invoking `openQuickSetupFromChoice()`.
+    - **Right Card (`#plusFocusMissionCard`)**: `Focus Mission` (`Ein Ziel planen und in Schritte teilen.`) with plan/clipboard icon (`clipboard-list`) on deep aubergine surface (`#25162B`), invoking `newMissionFromFocusV116()`.
+  - Added `BESTEHENDE MISSIONEN` section displaying real active Missions (`sortedActiveMissionsV116()`) with primary/mission icon (`star` / `target`), title, current or next step title, step duration (`Min.`), progress bar and percentage (`%`), and disclosure arrow (`chevron-right`) opening `openMissionFromFocusV116(id)`, plus a compact empty state (`Noch keine aktive Mission.`) when zero active Missions exist.
+  - Added bottom `Missionen verwalten` action row (`Aktiv, abgeschlossen und archiviert`) with `sliders-horizontal` icon and live mission count summary opening `openMissionManagementV116()`.
+- **Floating Navigation Blur Removal (`styles/app.css`, `styles/motion.css`, `src/core/navigation.js`, `src/features/missions/mission-management.js`)**:
+  - Removed all `filter: blur(...)` and `backdrop-filter: blur(...)` rules affecting `#appBody`, `.focus-choice-backdrop`, and `#bottomNavigationV17` when the Plus panel is open.
+  - Kept `#bottomNavigationV17` and `#bottomNavPlus` visually sharp and readable above the dim backdrop (`z-index: 125 !important`, `filter: none !important`, `backdrop-filter: none !important`).
+- **Mission Three-Dot Menu Icons & Action Hierarchy (`src/features/missions/mission-management.js`, `styles/missions.css`, `src/core/bootstrap.js`)**:
+  - Added offline-safe SVG icon helper (`window.renderFocusIconSvg(name, extraClass)`) and iconized every action in `#missionSheetV116`:
+    - `Öffnen` (`folder-open`), `Als Hauptmission festlegen` (`star`), `Umbenennen` (`pencil`), `Archivieren` (`archive`, calm neutral purple-gray `.archive-neutral`), `Wiederherstellen` (`rotate-ccw`), separator (`.mission-sheet-separator-v116`), `Löschen` / `Endgültig löschen` (`trash-2`, destructive red `.danger`), and `Abbrechen` (`x`, neutral `.cancel`).
+  - Added repeatable open/close sheet choreography and focus restoration to the invoking three-dot trigger button.
+- **Continuous Focus Session Start Transition (`src/core/motion-controller.js`, `src/features/quick-focus/quick-focus.js`, `src/features/focus-session/session-runtime.js`, `styles/timer.css`)**:
+  - Rebuilt `animateFocusEnter` into a continuous 5-phase choreography (`720ms` total) from Quick Focus or Mission Step Start button into `#app-screen-timer`:
+    - Tactile button press feedback -> circular purple focus seed expansion along an eased arc to the exact `.uc-planet` bounding box -> continuous `.uc-planet` growth (`0.42 -> 1`), orbit ring reveal, `#timerDigits` scale-in (`0.93 -> 1`), and `.uc-header` / `#ucFocusCard` / `.uc-actions` entrance while source screen shifts only `-6px` vertically (never sliding left).
+  - Connected `.uc-protect` (`#ucProtectBadge` / `#ucProtectText`) to real `getSelectedDistractions()` state with active green styling (`Fokusschutz aktiv`) when apps are selected and calm neutral styling (`Fokusschutz aus`) when 0 apps are selected.
+- **Navigation Motion Speed, Scroll Preservation & Interactive Left-Edge Swipe-Back (`src/core/motion-controller.js`, `src/core/navigation.js`, `styles/motion.css`, `src/features/missions/multi-mission-ui.js`)**:
+  - Tuned root-tab switch durations (`350ms` neighboring tabs at `13%` width; `420ms–450ms` distant tabs at `18%–20%` width without showing intermediate tabs) and stack push/pop durations (`390ms` forward push, `370ms` backward pop with `-8%` / `scale(0.985)` parallax and zero blur).
+  - Implemented interactive left-edge swipe-back (`<= 28px` left edge start, `10px` horizontal lock, `requestAnimationFrame` interpolation of outgoing top screen and underlying screen, completion at `>= 32%` width or `>= 0.5 px/ms` velocity via `navigateBack({ skipMotion: true })`, smooth spring-back cancel otherwise, and strict guards for root tabs, active timer, result, session recovery, overlays, and `[data-block-swipe-back="true"]` carousels).
+  - Added scroll-position save/restore across stack push/pop and swipe-back transitions.
+
 ## v17.4.2 Gemini 3.8 Flash Integration (2026-11-15)
 
 ### Standalone Cloudflare Worker (`worker.js`) & Frontend Contract Integration

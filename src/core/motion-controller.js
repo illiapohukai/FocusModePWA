@@ -19,6 +19,7 @@
         direction: 0,
         distance: 0,
         travelPx: 0,
+        travelPct: 0,
         durationMs: 0,
         intent: 'same-tab'
       };
@@ -26,14 +27,17 @@
     const delta = toIdx - fromIdx;
     const direction = delta > 0 ? 1 : -1;
     const distance = Math.abs(delta);
-    let travelPx = 24;
-    let durationMs = 260;
+    let travelPx = 46;
+    let travelPct = 13;
+    let durationMs = 350;
     if (distance === 2) {
-      travelPx = 44;
-      durationMs = 340;
-    } else if (distance >= 3) {
       travelPx = 64;
+      travelPct = 18;
       durationMs = 420;
+    } else if (distance >= 3) {
+      travelPx = 72;
+      travelPct = 20;
+      durationMs = 450;
     }
     return {
       fromIndex: fromIdx,
@@ -41,6 +45,7 @@
       direction,
       distance,
       travelPx,
+      travelPct,
       durationMs,
       intent: direction > 0 ? 'root-tab-right' : 'root-tab-left'
     };
@@ -63,18 +68,18 @@
       if (toScreen === 'distractions') return 'push';
       return 'pop';
     }
+    if (ctx.type === 'pop' || ctx.direction === 'back') {
+      return 'pop';
+    }
+    if (ctx.type === 'push' || ctx.direction === 'forward') {
+      return 'push';
+    }
     if (ctx.type === 'root') {
       const fromRoot = ctx.fromRoot || fromScreen;
       const toRoot = ctx.toRoot || toScreen;
       const metrics = computeRootTabMetrics(fromRoot, toRoot);
       if (metrics.intent !== 'same-tab') return metrics.intent;
       if (fromScreen !== toScreen) return 'pop';
-    }
-    if (ctx.type === 'pop' || ctx.direction === 'back') {
-      return 'pop';
-    }
-    if (ctx.type === 'push' || ctx.direction === 'forward') {
-      return 'push';
     }
     const fromTabIdx = getRootTabIndex(fromScreen);
     const toTabIdx = getRootTabIndex(toScreen);
@@ -434,7 +439,7 @@
       return;
     }
 
-    let durationMs = reduced ? 100 : 260;
+    let durationMs = reduced ? 100 : 390;
     let fromKeyframes = [
       { transform: 'translateX(0px)', opacity: 1 },
       { transform: 'translateX(-16px)', opacity: 0 }
@@ -443,8 +448,9 @@
       { transform: 'translateX(16px)', opacity: 0.35 },
       { transform: 'translateX(0px)', opacity: 1 }
     ];
-    let easingIn = 'cubic-bezier(0.16, 1, 0.3, 1)';
-    let easingOut = 'cubic-bezier(0.4, 0, 1, 1)';
+    let easingIn = 'cubic-bezier(0.22, 1, 0.36, 1)';
+    let easingOut = 'cubic-bezier(0.4, 0, 0.2, 1)';
+    let incomingOnTop = false;
     let outgoingOnTop = false;
 
     if (intent === 'root-tab-right' || intent === 'root-tab-left') {
@@ -452,47 +458,50 @@
       const toRoot = (context && context.toRoot) || toScreen;
       const metrics = computeRootTabMetrics(fromRoot, toRoot);
       const dir = metrics.direction || (intent === 'root-tab-right' ? 1 : -1);
-      const px = reduced ? 8 : metrics.travelPx || 24;
-      durationMs = reduced ? 100 : metrics.durationMs || 260;
+      const pct = reduced ? 4 : metrics.travelPct || 13;
+      durationMs = reduced ? 100 : metrics.durationMs || 350;
       easingIn = 'cubic-bezier(0.22, 1, 0.36, 1)';
-      easingOut = 'cubic-bezier(0.4, 0, 1, 1)';
+      easingOut = 'cubic-bezier(0.4, 0, 0.2, 1)';
       toKeyframes = [
-        { transform: 'translate3d(' + dir * px + 'px, 0, 0)', opacity: 0.25 },
-        { transform: 'translate3d(0px, 0, 0)', opacity: 1 }
-      ];
-      fromKeyframes = [
-        { transform: 'translate3d(0px, 0, 0)', opacity: 1 },
-        { transform: 'translate3d(' + -dir * px + 'px, 0, 0)', opacity: 0 }
-      ];
-      animateDockActiveTab(toRoot, reduced);
-    } else if (intent === 'push' || intent === 'focus-exit-result') {
-      durationMs = reduced ? 100 : 260;
-      toKeyframes = [
-        { transform: reduced ? 'translate3d(0, 0, 0)' : 'translate3d(12%, 0, 0)', opacity: 0.45 },
+        { transform: 'translate3d(' + dir * pct + '%, 0, 0)', opacity: 0 },
         { transform: 'translate3d(0%, 0, 0)', opacity: 1 }
       ];
       fromKeyframes = [
-        { transform: 'translate3d(0%, 0, 0)', opacity: 1, filter: 'brightness(1)' },
+        { transform: 'translate3d(0%, 0, 0)', opacity: 1 },
+        { transform: 'translate3d(' + -dir * pct + '%, 0, 0)', opacity: 0 }
+      ];
+      animateDockActiveTab(toRoot, reduced);
+    } else if (intent === 'push' || intent === 'focus-exit-result') {
+      durationMs = reduced ? 100 : 390;
+      incomingOnTop = true;
+      easingIn = 'cubic-bezier(0.22, 1, 0.36, 1)';
+      easingOut = 'cubic-bezier(0.22, 1, 0.36, 1)';
+      toKeyframes = [
+        { transform: reduced ? 'translate3d(0, 0, 0)' : 'translate3d(100%, 0, 0)', opacity: 1 },
+        { transform: 'translate3d(0%, 0, 0)', opacity: 1 }
+      ];
+      fromKeyframes = [
+        { transform: 'translate3d(0%, 0, 0) scale(1)', opacity: 1 },
         {
-          transform: reduced ? 'translate3d(0, 0, 0)' : 'translate3d(-4%, 0, 0)',
-          opacity: 0.82,
-          filter: 'brightness(0.92)'
+          transform: reduced ? 'translate3d(0, 0, 0)' : 'translate3d(-8%, 0, 0) scale(0.985)',
+          opacity: 0.88
         }
       ];
     } else if (intent === 'pop') {
-      durationMs = reduced ? 100 : 250;
+      durationMs = reduced ? 100 : 370;
       outgoingOnTop = true;
+      easingIn = 'cubic-bezier(0.22, 1, 0.36, 1)';
+      easingOut = 'cubic-bezier(0.4, 0, 0.2, 1)';
       fromKeyframes = [
         { transform: 'translate3d(0%, 0, 0)', opacity: 1 },
-        { transform: reduced ? 'translate3d(0, 0, 0)' : 'translate3d(12%, 0, 0)', opacity: 0 }
+        { transform: reduced ? 'translate3d(0, 0, 0)' : 'translate3d(100%, 0, 0)', opacity: 1 }
       ];
       toKeyframes = [
         {
-          transform: reduced ? 'translate3d(0, 0, 0)' : 'translate3d(-4%, 0, 0)',
-          opacity: 0.84,
-          filter: 'brightness(0.94)'
+          transform: reduced ? 'translate3d(0, 0, 0)' : 'translate3d(-8%, 0, 0) scale(0.985)',
+          opacity: 0.88
         },
-        { transform: 'translate3d(0%, 0, 0)', opacity: 1, filter: 'brightness(1)' }
+        { transform: 'translate3d(0%, 0, 0) scale(1)', opacity: 1 }
       ];
     }
 
@@ -501,6 +510,9 @@
 
     appBody.classList.add('fm-dual-transition');
     fromEl.classList.add('fm-layer-outgoing', 'fm-motion-active');
+    if (incomingOnTop) {
+      toEl.classList.add('fm-layer-top');
+    }
     if (outgoingOnTop) {
       fromEl.classList.add('fm-layer-top');
     }
@@ -515,7 +527,7 @@
       cancelElementAnimations(toEl);
       appBody.classList.remove('fm-dual-transition');
       fromEl.classList.remove('fm-layer-outgoing', 'fm-layer-top', 'fm-motion-active');
-      toEl.classList.remove('fm-layer-incoming', 'fm-motion-active');
+      toEl.classList.remove('fm-layer-incoming', 'fm-layer-top', 'fm-motion-active');
       clearInlineMotionStyles(fromEl);
       clearInlineMotionStyles(toEl);
       if (activeScreenCleanup === cleanup) {
@@ -527,7 +539,7 @@
 
     if (typeof toEl.animate === 'function' && typeof fromEl.animate === 'function') {
       const outAnim = fromEl.animate(fromKeyframes, {
-        duration: intent.startsWith('root-tab') ? Math.round(durationMs * 0.88) : durationMs,
+        duration: intent.startsWith('root-tab') ? Math.round(durationMs * 0.9) : durationMs,
         easing: easingOut,
         fill: 'forwards'
       });
@@ -551,21 +563,32 @@
      SHARED PLANET TRANSITION: FOCUS ENTER & FOCUS EXIT TO HOME
      ======================================================================== */
   function animateFocusEnter(appBody, fromEl, toEl, reduced) {
-    const durationMs = reduced ? 120 : 620;
-    stateMachine.acquireLock('focus-enter', durationMs + 220, forceCleanupScreenLayers);
+    const durationMs = reduced ? 120 : 720;
+    stateMachine.acquireLock('focus-enter', durationMs + 240, forceCleanupScreenLayers);
     stateMachine.setState('animating', 'focus-enter');
 
-    appBody.classList.add('fm-dual-transition');
+    if (typeof root.syncTimerProtectionBadge === 'function') {
+      try {
+        root.syncTimerProtectionBadge();
+      } catch (_) {}
+    }
+
+    appBody.classList.add('fm-dual-transition', 'fm-focus-entering');
     fromEl.classList.add('fm-layer-outgoing', 'fm-motion-active');
-    toEl.classList.add('fm-layer-incoming', 'fm-motion-active');
+    toEl.classList.add('fm-layer-incoming', 'fm-layer-top', 'fm-motion-active');
 
     const planetEl = toEl.querySelector('.uc-planet');
     const protectBtn = toEl.querySelector('.uc-protect');
     const headerEl = toEl.querySelector('.uc-header');
     const readoutEl = toEl.querySelector('.uc-readout');
+    const digitsEl = toEl.querySelector('#timerDigits');
     const focusCardEl = toEl.querySelector('#ucFocusCard');
     const actionsEl = toEl.querySelector('.uc-actions');
     const rings = toEl.querySelectorAll('.uc-main-ring, .uc-far-orbit');
+    const hasProtectionActive =
+      typeof root.getSelectedDistractions === 'function' &&
+      Array.isArray(root.getSelectedDistractions()) &&
+      root.getSelectedDistractions().length > 0;
 
     let seedEl = null;
     if (!reduced && planetEl) {
@@ -581,7 +604,10 @@
         lastTriggerRect && Date.now() - lastTriggerRect.timestamp < 2500
           ? lastTriggerRect.cy
           : wrapperRect.top + wrapperRect.height * 0.78;
-      const startSize = 44;
+      const startSize =
+        lastTriggerRect && Date.now() - lastTriggerRect.timestamp < 2500
+          ? Math.max(40, Math.min(54, lastTriggerRect.height || 46))
+          : 46;
       const endSize = Math.max(planetRect.width || 190, 160);
       const endCx =
         planetRect.width > 0
@@ -600,9 +626,9 @@
       seedEl.style.top = endCy - endSize / 2 + 'px';
       seedEl.style.borderRadius = '50%';
       seedEl.style.background =
-        'radial-gradient(circle at 38% 30%, rgba(196,181,253,0.88) 0%, rgba(124,58,237,0.75) 38%, rgba(30,27,75,0.96) 78%, rgba(5,7,20,1) 100%)';
+        'radial-gradient(circle at 38% 30%, rgba(196,181,253,0.92) 0%, rgba(124,58,237,0.82) 38%, rgba(30,27,75,0.96) 78%, rgba(5,7,20,1) 100%)';
       seedEl.style.boxShadow =
-        '0 0 42px rgba(139,92,246,0.55), inset 0 0 24px rgba(192,132,252,0.35)';
+        '0 0 46px rgba(139,92,246,0.6), inset 0 0 24px rgba(192,132,252,0.38)';
       document.body.appendChild(seedEl);
 
       const dx = startCx - endCx;
@@ -613,12 +639,17 @@
         [
           {
             transform: 'translate3d(' + dx + 'px, ' + dy + 'px, 0) scale(' + scale0 + ')',
-            opacity: 0.92
+            opacity: 0.96
           },
           {
-            transform: 'translate3d(0px, 0px, 0) scale(1.02)',
-            opacity: 0.85,
-            offset: 0.72
+            transform: 'translate3d(' + dx * 0.28 + 'px, ' + dy * 0.22 + 'px, 0) scale(' + Math.max(scale0 * 1.9, 0.54) + ')',
+            opacity: 0.94,
+            offset: 0.44
+          },
+          {
+            transform: 'translate3d(0px, 0px, 0) scale(1)',
+            opacity: 0.82,
+            offset: 0.78
           },
           {
             transform: 'translate3d(0px, 0px, 0) scale(1)',
@@ -626,7 +657,7 @@
           }
         ],
         {
-          duration: durationMs,
+          duration: 540,
           easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
           fill: 'forwards'
         }
@@ -645,9 +676,9 @@
       }
       cancelElementAnimations(fromEl);
       cancelElementAnimations(toEl);
-      appBody.classList.remove('fm-dual-transition');
+      appBody.classList.remove('fm-dual-transition', 'fm-focus-entering');
       fromEl.classList.remove('fm-layer-outgoing', 'fm-motion-active');
-      toEl.classList.remove('fm-layer-incoming', 'fm-motion-active');
+      toEl.classList.remove('fm-layer-incoming', 'fm-layer-top', 'fm-motion-active');
       clearInlineMotionStyles(fromEl);
       clearInlineMotionStyles(toEl);
       if (protectBtn) {
@@ -661,109 +692,184 @@
     activeScreenCleanup = cleanup;
 
     if (typeof fromEl.animate === 'function' && typeof toEl.animate === 'function') {
+      // Phase 2: Source screen recedes calmly (translateY(-6px), scale(0.985), never slides left)
       fromEl.animate(
         [
-          { transform: 'scale(1)', opacity: 1 },
-          { transform: reduced ? 'scale(1)' : 'scale(0.96)', opacity: 0 }
+          { transform: 'scale(1) translateY(0px)', opacity: 1 },
+          {
+            transform: reduced ? 'scale(1)' : 'scale(0.985) translateY(-6px)',
+            opacity: 0
+          }
         ],
         {
-          duration: Math.round(durationMs * 0.55),
-          easing: 'cubic-bezier(0.4, 0, 1, 1)',
+          duration: reduced ? 110 : 320,
+          easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
           fill: 'forwards'
         }
       );
 
+      // Phase 3: Cosmic backdrop deepens continuously
       const inAnim = toEl.animate(
         [
           { opacity: 0 },
+          { opacity: 0.92, offset: 0.56 },
           { opacity: 1 }
         ],
         {
-          duration: Math.round(durationMs * 0.65),
-          easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+          duration: reduced ? 120 : 520,
+          easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
           fill: 'forwards'
         }
       );
 
+      // Phase 4: Real .uc-planet scales continuously from 0.42 to 1 without swap
       if (!reduced && planetEl && typeof planetEl.animate === 'function') {
+        cancelElementAnimations(planetEl);
         planetEl.animate(
           [
-            { transform: 'translate(-50%, -50%) scale(0.42)', opacity: 0.2 },
-            { transform: 'translate(-50%, -50%) scale(1.03)', opacity: 1, offset: 0.78 },
+            { transform: 'translate(-50%, -50%) scale(0.42)', opacity: 0.15 },
+            { transform: 'translate(-50%, -50%) scale(0.86)', opacity: 0.92, offset: 0.56 },
+            { transform: 'translate(-50%, -50%) scale(1.015)', opacity: 1, offset: 0.84 },
             { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 }
           ],
           {
-            duration: durationMs,
-            easing: 'cubic-bezier(0.22, 1, 0.36, 1)'
+            duration: 640,
+            easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+            fill: 'both'
           }
         );
       }
 
       if (!reduced) {
-        rings.forEach(function (ring) {
+        rings.forEach(function (ring, idx) {
           if (typeof ring.animate === 'function') {
+            cancelElementAnimations(ring);
             ring.animate(
               [
-                { transform: 'scale(0.78)', opacity: 0 },
+                { transform: 'scale(0.84)', opacity: 0 },
                 { transform: 'scale(1)', opacity: 1 }
               ],
               {
-                duration: durationMs,
-                easing: 'cubic-bezier(0.22, 1, 0.36, 1)'
-              }
-            );
-          }
-        });
-
-        [headerEl, readoutEl].forEach(function (el) {
-          if (el && typeof el.animate === 'function') {
-            el.animate(
-              [
-                { transform: 'translateY(10px)', opacity: 0 },
-                { transform: 'translateY(0px)', opacity: 1 }
-              ],
-              {
-                duration: 360,
-                delay: 95,
-                easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                duration: 540,
+                delay: 90 + idx * 35,
+                easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
                 fill: 'backwards'
               }
             );
           }
         });
 
-        [focusCardEl, actionsEl].forEach(function (el) {
-          if (el && typeof el.animate === 'function') {
-            el.animate(
-              [
-                { transform: 'translateY(14px)', opacity: 0 },
-                { transform: 'translateY(0px)', opacity: 1 }
-              ],
-              {
-                duration: 380,
-                delay: 145,
-                easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-                fill: 'backwards'
-              }
-            );
-          }
-        });
-
-        if (protectBtn && typeof protectBtn.animate === 'function') {
-          protectBtn.classList.add('fm-protect-activating');
-          protectBtn.animate(
+        if (headerEl && typeof headerEl.animate === 'function') {
+          cancelElementAnimations(headerEl);
+          headerEl.animate(
             [
-              { transform: 'translateX(-50%) scale(0.92)', opacity: 0.35 },
-              { transform: 'translateX(-50%) scale(1.04)', opacity: 1, offset: 0.7 },
-              { transform: 'translateX(-50%) scale(1)', opacity: 1 }
+              { transform: 'translateY(-6px)', opacity: 0 },
+              { transform: 'translateY(0px)', opacity: 1 }
             ],
             {
-              duration: 460,
-              delay: 130,
-              easing: 'cubic-bezier(0.34, 1.16, 0.64, 1)',
+              duration: 380,
+              delay: 140,
+              easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
               fill: 'backwards'
             }
           );
+        }
+
+        if (readoutEl && typeof readoutEl.animate === 'function') {
+          cancelElementAnimations(readoutEl);
+          readoutEl.animate(
+            [
+              { transform: 'translate(-50%, -50%) scale(0.93)', opacity: 0 },
+              { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 }
+            ],
+            {
+              duration: 420,
+              delay: 175,
+              easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+              fill: 'backwards'
+            }
+          );
+        } else if (digitsEl && typeof digitsEl.animate === 'function') {
+          cancelElementAnimations(digitsEl);
+          digitsEl.animate(
+            [
+              { transform: 'scale(0.93)', opacity: 0 },
+              { transform: 'scale(1)', opacity: 1 }
+            ],
+            {
+              duration: 420,
+              delay: 175,
+              easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+              fill: 'backwards'
+            }
+          );
+        }
+
+        if (focusCardEl && typeof focusCardEl.animate === 'function') {
+          cancelElementAnimations(focusCardEl);
+          focusCardEl.animate(
+            [
+              { transform: 'translateY(12px)', opacity: 0 },
+              { transform: 'translateY(0px)', opacity: 1 }
+            ],
+            {
+              duration: 400,
+              delay: 210,
+              easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+              fill: 'backwards'
+            }
+          );
+        }
+
+        if (actionsEl && typeof actionsEl.animate === 'function') {
+          cancelElementAnimations(actionsEl);
+          actionsEl.animate(
+            [
+              { transform: 'translateY(12px)', opacity: 0 },
+              { transform: 'translateY(0px)', opacity: 1 }
+            ],
+            {
+              duration: 400,
+              delay: 245,
+              easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+              fill: 'backwards'
+            }
+          );
+        }
+
+        // Phase 5: Fokus-Schutz badge reflects actual distraction configuration
+        if (protectBtn && typeof protectBtn.animate === 'function') {
+          cancelElementAnimations(protectBtn);
+          if (hasProtectionActive) {
+            protectBtn.classList.add('fm-protect-activating');
+            protectBtn.animate(
+              [
+                { transform: 'translateX(-50%) scale(0.94)', opacity: 0 },
+                { transform: 'translateX(-50%) scale(1.03)', opacity: 1, offset: 0.72 },
+                { transform: 'translateX(-50%) scale(1)', opacity: 1 }
+              ],
+              {
+                duration: 440,
+                delay: 230,
+                easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+                fill: 'backwards'
+              }
+            );
+          } else {
+            protectBtn.classList.remove('fm-protect-activating');
+            protectBtn.animate(
+              [
+                { transform: 'translateX(-50%) scale(0.97)', opacity: 0 },
+                { transform: 'translateX(-50%) scale(1)', opacity: 1 }
+              ],
+              {
+                duration: 360,
+                delay: 230,
+                easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+                fill: 'backwards'
+              }
+            );
+          }
         }
       }
 
@@ -997,6 +1103,7 @@
     const overlay = document.getElementById('focusChoiceOverlay');
     const wrapper = document.getElementById('screenWrapper');
     const plusBtn = document.getElementById('bottomNavPlus');
+    const bottomNav = document.getElementById('bottomNavigationV17');
     if (!overlay) return;
 
     if (plusCloseTimer !== null) {
@@ -1033,6 +1140,14 @@
     overlay.classList.remove('hidden', 'focus-choice-leave', 'focus-choice-enter');
     wrapper?.classList.add('focus-choice-open');
     plusBtn?.classList.add('fm-plus-open');
+    bottomNav?.classList.add('fm-plus-dock-active');
+
+    // Keep the floating bottom navigation sharp and visible while Plus panel is open
+    if (typeof root.showBottomNavigation === 'function') {
+      try {
+        root.showBottomNavigation();
+      } catch (_) {}
+    }
 
     if (plusAbortController) {
       plusAbortController.abort();
@@ -1070,12 +1185,12 @@
       plusBtn.animate(
         [
           { transform: 'scale(1)' },
-          { transform: 'scale(0.88)', offset: 0.45 },
-          { transform: 'scale(0.92)' }
+          { transform: 'scale(0.88)', offset: 0.42 },
+          { transform: 'scale(0.94)' }
         ],
         {
-          duration: 220,
-          easing: 'cubic-bezier(0.34, 1.16, 0.64, 1)'
+          duration: 240,
+          easing: 'cubic-bezier(0.22, 1, 0.36, 1)'
         }
       );
     }
@@ -1084,8 +1199,8 @@
       backdrop.animate(
         [{ opacity: 0 }, { opacity: 1 }],
         {
-          duration: reduced ? 80 : 220,
-          easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+          duration: reduced ? 80 : 230,
+          easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
           fill: 'forwards'
         }
       );
@@ -1095,7 +1210,7 @@
       sheet.animate(
         [
           {
-            transform: reduced ? 'translateY(0px) scale(1)' : 'translateY(28px) scale(0.91)',
+            transform: reduced ? 'translateY(0px) scale(1)' : 'translateY(34px) scale(0.9)',
             opacity: 0
           },
           {
@@ -1104,15 +1219,15 @@
           }
         ],
         {
-          duration: reduced ? 90 : 300,
-          easing: 'cubic-bezier(0.34, 1.16, 0.64, 1)',
+          duration: reduced ? 90 : 320,
+          easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
           fill: 'forwards'
         }
       );
 
       if (!reduced) {
         const items = sheet.querySelectorAll(
-          '.focus-mission-v116, .focus-new-v116, .focus-manage-v116, .space-y-2\\.5 > button'
+          '.fm-plus-header, .fm-plus-card, .fm-plus-missions-section, .fm-plus-footer-section'
         );
         items.forEach(function (item, idx) {
           cancelElementAnimations(item);
@@ -1123,9 +1238,9 @@
                 { transform: 'translateY(0px)', opacity: 1 }
               ],
               {
-                duration: 240,
-                delay: Math.min(idx * 38, 160),
-                easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                duration: 260,
+                delay: Math.min(idx * 35, 160),
+                easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
                 fill: 'backwards'
               }
             );
@@ -1141,6 +1256,7 @@
     const overlay = document.getElementById('focusChoiceOverlay');
     const wrapper = document.getElementById('screenWrapper');
     const plusBtn = document.getElementById('bottomNavPlus');
+    const bottomNav = document.getElementById('bottomNavigationV17');
     if (!overlay) return;
 
     if (plusCloseTimer !== null) {
@@ -1153,6 +1269,7 @@
     }
 
     plusBtn?.classList.remove('fm-plus-open');
+    bottomNav?.classList.remove('fm-plus-dock-active');
 
     if (overlay.classList.contains('hidden')) {
       wrapper?.classList.remove('focus-choice-open');
@@ -1199,8 +1316,8 @@
       backdrop.animate(
         [{ opacity: 1 }, { opacity: 0 }],
         {
-          duration: 185,
-          easing: 'cubic-bezier(0.4, 0, 1, 1)',
+          duration: 190,
+          easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
           fill: 'forwards'
         }
       );
@@ -1209,24 +1326,27 @@
     const sheetOut = sheet.animate(
       [
         { transform: 'translateY(0px) scale(1)', opacity: 1 },
-        { transform: 'translateY(24px) scale(0.91)', opacity: 0 }
+        { transform: 'translateY(26px) scale(0.9)', opacity: 0 }
       ],
       {
-        duration: 195,
-        easing: 'cubic-bezier(0.4, 0, 1, 1)',
+        duration: 210,
+        easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
         fill: 'forwards'
       }
     );
 
-    plusCloseTimer = setTimeout(finalizeClose, 220);
+    plusCloseTimer = setTimeout(finalizeClose, 230);
     sheetOut.finished.catch(function () {}).finally(finalizeClose);
   }
 
   /* ========================================================================
      MISSION THREE-DOT MENU ACTION SHEET (#missionSheetV116)
      ======================================================================== */
-  function openMissionSheet(contentHtml) {
+  function openMissionSheet(contentHtml, triggerEl) {
     if (typeof document === 'undefined') return;
+    if (triggerEl && typeof triggerEl.getBoundingClientRect === 'function') {
+      lastMenuTriggerEl = triggerEl;
+    }
     if (typeof root.ensureMissionSheetV116 === 'function') {
       try {
         root.ensureMissionSheetV116();
@@ -1250,7 +1370,14 @@
       card = document.getElementById('missionSheetCardV116');
     }
     card.setAttribute('onclick', 'event.stopPropagation()');
-    card.innerHTML = contentHtml;
+    const translatedHtml =
+      typeof root.translateLiteralText === 'function'
+        ? root.translateLiteralText(contentHtml)
+        : contentHtml;
+    const hasHandle = String(translatedHtml || '').includes('mission-sheet-handle-v175');
+    card.innerHTML =
+      (hasHandle ? '' : '<div class="mission-sheet-handle-v175" aria-hidden="true"></div>') +
+      translatedHtml;
 
     sheet.classList.add('open');
     clearInlineMotionStyles(sheet);
@@ -1308,22 +1435,22 @@
           { transform: 'scale(1) translateY(0px)', opacity: 1 }
         ],
         {
-          duration: reduced ? 80 : 180,
-          easing: 'cubic-bezier(0.34, 1.16, 0.64, 1)'
+          duration: reduced ? 80 : 190,
+          easing: 'cubic-bezier(0.22, 1, 0.36, 1)'
         }
       );
     } else {
       sheet.animate(
         [{ opacity: 0 }, { opacity: 1 }],
         {
-          duration: reduced ? 80 : 180,
-          easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+          duration: reduced ? 80 : 190,
+          easing: 'cubic-bezier(0.22, 1, 0.36, 1)'
         }
       );
       card.animate(
         [
           {
-            transform: reduced ? 'scale(1)' : 'scale(0.95) translateY(10px)',
+            transform: reduced ? 'scale(1)' : 'scale(0.95) translateY(12px)',
             opacity: 0
           },
           {
@@ -1332,8 +1459,8 @@
           }
         ],
         {
-          duration: reduced ? 80 : 230,
-          easing: 'cubic-bezier(0.34, 1.16, 0.64, 1)'
+          duration: reduced ? 80 : 240,
+          easing: 'cubic-bezier(0.22, 1, 0.36, 1)'
         }
       );
 
@@ -1347,9 +1474,9 @@
                 { transform: 'translateY(0px)', opacity: 1 }
               ],
               {
-                duration: 190,
-                delay: Math.min(idx * 26, 130),
-                easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                duration: 200,
+                delay: Math.min(idx * 25, 130),
+                easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
                 fill: 'backwards'
               }
             );
@@ -1431,7 +1558,7 @@
       [{ opacity: 1 }, { opacity: 0 }],
       {
         duration: 165,
-        easing: 'cubic-bezier(0.4, 0, 1, 1)',
+        easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
         fill: 'forwards'
       }
     );
@@ -1441,8 +1568,8 @@
         { transform: 'scale(0.95) translateY(8px)', opacity: 0 }
       ],
       {
-        duration: 170,
-        easing: 'cubic-bezier(0.4, 0, 1, 1)',
+        duration: 175,
+        easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
         fill: 'forwards'
       }
     );
@@ -1730,6 +1857,277 @@
     }
   }
 
+  /* ========================================================================
+     INTERACTIVE LEFT-EDGE SWIPE-BACK GESTURE (STACKED SCREENS ONLY)
+     ======================================================================== */
+  let swipeBackInstalled = false;
+
+  function canSwipeBackFromCurrentScreen(targetEl) {
+    if (typeof document === 'undefined') return false;
+    if (stateMachine.isLocked()) return false;
+    const currentScreen =
+      typeof root.getActiveScreenV17 === 'function' ? root.getActiveScreenV17() : '';
+    const SWIPEABLE_STACK_SCREENS = new Set([
+      'quicksetup',
+      'mission',
+      'schedule',
+      'plan',
+      'stats',
+      'data'
+    ]);
+    if (!SWIPEABLE_STACK_SCREENS.has(currentScreen)) return false;
+
+    const focusOverlay = document.getElementById('focusChoiceOverlay');
+    if (focusOverlay && !focusOverlay.classList.contains('hidden')) return false;
+    const missionSheet = document.getElementById('missionSheetV116');
+    if (missionSheet && missionSheet.classList.contains('open')) return false;
+    const confirmModal = document.getElementById('sessionConfirmModal');
+    if (confirmModal && !confirmModal.classList.contains('hidden')) return false;
+
+    if (targetEl && typeof targetEl.closest === 'function') {
+      if (
+        targetEl.closest(
+          'input, textarea, select, [contenteditable="true"], [data-block-swipe-back="true"], #missionCarouselV1181, #missionAuraShellV1181, #missionTypeCarousel'
+        )
+      ) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function installEdgeSwipeBackGesture() {
+    if (swipeBackInstalled || typeof document === 'undefined') return;
+    const appBody = document.getElementById('appBody');
+    if (!appBody) return;
+    swipeBackInstalled = true;
+
+    const EDGE_THRESHOLD_PX = 28;
+    const DIRECTION_LOCK_PX = 10;
+    const COMPLETE_DISTANCE_RATIO = 0.32;
+    const COMPLETE_VELOCITY_PX_PER_MS = 0.5;
+
+    let gesture = null;
+    let rafId = null;
+
+    function applyDragFrame() {
+      rafId = null;
+      if (!gesture || !gesture.lockedHorizontal) return;
+      const dx = Math.max(0, gesture.currentX - gesture.startX);
+      const width = Math.max(280, gesture.viewportWidth || 390);
+      const progress = Math.min(1, dx / width);
+
+      if (gesture.fromEl) {
+        gesture.fromEl.style.transform = 'translate3d(' + dx + 'px, 0, 0)';
+        gesture.fromEl.style.boxShadow =
+          '-16px 0 38px rgba(24, 16, 40, ' + (0.16 * (1 - progress * 0.7)).toFixed(3) + ')';
+      }
+      if (gesture.toEl) {
+        const underOffsetPct = -8 * (1 - progress);
+        const underScale = 0.985 + 0.015 * progress;
+        const underOpacity = 0.88 + 0.12 * progress;
+        gesture.toEl.style.transform =
+          'translate3d(' + underOffsetPct.toFixed(2) + '%, 0, 0) scale(' + underScale.toFixed(4) + ')';
+        gesture.toEl.style.opacity = underOpacity.toFixed(3);
+      }
+    }
+
+    function cleanupGestureDOM(g) {
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+      if (!g) return;
+      appBody.classList.remove('fm-dual-transition', 'fm-swipe-back-active');
+      if (g.fromEl) {
+        g.fromEl.classList.remove('fm-layer-outgoing', 'fm-layer-top', 'fm-motion-active');
+        clearInlineMotionStyles(g.fromEl);
+      }
+      if (g.toEl) {
+        g.toEl.classList.remove('fm-layer-incoming', 'fm-swipe-back-underlay', 'fm-motion-active');
+        clearInlineMotionStyles(g.toEl);
+      }
+    }
+
+    function onTouchStart(ev) {
+      if (!ev.touches || ev.touches.length !== 1) return;
+      const touch = ev.touches[0];
+      const wrapper = document.getElementById('screenWrapper') || appBody;
+      const rect = wrapper.getBoundingClientRect();
+      const relX = touch.clientX - rect.left;
+      if (relX < 0 || relX > EDGE_THRESHOLD_PX) return;
+      if (!canSwipeBackFromCurrentScreen(ev.target)) return;
+
+      const currentScreen =
+        typeof root.getActiveScreenV17 === 'function' ? root.getActiveScreenV17() : '';
+      const targetScreen =
+        typeof root.getBackTargetScreen === 'function' ? root.getBackTargetScreen() : 'home';
+      if (!currentScreen || !targetScreen || currentScreen === targetScreen) return;
+
+      const fromEl = document.getElementById('app-screen-' + currentScreen);
+      const toEl = document.getElementById('app-screen-' + targetScreen);
+      if (!fromEl || !toEl) return;
+
+      gesture = {
+        startX: touch.clientX,
+        startY: touch.clientY,
+        currentX: touch.clientX,
+        lastX: touch.clientX,
+        lastTime: performance.now(),
+        velocityX: 0,
+        viewportWidth: rect.width || 390,
+        lockedHorizontal: false,
+        aborted: false,
+        currentScreen: currentScreen,
+        targetScreen: targetScreen,
+        fromEl: fromEl,
+        toEl: toEl
+      };
+    }
+
+    function onTouchMove(ev) {
+      if (!gesture || gesture.aborted || !ev.touches || ev.touches.length !== 1) return;
+      const touch = ev.touches[0];
+      const dx = touch.clientX - gesture.startX;
+      const dy = touch.clientY - gesture.startY;
+
+      if (!gesture.lockedHorizontal) {
+        if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > DIRECTION_LOCK_PX) {
+          gesture.aborted = true;
+          gesture = null;
+          return;
+        }
+        if (dx > DIRECTION_LOCK_PX && Math.abs(dx) > Math.abs(dy) * 1.15) {
+          gesture.lockedHorizontal = true;
+          appBody.classList.add('fm-dual-transition', 'fm-swipe-back-active');
+          gesture.fromEl.classList.add('fm-layer-outgoing', 'fm-layer-top', 'fm-motion-active');
+          gesture.toEl.classList.add('fm-layer-incoming', 'fm-swipe-back-underlay', 'fm-motion-active');
+          if (typeof root.restoreScreenScrollPosition === 'function') {
+            try {
+              root.restoreScreenScrollPosition(gesture.targetScreen);
+            } catch (_) {}
+          }
+        } else {
+          return;
+        }
+      }
+
+      if (ev.cancelable) {
+        ev.preventDefault();
+      }
+
+      const now = performance.now();
+      const dt = Math.max(1, now - gesture.lastTime);
+      gesture.velocityX = (touch.clientX - gesture.lastX) / dt;
+      gesture.lastX = touch.clientX;
+      gesture.lastTime = now;
+      gesture.currentX = touch.clientX;
+
+      if (rafId === null) {
+        rafId = requestAnimationFrame(applyDragFrame);
+      }
+    }
+
+    function onTouchEnd() {
+      if (!gesture) return;
+      const g = gesture;
+      gesture = null;
+      if (!g.lockedHorizontal || g.aborted) {
+        cleanupGestureDOM(g);
+        return;
+      }
+
+      const dx = Math.max(0, g.currentX - g.startX);
+      const width = Math.max(280, g.viewportWidth || 390);
+      const progress = Math.min(1, dx / width);
+      const shouldComplete =
+        progress >= COMPLETE_DISTANCE_RATIO || g.velocityX >= COMPLETE_VELOCITY_PX_PER_MS;
+
+      const underOffsetPct = -8 * (1 - progress);
+      const underScale = 0.985 + 0.015 * progress;
+      const underOpacity = 0.88 + 0.12 * progress;
+
+      if (
+        typeof g.fromEl.animate !== 'function' ||
+        typeof g.toEl.animate !== 'function' ||
+        prefersReducedMotion()
+      ) {
+        cleanupGestureDOM(g);
+        if (shouldComplete && typeof root.navigateBack === 'function') {
+          root.navigateBack({ skipMotion: true });
+        }
+        return;
+      }
+
+      const durationMs = shouldComplete
+        ? Math.max(160, Math.round(280 * (1 - progress * 0.55)))
+        : Math.max(150, Math.round(240 * (0.4 + progress * 0.6)));
+
+      stateMachine.acquireLock('swipe-back', durationMs + 120, function () {
+        cleanupGestureDOM(g);
+      });
+
+      const fromAnim = g.fromEl.animate(
+        [
+          { transform: 'translate3d(' + dx + 'px, 0, 0)' },
+          {
+            transform: shouldComplete
+              ? 'translate3d(' + width + 'px, 0, 0)'
+              : 'translate3d(0px, 0, 0)'
+          }
+        ],
+        {
+          duration: durationMs,
+          easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+          fill: 'forwards'
+        }
+      );
+
+      const toAnim = g.toEl.animate(
+        [
+          {
+            transform:
+              'translate3d(' +
+              underOffsetPct.toFixed(2) +
+              '%, 0, 0) scale(' +
+              underScale.toFixed(4) +
+              ')',
+            opacity: underOpacity
+          },
+          {
+            transform: shouldComplete
+              ? 'translate3d(0%, 0, 0) scale(1)'
+              : 'translate3d(-8%, 0, 0) scale(0.985)',
+            opacity: shouldComplete ? 1 : 0.88
+          }
+        ],
+        {
+          duration: durationMs,
+          easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+          fill: 'forwards'
+        }
+      );
+
+      Promise.all([
+        fromAnim.finished.catch(function () {}),
+        toAnim.finished.catch(function () {})
+      ]).finally(function () {
+        cancelElementAnimations(g.fromEl);
+        cancelElementAnimations(g.toEl);
+        cleanupGestureDOM(g);
+        stateMachine.releaseLock();
+        if (shouldComplete && typeof root.navigateBack === 'function') {
+          root.navigateBack({ skipMotion: true });
+        }
+      });
+    }
+
+    appBody.addEventListener('touchstart', onTouchStart, { passive: true });
+    appBody.addEventListener('touchmove', onTouchMove, { passive: false });
+    appBody.addEventListener('touchend', onTouchEnd, { passive: true });
+    appBody.addEventListener('touchcancel', onTouchEnd, { passive: true });
+  }
+
   function installLifecycleSafetyHandlers() {
     if (typeof root.addEventListener !== 'function') return;
     root.addEventListener('pagehide', function () {
@@ -1750,7 +2148,7 @@
   }
 
   const MotionController = {
-    version: 'v17.3.2 Fluid Motion System',
+    version: 'v17.5 Interaction Polish',
     ROOT_TAB_ORDER,
     VALID_STATES,
     getRootTabIndex,
@@ -1769,15 +2167,20 @@
     closeMissionSheet,
     forceCleanupScreenLayers,
     dismissStartupSplash,
+    canSwipeBackFromCurrentScreen,
     init: function () {
       installGlobalTriggerTracking();
       installLifecycleSafetyHandlers();
       initStartupSplash();
       if (typeof document !== 'undefined') {
         if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', installFeatureMotionEnhancements);
+          document.addEventListener('DOMContentLoaded', function () {
+            installFeatureMotionEnhancements();
+            installEdgeSwipeBackGesture();
+          });
         } else {
           installFeatureMotionEnhancements();
+          installEdgeSwipeBackGesture();
         }
       }
     }

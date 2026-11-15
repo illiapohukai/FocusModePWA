@@ -5,16 +5,16 @@
 
 :root {
   --motion-instant: 90ms;
-  --motion-fast: 150ms;
-  --motion-normal: 260ms;
-  --motion-emphasized: 420ms;
-  --motion-focus-enter: 620ms;
+  --motion-fast: 160ms;
+  --motion-normal: 350ms;
+  --motion-emphasized: 390ms;
+  --motion-focus-enter: 720ms;
   --motion-splash-min: 650ms;
   --motion-splash-max: 1400ms;
 
-  --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-enter: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-emphasized: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-soft-spring: cubic-bezier(0.34, 1.16, 0.64, 1);
 }
@@ -33,11 +33,29 @@ html body #screenWrapper #appBody > .app-screen.fm-motion-active:not(.hidden) {
   will-change: transform, opacity;
 }
 
-/* Outgoing screen layer kept visually rendered while remaining .hidden for business logic */
+/* Outgoing & swipe-back underlay screens kept visually rendered while remaining .hidden */
 html body #screenWrapper #appBody.fm-dual-transition > .app-screen.fm-layer-outgoing.hidden,
+html body #screenWrapper #appBody.fm-dual-transition > .app-screen.fm-swipe-back-underlay.hidden,
 html body #screenWrapper.has-bottom-nav #appBody.fm-dual-transition > #app-screen-home.fm-layer-outgoing.hidden,
+html body #screenWrapper.has-bottom-nav #appBody.fm-dual-transition > #app-screen-home.fm-swipe-back-underlay.hidden,
+html body #screenWrapper #appBody.fm-dual-transition > #app-screen-missions.fm-layer-outgoing.hidden,
+html body #screenWrapper #appBody.fm-dual-transition > #app-screen-missions.fm-swipe-back-underlay.hidden,
+html body #screenWrapper #appBody.fm-dual-transition > #app-screen-history.fm-layer-outgoing.hidden,
+html body #screenWrapper #appBody.fm-dual-transition > #app-screen-history.fm-swipe-back-underlay.hidden,
+html body #screenWrapper #appBody.fm-dual-transition > #app-screen-settings.fm-layer-outgoing.hidden,
+html body #screenWrapper #appBody.fm-dual-transition > #app-screen-settings.fm-swipe-back-underlay.hidden,
 html body #screenWrapper #appBody.fm-dual-transition > #app-screen-quicksetup.fm-layer-outgoing.hidden,
-html body #screenWrapper #appBody.fm-dual-transition > #app-screen-missions.fm-layer-outgoing.hidden {
+html body #screenWrapper #appBody.fm-dual-transition > #app-screen-quicksetup.fm-swipe-back-underlay.hidden,
+html body #screenWrapper #appBody.fm-dual-transition > #app-screen-goal.fm-layer-outgoing.hidden,
+html body #screenWrapper #appBody.fm-dual-transition > #app-screen-goal.fm-swipe-back-underlay.hidden,
+html body #screenWrapper #appBody.fm-dual-transition > #app-screen-plan.fm-layer-outgoing.hidden,
+html body #screenWrapper #appBody.fm-dual-transition > #app-screen-plan.fm-swipe-back-underlay.hidden,
+html body #screenWrapper #appBody.fm-dual-transition > #app-screen-stats.fm-layer-outgoing.hidden,
+html body #screenWrapper #appBody.fm-dual-transition > #app-screen-stats.fm-swipe-back-underlay.hidden,
+html body #screenWrapper #appBody.fm-dual-transition > #app-screen-data.fm-layer-outgoing.hidden,
+html body #screenWrapper #appBody.fm-dual-transition > #app-screen-data.fm-swipe-back-underlay.hidden,
+html body #screenWrapper #appBody.fm-dual-transition > #app-screen-timer.fm-layer-outgoing.hidden,
+html body #screenWrapper #appBody.fm-dual-transition > #app-screen-result.fm-layer-outgoing.hidden {
   display: flex !important;
   flex-direction: column !important;
   position: absolute !important;
@@ -46,23 +64,35 @@ html body #screenWrapper #appBody.fm-dual-transition > #app-screen-missions.fm-l
   height: 100% !important;
   pointer-events: none !important;
   z-index: 14 !important;
-  will-change: transform, opacity, filter;
+  will-change: transform, opacity;
   animation: none !important;
+  filter: none !important;
 }
 
-html body #screenWrapper.has-bottom-nav #appBody.fm-dual-transition > #app-screen-home.fm-layer-outgoing.hidden {
+html body #screenWrapper.has-bottom-nav #appBody.fm-dual-transition > #app-screen-home.fm-layer-outgoing.hidden,
+html body #screenWrapper.has-bottom-nav #appBody.fm-dual-transition > #app-screen-home.fm-swipe-back-underlay.hidden {
   padding: 16px 18px calc(var(--fm-nav-total-height) + 24px) !important;
   overflow: hidden !important;
 }
 
-html body #screenWrapper #appBody.fm-dual-transition > .app-screen.fm-layer-outgoing.fm-layer-top.hidden {
-  z-index: 22 !important;
+html body #screenWrapper #appBody.fm-dual-transition > .app-screen.fm-layer-outgoing.fm-layer-top.hidden,
+html body #screenWrapper #appBody.fm-dual-transition > .app-screen.fm-layer-outgoing.fm-layer-top:not(.hidden) {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 24 !important;
 }
 
 html body #screenWrapper #appBody.fm-dual-transition > .app-screen.fm-layer-incoming:not(.hidden) {
   position: relative !important;
   z-index: 18 !important;
   will-change: transform, opacity;
+  animation: none !important;
+  filter: none !important;
+}
+
+html body #screenWrapper #appBody.fm-dual-transition > .app-screen.fm-layer-incoming.fm-layer-top:not(.hidden) {
+  z-index: 24 !important;
+  box-shadow: -14px 0 36px rgba(24, 16, 40, 0.14);
 }
 
 /* ==========================================================================
@@ -157,26 +187,38 @@ html body #screenWrapper #appBody.fm-dual-transition > .app-screen.fm-layer-inco
 }
 
 /* ==========================================================================
-   3. FLOATING BOTTOM NAVIGATION DOCK & CENTRAL PLUS BUTTON MORPH
+   3. FLOATING BOTTOM NAVIGATION DOCK & CENTRAL PLUS BUTTON MORPH (NO BLUR)
    ========================================================================== */
 #bottomNavigationV17.fm-bottom-nav {
   will-change: transform, opacity;
 }
 
-/* Keep bottom navigation visible during Focus Choice so Plus button can rotate and morph */
+/* Keep bottom navigation completely sharp and above the dim overlay when Plus panel is open */
 #screenWrapper.focus-choice-open #bottomNavigationV17.fm-bottom-nav,
-#screenWrapper.focus-choice-open #bottomNavigationV17.fm-bottom-nav.hidden {
-  display: flex !important;
+#screenWrapper.focus-choice-open #bottomNavigationV17.fm-bottom-nav.hidden,
+#bottomNavigationV17.fm-bottom-nav.fm-plus-dock-active {
+  display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
-  pointer-events: none !important;
-  z-index: 84 !important;
+  pointer-events: auto !important;
+  z-index: 125 !important;
+  filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  background: #FCF9F4 !important;
+  box-shadow: 0 16px 38px rgba(24, 14, 34, 0.22), 0 2px 8px rgba(37, 22, 43, 0.08) !important;
+}
+
+#screenWrapper.focus-choice-open #bottomNavigationV17.fm-bottom-nav *,
+#bottomNavigationV17.fm-bottom-nav.fm-plus-dock-active * {
+  filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
 }
 
 #screenWrapper.focus-choice-open #bottomNavigationV17.fm-bottom-nav .fm-nav-item {
-  opacity: 0.32;
-  pointer-events: none !important;
-  transition: opacity var(--motion-fast) var(--ease-standard);
+  opacity: 1 !important;
+  pointer-events: auto !important;
 }
 
 #screenWrapper.focus-choice-open #bottomNavigationV17.fm-bottom-nav #bottomNavPlus {
@@ -185,9 +227,9 @@ html body #screenWrapper #appBody.fm-dual-transition > .app-screen.fm-layer-inco
 
 #bottomNavigationV17 .fm-nav-item {
   transition:
-    background-color var(--motion-normal) var(--ease-standard),
-    border-color var(--motion-normal) var(--ease-standard),
-    color var(--motion-normal) var(--ease-standard),
+    background-color var(--motion-fast) var(--ease-standard),
+    border-color var(--motion-fast) var(--ease-standard),
+    color var(--motion-fast) var(--ease-standard),
     transform var(--motion-fast) var(--ease-soft-spring);
 }
 
@@ -216,22 +258,22 @@ html body #screenWrapper #appBody.fm-dual-transition > .app-screen.fm-layer-inco
 
 #bottomNavPlus {
   transition:
-    transform var(--motion-normal) var(--ease-soft-spring),
-    background var(--motion-normal) var(--ease-standard),
-    box-shadow var(--motion-normal) var(--ease-standard);
+    transform 240ms var(--ease-standard),
+    background 240ms var(--ease-standard),
+    box-shadow 240ms var(--ease-standard);
   will-change: transform;
 }
 
 #bottomNavPlus svg,
 #bottomNavPlus i {
-  transition: transform var(--motion-normal) var(--ease-soft-spring);
+  transition: transform 240ms var(--ease-standard);
   will-change: transform;
 }
 
 #bottomNavPlus.fm-plus-open {
-  transform: scale(0.92);
+  transform: scale(0.94);
   background: linear-gradient(145deg, #5B21B6 0%, #4C1D95 100%);
-  box-shadow: 0 6px 18px rgba(91, 33, 182, 0.38);
+  box-shadow: 0 8px 20px rgba(91, 33, 182, 0.42);
 }
 
 #bottomNavPlus.fm-plus-open svg,
@@ -245,10 +287,6 @@ html body #screenWrapper #appBody.fm-dual-transition > .app-screen.fm-layer-inco
 #focusChoiceOverlay .focus-choice-backdrop,
 #focusChoiceOverlay .focus-choice-sheet {
   animation: none !important;
-}
-
-#focusChoiceOverlay {
-  padding-bottom: calc(var(--fm-nav-total-height, 74px) + 12px) !important;
 }
 
 #focusChoiceOverlay .focus-choice-backdrop {

@@ -3,13 +3,23 @@
  */
 
 let quickDuration=25, quickBreak=5, distractionReturnScreen='quicksetup';
-function openQuickSetupFromChoice(){closeFocusChoice();setTimeout(()=>setAppScreen('quicksetup'),180)}
+function openQuickSetupFromChoice(){
+  const navState=window.__navigationStateV17;
+  const currentScreen=navState?.currentScreen||'home';
+  const currentRoot=navState?.currentRoot||'home';
+  closeFocusChoice();
+  if(typeof navigateForward==='function'){
+    navigateForward('quicksetup',{parent:currentScreen,rootSection:currentRoot,reopenFocusChoice:false});
+  }else{
+    setAppScreen('quicksetup');
+  }
+}
 function openQuickSetupFromHome(){
   if(window.activeSession||window.sessionRecoveryCandidate||(typeof getRecoverableSessionV1151==='function'&&getRecoverableSessionV1151())){
     if(typeof routeExistingSessionV1151==='function'){routeExistingSessionV1151();return;}
   }
   if(typeof navigateForward==='function'){
-    navigateForward('quicksetup',{parent:'home',rootSection:'home',reopenFocusChoice:false,options:{immediate:true}});
+    navigateForward('quicksetup',{parent:'home',rootSection:'home',reopenFocusChoice:false});
   }else{
     setAppScreen('quicksetup');
   }
@@ -30,12 +40,29 @@ function openDistractionPicker(returnScreen){distractionReturnScreen=returnScree
 function returnFromDistractionPicker(){setAppScreen(distractionReturnScreen)}
 function toggleDistraction(row){row.classList.toggle('selected');lucide.createIcons()}
 function getSelectedDistractions(){return [...document.querySelectorAll('#distractionList .distraction-row.selected')].map(x=>x.dataset.name)}
+function syncTimerProtectionBadge(){
+ const badge=document.querySelector('#app-screen-timer .uc-protect');
+ if(!badge)return false;
+ const apps=getSelectedDistractions();
+ const active=apps.length>0;
+ const lang=(window.FocusModeApp?.services?.storage?.getText('focus-mode-language','de')||document.documentElement.lang||'de')==='en'?'en':'de';
+ badge.classList.toggle('is-active',active);
+ badge.classList.toggle('is-inactive',!active);
+ badge.setAttribute('data-protection-active',active?'true':'false');
+ const labelText=active?(lang==='en'?'Focus protection active':'Fokusschutz aktiv'):(lang==='en'?'Focus protection off':'Fokusschutz aus');
+ const chevronHtml=typeof window.renderFocusIconSvg==='function'?window.renderFocusIconSvg('chevron-right'):'<i data-lucide="chevron-right"></i>';
+ badge.innerHTML='<span class="uc-protect-dot" aria-hidden="true"></span>'+labelText+chevronHtml;
+ if(window.lucide)lucide.createIcons();
+ return active;
+}
+window.syncTimerProtectionBadge=syncTimerProtectionBadge;
 function updateProtectionSummary(){
  const apps=getSelectedDistractions(),count=apps.length;
  document.querySelectorAll('.blockedCount').forEach(x=>x.textContent=count);
  const shown=apps.slice(0,3).join(' · '),rest=Math.max(0,count-3);
- document.querySelectorAll('.blockedSummary').forEach(x=>x.textContent=shown+(rest?' +'+rest:''));
+ document.querySelectorAll('.blockedSummary').forEach(x=>x.textContent=count>0?(shown+(rest?' +'+rest:'')):((document.documentElement.lang==='en')?'No apps blocked':'Keine Apps blockiert'));
  const s=document.getElementById('quickSelectedAppIcons');if(s){s.innerHTML='';document.querySelectorAll('#distractionList .distraction-row.selected').forEach((r,i)=>{if(i<3){const d=r.querySelector('.app-dot');if(d)s.appendChild(d.cloneNode(true))}});if(window.lucide)lucide.createIcons()}
+ syncTimerProtectionBadge();
 }
 function saveDistractions(){updateProtectionSummary();setAppScreen(distractionReturnScreen)}
 function showBlockedAppsPopup(){
@@ -52,7 +79,8 @@ document.addEventListener("DOMContentLoaded",()=>{quickBreak=0;updateQuickRing()
   window.applyAppScreenImmediately=function(screenName){
     const result=previousApply.apply(this,arguments);
     document.documentElement.classList.toggle('quick-focus-surface',screenName==='quicksetup');
+    if(screenName==='timer')syncTimerProtectionBadge();
     return result;
   };
-  document.title='v17.4.2 Gemini 3.8 Flash Integration';
+  document.title='v17.5 Interaction Polish';
 })();

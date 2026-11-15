@@ -153,23 +153,142 @@ function renderHomeCarouselV116(){
  if(active.length<2){old?.remove();renderMultiMissionUIV115();return}
  empty?.classList.add('hidden');card?.classList.add('hidden');let host=old;if(!host){host=document.createElement('div');host.id='missionCarouselV116';card.insertAdjacentElement('afterend',host)}host.innerHTML=active.map(m=>renderMissionHeroV116(missionViewModelV116(m))).join('');host.scrollLeft=0;
 }
-function focusMissionListV116(){return sortedActiveMissionsV116().map(m=>{const v=missionViewModelV116(m);return '<button class="focus-mission-v116" onclick="openMissionFromFocusV116(\''+m.id+'\')"><span class="fm-icon"><i data-lucide="target"></i></span><span class="fm-copy"><span class="fm-title">'+escapeHTML(v.title)+'</span><span class="fm-meta">'+escapeHTML(v.currentStepTitle)+' · '+v.currentStepMinutes+' Min.</span></span><i class="w-4 h-4 text-slate-300" data-lucide="chevron-right"></i></button>'}).join('')}
+function focusMissionListV116(){
+ const active=sortedActiveMissionsV116();
+ const lang=(window.FocusModeApp?.services?.storage?.getText('focus-mode-language','de')||document.documentElement.lang||'de')==='en'?'en':'de';
+ if(!active.length){
+   return '<div class="fm-plus-mission-empty" role="status">'
+     +'<span class="fm-plus-empty-icon" aria-hidden="true"><i data-lucide="target"></i></span>'
+     +'<span class="fm-plus-empty-text">'+(lang==='en'?'No active mission yet.':'Noch keine aktive Mission.')+'</span>'
+   +'</div>';
+ }
+ return active.map(m=>{
+   const v=missionViewModelV116(m);
+   const stepMeta=v.currentStepMinutes
+     ?(escapeHTML(v.currentStepTitle)+' · '+v.currentStepMinutes+(lang==='en'?' min':' Min.'))
+     :escapeHTML(v.currentStepTitle);
+   const rolePill=v.isPrimary
+     ?'<span class="fm-plus-primary-pill">'+(lang==='en'?'PRIMARY':'HAUPT')+'</span>'
+     :'';
+   const iconName=v.isPrimary?'star':'target';
+   return '<button class="focus-mission-v116 fm-plus-mission-row" type="button" onclick="openMissionFromFocusV116(\''+m.id+'\')">'
+     +'<span class="fm-icon fm-plus-mission-icon'+(v.isPrimary?' is-primary':'')+'"><i data-lucide="'+iconName+'"></i></span>'
+     +'<span class="fm-copy fm-plus-mission-copy">'
+       +'<span class="fm-plus-mission-title-row"><span class="fm-title">'+escapeHTML(v.title)+'</span>'+rolePill+'</span>'
+       +'<span class="fm-meta">'+stepMeta+'</span>'
+       +'<span class="fm-plus-mission-progress-row">'
+         +'<span class="fm-plus-mission-bar"><i style="width:'+v.progressPercent+'%"></i></span>'
+         +'<strong class="fm-plus-mission-pct">'+v.progressPercent+'%</strong>'
+       +'</span>'
+     +'</span>'
+     +'<span class="fm-plus-mission-arrow" aria-hidden="true"><i data-lucide="chevron-right"></i></span>'
+   +'</button>';
+ }).join('');
+}
 function renderFocusChoiceV116(){
  const sheet=document.querySelector('#focusChoiceOverlay .focus-choice-sheet');if(!sheet)return;
  const all=missionRepository.getAll(),active=missionRepository.getActive(),activeCount=active.length,totalCount=all.length,full=activeCount>=2;
  const lang=(window.FocusModeApp?.services?.storage?.getText('focus-mode-language','de')||document.documentElement.lang||'de')==='en'?'en':'de';
- const countLabel=lang==='en'?(activeCount+' active · '+totalCount+' total'):(activeCount+' aktive · '+totalCount+' insgesamt');
+ const countBadge=activeCount+' / 2';
+ const manageSub=lang==='en'?'Active, completed and archived':'Aktiv, abgeschlossen und archiviert';
  const limitBadge=full?'<span class="fm-limit-badge-v17"><i data-lucide="info"></i><span>'+(lang==='en'?'2 active Missions reached':'2 aktive Missionen erreicht')+'</span></span>':'';
- const createBtn=!full?'<button class="focus-new-v116" type="button" onclick="newMissionFromFocusV116()">+ Neue Focus Mission</button>':'';
- sheet.innerHTML='<div class="w-10 h-1 bg-slate-200 rounded-full mx-auto mb-4"></div><div class="flex items-start justify-between gap-3"><div><div class="text-[9px] font-black uppercase tracking-[.16em] text-indigo-500">Fokus starten</div><h3 class="text-lg font-black tracking-tight text-slate-950 mt-1">Was möchtest du fokussieren?</h3></div><button class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center" type="button" aria-label="Schließen" onclick="closeFocusChoice()"><i class="w-4 h-4" data-lucide="x"></i></button></div><div class="focus-section-v116"><div class="focus-section-label-v116">Quick Focus</div><button class="focus-mission-v116" type="button" onclick="openQuickSetupFromChoice()"><span class="fm-icon"><i data-lucide="timer"></i></span><span class="fm-copy"><span class="fm-title">Kurzen Fokus starten</span><span class="fm-meta">Aufgabe und Dauer selbst festlegen</span></span><i class="w-4 h-4 text-slate-300" data-lucide="chevron-right"></i></button></div><div class="focus-section-v116"><div class="focus-section-label-v116">Deine Focus Missions</div>'+focusMissionListV116()+createBtn+'<button class="focus-manage-v116 focus-manage-card-v17" type="button" onclick="openMissionManagementV116()"><span class="fm-manage-main"><span class="fm-manage-icon"><i data-lucide="layers-3"></i></span><span class="fm-manage-copy"><span class="fm-manage-title">Missionen verwalten</span><span class="fm-manage-sub" data-dynamic-mission-counts="true">'+escapeHTML(countLabel)+'</span></span><i class="fm-manage-chevron" data-lucide="chevron-right"></i></span>'+limitBadge+'</button></div>';
+ sheet.innerHTML='<div class="fm-plus-handle" aria-hidden="true"></div>'
+   +'<div class="fm-plus-header">'
+     +'<div class="fm-plus-header-copy">'
+       +'<h3 class="fm-plus-title">Was möchtest du fokussieren?</h3>'
+       +'<p class="fm-plus-subtitle">Starte direkt oder arbeite an einer Mission weiter.</p>'
+     +'</div>'
+     +'<button class="fm-plus-close-btn" type="button" aria-label="'+(lang==='en'?'Close':'Schließen')+'" onclick="closeFocusChoice()"><i data-lucide="x"></i></button>'
+   +'</div>'
+   +'<div class="fm-plus-primary-grid" role="group" aria-label="Fokus-Modi">'
+     +'<button class="fm-plus-card fm-plus-card-quick" id="plusQuickFocusCard" type="button" onclick="openQuickSetupFromChoice()">'
+       +'<div class="fm-plus-card-top">'
+         +'<span class="fm-plus-card-icon"><i data-lucide="timer"></i></span>'
+         +'<span class="fm-plus-card-arrow" aria-hidden="true"><i data-lucide="arrow-up-right"></i></span>'
+       +'</div>'
+       +'<div class="fm-plus-card-body">'
+         +'<strong class="fm-plus-card-title">Kurzer Fokus</strong>'
+         +'<span class="fm-plus-card-desc">Eine Aufgabe, direkt starten.</span>'
+       +'</div>'
+     +'</button>'
+     +'<button class="fm-plus-card fm-plus-card-mission'+(full?' is-limit-reached':'')+'" id="plusFocusMissionCard" type="button" onclick="newMissionFromFocusV116()">'
+       +'<div class="fm-plus-card-top">'
+         +'<span class="fm-plus-card-icon"><i data-lucide="clipboard-list"></i></span>'
+         +'<span class="fm-plus-card-arrow" aria-hidden="true"><i data-lucide="plus"></i></span>'
+       +'</div>'
+       +'<div class="fm-plus-card-body">'
+         +'<strong class="fm-plus-card-title">Focus Mission</strong>'
+         +'<span class="fm-plus-card-desc">Ein Ziel planen und in Schritte teilen.</span>'
+       +'</div>'
+     +'</button>'
+   +'</div>'
+   +'<div class="focus-section-v116 fm-plus-missions-section">'
+     +'<div class="fm-plus-section-head">'
+       +'<span class="focus-section-label-v116">BESTEHENDE MISSIONEN</span>'
+       +'<span class="fm-plus-slot-pill" data-dynamic-slot-pill="true">'+escapeHTML(countBadge)+'</span>'
+     +'</div>'
+     +'<div class="fm-plus-mission-list" id="plusExistingMissionsList">'+focusMissionListV116()+'</div>'
+   +'</div>'
+   +'<div class="fm-plus-footer-section">'
+     +'<button class="focus-manage-v116 focus-manage-card-v17 fm-plus-manage-row" id="plusManageMissionsBtn" type="button" onclick="openMissionManagementV116()">'
+       +'<span class="fm-manage-main">'
+         +'<span class="fm-manage-icon"><i data-lucide="sliders-horizontal"></i></span>'
+         +'<span class="fm-manage-copy">'
+           +'<span class="fm-manage-title">Missionen verwalten</span>'
+           +'<span class="fm-manage-sub">'+escapeHTML(manageSub)+'</span>'
+         +'</span>'
+         +'<span class="fm-plus-manage-meta" data-dynamic-mission-counts="true">'+activeCount+' · '+totalCount+'</span>'
+         +'<i class="fm-manage-chevron" data-lucide="chevron-right"></i>'
+       +'</span>'
+       +limitBadge
+     +'</button>'
+   +'</div>';
  if(typeof translateTree==='function')translateTree(sheet,lang);
  const subEl=sheet.querySelector('[data-dynamic-mission-counts="true"]');
- if(subEl)subEl.textContent=countLabel;
+ if(subEl)subEl.textContent=activeCount+' · '+totalCount;
+ const slotEl=sheet.querySelector('[data-dynamic-slot-pill="true"]');
+ if(slotEl)slotEl.textContent=countBadge;
  lucide.createIcons();
 }
-function openMissionFromFocusV116(id){closeFocusChoice();setTimeout(()=>openMission(id),180)}
-function newMissionFromFocusV116(){if(missionRepository.getActive().length>=2){closeFocusChoice();setTimeout(()=>{openMissionManagementV116();showMissionLimitV116()},180);return}closeFocusChoice();setTimeout(()=>openGoalIntake({parent:'home',rootSection:'home',reopenFocusChoice:true}),180)}
-const openFocusChoicePreV116=openFocusChoice;openFocusChoice=function(){if(activeSession||sessionRecoveryCandidate||getRecoverableSessionV1151()){routeExistingSessionV1151();return}renderFocusChoiceV116();const res=openFocusChoicePreV116.apply(this,arguments);window.hideBottomNavigation?.();return res};
+function openMissionFromFocusV116(id){
+ closeFocusChoice();
+ openMission(id);
+}
+function newMissionFromFocusV116(){
+ if(missionRepository.getActive().length>=2){
+   closeFocusChoice();
+   openMissionManagementV116();
+   setTimeout(()=>showMissionLimitV116(),90);
+   return;
+ }
+ const navState=window.__navigationStateV17;
+ const currentScreen=navState?.currentScreen||'home';
+ const currentRoot=navState?.currentRoot||'home';
+ closeFocusChoice();
+ openGoalIntake({parent:currentScreen,rootSection:currentRoot,reopenFocusChoice:false});
+}
+const openFocusChoicePreV116=openFocusChoice;
+openFocusChoice=function(){
+ if(activeSession||sessionRecoveryCandidate||getRecoverableSessionV1151()){routeExistingSessionV1151();return}
+ const overlay=document.getElementById('focusChoiceOverlay');
+ if(overlay&&!overlay.classList.contains('hidden')&&!overlay.classList.contains('fm-sheet-closing')){
+   closeFocusChoice();
+   return;
+ }
+ renderFocusChoiceV116();
+ const res=openFocusChoicePreV116.apply(this,arguments);
+ /* Keep floating bottom navigation sharp and visible while Plus panel is open */
+ window.showBottomNavigation?.();
+ document.getElementById('bottomNavigationV17')?.classList.add('fm-plus-dock-active');
+ return res;
+};
+const closeFocusChoicePreV175=closeFocusChoice;
+closeFocusChoice=function(){
+ document.getElementById('bottomNavigationV17')?.classList.remove('fm-plus-dock-active');
+ const res=closeFocusChoicePreV175.apply(this,arguments);
+ window.syncBottomNavigationForScreen?.();
+ return res;
+};
 
 function ensureMissionManagementScreenV116(){
  if(document.getElementById('app-screen-missions'))return;
@@ -205,9 +324,45 @@ function ensureMissionManagementScreenV116(){
    +'<div id="missionManagementListV116" class="flex-1 space-y-2.5 pb-6 overflow-y-auto"></div>';
  document.getElementById('appBody').appendChild(screen);ensureMissionSheetV116();lucide.createIcons();
 }
-function ensureMissionSheetV116(){if(document.getElementById('missionSheetV116'))return;const sheet=document.createElement('div');sheet.id='missionSheetV116';sheet.onclick=e=>{if(e.target===sheet)closeMissionSheetV116()};sheet.innerHTML='<div class="mission-sheet-card-v116" id="missionSheetCardV116"></div>';document.getElementById('screenWrapper').appendChild(sheet)}
-function openMissionSheetV116(content){ensureMissionSheetV116();document.getElementById('missionSheetCardV116').innerHTML=content;document.getElementById('missionSheetV116').classList.add('open');window.hideBottomNavigation?.();lucide.createIcons()}
-function closeMissionSheetV116(){document.getElementById('missionSheetV116')?.classList.remove('open');window.syncBottomNavigationForScreen?.()}
+let lastMissionSheetTriggerV175=null;
+function renderMissionSheetActionItemV175(opts){
+ const cls=['mission-sheet-action-v116',opts.variant||''].filter(Boolean).join(' ');
+ const iconName=opts.icon||'circle';
+ const iconHtml=typeof window.renderFocusIconSvg==='function'?window.renderFocusIconSvg(iconName):'<i data-lucide="'+iconName+'"></i>';
+ const trailingHtml=opts.trailingIcon?(typeof window.renderFocusIconSvg==='function'?window.renderFocusIconSvg(opts.trailingIcon,'mission-sheet-trailing-icon'):'<i data-lucide="'+opts.trailingIcon+'" class="mission-sheet-trailing-icon"></i>'):'';
+ return '<button class="'+cls+'" type="button" data-mission-action="'+(opts.actionKey||iconName)+'" onclick="'+opts.onclick+'">'
+   +'<span class="mission-sheet-action-icon" aria-hidden="true">'+iconHtml+'</span>'
+   +'<span class="mission-sheet-action-label">'+escapeHTML(opts.label||'')+'</span>'
+   +trailingHtml
+ +'</button>';
+}
+function ensureMissionSheetV116(){if(document.getElementById('missionSheetV116'))return;const sheet=document.createElement('div');sheet.id='missionSheetV116';sheet.setAttribute('role','dialog');sheet.setAttribute('aria-modal','true');sheet.onclick=e=>{if(e.target===sheet)closeMissionSheetV116()};sheet.innerHTML='<div class="mission-sheet-card-v116" id="missionSheetCardV116"></div>';document.getElementById('screenWrapper').appendChild(sheet)}
+function openMissionSheetV116(content,triggerEl){
+ ensureMissionSheetV116();
+ if(triggerEl instanceof HTMLElement){
+   lastMissionSheetTriggerV175=triggerEl;
+ }else if(document.activeElement instanceof HTMLElement&&document.activeElement!==document.body){
+   lastMissionSheetTriggerV175=document.activeElement;
+ }
+ const card=document.getElementById('missionSheetCardV116');
+ const sheet=document.getElementById('missionSheetV116');
+ card.innerHTML='<div class="mission-sheet-handle-v175" aria-hidden="true"></div>'+content;
+ const lang=(window.FocusModeApp?.services?.storage?.getText('focus-mode-language','de')||document.documentElement.lang||'de')==='en'?'en':'de';
+ if(typeof translateTree==='function')translateTree(card,lang);
+ sheet.classList.add('open');
+ window.hideBottomNavigation?.();
+ lucide.createIcons();
+}
+function closeMissionSheetV116(){
+ const sheet=document.getElementById('missionSheetV116');
+ sheet?.classList.remove('open');
+ window.syncBottomNavigationForScreen?.();
+ if(lastMissionSheetTriggerV175&&document.contains(lastMissionSheetTriggerV175)){
+   const target=lastMissionSheetTriggerV175;
+   lastMissionSheetTriggerV175=null;
+   setTimeout(()=>{try{target.focus({preventScroll:true})}catch{}},40);
+ }
+}
 function missionHasActiveSessionV116(id){const s=window.activeSession||sessionRecoveryCandidate;return Boolean(s?.type==='mission'&&s.missionId===id&&ACTIVE_SESSION_STATES.includes(s.lifecycleState))}
 function renameMissionV116(id,title){const clean=String(title||'').trim().slice(0,80);if(!clean)return{ok:false,error:'title_invalid'};const m=missionRepository.update(id,{title:clean});return m?{ok:true,mission:m}:{ok:false,error:'mission_not_found'}}
 function restoreMissionV116(id){if(missionRepository.getActive().length>=2)return{ok:false,error:'active_mission_limit_reached'};const m=missionRepository.getById(id);if(!m||m.status!=='archived')return{ok:false,error:'mission_not_found'};const stepId=m.archivedCurrentStepId||m.steps.find(x=>x.status!=='completed')?.id||null;const updated=missionRepository.update(id,{status:stepId?'active':'completed',archivedAt:null,currentStepId:stepId,archivedCurrentStepId:null});if(updated?.status==='active'&&!missionRepository.getPrimaryId())missionRepository.setPrimary(id);return updated?{ok:true,mission:updated}:{ok:false,error:'restore_failed'}}
@@ -279,7 +434,7 @@ function renderMissionManagementV116(){
        +'<span class="mmc-title">'+escapeHTML(v.title)+'</span>'
        +'<span class="mmc-meta">'+escapeHTML(dateStr)+' · '+v.completedSteps+' von '+v.totalSteps+' Schritten</span>'
      +'</span>'
-     +'<button class="mmc-menu" type="button" aria-label="Mission verwalten"><i data-lucide="ellipsis"></i></button>'
+     +'<button class="mmc-menu" type="button" aria-label="Mission verwalten"><i data-lucide="more-horizontal"></i></button>'
    +'</div>'
    +'<div class="mmc-track"><i style="width:'+v.progressPercent+'%"></i></div>'
    +'<div class="mmc-foot"><span class="truncate">'+stepInfo+'</span><span class="font-extrabold text-[#1D1A17] shrink-0">'+v.progressPercent+'%</span></div>'
@@ -288,7 +443,8 @@ function renderMissionManagementV116(){
      +quickBtn
    +'</div>';
    card.querySelector('.mmc-copy').onclick=()=>openMission(m.id,'missions');
-   card.querySelector('.mmc-menu').onclick=e=>{e.stopPropagation();openMissionActionsV116(m.id)};
+   const menuBtn=card.querySelector('.mmc-menu');
+   menuBtn.onclick=e=>{e.stopPropagation();openMissionActionsV116(m.id,menuBtn)};
    list.append(card);
  });
  lucide.createIcons();
@@ -298,17 +454,135 @@ function openMissionManagementFromSettings(){openMissionManagementV116()}
 window.openMissionManagementV116=openMissionManagementV116;
 window.openMissionManagementFromSettings=openMissionManagementFromSettings;
 function newMissionFromManagerV116(){if(missionRepository.getActive().length>=2){showMissionLimitV116();return}if(typeof navigateForward==='function')navigateForward('goal',{parent:'missions',rootSection:'missions'});else setAppScreen('goal')}
-function showMissionLimitV116(){openMissionSheetV116('<h3>2 aktive Missionen erreicht</h3><p>Archiviere oder schließe zuerst eine aktive Mission ab, bevor du eine neue erstellst.</p><button class="mission-sheet-action-v116 primary" type="button" onclick="closeMissionSheetV116()">Verstanden</button>')}
-function openMissionActionsV116(id){const m=missionRepository.getById(id);if(!m)return;let actions='<h3>'+escapeHTML(m.title)+'</h3><p>Wähle eine Aktion für diese Mission.</p><button class="mission-sheet-action-v116 primary" type="button" onclick="closeMissionSheetV116();openMission(\''+id+'\')">Öffnen</button>';if(m.status==='active'&&!missionViewModelV116(m).isPrimary)actions+='<button class="mission-sheet-action-v116" type="button" onclick="makePrimaryV116(\''+id+'\')">Als Hauptmission festlegen</button>';actions+='<button class="mission-sheet-action-v116" type="button" onclick="openRenameMissionV116(\''+id+'\')">Umbenennen</button>';if(m.status!=='archived')actions+='<button class="mission-sheet-action-v116" type="button" onclick="confirmArchiveV116(\''+id+'\')">Archivieren</button>';else actions+='<button class="mission-sheet-action-v116" type="button" onclick="restoreMissionActionV116(\''+id+'\')">Wiederherstellen</button>';actions+='<button class="mission-sheet-action-v116 danger" type="button" onclick="confirmDeleteV116(\''+id+'\')">Löschen</button><button class="mission-sheet-action-v116" type="button" onclick="closeMissionSheetV116()">Abbrechen</button>';openMissionSheetV116(actions)}
+function showMissionLimitV116(){
+ openMissionSheetV116(
+   '<h3>2 aktive Missionen erreicht</h3>'
+   +'<p>Archiviere oder schließe zuerst eine aktive Mission ab, bevor du eine neue erstellst.</p>'
+   +'<div class="mission-sheet-actions-group">'
+     +renderMissionSheetActionItemV175({variant:'primary',icon:'check',actionKey:'understood',label:'Verstanden',onclick:'closeMissionSheetV116()'})
+   +'</div>'
+ );
+}
+function openMissionActionsV116(id,triggerEl){
+ const m=missionRepository.getById(id);if(!m)return;
+ const v=missionViewModelV116(m);
+ let listHtml='<div class="mission-sheet-actions-group">';
+ listHtml+=renderMissionSheetActionItemV175({
+   variant:'primary',
+   icon:'folder-open',
+   actionKey:'open',
+   label:'Öffnen',
+   trailingIcon:'arrow-up-right',
+   onclick:'closeMissionSheetV116();openMission(\''+id+'\')'
+ });
+ if(m.status==='active'&&!v.isPrimary){
+   listHtml+=renderMissionSheetActionItemV175({
+     variant:'',
+     icon:'star',
+     actionKey:'make-primary',
+     label:'Als Hauptmission festlegen',
+     onclick:'makePrimaryV116(\''+id+'\')'
+   });
+ }
+ listHtml+=renderMissionSheetActionItemV175({
+   variant:'',
+   icon:'pencil',
+   actionKey:'rename',
+   label:'Umbenennen',
+   onclick:'openRenameMissionV116(\''+id+'\')'
+ });
+ if(m.status!=='archived'){
+   listHtml+=renderMissionSheetActionItemV175({
+     variant:'archive-neutral',
+     icon:'archive',
+     actionKey:'archive',
+     label:'Archivieren',
+     onclick:'confirmArchiveV116(\''+id+'\')'
+   });
+ }else{
+   listHtml+=renderMissionSheetActionItemV175({
+     variant:'',
+     icon:'rotate-ccw',
+     actionKey:'restore',
+     label:'Wiederherstellen',
+     onclick:'restoreMissionActionV116(\''+id+'\')'
+   });
+ }
+ listHtml+='<div class="mission-sheet-separator-v116" role="separator"></div>';
+ listHtml+=renderMissionSheetActionItemV175({
+   variant:'danger',
+   icon:'trash-2',
+   actionKey:'delete',
+   label:'Löschen',
+   onclick:'confirmDeleteV116(\''+id+'\')'
+ });
+ listHtml+=renderMissionSheetActionItemV175({
+   variant:'cancel',
+   icon:'x',
+   actionKey:'cancel',
+   label:'Abbrechen',
+   onclick:'closeMissionSheetV116()'
+ });
+ listHtml+='</div>';
+ const headerHtml='<div class="mission-sheet-head-v175">'
+   +'<div class="mission-sheet-head-copy">'
+     +'<h3>'+escapeHTML(m.title)+'</h3>'
+     +'<p>Wähle eine Aktion für diese Mission.</p>'
+   +'</div>'
+   +'<button type="button" class="mission-sheet-close-btn" aria-label="Schließen" onclick="closeMissionSheetV116()"><i data-lucide="x"></i></button>'
+ +'</div>';
+ openMissionSheetV116(headerHtml+listHtml,triggerEl);
+}
 function makePrimaryV116(id){missionRepository.setPrimary(id);closeMissionSheetV116();refreshMissionUIV116()}
-function openRenameMissionV116(id){const m=missionRepository.getById(id);openMissionSheetV116('<h3>Mission umbenennen</h3><p>Der Plan und die bisherige Historie bleiben unverändert.</p><input class="mission-sheet-input-v116" id="renameMissionInputV116" maxlength="80" value="'+escapeHTML(m?.title||'')+'"><button class="mission-sheet-action-v116 primary" type="button" onclick="saveRenameMissionV116(\''+id+'\')">Speichern</button><button class="mission-sheet-action-v116" type="button" onclick="closeMissionSheetV116()">Abbrechen</button>')}
+function openRenameMissionV116(id){
+ const m=missionRepository.getById(id);
+ openMissionSheetV116(
+   '<div class="mission-sheet-head-v175"><div class="mission-sheet-head-copy"><h3>Mission umbenennen</h3><p>Der Plan und die bisherige Historie bleiben unverändert.</p></div><button type="button" class="mission-sheet-close-btn" aria-label="Schließen" onclick="closeMissionSheetV116()"><i data-lucide="x"></i></button></div>'
+   +'<input class="mission-sheet-input-v116" id="renameMissionInputV116" maxlength="80" value="'+escapeHTML(m?.title||'')+'">'
+   +'<div class="mission-sheet-actions-group">'
+     +renderMissionSheetActionItemV175({variant:'primary',icon:'check',actionKey:'save-rename',label:'Speichern',onclick:'saveRenameMissionV116(\''+id+'\')'})
+     +renderMissionSheetActionItemV175({variant:'cancel',icon:'x',actionKey:'cancel',label:'Abbrechen',onclick:'closeMissionSheetV116()'})
+   +'</div>'
+ );
+ setTimeout(()=>{const inp=document.getElementById('renameMissionInputV116');if(inp){inp.focus();inp.select?.()}},60);
+}
 function saveRenameMissionV116(id){const r=renameMissionV116(id,document.getElementById('renameMissionInputV116')?.value);if(!r.ok)return;closeMissionSheetV116();refreshMissionUIV116()}
-function confirmArchiveV116(id){if(missionHasActiveSessionV116(id)){openMissionSheetV116('<h3>Mission wird gerade verwendet</h3><p>Beende oder verwirf zuerst die laufende Fokus-Sitzung.</p><button class="mission-sheet-action-v116 primary" type="button" onclick="closeMissionSheetV116();routeExistingSessionV1151()">Zur Sitzung</button>');return}openMissionSheetV116('<h3>Mission archivieren?</h3><p>Der Fortschritt bleibt gespeichert und kann später wiederhergestellt werden.</p><button class="mission-sheet-action-v116 danger" type="button" onclick="archiveMissionActionV116(\''+id+'\')">Archivieren</button><button class="mission-sheet-action-v116" type="button" onclick="closeMissionSheetV116()">Abbrechen</button>')}
+function confirmArchiveV116(id){
+ if(missionHasActiveSessionV116(id)){
+   openMissionSheetV116(
+     '<h3>Mission wird gerade verwendet</h3>'
+     +'<p>Beende oder verwirf zuerst die laufende Fokus-Sitzung.</p>'
+     +'<div class="mission-sheet-actions-group">'
+       +renderMissionSheetActionItemV175({variant:'primary',icon:'play',actionKey:'go-session',label:'Zur Sitzung',onclick:'closeMissionSheetV116();routeExistingSessionV1151()'})
+       +renderMissionSheetActionItemV175({variant:'cancel',icon:'x',actionKey:'cancel',label:'Abbrechen',onclick:'closeMissionSheetV116()'})
+     +'</div>'
+   );
+   return;
+ }
+ openMissionSheetV116(
+   '<h3>Mission archivieren?</h3>'
+   +'<p>Der Fortschritt bleibt gespeichert und kann später wiederhergestellt werden.</p>'
+   +'<div class="mission-sheet-actions-group">'
+     +renderMissionSheetActionItemV175({variant:'archive-confirm',icon:'archive',actionKey:'confirm-archive',label:'Archivieren',onclick:'archiveMissionActionV116(\''+id+'\')'})
+     +renderMissionSheetActionItemV175({variant:'cancel',icon:'x',actionKey:'cancel',label:'Abbrechen',onclick:'closeMissionSheetV116()'})
+   +'</div>'
+ );
+}
 function archiveMissionActionV116(id){const r=missionRepository.archive(id);if(!r.ok)return;closeMissionSheetV116();refreshMissionUIV116()}
 function restoreMissionActionV116(id){const r=restoreMissionV116(id);if(!r.ok){showMissionLimitV116();return}closeMissionSheetV116();refreshMissionUIV116()}
-function confirmDeleteV116(id){if(missionHasActiveSessionV116(id)){confirmArchiveV116(id);return}openMissionSheetV116('<h3>Mission endgültig löschen?</h3><p>Der Missionsplan wird entfernt. Bereits gespeicherte Fokus-Sitzungen bleiben im Verlauf.</p><button class="mission-sheet-action-v116 danger" type="button" onclick="deleteMissionActionV116(\''+id+'\')">Endgültig löschen</button><button class="mission-sheet-action-v116" type="button" onclick="closeMissionSheetV116()">Abbrechen</button>')}
+function confirmDeleteV116(id){
+ if(missionHasActiveSessionV116(id)){confirmArchiveV116(id);return}
+ openMissionSheetV116(
+   '<h3>Mission endgültig löschen?</h3>'
+   +'<p>Der Missionsplan wird entfernt. Bereits gespeicherte Fokus-Sitzungen bleiben im Verlauf.</p>'
+   +'<div class="mission-sheet-actions-group">'
+     +renderMissionSheetActionItemV175({variant:'danger',icon:'trash-2',actionKey:'confirm-delete',label:'Endgültig löschen',onclick:'deleteMissionActionV116(\''+id+'\')'})
+     +renderMissionSheetActionItemV175({variant:'cancel',icon:'x',actionKey:'cancel',label:'Abbrechen',onclick:'closeMissionSheetV116()'})
+   +'</div>'
+ );
+}
 function deleteMissionActionV116(id){const r=missionRepository.delete(id);if(!r.ok)return;closeMissionSheetV116();refreshMissionUIV116()}
 function refreshMissionUIV116(){renderMultiMissionUIV115();renderHomeCarouselV116();renderFocusChoiceV116();if(document.getElementById('app-screen-missions'))renderMissionManagementV116();const selected=missionRepository.getSelected();if(selected){bindMissionCompatibilityV115(selected);if(!document.getElementById('app-screen-plan').classList.contains('hidden'))renderAIPlan(activeAIPlan)}}
 const applyScreenBeforeV116=applyAppScreenImmediately;applyAppScreenImmediately=function(screen){const r=applyScreenBeforeV116.apply(this,arguments);if(screen==='home')setTimeout(renderHomeCarouselV116,0);if(screen==='missions')setTimeout(renderMissionManagementV116,0);return r};
 const createBeforeV116=missionRepository.create.bind(missionRepository);missionRepository.create=function(input){const r=createBeforeV116(input);if(r.ok)setTimeout(refreshMissionUIV116,0);return r};
-document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{ensureMissionManagementScreenV116();refreshMissionUIV116();console.info('[MissionsUX]',{event:'v17_3_ready',active:missionRepository.getActive().length})},260),{once:true});
+document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{ensureMissionManagementScreenV116();refreshMissionUIV116();console.info('[MissionsUX]',{event:'v17_5_ready',active:missionRepository.getActive().length})},260),{once:true});

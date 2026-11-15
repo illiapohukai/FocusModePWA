@@ -1,5 +1,17 @@
 # Changelog — Focus Mode+
 
+## v17.5 Interaction Polish (2026-11-15)
+
+### Plus Panel Hub Redesign, Sharp Floating Navigation Dock, Mission Three-Dot Menu Icons, Continuous Focus Session Transition & Interactive Edge-Swipe Navigation
+- **Plus Panel Hub Redesign (`src/features/missions/mission-management.js`, `styles/navigation.css`, `index.html`, `src/core/bootstrap.js`)**:
+  - Redesigned `#focusChoiceOverlay` into a warm-cream creation and Mission-access hub (`Was möchtest du fokussieren?`) with two equal-height side-by-side primary cards (`Kurzer Fokus` & `Focus Mission`), real active Missions list (`BESTEHENDE MISSIONEN` + compact empty state), and bottom `Missionen verwalten` entry.
+- **Floating Navigation Blur Removal (`styles/app.css`, `styles/motion.css`, `src/core/navigation.js`)**:
+  - Removed all blur filters from `#bottomNavigationV17` and `#appBody` when the Plus panel is open so the floating navigation dock and central Plus button remain visually sharp above the dim backdrop.
+- **Mission Three-Dot Menu Icons (`src/features/missions/mission-management.js`, `styles/missions.css`, `src/core/bootstrap.js`)**:
+  - Added offline-safe SVG icons (`renderFocusIconSvg`) for `Öffnen` (`folder-open`), `Als Hauptmission festlegen` (`star`), `Umbenennen` (`pencil`), `Archivieren` (`archive`, neutral purple-gray), `Wiederherstellen` (`rotate-ccw`), `Löschen` (`trash-2`, destructive red separated by divider), and `Abbrechen` (`x`).
+- **Continuous Focus Session Start Transition & Navigation Polish (`src/core/motion-controller.js`, `src/core/navigation.js`, `src/features/quick-focus/quick-focus.js`)**:
+  - Rebuilt `animateFocusEnter` (`720ms` 5-phase continuous seed-to-planet transition into `#app-screen-timer`), connected `.uc-protect` to real `getSelectedDistractions()` state, tuned root-tab (`350ms–450ms`) and stack (`390ms` push / `370ms` pop) transitions, and added interactive left-edge swipe-back with scroll preservation.
+
 ## v17.4 Mission Scheduling UI (2026-11-11)
 
 ### Home Header Typography Restoration, Empty Card Rhythm, Cosmic Timer Protection Pill & Mission Creation Scheduling UI

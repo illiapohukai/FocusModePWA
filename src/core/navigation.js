@@ -961,7 +961,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
     }
 
     navState.__motionContext = isBackNavigationInProgress
-      ? { type: 'pop', direction: 'back', fromRoot, toRoot: section }
+      ? { type: 'pop', direction: 'back', fromRoot, toRoot: section, skipMotion: Boolean(isSwipeBackCommitInProgress) }
       : { type: 'root', fromRoot, toRoot: section };
 
     global.setAppScreen(section, { immediate: true, __fromNavController: true });
@@ -969,10 +969,92 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
     return true;
   }
 
+  const savedScrollPositions = new Map();
+
+  function getScrollTargetsForScreen(screenName) {
+    if (!screenName || typeof document === 'undefined') return [];
+    const screenEl = document.getElementById('app-screen-' + screenName);
+    if (!screenEl) return [];
+    const targets = [screenEl];
+    const innerSelectors = [
+      '.home-scroll-content',
+      '#missionManagementListV116',
+      '.mission-goal-shell',
+      '.qb-main',
+      '#sessionHistoryList',
+      '.settings-shell-v173',
+      '.data-screen-shell'
+    ];
+    innerSelectors.forEach((sel) => {
+      const el = screenEl.querySelector(sel);
+      if (el) targets.push(el);
+    });
+    return targets;
+  }
+
+  function saveScreenScrollPosition(screenName) {
+    if (!screenName) return;
+    const targets = getScrollTargetsForScreen(screenName);
+    if (!targets.length) return;
+    const snapshot = targets.map((el) => ({ el, top: el.scrollTop || 0 }));
+    savedScrollPositions.set(screenName, snapshot);
+  }
+
+  function restoreScreenScrollPosition(screenName) {
+    if (!screenName) return;
+    const snapshot = savedScrollPositions.get(screenName);
+    if (!Array.isArray(snapshot) || !snapshot.length) return;
+    const applyScroll = () => {
+      snapshot.forEach((entry) => {
+        if (entry && entry.el && entry.el.isConnected) {
+          entry.el.scrollTop = entry.top;
+        }
+      });
+    };
+    applyScroll();
+    requestAnimationFrame(applyScroll);
+  }
+
+  let isSwipeBackCommitInProgress = false;
+
+  function getBackTargetScreen(fromScreen) {
+    const current = fromScreen || getVisibleScreenName();
+    if (!current || ROOT_SECTIONS.includes(current)) return null;
+    if (current === 'timer' || current === 'result' || current === 'session-recovery' || current === 'analyzing' || current === 'feedbackprocessing') {
+      return null;
+    }
+    if (current === 'data') return 'settings';
+    if (current === 'stats') return 'history';
+    if (current === 'confirm' || current === 'filepicker') return 'goal';
+    if (current === 'distractions') {
+      try {
+        return distractionReturnScreen || global.distractionReturnScreen || 'quicksetup';
+      } catch (_) {
+        return global.distractionReturnScreen || 'quicksetup';
+      }
+    }
+    if (current === 'quicksetup') {
+      const topEntry = navState.navigationStack[navState.navigationStack.length - 1];
+      return (topEntry && topEntry.screen) ? topEntry.screen : 'home';
+    }
+    if (current === 'plan') {
+      return navState.missionPlanSource === 'home' ? 'home' : 'missions';
+    }
+    if (navState.navigationStack.length > 0) {
+      const topEntry = navState.navigationStack[navState.navigationStack.length - 1];
+      if (topEntry && topEntry.screen) return topEntry.screen;
+    }
+    return LOGICAL_PARENT_MAP[current] || 'home';
+  }
+
   function navigateForward(screen, context = {}) {
     if (!screen) return false;
     const fromScreen = context.parent || getVisibleScreenName();
     const rootSection = context.rootSection || resolveActiveRootForScreen(screen) || navState.currentRootSection || 'home';
+
+    if (fromScreen) {
+      saveScreenScrollPosition(fromScreen);
+    }
 
     const choiceOverlay = global.document?.getElementById('focusChoiceOverlay');
     if (choiceOverlay && !choiceOverlay.classList.contains('hidden') && typeof global.closeFocusChoice === 'function') {
@@ -1038,8 +1120,9 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
     return true;
   }
 
-  function navigateBack() {
+  function navigateBack(backOptions = {}) {
     const current = getVisibleScreenName();
+    const skipMotion = Boolean(backOptions && backOptions.skipMotion);
 
     // Active session guard: never silently leave the running timer
     if (current === 'timer') {
@@ -1050,10 +1133,12 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
         return false;
       }
       isBackNavigationInProgress = true;
+      isSwipeBackCommitInProgress = skipMotion;
       try {
         return navigateToRoot('home');
       } finally {
         isBackNavigationInProgress = false;
+        isSwipeBackCommitInProgress = false;
       }
     }
 
@@ -1063,47 +1148,61 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
     }
 
     isBackNavigationInProgress = true;
+    isSwipeBackCommitInProgress = skipMotion;
     try {
       // Explicit logical parent contracts (Section 11)
       if (current === 'data') {
         if (typeof global.cancelPendingDataImport === 'function') global.cancelPendingDataImport();
         if (typeof global.hideResetConfirmCard === 'function') global.hideResetConfirmCard();
-        return navigateToRoot('settings');
+        const res = navigateToRoot('settings');
+        restoreScreenScrollPosition('settings');
+        return res;
       }
 
       if (current === 'stats') {
-        return navigateToRoot('history');
+        const res = navigateToRoot('history');
+        restoreScreenScrollPosition('history');
+        return res;
       }
 
       if (current === 'confirm' || current === 'filepicker') {
-        navState.__motionContext = { type: 'pop', direction: 'back' };
+        navState.__motionContext = { type: 'pop', direction: 'back', skipMotion };
         global.setAppScreen('goal', { immediate: true, __fromNavController: true });
+        restoreScreenScrollPosition('goal');
         return true;
       }
 
       if (current === 'distractions') {
-        if (typeof global.returnFromDistractionPicker === 'function') {
-          global.returnFromDistractionPicker();
-          return true;
+        let target = 'quicksetup';
+        try { target = distractionReturnScreen || global.distractionReturnScreen || 'quicksetup'; } catch (_) { target = global.distractionReturnScreen || 'quicksetup'; }
+        if (typeof global.updateProtectionSummary === 'function') {
+          global.updateProtectionSummary();
         }
-        navState.__motionContext = { type: 'pop', direction: 'back' };
-        global.setAppScreen('quicksetup', { immediate: true, __fromNavController: true });
+        if (target === 'timer') {
+          hideBottomNavigation();
+        }
+        navState.__motionContext = { type: 'pop', direction: 'back', skipMotion };
+        global.setAppScreen(target, { immediate: true, __fromNavController: true });
+        restoreScreenScrollPosition(target);
         return true;
       }
 
       if (current === 'quicksetup') {
         const topEntry = navState.navigationStack.pop();
-        const shouldReopenChoice = topEntry ? Boolean(topEntry.reopenFocusChoice) : true;
+        const targetScreen = (topEntry && topEntry.screen) ? topEntry.screen : 'home';
+        const shouldReopenChoice = Boolean(topEntry && topEntry.reopenFocusChoice);
         navState.navigationStack = [];
-        navState.__motionContext = { type: 'pop', direction: 'back' };
-        global.setAppScreen('home', { immediate: true, __fromNavController: true });
-        if (shouldReopenChoice) {
-          setTimeout(() => {
-            if (typeof global.openFocusChoice === 'function') {
-              global.openFocusChoice();
-            }
-          }, 30);
+        if (ROOT_SECTIONS.includes(targetScreen)) {
+          const res = navigateToRoot(targetScreen);
+          restoreScreenScrollPosition(targetScreen);
+          if (shouldReopenChoice && targetScreen === 'home') {
+            setTimeout(() => global.openFocusChoice?.(), 30);
+          }
+          return res;
         }
+        navState.__motionContext = { type: 'pop', direction: 'back', skipMotion };
+        global.setAppScreen(targetScreen, { immediate: true, __fromNavController: true });
+        restoreScreenScrollPosition(targetScreen);
         return true;
       }
 
@@ -1111,7 +1210,9 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
         const targetRoot = navState.missionPlanSource === 'home' ? 'home' : 'missions';
         navState.missionPlanSource = null;
         navState.explicitMissionPlanSourceSet = false;
-        return navigateToRoot(targetRoot);
+        const res = navigateToRoot(targetRoot);
+        restoreScreenScrollPosition(targetRoot);
+        return res;
       }
 
       // Stack-based return for goal, score, premium, chat, etc.
@@ -1122,27 +1223,34 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
           if (ROOT_SECTIONS.includes(prevEntry.rootSection)) {
             navState.currentRootSection = prevEntry.rootSection;
           }
-          if (prevEntry.screen === 'missions') {
-            return navigateToRoot('missions');
+          if (ROOT_SECTIONS.includes(prevEntry.screen)) {
+            const res = navigateToRoot(prevEntry.screen);
+            restoreScreenScrollPosition(prevEntry.screen);
+            if (prevEntry.reopenFocusChoice && prevEntry.screen === 'home') {
+              setTimeout(() => global.openFocusChoice?.(), 30);
+            }
+            return res;
           }
-          navState.__motionContext = { type: 'pop', direction: 'back' };
+          navState.__motionContext = { type: 'pop', direction: 'back', skipMotion };
           global.setAppScreen(prevEntry.screen, { immediate: true, __fromNavController: true });
-          if (prevEntry.reopenFocusChoice && prevEntry.screen === 'home') {
-            setTimeout(() => global.openFocusChoice?.(), 30);
-          }
+          restoreScreenScrollPosition(prevEntry.screen);
           return true;
         }
       }
 
       const fallbackParent = LOGICAL_PARENT_MAP[current] || 'home';
       if (ROOT_SECTIONS.includes(fallbackParent)) {
-        return navigateToRoot(fallbackParent);
+        const res = navigateToRoot(fallbackParent);
+        restoreScreenScrollPosition(fallbackParent);
+        return res;
       }
-      navState.__motionContext = { type: 'pop', direction: 'back' };
+      navState.__motionContext = { type: 'pop', direction: 'back', skipMotion };
       global.setAppScreen(fallbackParent, { immediate: true, __fromNavController: true });
+      restoreScreenScrollPosition(fallbackParent);
       return true;
     } finally {
       isBackNavigationInProgress = false;
+      isSwipeBackCommitInProgress = false;
     }
   }
 
@@ -1157,6 +1265,9 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
         }
         applySyncDepth++;
         const prevVisible = getVisibleScreenName();
+        if (prevVisible && prevVisible !== screenName) {
+          saveScreenScrollPosition(prevVisible);
+        }
         try {
           const result = currentApply.apply(this, arguments);
           const actualScreen = getVisibleScreenName();
@@ -1218,13 +1329,15 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
     const currentOpenQuick = global.openQuickSetupFromChoice;
     if (typeof currentOpenQuick === 'function' && !currentOpenQuick.__v17QuickWrapped) {
       function openQuickSetupFromChoiceV17() {
+        const fromScreen = getVisibleScreenName() || 'home';
+        const fromRoot = navState.currentRootSection || resolveActiveRootForScreen(fromScreen) || 'home';
         navState.pendingScreen = 'quicksetup';
-        hideBottomNavigation();
         global.closeFocusChoice?.({ immediate: true });
+        hideBottomNavigation();
         navigateForward('quicksetup', {
-          parent: 'home',
-          rootSection: 'home',
-          reopenFocusChoice: true,
+          parent: fromScreen,
+          rootSection: fromRoot,
+          reopenFocusChoice: false,
           options: { immediate: true }
         });
       }
@@ -1258,6 +1371,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
         }
         navState.__motionContext = { type: 'pop', direction: 'back' };
         global.setAppScreen(target, { immediate: true, __fromNavController: true });
+        restoreScreenScrollPosition(target);
       }
       returnFromDistractionPickerV17.__v17Wrapped = true;
       global.returnFromDistractionPicker = returnFromDistractionPickerV17;
@@ -1275,6 +1389,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
         }
         navState.__motionContext = { type: 'pop', direction: 'back' };
         global.setAppScreen(target, { immediate: true, __fromNavController: true });
+        restoreScreenScrollPosition(target);
       }
       saveDistractionsV17.__v17Wrapped = true;
       global.saveDistractions = saveDistractionsV17;
@@ -1283,12 +1398,12 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
 
   wrapApplyScreenV17();
 
-  // Wrap openFocusChoice and closeFocusChoice to coordinate bottom navigation
+  // Keep bottom navigation visible and sharp when Plus panel opens
   const origOpenChoice = global.openFocusChoice;
   if (typeof origOpenChoice === 'function') {
     global.openFocusChoice = function openFocusChoiceWithNavV17() {
       const res = origOpenChoice.apply(this, arguments);
-      hideBottomNavigation();
+      showBottomNavigation();
       return res;
     };
   }
@@ -1313,6 +1428,9 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
   global.navigateForward = navigateForward;
   global.navigateBack = navigateBack;
   global.replaceScreen = replaceScreen;
+  global.getBackTargetScreen = getBackTargetScreen;
+  global.saveScreenScrollPosition = saveScreenScrollPosition;
+  global.restoreScreenScrollPosition = restoreScreenScrollPosition;
   global.showBottomNavigation = showBottomNavigation;
   global.hideBottomNavigation = hideBottomNavigation;
   global.syncBottomNavigationForScreen = syncBottomNavigationForScreen;

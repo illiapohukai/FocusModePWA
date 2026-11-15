@@ -29,7 +29,7 @@
     window.openMission=function(id){
       syncMissionCarouselPaintV1161();
       /* Do not animate a stale Home frame while the plan is being prepared. */
-      const result=oldOpen.call(this,id);
+      const result=oldOpen.apply(this,arguments);
       syncMissionCarouselPaintV1161();
       return result;
     };
@@ -90,9 +90,11 @@
    const shell=document.createElement('div');
    shell.id='missionAuraShellV1181';
    shell.className=active.length===1?'single-mission-shell':'multi-mission-shell';
+   shell.setAttribute('data-block-swipe-back','true');
    const host=document.createElement('div');
    host.id='missionCarouselV1181';
    host.className=active.length===1?'single-mission':'multi-mission';
+   host.setAttribute('data-block-swipe-back','true');
    host.innerHTML=active.map(m=>{
      const vm=missionViewModelV116(m);
      return renderMissionHeroV116(vm).replace('class="mission-hero-v116','data-aura="'+vm.theme+'" class="mission-hero-v116');

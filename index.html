@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 
-<html class="dark" lang="de"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/><meta content="#F6F1E7" name="theme-color"/><title>v17.4.2 Gemini 3.8 Flash Integration</title>
-<meta name="description" content="Focus Mode+ v17.4.2 Gemini 3.8 Flash Integration — Zuverlässige AI-Missionserstellung mit Kalender-Sheet, Bild-Upload und Zeitplan-Integration.">
-<meta property="og:title" content="v17.4.2 Gemini 3.8 Flash Integration">
-<meta property="og:description" content="Focus Mode+ v17.4.2 Gemini 3.8 Flash Integration — Zuverlässige AI-Missionserstellung mit Kalender-Sheet, Bild-Upload und Zeitplan-Integration."><script src="https://cdn.tailwindcss.com"></script><script>window.tailwind=window.tailwind||{};tailwind.config={darkMode:'class'}</script><script src="https://unpkg.com/lucide@latest"></script><script>window.lucide=window.lucide||{createIcons:function(){}}</script><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>  <link rel="stylesheet" href="./styles/app.css" />
+<html class="dark" lang="de"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/><meta content="#F6F1E7" name="theme-color"/><title>v17.5 Interaction Polish</title>
+<meta name="description" content="Focus Mode+ v17.5 Interaction Polish — Plus-Panel-Hub, Missionsmenü-Icons und kontinuierlicher Fokus-Sitzungs-Übergang.">
+<meta property="og:title" content="v17.5 Interaction Polish">
+<meta property="og:description" content="Focus Mode+ v17.5 Interaction Polish — Plus-Panel-Hub, Missionsmenü-Icons und kontinuierlicher Fokus-Sitzungs-Übergang."><script src="https://cdn.tailwindcss.com"></script><script>window.tailwind=window.tailwind||{};tailwind.config={darkMode:'class'}</script><script src="https://unpkg.com/lucide@latest"></script><script>window.lucide=window.lucide||{createIcons:function(){}}</script><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>  <link rel="stylesheet" href="./styles/app.css" />
   <link rel="stylesheet" href="./styles/timer.css" />
   <link rel="stylesheet" href="./styles/recovery.css" />
   <link rel="stylesheet" href="./styles/quick-focus.css" />
@@ -314,7 +314,7 @@
     </div>
     <section class="mg-section">
       <h4>Mission-Typ</h4>
-      <div class="mg-type-carousel" id="missionTypeCarousel">
+      <div class="mg-type-carousel" id="missionTypeCarousel" data-block-swipe-back="true">
         <button class="flow-chip mg-type-card" data-index="0" onclick="selectMissionType(this)"><span class="mg-emoji">📔</span><b>Prüfung</b></button>
         <button class="flow-chip mg-type-card" data-index="1" onclick="selectMissionType(this)"><span class="mg-emoji">📋</span><b>Aufgabe</b></button>
         <button class="flow-chip mg-type-card" data-index="2" onclick="selectMissionType(this)"><span class="mg-emoji">🧊</span><b>Projekt</b></button>
@@ -894,7 +894,7 @@
               <div class="settings-row-sub">Offline-fähig · Lokale Speicherung</div>
             </div>
           </div>
-          <span class="text-[10px] font-bold text-slate-600">v17.3.2 Fluid Motion System</span>
+          <span class="text-[10px] font-bold text-slate-600">v17.5 Interaction Polish</span>
         </div>
       </div>
     </div>
@@ -911,7 +911,7 @@
 <span class="text-[9px] font-black uppercase tracking-wider text-indigo-600 block">Lokale Datenstabilität</span>
 <h3 class="text-base font-black text-slate-900 truncate">Daten &amp; Backup</h3>
 </div>
-<span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100" id="dataAppVersionBadge">v17.3.2 Fluid Motion System</span>
+<span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100" id="dataAppVersionBadge">v17.5 Interaction Polish</span>
 </div>
 
 <div class="data-summary-card">
@@ -1186,27 +1186,60 @@
 <!-- Home Indicator -->
 <div class="h-5 bg-white flex items-center justify-center pb-2 shrink-0 z-40 transition-colors duration-300 cursor-pointer" id="homeBar" onclick="setAppScreen('home')">
 <div class="w-28 h-1 bg-slate-300 rounded-full"></div>
-</div><div class="hidden absolute inset-0 z-[80] flex flex-col justify-end p-5 overflow-hidden" id="focusChoiceOverlay">
-<div class="focus-choice-backdrop" onclick="closeFocusChoice()"></div><div class="absolute inset-0 pointer-events-none" id="focusChoiceChrome"><div class="choice-status"><span id="choiceStatusTime">09:41</span><div class="choice-status-icons"><i data-lucide="signal"></i><i data-lucide="wifi"></i><span class="choice-battery"><span></span></span></div></div><div class="choice-home-indicator"></div></div>
-<div class="relative z-10 bg-white rounded-[30px] p-4 shadow-2xl border border-white focus-choice-sheet">
-<div class="w-10 h-1 bg-slate-200 rounded-full mx-auto mb-4"></div>
-<div class="flex items-start justify-between gap-3 mb-4">
-<div><div class="text-[9px] font-black uppercase tracking-[.16em] text-indigo-500">Fokus starten</div><h3 class="text-lg font-black tracking-tight text-slate-950 mt-1">Wähle deinen Modus</h3><p class="text-[9px] leading-relaxed text-slate-400 mt-1">Sofort loslegen oder eine wichtige Aufgabe als Mission verfolgen.</p></div>
-<button class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center shrink-0" onclick="closeFocusChoice()"><i class="w-4 h-4" data-lucide="x"></i></button>
-</div>
-<div class="space-y-2.5">
-<button class="w-full p-3.5 rounded-2xl border border-slate-200 bg-white text-left flex items-center gap-3 shadow-sm hover:border-indigo-200 hover:bg-indigo-50/40 transition" onclick="openQuickSetupFromChoice()">
-<div class="w-11 h-11 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0"><i class="w-5 h-5" data-lucide="timer"></i></div>
-<div class="flex-1 min-w-0"><div class="flex items-center gap-2"><span class="text-[11px] font-black text-slate-900">Kurzer Fokus</span><span class="shrink-0 whitespace-nowrap text-[8px] leading-none font-bold px-2 py-1 rounded-full bg-slate-100 text-slate-500">Flexibel</span></div><div class="text-[9px] leading-relaxed text-slate-400 mt-1">Dauer, Pause und Ablenkungen selbst wählen.</div></div>
-<i class="w-4 h-4 text-slate-300" data-lucide="chevron-right"></i>
-</button>
-<button class="w-full p-3.5 rounded-2xl border border-slate-200 bg-white text-left flex items-center gap-3 shadow-sm hover:border-indigo-200 hover:bg-indigo-50/40 transition" onclick="continueMissionFromChoice()">
-<div class="w-11 h-11 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0"><i class="w-5 h-5" data-lucide="target"></i></div>
-<div class="flex-1 min-w-0"><div class="flex items-center gap-2"><span class="text-[11px] font-black text-slate-900">Focus Mission</span></div><div class="text-[9px] leading-relaxed text-slate-500 mt-1">Wichtige Aufgaben planen und fokussiert abschließen.</div></div>
-<i class="w-4 h-4 text-indigo-400" data-lucide="chevron-right"></i>
-</button>
-</div>
-<button class="w-full mt-3 py-2 text-[9px] font-bold text-slate-400 hover:text-indigo-600 transition" onclick="openNewMissionFromChoice()">+ Neue Focus Mission erstellen</button>
+</div><div class="hidden absolute inset-0 z-[115] flex flex-col justify-end p-4 overflow-hidden" id="focusChoiceOverlay">
+<div class="focus-choice-backdrop" onclick="closeFocusChoice()"></div><div class="absolute inset-0 pointer-events-none hidden" id="focusChoiceChrome"><div class="choice-status"><span id="choiceStatusTime">09:41</span><div class="choice-status-icons"><i data-lucide="signal"></i><i data-lucide="wifi"></i><span class="choice-battery"><span></span></span></div></div><div class="choice-home-indicator"></div></div>
+<div class="relative z-10 focus-choice-sheet fm-plus-hub-sheet" role="dialog" aria-modal="true" aria-labelledby="focusChoiceTitleV175">
+  <div class="fm-plus-sheet-handle" aria-hidden="true"></div>
+  <header class="fm-plus-header">
+    <div class="fm-plus-header-copy">
+      <h3 class="fm-plus-title" id="focusChoiceTitleV175">Was möchtest du fokussieren?</h3>
+      <p class="fm-plus-subtitle">Starte direkt oder arbeite an einer Mission weiter.</p>
+    </div>
+    <button type="button" class="fm-plus-close-btn" onclick="closeFocusChoice()" aria-label="Schließen" title="Schließen">
+      <i data-lucide="x"></i>
+    </button>
+  </header>
+  <div class="fm-plus-primary-grid">
+    <button type="button" class="fm-plus-card fm-plus-card-quick" id="plusQuickFocusCard" onclick="openQuickSetupFromChoice()">
+      <div class="fm-plus-card-top">
+        <span class="fm-plus-card-icon fm-plus-card-icon-quick" aria-hidden="true"><i data-lucide="timer"></i></span>
+        <span class="fm-plus-card-arrow" aria-hidden="true"><i data-lucide="arrow-up-right"></i></span>
+      </div>
+      <div class="fm-plus-card-body">
+        <strong class="fm-plus-card-title">Kurzer Fokus</strong>
+        <span class="fm-plus-card-desc">Eine Aufgabe, direkt starten.</span>
+      </div>
+    </button>
+    <button type="button" class="fm-plus-card fm-plus-card-mission" id="plusFocusMissionCard" onclick="newMissionFromFocusV116()">
+      <div class="fm-plus-card-top">
+        <span class="fm-plus-card-icon fm-plus-card-icon-mission" aria-hidden="true"><i data-lucide="clipboard-list"></i></span>
+        <span class="fm-plus-card-arrow" aria-hidden="true"><i data-lucide="plus"></i></span>
+      </div>
+      <div class="fm-plus-card-body">
+        <strong class="fm-plus-card-title">Focus Mission</strong>
+        <span class="fm-plus-card-desc">Ein Ziel planen und in Schritte teilen.</span>
+      </div>
+    </button>
+  </div>
+  <section class="fm-plus-missions-section" id="focusMissionListV116" aria-labelledby="plusExistingMissionsHeading">
+    <div class="fm-plus-section-head">
+      <span class="fm-plus-section-label" id="plusExistingMissionsHeading">BESTEHENDE MISSIONEN</span>
+    </div>
+    <div class="fm-plus-mission-empty">
+      <span class="fm-plus-mission-empty-icon" aria-hidden="true"><i data-lucide="target"></i></span>
+      <span>Noch keine aktive Mission.</span>
+    </div>
+  </section>
+  <div class="fm-plus-footer-section">
+    <button type="button" class="fm-plus-manage-row" id="plusManageMissionsBtn" onclick="openMissionManagementV116()">
+      <span class="fm-plus-manage-icon" aria-hidden="true"><i data-lucide="sliders-horizontal"></i></span>
+      <span class="fm-plus-manage-copy">
+        <strong class="fm-plus-manage-title">Missionen verwalten</strong>
+        <span class="fm-plus-manage-sub">Aktiv, abgeschlossen und archiviert</span>
+      </span>
+      <span class="fm-plus-manage-chevron" aria-hidden="true"><i data-lucide="chevron-right"></i></span>
+    </button>
+  </div>
 </div>
 </div>
 <div id="ucTaskPopup" onclick="if(event.target===this)hideUcTask()"><div><small>Aktuelle Aufgabe</small><h3 id="ucTaskTitle">Missionsschritt</h3><p id="ucTaskText">Aufgabe</p><button onclick="hideUcTask()">Weiter fokussieren</button></div></div>

@@ -978,109 +978,626 @@ html:not(.pwa-dark-status) body::after {
 }
 
 /* =========================================
-   FOCUS CHOICE SHEET & MISSION MANAGE CARD
+   FOCUS CHOICE SHEET (PLUS PANEL HUB V17.5)
    ========================================= */
-#focusChoiceOverlay .focus-choice-sheet {
-  background: var(--surface) !important;
-  border-color: var(--border) !important;
-  color: var(--text-primary) !important;
-}
-
-.focus-manage-v116.focus-manage-card-v17 {
-  width: 100%;
-  min-height: 58px;
-  margin-top: 9px;
-  padding: 12px 13px;
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  background: var(--surface);
-  color: var(--text-primary);
+#focusChoiceOverlay {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  justify-content: flex-end;
+  padding: 14px 14px calc(var(--fm-nav-total-height, 76px) + 12px) !important;
+  box-sizing: border-box;
+}
+
+#focusChoiceOverlay.hidden {
+  display: none !important;
+}
+
+#focusChoiceOverlay .focus-choice-sheet,
+#focusChoiceOverlay .focus-choice-sheet.fm-plus-hub-sheet {
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+  padding: 14px 15px 15px !important;
+  border-radius: 28px !important;
+  background: #FCF9F4 !important;
+  border: 1px solid rgba(45, 35, 30, 0.12) !important;
+  color: var(--text-primary) !important;
+  box-shadow:
+    0 24px 60px rgba(24, 14, 34, 0.28),
+    0 4px 16px rgba(37, 22, 43, 0.10) !important;
+  max-height: calc(100% - 16px);
+  overflow-y: auto;
+  scrollbar-width: none;
+  box-sizing: border-box;
+}
+
+#focusChoiceOverlay .focus-choice-sheet::-webkit-scrollbar {
+  display: none;
+}
+
+.fm-plus-sheet-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(45, 35, 30, 0.15);
+  margin: 0 auto 10px;
+}
+
+.fm-plus-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.fm-plus-header-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.fm-plus-title {
+  margin: 0 !important;
+  font-size: 19px !important;
+  line-height: 1.15 !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.03em !important;
+  color: #1D1A17 !important;
+}
+
+.fm-plus-subtitle {
+  margin: 3px 0 0 !important;
+  font-size: 11.5px !important;
+  line-height: 1.35 !important;
+  font-weight: 600 !important;
+  color: #766E65 !important;
+}
+
+.fm-plus-close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(45, 35, 30, 0.10);
+  background: #EFE9DD;
+  color: #5C544D;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: transform 0.14s ease, background-color 0.14s ease, color 0.14s ease;
+}
+
+.fm-plus-close-btn:hover {
+  background: #E5DEC9;
+  color: #1D1A17;
+}
+
+.fm-plus-close-btn:active {
+  transform: scale(0.93);
+}
+
+.fm-plus-close-btn svg {
+  width: 15px !important;
+  height: 15px !important;
+}
+
+/* Primary Focus Mode Cards (Two Equal-Height Side-by-Side Cards) */
+.fm-plus-primary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  align-items: stretch;
+}
+
+.fm-plus-card {
+  position: relative;
+  min-height: 132px;
+  padding: 13px 13px 12px;
+  border-radius: 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   text-align: left;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(37, 22, 43, 0.05);
-  transition: background-color 0.16s ease, border-color 0.16s ease, transform 0.12s ease;
+  overflow: hidden;
+  transition: transform 0.16s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.16s ease, border-color 0.16s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.focus-manage-v116.focus-manage-card-v17:hover {
-  border-color: rgba(109, 40, 217, 0.3);
+.fm-plus-card:active {
+  transform: scale(0.975);
 }
 
-.focus-manage-v116.focus-manage-card-v17:active {
-  transform: scale(0.985);
+/* Left Card — Kurzer Fokus (Warm cream surface with subtle purple border) */
+.fm-plus-card-quick {
+  background: linear-gradient(155deg, #FFFFFF 0%, #F7F2E8 100%);
+  border: 1.5px solid rgba(109, 40, 217, 0.24);
+  color: #1D1A17;
+  box-shadow: 0 10px 24px rgba(109, 40, 217, 0.08);
 }
 
-.fm-manage-main {
+.fm-plus-card-quick:hover {
+  border-color: rgba(109, 40, 217, 0.42);
+  box-shadow: 0 12px 28px rgba(109, 40, 217, 0.13);
+}
+
+/* Right Card — Focus Mission (Deep aubergine surface with warm cream text) */
+.fm-plus-card-mission {
+  background-color: #25162B;
+  background-image:
+    radial-gradient(circle at 88% 14%, rgba(139, 92, 246, 0.36), transparent 45%),
+    linear-gradient(155deg, #2B1933 0%, #211327 62%, #180E1D 100%);
+  border: 1.5px solid rgba(196, 181, 253, 0.22);
+  color: #FCF9F4;
+  box-shadow: 0 12px 28px rgba(37, 22, 43, 0.22);
+}
+
+.fm-plus-card-mission:hover {
+  border-color: rgba(196, 181, 253, 0.38);
+}
+
+.fm-plus-card-MissionLimit {
+  opacity: 0.92;
+}
+
+.fm-plus-card-top {
   display: flex;
   align-items: center;
-  gap: 11px;
+  justify-content: space-between;
+  gap: 6px;
   width: 100%;
 }
 
-.fm-manage-icon {
+.fm-plus-card-icon {
   width: 38px;
   height: 38px;
   border-radius: 13px;
-  background: #F3E8FF;
-  color: var(--primary);
-  border: 1px solid #E9D5FF;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 
-.fm-manage-icon svg {
-  width: 18px !important;
-  height: 18px !important;
+.fm-plus-card-icon svg {
+  width: 19px !important;
+  height: 19px !important;
 }
 
-.fm-manage-copy {
+.fm-plus-card-icon-quick {
+  background: #F3E8FF;
+  color: #6D28D9;
+  border: 1px solid #E9D5FF;
+}
+
+.fm-plus-card-icon-mission {
+  background: rgba(167, 139, 250, 0.18);
+  color: #DDD6FE;
+  border: 1px solid rgba(196, 181, 253, 0.26);
+}
+
+.fm-plus-card-arrow {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.72;
+}
+
+.fm-plus-card-quick .fm-plus-card-arrow {
+  background: rgba(109, 40, 217, 0.08);
+  color: #6D28D9;
+}
+
+.fm-plus-card-mission .fm-plus-card-arrow {
+  background: rgba(255, 255, 255, 0.10);
+  color: #EDE9FE;
+}
+
+.fm-plus-card-arrow svg {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+.fm-plus-card-limit-pill {
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #DDD6FE;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+}
+
+.fm-plus-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 12px;
+}
+
+.fm-plus-card-title {
+  font-size: 14px;
+  line-height: 1.18;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.fm-plus-card-quick .fm-plus-card-title {
+  color: #1D1A17;
+}
+
+.fm-plus-card-mission .fm-plus-card-title {
+  color: #FFFFFF;
+}
+
+.fm-plus-card-desc {
+  font-size: 10.5px;
+  line-height: 1.32;
+  font-weight: 600;
+}
+
+.fm-plus-card-quick .fm-plus-card-desc {
+  color: #6E655C;
+}
+
+.fm-plus-card-mission .fm-plus-card-desc {
+  color: rgba(246, 241, 231, 0.78);
+}
+
+/* Existing Missions Section inside Plus Panel */
+.fm-plus-missions-section {
+  margin-top: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.fm-plus-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 3px;
+}
+
+.fm-plus-section-head .focus-section-label-v116,
+.fm-plus-section-label {
+  margin: 0 !important;
+  font-size: 9px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.13em !important;
+  text-transform: uppercase;
+  color: #766E65 !important;
+}
+
+.fm-plus-slot-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #EFE9DD;
+  border: 1px solid rgba(45, 35, 30, 0.08);
+  color: #5C544D;
+  font-size: 9.5px;
+  font-weight: 850;
+  font-variant-numeric: tabular-nums;
+}
+
+.fm-plus-mission-list,
+.fm-plus-missions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+#focusChoiceOverlay .fm-plus-mission-row {
+  width: 100%;
+  margin-top: 0 !important;
+  padding: 10px 12px !important;
+  border-radius: 18px !important;
+  background: #F6F1E7 !important;
+  border: 1px solid rgba(45, 35, 30, 0.10) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.14s ease, border-color 0.14s ease, background-color 0.14s ease;
+}
+
+#focusChoiceOverlay .fm-plus-mission-row:hover {
+  border-color: rgba(109, 40, 217, 0.28) !important;
+  background: #F3ECE0 !important;
+}
+
+#focusChoiceOverlay .fm-plus-mission-row:active {
+  transform: scale(0.985);
+}
+
+#focusChoiceOverlay .fm-plus-mission-icon {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 12px !important;
+  background: #EFE9DD !important;
+  color: #6D28D9 !important;
+  border: 1px solid rgba(109, 40, 217, 0.16) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0;
+}
+
+#focusChoiceOverlay .fm-plus-mission-icon.is-primary {
+  background: linear-gradient(145deg, #7C3AED, #6D28D9) !important;
+  color: #FFFFFF !important;
+  border-color: transparent !important;
+  box-shadow: 0 4px 12px rgba(109, 40, 217, 0.24);
+}
+
+#focusChoiceOverlay .fm-plus-mission-icon svg {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.fm-plus-mission-copy {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
+  gap: 2px;
 }
 
-.fm-manage-title {
+.fm-plus-mission-title-row,
+.fm-plus-mission-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-width: 0;
+}
+
+.fm-plus-mission-row .fm-title,
+.fm-plus-mission-title {
+  font-size: 12.5px !important;
+  font-weight: 850 !important;
+  color: #1D1A17 !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.fm-plus-primary-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 1.5px 6px;
+  border-radius: 999px;
+  background: #F3E8FF;
+  border: 1px solid #E9D5FF;
+  color: #6D28D9;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.fm-plus-mission-row .fm-meta,
+.fm-plus-mission-step {
+  margin-top: 1px !important;
+  font-size: 10px !important;
+  font-weight: 650 !important;
+  color: #766E65 !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fm-plus-mission-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 3px;
+}
+
+.fm-plus-mission-bar {
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(45, 35, 30, 0.10);
+  overflow: hidden;
+}
+
+.fm-plus-mission-bar > i {
   display: block;
-  font-size: 11.5px !important;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #6D28D9, #8B5CF6);
+}
+
+.fm-plus-mission-pct {
+  font-size: 10px;
   font-weight: 850;
-  color: var(--text-primary);
-  line-height: 1.25;
+  color: #6D28D9;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
 }
 
-.fm-manage-sub {
-  display: block;
-  margin-top: 2px;
-  font-size: 9.5px !important;
-  font-weight: 700;
-  color: var(--text-secondary);
-  line-height: 1.3;
+.fm-plus-mission-arrow,
+.fm-plus-mission-chevron {
+  color: #766E65;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.fm-manage-chevron {
+.fm-plus-mission-arrow svg,
+.fm-plus-mission-chevron svg {
   width: 16px !important;
   height: 16px !important;
-  color: var(--text-secondary);
+}
+
+.fm-plus-mission-empty {
+  padding: 9px 12px;
+  border-radius: 14px;
+  background: #F6F1E7;
+  border: 1px dashed rgba(45, 35, 30, 0.14);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #766E65;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.fm-plus-empty-icon,
+.fm-plus-mission-empty-icon {
+  color: #6D28D9;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.fm-plus-empty-icon svg,
+.fm-plus-mission-empty-icon svg {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+/* Mission Management Row at Bottom of Plus Panel */
+.fm-plus-footer-section {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(45, 35, 30, 0.08);
+}
+
+#focusChoiceOverlay .fm-plus-manage-row {
+  width: 100%;
+  padding: 10px 12px !important;
+  border-radius: 18px !important;
+  background: #EFE9DD !important;
+  border: 1px solid rgba(45, 35, 30, 0.09) !important;
+  color: #1D1A17 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 6px !important;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.14s ease, background-color 0.14s ease, border-color 0.14s ease;
+}
+
+#focusChoiceOverlay .fm-plus-manage-row:hover {
+  background: #E7DFD0 !important;
+  border-color: rgba(109, 40, 217, 0.24) !important;
+}
+
+#focusChoiceOverlay .fm-plus-manage-row:active {
+  transform: scale(0.985);
+}
+
+.fm-manage-main {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fm-manage-icon,
+.fm-plus-manage-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  background: #FCF9F4;
+  color: #6D28D9;
+  border: 1px solid rgba(109, 40, 217, 0.16);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.fm-manage-icon svg,
+.fm-plus-manage-icon svg {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.fm-manage-copy,
+.fm-plus-manage-copy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.fm-manage-title,
+.fm-plus-manage-title {
+  display: block;
+  font-size: 12px;
+  font-weight: 850;
+  color: #1D1A17;
+  line-height: 1.2;
+}
+
+.fm-manage-sub,
+.fm-plus-manage-sub {
+  display: block;
+  font-size: 10px;
+  font-weight: 650;
+  color: #766E65;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fm-plus-manage-meta,
+.fm-plus-manage-count {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #FCF9F4;
+  border: 1px solid rgba(109, 40, 217, 0.16);
+  font-size: 9.5px;
+  font-weight: 800;
+  color: #6D28D9;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.fm-manage-chevron,
+.fm-plus-manage-chevron {
+  color: #766E65;
+  width: 16px !important;
+  height: 16px !important;
   flex-shrink: 0;
 }
 
 .fm-limit-badge-v17 {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  width: 100%;
-  padding: 6px 10px;
-  border-radius: 11px;
-  background: #F3E8FF;
-  border: 1px solid #E9D5FF;
-  color: var(--primary);
-  font-size: 9.5px !important;
-  font-weight: 800;
-  line-height: 1.25;
+  gap: 5px;
+  padding: 4px 8px;
+  border-radius: 10px;
+  background: rgba(109, 40, 217, 0.08);
+  color: #5B21B6;
+  font-size: 9.5px;
+  font-weight: 750;
+  line-height: 1.2;
+}
+
+.fm-limit-badge-v17 svg {
+  width: 12px !important;
+  height: 12px !important;
+  flex-shrink: 0;
 }
 
 /* =========================================
