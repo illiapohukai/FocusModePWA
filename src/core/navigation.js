@@ -478,7 +478,7 @@ function openProto(screen='home'){modalMount.appendChild(device);document.getEle
 function closeProto(){mainMount.appendChild(device);device.style.opacity='';device.style.filter='';document.getElementById('modal').classList.remove('open');document.body.style.overflow='';setAppScreen(last)}
 function go(id){document.getElementById(id).scrollIntoView({behavior:'smooth'})}
 function keepPhoneScrollInside(e){const s=e.target.closest('#app-screen-score,#app-screen-premium,#chatMessages,#chat-locked-state,.flow-screen');if(!s||s.scrollHeight<=s.clientHeight+1)return;const top=s.scrollTop<=0,bottom=s.scrollTop+s.clientHeight>=s.scrollHeight-1;if((e.deltaY<0&&!top)||(e.deltaY>0&&!bottom))e.stopPropagation()}
-document.addEventListener('wheel',keepPhoneScrollInside,{passive:true});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeProto()});lucide.createIcons();
+document.addEventListener('wheel',keepPhoneScrollInside,{passive:true});document.addEventListener('keydown',e=>{if(e.key==='Escape'){const cal=document.getElementById('missionCalendarSheet');if(cal&&!cal.classList.contains('hidden')){if(typeof window.closeMissionCalendarSheet==='function')window.closeMissionCalendarSheet();return;}if(typeof isCriticalModalOrSheetOpen==='function'&&isCriticalModalOrSheetOpen())return;closeProto()}});lucide.createIcons();
 
 (function(){
 const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
@@ -808,6 +808,10 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
     if (missionSheet?.classList.contains('open')) {
       return true;
     }
+    const calendarSheet = doc.getElementById('missionCalendarSheet');
+    if (calendarSheet && !calendarSheet.classList.contains('hidden')) {
+      return true;
+    }
     const dataScreen = doc.getElementById('app-screen-data');
     if (dataScreen && !dataScreen.classList.contains('hidden')) {
       const importPreview = doc.getElementById('dataImportPreviewCard');
@@ -917,6 +921,9 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
     }
     if (typeof global.closeMissionSheetV116 === 'function') {
       global.closeMissionSheetV116({ immediate: true, skipFocusRestore: true });
+    }
+    if (typeof global.closeMissionCalendarSheet === 'function') {
+      global.closeMissionCalendarSheet({ immediate: true, skipFocusRestore: true });
     }
 
     if (section === 'missions') {

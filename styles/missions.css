@@ -796,7 +796,9 @@ body.mission-carousel-active #emptyMissionCard{
 #app-screen-goal .mission-goal-shell {
   height: auto !important;
   min-height: 100% !important;
-  overflow: visible !important;
+  max-width: 100% !important;
+  overflow-x: clip !important;
+  overflow-y: visible !important;
   padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px)) !important;
 }
 #app-screen-goal .mg-plan-button {
@@ -820,18 +822,102 @@ body.mission-carousel-active #emptyMissionCard{
   opacity: 0.68 !important;
 }
 
-/* 3. ZEITPLAN Section (#missionScheduleSection) */
+/* 3. ZEITPLAN Study-Planning Board & Viewport-Fixed Calendar Sheet (v17.4.1) */
+
+/* File attachment split layout & retryable error card */
+.mg-file {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px !important;
+  border-radius: 18px !important;
+  border: 1px solid rgba(109, 40, 217, 0.24) !important;
+  background: #FCF9F4 !important;
+  box-shadow: 0 8px 20px rgba(37, 22, 43, 0.06);
+}
+.mg-file-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+.mg-file-remove {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  border: 1px solid rgba(45, 35, 30, 0.10);
+  background: #F4EFE6;
+  color: #5C544D;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background-color 0.14s ease, color 0.14s ease;
+}
+.mg-file-remove:hover {
+  background: #EFE9DD;
+  color: #1D1A17;
+}
+.mg-error-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 2px;
+}
+.mg-error-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 11.5px;
+  font-weight: 750;
+  line-height: 1.4;
+  color: #9F1239;
+}
+.mg-error-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.mg-error-btn {
+  min-height: 34px;
+  padding: 6px 12px;
+  border-radius: 11px;
+  font-size: 11px;
+  font-weight: 850;
+  cursor: pointer;
+  border: 0;
+}
+.mg-error-btn.primary {
+  background: #6D28D9;
+  color: #FFFFFF;
+}
+.mg-error-btn.secondary {
+  background: #FFFFFF;
+  border: 1px solid rgba(190, 18, 60, 0.22);
+  color: #9F1239;
+}
+
+/* ZEITPLAN Section */
 #missionScheduleSection.mg-schedule {
-  margin-top: 18px !important;
+  margin-top: 20px !important;
   position: relative;
   z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 .mg-schedule-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 4px;
+  margin-bottom: 0;
 }
 #missionScheduleSection .mg-schedule-head h4 {
   margin: 0 !important;
@@ -841,11 +927,10 @@ body.mission-carousel-active #emptyMissionCard{
   text-transform: uppercase !important;
   color: #5C544D !important;
 }
-.mg-schedule-opt-pill,
-.mg-sub-opt {
+.mg-schedule-opt-pill {
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
+  padding: 3px 9px;
   border-radius: 999px;
   background: #EFE9DD;
   border: 1px solid rgba(45, 35, 30, 0.08);
@@ -856,97 +941,318 @@ body.mission-carousel-active #emptyMissionCard{
   text-transform: uppercase;
 }
 .mg-schedule-intro {
-  margin: 0 0 10px !important;
+  margin: -4px 0 2px !important;
   font-size: 12px;
   line-height: 1.4;
   font-weight: 500;
   color: #766E65;
 }
-.mg-schedule-card {
-  padding: 15px;
-  border-radius: 22px;
-  background: #FCF9F4;
-  border: 1px solid rgba(45, 35, 30, 0.10);
-  box-shadow: 0 10px 26px rgba(37, 22, 43, 0.055), inset 0 1px 0 #FFFFFF;
+
+/* Layer A: Aubergine Schedule Summary Hero Board */
+.mg-plan-board {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  background-color: #25162B;
+  background-image:
+    radial-gradient(circle at 90% 14%, rgba(124, 58, 237, 0.34), transparent 44%),
+    linear-gradient(155deg, #25162B 0%, #1B1020 64%, #160D1B 100%);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 16px 36px rgba(37, 22, 43, 0.17);
+  color: #FFFFFF;
+}
+.mg-plan-board-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.032) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.032) 1px, transparent 1px);
+  background-size: 22px 22px;
+  pointer-events: none;
+}
+.mg-plan-board-inner {
+  position: relative;
+  z-index: 2;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
+.mg-board-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.mg-board-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 9.5px;
+  font-weight: 850;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.80);
+}
+.mg-board-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #A78BFA;
+  box-shadow: 0 0 8px rgba(167, 139, 250, 0.65);
+}
+.mg-plan-board.has-deadline .mg-board-dot {
+  background: #22C55E;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.65);
+}
+.mg-timeline-days {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(167, 139, 250, 0.18);
+  border: 1px solid rgba(196, 181, 253, 0.28);
+  color: #EDE9FE;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+.mg-board-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 26px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 10px;
+  font-weight: 750;
+  cursor: pointer;
+  margin-left: auto;
+  transition: background-color 0.14s ease, color 0.14s ease;
+}
+.mg-board-reset:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+}
+.mg-board-reset svg {
+  width: 11px;
+  height: 11px;
+}
 
-/* Part A: Deadline Trigger Row */
-.mg-deadline-row-wrap {
+/* Empty State inside Aubergine Board */
+.mg-board-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.mg-board-empty-title {
+  margin: 0 !important;
+  font-size: 18px !important;
+  line-height: 1.16 !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.025em !important;
+  color: #FFFFFF !important;
+}
+.mg-board-empty-copy {
+  margin: 0 !important;
+  font-size: 11.5px !important;
+  line-height: 1.4 !important;
+  color: rgba(255, 255, 255, 0.72) !important;
+}
+
+/* Active Study-Period Trajectory inside Aubergine Board */
+.mg-timeline-active {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mg-route-nodes {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.065);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+}
+.mg-route-node {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.mg-route-node.is-end {
+  text-align: right;
+  align-items: flex-end;
+}
+.mg-route-role {
+  font-size: 8.5px;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #C4B5FD;
+}
+.mg-route-date {
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.15;
+  color: #FFFFFF;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.mg-route-connector {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  min-width: 40px;
+  padding: 2px 0;
 }
-.mg-deadline-trigger {
-  flex: 1;
-  min-width: 0;
-  min-height: 58px;
-  padding: 10px 13px;
-  border-radius: 17px;
-  background: #F4EFE6;
-  border: 1px solid rgba(45, 35, 30, 0.09);
+.mg-route-line {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  top: 50%;
+  height: 2px;
+  transform: translateY(-50%);
+  background: rgba(196, 181, 253, 0.25);
+  border-radius: 999px;
+}
+.mg-trajectory-nodes {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
-  gap: 11px;
-  text-align: left;
-  cursor: pointer;
-  transition: border-color 0.16s ease, background-color 0.16s ease, transform 0.12s ease;
+  justify-content: space-between;
+  gap: 3px;
+  width: 100%;
+  padding: 0 2px;
 }
-.mg-deadline-trigger:hover {
-  border-color: rgba(109, 40, 217, 0.28);
-  background: #F7F3EB;
+.mg-traj-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
 }
-.mg-deadline-trigger:active {
-  transform: scale(0.99);
+.mg-traj-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.24);
+  border: 1.5px solid rgba(255, 255, 255, 0.30);
+  transition: transform 0.15s ease, background-color 0.15s ease;
 }
-.mg-deadline-trigger.has-value {
-  background: #F3E8FF;
+.mg-traj-step.is-available .mg-traj-dot {
+  background: #A78BFA;
+  border-color: #EDE9FE;
+  box-shadow: 0 0 8px rgba(167, 139, 250, 0.55);
+}
+.mg-traj-step.is-endpoint .mg-traj-dot {
+  width: 10px;
+  height: 10px;
+  background: #FFFFFF;
   border-color: #C4B5FD;
 }
+.mg-traj-step.is-deadline .mg-traj-dot {
+  background: #22C55E;
+  border-color: #DCFCE7;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+}
+.mg-traj-lbl {
+  font-size: 7.5px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.45);
+  line-height: 1;
+}
+.mg-traj-step.is-available .mg-traj-lbl {
+  color: rgba(255, 255, 255, 0.88);
+}
+.mg-board-live-summary {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.35;
+  padding: 0 2px;
+}
+
+/* Authoritative Deadline Trigger Button */
+.mg-deadline-trigger {
+  width: 100%;
+  min-width: 0;
+  min-height: 52px;
+  padding: 9px 12px;
+  border-radius: 16px;
+  background: #F6F1E7;
+  border: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
+  transition: background-color 0.14s ease, transform 0.12s ease;
+}
+.mg-deadline-trigger:hover {
+  background: #FFFFFF;
+}
+.mg-deadline-trigger:active {
+  transform: scale(0.988);
+}
+.mg-deadline-trigger.has-value {
+  background: rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: none;
+}
+.mg-deadline-trigger.has-value:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
 .mg-deadline-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-  background: #FCF9F4;
-  border: 1px solid rgba(45, 35, 30, 0.08);
-  color: #6D28D9;
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  background: #6D28D9;
+  color: #FFFFFF;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 2px 6px rgba(37, 22, 43, 0.04);
 }
 .mg-deadline-trigger.has-value .mg-deadline-icon {
-  background: #6D28D9;
-  border-color: #6D28D9;
-  color: #FFFFFF;
+  background: rgba(167, 139, 250, 0.22);
+  border: 1px solid rgba(196, 181, 253, 0.30);
+  color: #EDE9FE;
 }
 .mg-deadline-icon svg {
-  width: 18px;
-  height: 18px;
+  width: 17px;
+  height: 17px;
 }
 .mg-deadline-copy {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 .mg-deadline-kicker {
-  font-size: 9px;
+  font-size: 8.5px;
   font-weight: 850;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.11em;
   text-transform: uppercase;
-  color: #766E65;
-}
-.mg-deadline-trigger.has-value .mg-deadline-kicker {
   color: #6D28D9;
 }
+.mg-deadline-trigger.has-value .mg-deadline-kicker {
+  color: #C4B5FD;
+}
 .mg-deadline-val {
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 850;
   color: #1D1A17;
   line-height: 1.25;
@@ -955,49 +1261,53 @@ body.mission-carousel-active #emptyMissionCard{
   text-overflow: ellipsis;
 }
 .mg-deadline-val.is-placeholder {
-  color: #5C544D;
-  font-weight: 750;
+  color: #1D1A17;
+  font-weight: 900;
+}
+.mg-deadline-trigger.has-value .mg-deadline-val {
+  color: #FFFFFF;
+}
+.mg-deadline-cta-tag {
+  font-size: 10.5px;
+  font-weight: 850;
+  color: #6D28D9;
+  flex-shrink: 0;
+}
+.mg-deadline-trigger.has-value .mg-deadline-cta-tag {
+  color: #EDE9FE;
 }
 .mg-deadline-arrow {
-  color: #766E65;
+  color: #6D28D9;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
+.mg-deadline-trigger.has-value .mg-deadline-arrow {
+  color: rgba(255, 255, 255, 0.72);
 }
 .mg-deadline-arrow svg {
-  width: 16px;
-  height: 16px;
-}
-.mg-deadline-clear {
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
-  border: 1px solid rgba(45, 35, 30, 0.10);
-  background: #F4EFE6;
-  color: #766E65;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  cursor: pointer;
-  transition: background-color 0.14s ease, color 0.14s ease;
-}
-.mg-deadline-clear:hover {
-  background: #EFE9DD;
-  color: #1D1A17;
-}
-.mg-deadline-clear svg {
   width: 15px;
   height: 15px;
 }
 
-/* Sub-section headers inside schedule card */
+/* Layer B: Preparation Start Selector */
+.mg-prep-start-block {
+  padding: 13px 14px;
+  border-radius: 20px;
+  background: #FCF9F4;
+  border: 1px solid rgba(45, 35, 30, 0.10);
+  box-shadow: 0 6px 18px rgba(37, 22, 43, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
 .mg-sub-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  flex-wrap: wrap;
 }
 .mg-sub-label {
   font-size: 9.5px;
@@ -1007,29 +1317,17 @@ body.mission-carousel-active #emptyMissionCard{
   color: #5C544D;
 }
 .mg-sub-copy {
-  margin: 3px 0 0;
+  margin: 0;
   font-size: 11px;
-  line-height: 1.35;
+  line-height: 1.38;
   color: #766E65;
 }
 .mg-rec-badge {
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: #F3E8FF;
-  border: 1px solid #E9D5FF;
+  font-size: 10px;
+  font-weight: 750;
   color: #6D28D9;
-  font-size: 8.5px;
-  font-weight: 850;
-  letter-spacing: 0.04em;
-}
-
-/* Part B: Preparation Start Chips */
-.mg-prep-start-block {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
 }
 .mg-start-chips {
   display: grid;
@@ -1037,21 +1335,38 @@ body.mission-carousel-active #emptyMissionCard{
   gap: 7px;
 }
 .mg-start-chip {
-  min-height: 36px;
-  padding: 6px 10px;
-  border-radius: 12px;
+  min-height: 48px;
+  padding: 7px 10px;
+  border-radius: 13px;
   border: 1px solid rgba(45, 35, 30, 0.10);
   background: #F4EFE6;
   color: #1D1A17;
   font-size: 11px;
   font-weight: 800;
-  display: inline-flex;
-  align-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   justify-content: center;
-  gap: 5px;
+  gap: 3px;
   cursor: pointer;
+  text-align: left;
   transition: all 0.15s ease;
-  white-space: nowrap;
+}
+.mg-start-chip-label {
+  width: 100%;
+  min-width: 0;
+  line-height: 1.2;
+}
+.mg-start-rec-mark {
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 5px;
+  border-radius: 6px;
+  background: #EFE4FF;
+  color: #6D28D9;
+  flex-shrink: 0;
 }
 .mg-start-chip.is-recommended:not(.active) {
   border-color: #C4B5FD;
@@ -1061,94 +1376,14 @@ body.mission-carousel-active #emptyMissionCard{
   background: #6D28D9;
   border-color: #6D28D9;
   color: #FFFFFF;
-  box-shadow: 0 4px 12px rgba(109, 40, 217, 0.22);
+  box-shadow: 0 5px 14px rgba(109, 40, 217, 0.24);
+}
+.mg-start-chip.active .mg-start-rec-mark {
+  background: rgba(255, 255, 255, 0.20);
+  color: #FFFFFF;
 }
 .mg-start-chip:active {
-  transform: scale(0.97);
-}
-
-/* Part C: Preparation Timeline */
-.mg-timeline-box {
-  padding: 11px 13px;
-  border-radius: 16px;
-  background: #F4EFE6;
-  border: 1px solid rgba(45, 35, 30, 0.07);
-}
-.mg-timeline-empty {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  color: #766E65;
-  font-size: 11px;
-  font-weight: 650;
-  line-height: 1.35;
-}
-.mg-timeline-empty svg {
-  width: 16px;
-  height: 16px;
-  color: #6D28D9;
-  flex-shrink: 0;
-}
-.mg-timeline-active {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.mg-timeline-dates {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  font-size: 11.5px;
-  font-weight: 850;
-  color: #1D1A17;
-}
-.mg-timeline-track {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  padding: 2px 0;
-}
-.mg-timeline-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: #6D28D9;
-  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.16);
-  flex-shrink: 0;
-}
-.mg-timeline-bar {
-  flex: 1;
-  height: 3px;
-  background: linear-gradient(90deg, #6D28D9 0%, #8B5CF6 100%);
-  border-radius: 999px;
-  margin: 0 4px;
-}
-.mg-timeline-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-}
-.mg-timeline-role {
-  font-size: 8.5px;
-  font-weight: 850;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #766E65;
-}
-.mg-timeline-days {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: #F3E8FF;
-  border: 1px solid #DDD6FE;
-  color: #6D28D9;
-  font-size: 9px;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  transform: scale(0.975);
 }
 
 /* Inline Schedule Notice / Validation */
@@ -1156,11 +1391,11 @@ body.mission-carousel-active #emptyMissionCard{
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  padding: 9px 11px;
-  border-radius: 13px;
+  padding: 10px 12px;
+  border-radius: 14px;
   font-size: 11px;
   font-weight: 700;
-  line-height: 1.35;
+  line-height: 1.38;
 }
 .mg-schedule-notice svg {
   width: 15px;
@@ -1184,47 +1419,105 @@ body.mission-carousel-active #emptyMissionCard{
   color: #BE123C;
 }
 
+/* Layer C: Expandable Optional Learning Preferences */
+.mg-prefs-accordion {
+  border-radius: 20px;
+  background: #FCF9F4;
+  border: 1px solid rgba(45, 35, 30, 0.10);
+  box-shadow: 0 6px 18px rgba(37, 22, 43, 0.04);
+  overflow: hidden;
+}
+.mg-prefs-toggle {
+  width: 100%;
+  min-height: 56px;
+  padding: 12px 14px;
+  border: 0;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  text-align: left;
+  cursor: pointer;
+}
+.mg-prefs-toggle-left {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.mg-prefs-title-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.mg-prefs-title {
+  font-size: 13px;
+  font-weight: 850;
+  color: #1D1A17;
+  line-height: 1.2;
+}
+.mg-prefs-opt-dot {
+  font-size: 9px;
+  font-weight: 800;
+  color: #766E65;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.mg-prefs-summary {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6D28D9;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mg-prefs-chevron {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: #F4EFE6;
+  color: #5C544D;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.18s ease, background-color 0.15s ease;
+}
+.mg-prefs-toggle[aria-expanded="true"] .mg-prefs-chevron {
+  transform: rotate(180deg);
+  background: #F3E8FF;
+  color: #6D28D9;
+}
+.mg-prefs-chevron svg {
+  width: 16px;
+  height: 16px;
+}
+.mg-prefs-panel {
+  padding: 2px 14px 14px;
+  border-top: 1px solid rgba(45, 35, 30, 0.07);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.mg-prefs-panel.hidden {
+  display: none !important;
+}
 .mg-schedule-divider {
   height: 1px;
   background: rgba(45, 35, 30, 0.08);
-  margin: 1px 0;
+  margin: 0;
 }
 
-/* Part D: Weekdays & Presets */
+/* Weekdays Strip & Presets */
 .mg-weekdays-block {
   display: flex;
   flex-direction: column;
   gap: 8px;
-}
-.mg-weekday-row {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 5px;
-  margin-top: 2px;
-}
-.mg-weekday-btn {
-  height: 38px;
-  border-radius: 11px;
-  border: 1px solid rgba(45, 35, 30, 0.10);
-  background: #F4EFE6;
-  color: #1D1A17;
-  font-size: 11.5px;
-  font-weight: 850;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.14s ease;
-  padding: 0;
-}
-.mg-weekday-btn.active {
-  background: #6D28D9;
-  border-color: #6D28D9;
-  color: #FFFFFF;
-  box-shadow: 0 4px 10px rgba(109, 40, 217, 0.22);
-}
-.mg-weekday-btn:active {
-  transform: scale(0.95);
+  padding-top: 10px;
 }
 .mg-weekday-presets {
   display: flex;
@@ -1234,13 +1527,13 @@ body.mission-carousel-active #emptyMissionCard{
 }
 .mg-preset-chip {
   flex: 1 1 auto;
-  min-height: 30px;
-  padding: 4px 9px;
-  border-radius: 999px;
+  min-height: 32px;
+  padding: 5px 10px;
+  border-radius: 11px;
   border: 1px solid rgba(45, 35, 30, 0.09);
-  background: #FCF9F4;
+  background: #F4EFE6;
   color: #5C544D;
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 800;
   cursor: pointer;
   transition: all 0.14s ease;
@@ -1251,8 +1544,41 @@ body.mission-carousel-active #emptyMissionCard{
   border-color: #C4B5FD;
   color: #6D28D9;
 }
+.mg-weekday-row {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border-radius: 15px;
+  background: #F4EFE6;
+  border: 1px solid rgba(45, 35, 30, 0.07);
+}
+.mg-weekday-btn {
+  height: 38px;
+  min-width: 0;
+  border-radius: 11px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #1D1A17;
+  font-size: 11.5px;
+  font-weight: 850;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.14s ease, color 0.14s ease, box-shadow 0.14s ease;
+  padding: 0;
+}
+.mg-weekday-btn.active {
+  background: #6D28D9;
+  color: #FFFFFF;
+  box-shadow: 0 4px 10px rgba(109, 40, 217, 0.24);
+}
+.mg-weekday-btn:active {
+  transform: scale(0.95);
+}
 
-/* Part E: Preferred Session Duration */
+/* 2x2 Session Duration Grid */
 .mg-duration-pref-block {
   display: flex;
   flex-direction: column;
@@ -1260,67 +1586,123 @@ body.mission-carousel-active #emptyMissionCard{
 }
 .mg-duration-chips {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 6px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
 }
 .mg-dur-chip {
-  min-height: 34px;
-  padding: 4px 6px;
-  border-radius: 11px;
+  min-height: 48px;
+  padding: 7px 11px;
+  border-radius: 13px;
   border: 1px solid rgba(45, 35, 30, 0.10);
   background: #F4EFE6;
   color: #1D1A17;
-  font-size: 10.5px;
-  font-weight: 800;
-  display: inline-flex;
-  align-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   justify-content: center;
+  gap: 1px;
   cursor: pointer;
+  text-align: left;
   transition: all 0.14s ease;
-  white-space: nowrap;
+}
+.mg-dur-chip strong {
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+.mg-dur-chip span {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #766E65;
+  line-height: 1.2;
 }
 .mg-dur-chip.active {
   background: #6D28D9;
   border-color: #6D28D9;
   color: #FFFFFF;
-  box-shadow: 0 4px 10px rgba(109, 40, 217, 0.20);
+  box-shadow: 0 5px 14px rgba(109, 40, 217, 0.24);
+}
+.mg-dur-chip.active span {
+  color: rgba(255, 255, 255, 0.84);
 }
 
-/* Calendar Bottom Sheet */
+@media (max-width: 340px) {
+  .mg-plan-board-inner { padding: 13px; }
+  .mg-route-nodes { gap: 6px; padding: 9px 10px; }
+  .mg-route-date { font-size: 12.5px; }
+  .mg-start-chips { gap: 6px; }
+  .mg-start-chip { padding: 6px 8px; font-size: 10.5px; }
+  .mg-weekday-btn { height: 34px; font-size: 10.5px; }
+}
+
+/* Viewport-Fixed Calendar Bottom Sheet (mounted directly under document.body) */
+html.mg-cal-scroll-locked,
+body.mg-cal-scroll-locked {
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+}
 .mg-cal-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 180;
-  background: rgba(29, 26, 23, 0.46);
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  z-index: 1200;
+  background: rgba(29, 26, 23, 0.50);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding: 12px 12px calc(12px + env(safe-area-inset-bottom, 0px));
+  opacity: 0;
+  transition: opacity 0.20s ease;
+  overflow: hidden;
+  overscroll-behavior: contain;
+  touch-action: none;
+  pointer-events: auto;
 }
 .mg-cal-backdrop.hidden {
   display: none !important;
 }
+.mg-cal-backdrop.is-open {
+  opacity: 1;
+}
+.mg-cal-backdrop.is-closing {
+  opacity: 0;
+  pointer-events: none;
+}
 .mg-cal-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  bottom: var(--mg-cal-vv-bottom, 0px);
+  margin: 0 auto;
   width: 100%;
-  max-width: 406px;
-  padding: 14px 16px 16px;
-  border-radius: 26px;
+  max-width: 440px;
+  max-height: calc(100vh - 18px);
+  max-height: calc(100dvh - 18px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  box-sizing: border-box;
+  padding: 12px 16px calc(18px + env(safe-area-inset-bottom, 0px));
+  border-radius: 26px 26px 0 0;
   background: #FCF9F4;
   border: 1px solid rgba(45, 35, 30, 0.12);
-  box-shadow: 0 24px 64px rgba(29, 26, 23, 0.32);
+  border-bottom: 0;
+  box-shadow: 0 -16px 48px rgba(29, 26, 23, 0.28);
   color: #1D1A17;
-  animation: mgCalSheetIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translate3d(0, 100%, 0);
+  transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
 }
-@keyframes mgCalSheetIn {
-  from {
-    opacity: 0;
-    transform: translateY(18px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+.mg-cal-backdrop.is-open .mg-cal-sheet {
+  transform: translate3d(0, 0, 0);
+}
+.mg-cal-backdrop.is-closing .mg-cal-sheet {
+  transform: translate3d(0, 100%, 0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .mg-cal-backdrop,
+  .mg-cal-sheet {
+    transition-duration: 0.01ms !important;
   }
 }
 .mg-cal-handle {

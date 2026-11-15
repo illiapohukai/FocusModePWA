@@ -54,5 +54,5 @@ document.addEventListener("DOMContentLoaded",()=>{quickBreak=0;updateQuickRing()
     document.documentElement.classList.toggle('quick-focus-surface',screenName==='quicksetup');
     return result;
   };
-  document.title='v17.3 Home System';
+  document.title='v17.4.2 Gemini 3.8 Flash Integration';
 })();
