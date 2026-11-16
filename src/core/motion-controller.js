@@ -27,17 +27,17 @@
     const delta = toIdx - fromIdx;
     const direction = delta > 0 ? 1 : -1;
     const distance = Math.abs(delta);
-    let travelPx = 46;
-    let travelPct = 13;
-    let durationMs = 350;
+    let travelPx = 56;
+    let travelPct = 14;
+    let durationMs = 360;
     if (distance === 2) {
       travelPx = 64;
-      travelPct = 18;
-      durationMs = 420;
+      travelPct = 16;
+      durationMs = 400;
     } else if (distance >= 3) {
       travelPx = 72;
-      travelPct = 20;
-      durationMs = 450;
+      travelPct = 18;
+      durationMs = 430;
     }
     return {
       fromIndex: fromIdx,
@@ -168,8 +168,6 @@
   let missionSheetAbortController = null;
   let splashDismissed = false;
   let splashStartTime = Date.now();
-  let homeVisitedOnce = false;
-  let historyVisitedOnce = false;
   let knownActivityTopKey = null;
 
   function prefersReducedMotion() {
@@ -219,13 +217,15 @@
     }
     if (typeof document !== 'undefined') {
       const appBody = document.getElementById('appBody');
-      appBody?.classList.remove('fm-dual-transition');
+      appBody?.classList.remove('fm-dual-transition', 'fm-swipe-back-active', 'fm-root-swipe-active');
       document.querySelectorAll('.app-screen').forEach(function (scr) {
         cancelElementAnimations(scr);
         scr.classList.remove(
           'fm-layer-outgoing',
           'fm-layer-incoming',
           'fm-layer-top',
+          'fm-layer-flat',
+          'fm-swipe-back-underlay',
           'fm-motion-active'
         );
         clearInlineMotionStyles(scr);
@@ -453,20 +453,27 @@
     let incomingOnTop = false;
     let outgoingOnTop = false;
 
+    let outgoingDurationMs = null;
     if (intent === 'root-tab-right' || intent === 'root-tab-left') {
+      // Directional root transition: only source and destination are ever rendered,
+      // distant roots use one continuous move with modestly larger travel.
       const fromRoot = (context && context.fromRoot) || fromScreen;
       const toRoot = (context && context.toRoot) || toScreen;
-      durationMs = reduced ? 90 : 250;
+      const metrics = computeRootTabMetrics(fromRoot, toRoot);
+      const dir = metrics.direction || (intent === 'root-tab-right' ? 1 : -1);
+      const travel = reduced ? 0 : metrics.travelPct || 14;
+      durationMs = reduced ? 120 : metrics.durationMs || 360;
+      outgoingDurationMs = reduced ? 120 : Math.round(durationMs * 0.72);
       incomingOnTop = true;
       easingIn = 'cubic-bezier(0.22, 1, 0.36, 1)';
-      easingOut = 'cubic-bezier(0.4, 0, 0.2, 1)';
+      easingOut = 'cubic-bezier(0.32, 0, 0.24, 1)';
       toKeyframes = [
-        { transform: 'translate3d(0%, 0, 0)', opacity: 0 },
+        { transform: 'translate3d(' + dir * travel + '%, 0, 0)', opacity: 0 },
         { transform: 'translate3d(0%, 0, 0)', opacity: 1 }
       ];
       fromKeyframes = [
         { transform: 'translate3d(0%, 0, 0)', opacity: 1 },
-        { transform: 'translate3d(0%, 0, 0)', opacity: 0 }
+        { transform: 'translate3d(' + -dir * travel * 0.55 + '%, 0, 0)', opacity: 0 }
       ];
       animateDockActiveTab(toRoot, reduced);
     } else if (intent === 'push' || intent === 'focus-exit-result') {
@@ -511,6 +518,9 @@
     if (incomingOnTop) {
       toEl.classList.add('fm-layer-top');
     }
+    if (intent === 'root-tab-right' || intent === 'root-tab-left') {
+      toEl.classList.add('fm-layer-flat');
+    }
     if (outgoingOnTop) {
       fromEl.classList.add('fm-layer-top');
     }
@@ -525,7 +535,7 @@
       cancelElementAnimations(toEl);
       appBody.classList.remove('fm-dual-transition');
       fromEl.classList.remove('fm-layer-outgoing', 'fm-layer-top', 'fm-motion-active');
-      toEl.classList.remove('fm-layer-incoming', 'fm-layer-top', 'fm-motion-active');
+      toEl.classList.remove('fm-layer-incoming', 'fm-layer-top', 'fm-layer-flat', 'fm-motion-active');
       clearInlineMotionStyles(fromEl);
       clearInlineMotionStyles(toEl);
       if (activeScreenCleanup === cleanup) {
@@ -537,7 +547,7 @@
 
     if (typeof toEl.animate === 'function' && typeof fromEl.animate === 'function') {
       const outAnim = fromEl.animate(fromKeyframes, {
-        duration: intent.startsWith('root-tab') ? Math.round(durationMs * 0.9) : durationMs,
+        duration: outgoingDurationMs || durationMs,
         easing: easingOut,
         fill: 'forwards'
       });
@@ -679,9 +689,6 @@
       toEl.classList.remove('fm-layer-incoming', 'fm-layer-top', 'fm-motion-active');
       clearInlineMotionStyles(fromEl);
       clearInlineMotionStyles(toEl);
-      if (protectBtn) {
-        protectBtn.classList.remove('fm-protect-activating');
-      }
       if (activeScreenCleanup === cleanup) {
         activeScreenCleanup = null;
       }
@@ -720,41 +727,44 @@
         }
       );
 
-      // Phase 4: Real .uc-planet scales continuously from 0.42 to 1 without swap
+      // Phase 4: planet and orbit rings grow together from the real planet center.
+      // Rings keep their own resolved base transform (translate/rotate) and only gain a
+      // trailing scale, so they never travel in from an offset position.
+      const growKeyframes = function (base, from) {
+        const prefix = base && base !== 'none' ? base + ' ' : '';
+        return [
+          { transform: prefix + 'scale(' + from + ')', opacity: 0 },
+          { transform: prefix + 'scale(' + (from + (1 - from) * 0.76) + ')', offset: 0.56 },
+          { transform: prefix + 'scale(1.012)', offset: 0.84 },
+          { transform: prefix + 'scale(1)' }
+        ];
+      };
       if (!reduced && planetEl && typeof planetEl.animate === 'function') {
         cancelElementAnimations(planetEl);
-        planetEl.animate(
-          [
-            { transform: 'translate(-50%, -50%) scale(0.42)', opacity: 0.15 },
-            { transform: 'translate(-50%, -50%) scale(0.86)', opacity: 0.92, offset: 0.56 },
-            { transform: 'translate(-50%, -50%) scale(1.015)', opacity: 1, offset: 0.84 },
-            { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 }
-          ],
-          {
-            duration: 640,
-            easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-            fill: 'both'
-          }
-        );
+        const planetFrames = growKeyframes('translate(-50%, -50%)', 0.42);
+        planetFrames[0].opacity = 0.15;
+        planetFrames[planetFrames.length - 1].opacity = 1;
+        planetEl.animate(planetFrames, {
+          duration: 600,
+          easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+          fill: 'backwards'
+        });
       }
 
       if (!reduced) {
-        rings.forEach(function (ring, idx) {
-          if (typeof ring.animate === 'function') {
-            cancelElementAnimations(ring);
-            ring.animate(
-              [
-                { transform: 'scale(0.84)', opacity: 0 },
-                { transform: 'scale(1)', opacity: 1 }
-              ],
-              {
-                duration: 540,
-                delay: 90 + idx * 35,
-                easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-                fill: 'backwards'
-              }
-            );
-          }
+        rings.forEach(function (ring) {
+          if (typeof ring.animate !== 'function') return;
+          cancelElementAnimations(ring);
+          const cs = root.getComputedStyle(ring);
+          const finalOpacity = Number(cs.opacity);
+          const frames = growKeyframes(cs.transform, 0.62);
+          frames[frames.length - 1].opacity = Number.isFinite(finalOpacity) ? finalOpacity : 1;
+          ring.animate(frames, {
+            duration: 560,
+            delay: 60,
+            easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+            fill: 'backwards'
+          });
         });
 
         if (headerEl && typeof headerEl.animate === 'function') {
@@ -837,40 +847,27 @@
           );
         }
 
-        // Phase 5: Fokus-Schutz badge reflects actual distraction configuration
+        // Phase 5: Fokus-Schutz badge fades in; the glow belongs to its own lifecycle
+        // (rise, hold, decay) and is never cut off by the screen cleanup.
         if (protectBtn && typeof protectBtn.animate === 'function') {
           cancelElementAnimations(protectBtn);
-          if (hasProtectionActive) {
-            protectBtn.classList.add('fm-protect-activating');
-            protectBtn.animate(
-              [
-                { transform: 'translateX(-50%) scale(0.94)', opacity: 0 },
-                { transform: 'translateX(-50%) scale(1.03)', opacity: 1, offset: 0.72 },
-                { transform: 'translateX(-50%) scale(1)', opacity: 1 }
-              ],
-              {
-                duration: 440,
-                delay: 230,
-                easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-                fill: 'backwards'
-              }
-            );
-          } else {
-            protectBtn.classList.remove('fm-protect-activating');
-            protectBtn.animate(
-              [
-                { transform: 'translateX(-50%) scale(0.97)', opacity: 0 },
-                { transform: 'translateX(-50%) scale(1)', opacity: 1 }
-              ],
-              {
-                duration: 360,
-                delay: 230,
-                easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-                fill: 'backwards'
-              }
-            );
-          }
+          protectBtn.animate(
+            [
+              { transform: 'translateX(-50%) scale(0.96)', opacity: 0 },
+              { transform: 'translateX(-50%) scale(1)', opacity: 1 }
+            ],
+            {
+              duration: 380,
+              delay: 220,
+              easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+              fill: 'backwards'
+            }
+          );
         }
+      }
+
+      if (protectBtn) {
+        runProtectionGlow(protectBtn, hasProtectionActive && !reduced, 300);
       }
 
       setTimeout(cleanup, durationMs + 30);
@@ -878,6 +875,32 @@
     } else {
       cleanup();
     }
+  }
+
+  let protectGlowTimer = null;
+  function runProtectionGlow(badge, active, delayMs) {
+    if (!badge) return;
+    if (protectGlowTimer !== null) {
+      clearTimeout(protectGlowTimer);
+      protectGlowTimer = null;
+    }
+    badge.classList.remove('fm-protect-glow');
+    if (!active) return;
+    badge.style.setProperty('--fm-protect-glow-delay', Math.max(0, delayMs || 0) + 'ms');
+    void badge.offsetWidth;
+    badge.classList.add('fm-protect-glow');
+    const finish = function (ev) {
+      if (ev && ev.animationName && ev.animationName !== 'fmProtectGlow') return;
+      badge.removeEventListener('animationend', finish);
+      if (protectGlowTimer !== null) {
+        clearTimeout(protectGlowTimer);
+        protectGlowTimer = null;
+      }
+      badge.classList.remove('fm-protect-glow');
+      badge.style.removeProperty('--fm-protect-glow-delay');
+    };
+    badge.addEventListener('animationend', finish);
+    protectGlowTimer = setTimeout(finish, (delayMs || 0) + 1400);
   }
 
   function animateFocusExitToHome(appBody, fromEl, toEl, reduced) {
@@ -1057,7 +1080,6 @@
     const screenEl = document.getElementById('app-screen-' + section);
     const scrollContainer =
       (section === 'missions' && document.getElementById('missionManagementListV116')) ||
-      (section === 'history' && document.getElementById('sessionHistoryList')) ||
       screenEl;
 
     if (scrollContainer && scrollContainer.scrollTop > 4) {
@@ -1383,12 +1405,6 @@
     clearInlineMotionStyles(sheet);
     clearInlineMotionStyles(card);
 
-    if (typeof root.hideBottomNavigation === 'function') {
-      try {
-        root.hideBottomNavigation();
-      } catch (_) {}
-    }
-
     if (card && lastMenuTriggerEl && typeof lastMenuTriggerEl.getBoundingClientRect === 'function') {
       try {
         const trigRect = lastMenuTriggerEl.getBoundingClientRect();
@@ -1597,44 +1613,6 @@
             {
               duration: 230,
               delay: Math.min(idx * 32, 130),
-              easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-              fill: 'backwards'
-            }
-          );
-        }
-      });
-    } else if (screenName === 'history' && !historyVisitedOnce) {
-      historyVisitedOnce = true;
-      const rows = document.querySelectorAll('#sessionHistoryList > *');
-      rows.forEach(function (row, idx) {
-        if (idx < 6 && typeof row.animate === 'function') {
-          row.animate(
-            [
-              { transform: 'translateY(8px)', opacity: 0 },
-              { transform: 'translateY(0px)', opacity: 1 }
-            ],
-            {
-              duration: 220,
-              delay: Math.min(idx * 28, 140),
-              easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-              fill: 'backwards'
-            }
-          );
-        }
-      });
-    } else if (screenName === 'home' && !homeVisitedOnce) {
-      homeVisitedOnce = true;
-      const items = document.querySelectorAll('#homeActivityList > .home-activity-row');
-      items.forEach(function (item, idx) {
-        if (idx < 5 && typeof item.animate === 'function') {
-          item.animate(
-            [
-              { transform: 'translateY(6px)', opacity: 0 },
-              { transform: 'translateY(0px)', opacity: 1 }
-            ],
-            {
-              duration: 210,
-              delay: Math.min(idx * 28, 120),
               easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
               fill: 'backwards'
             }
@@ -1858,9 +1836,17 @@
   }
 
   /* ========================================================================
-     INTERACTIVE LEFT-EDGE SWIPE-BACK GESTURE (STACKED SCREENS ONLY)
+     INTERACTIVE NAVIGATION GESTURES — one owner for stacked swipe-back and
+     adjacent root-page swipe.
+     Priority: 1. open overlay, menu, sheet or dialog → no navigation gesture
+               2. marked or scrollable horizontal control → the control owns it
+               3. left-edge swipe-back on stacked screens
+               4. root-page swipe between adjacent root pages
+               5. vertical scrolling (left to the browser via touch-action)
+     Business navigation stays authoritative: motion only visualizes the decision
+     and the route is committed exactly once through navigateBack/navigateToRoot.
      ======================================================================== */
-  let swipeBackInstalled = false;
+  let navigationGesturesInstalled = false;
 
   const SWIPEABLE_STACK_SCREENS = new Set([
     'goal',
@@ -1875,6 +1861,22 @@
     'premium',
     'chat'
   ]);
+
+  const GESTURE_CONFIG = Object.freeze({
+    edgePx: 28,
+    lockPx: 10,
+    dominance: 1.2,
+    backCompleteRatio: 0.32,
+    rootCompleteRatio: 0.3,
+    completeVelocity: 0.5,
+    minFlingRatio: 0.06,
+    velocityWindowMs: 100,
+    staleReleaseMs: 90,
+    underlayOffsetPct: -6,
+    rootPeekPct: 16,
+    edgeResistance: 0.2,
+    edgeResistMaxPx: 44
+  });
 
   function resolveCurrentSwipeScreen() {
     if (typeof root.getActiveScreenV17 === 'function') {
@@ -1893,129 +1895,244 @@
     return '';
   }
 
-  function canSwipeBackFromCurrentScreen(targetEl) {
+  function isGestureBlockingOverlayOpen() {
     if (typeof document === 'undefined') return false;
-    if (stateMachine.isLocked()) return false;
-    if (root.activeSession && root.activeSession.status === 'running') return false;
-
-    const currentScreen = resolveCurrentSwipeScreen();
-    if (!SWIPEABLE_STACK_SCREENS.has(currentScreen)) return false;
-
     if (typeof root.isCriticalModalOrSheetOpenV17 === 'function' && root.isCriticalModalOrSheetOpenV17()) {
-      return false;
+      return true;
     }
-
-    const focusOverlay = document.getElementById('focusChoiceOverlay');
-    if (focusOverlay && !focusOverlay.classList.contains('hidden')) return false;
+    const isShown = function (id) {
+      const el = document.getElementById(id);
+      return Boolean(el && !el.classList.contains('hidden'));
+    };
+    if (isShown('focusChoiceOverlay') || isShown('missionCalendarSheet') || isShown('sessionConfirmModal')) {
+      return true;
+    }
     const missionSheet = document.getElementById('missionSheetV116');
-    if (missionSheet && missionSheet.classList.contains('open')) return false;
-    const calendarSheet = document.getElementById('missionCalendarSheet');
-    if (calendarSheet && !calendarSheet.classList.contains('hidden')) return false;
-    const confirmModal = document.getElementById('sessionConfirmModal');
-    if (confirmModal && !confirmModal.classList.contains('hidden')) return false;
+    if (missionSheet && missionSheet.classList.contains('open')) return true;
+    const installHelp = document.getElementById('pwaInstallHelp');
+    if (installHelp && installHelp.classList.contains('open')) return true;
+    return false;
+  }
 
-    if (targetEl && typeof targetEl.closest === 'function') {
-      if (
-        targetEl.closest(
-          'input, textarea, select, [contenteditable="true"], [data-block-swipe-back="true"], #missionCarouselV1181, #missionAuraShellV1181, #missionTypeCarousel, .mg-type-carousel'
-        )
-      ) {
-        return false;
+  /* One reusable ownership rule for horizontal controls: form controls, anything
+     marked data-block-swipe-back="true", and any horizontally scrollable ancestor
+     (carousels, selectors) keep their own horizontal gestures. */
+  function ownsHorizontalGesture(targetEl) {
+    if (!targetEl || typeof targetEl.closest !== 'function') return false;
+    if (
+      targetEl.closest(
+        'input, textarea, select, [contenteditable="true"], [data-block-swipe-back="true"]'
+      )
+    ) {
+      return true;
+    }
+    for (let el = targetEl; el && el.nodeType === 1; el = el.parentElement) {
+      if (el.id === 'appBody' || el.classList.contains('app-screen')) break;
+      if (el.scrollWidth > el.clientWidth + 2) {
+        const overflowX = root.getComputedStyle(el).overflowX;
+        if (overflowX === 'auto' || overflowX === 'scroll') return true;
       }
     }
+    return false;
+  }
+
+  function hasActiveTextSelection() {
+    try {
+      const sel = root.getSelection && root.getSelection();
+      return Boolean(sel && !sel.isCollapsed && String(sel).trim());
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function isFocusSessionRunning() {
+    return Boolean(root.activeSession && root.activeSession.status === 'running');
+  }
+
+  function canSwipeBackFromCurrentScreen(targetEl) {
+    if (typeof document === 'undefined') return false;
+    if (stateMachine.isLocked() || isFocusSessionRunning()) return false;
+    if (!SWIPEABLE_STACK_SCREENS.has(resolveCurrentSwipeScreen())) return false;
+    if (isGestureBlockingOverlayOpen()) return false;
+    if (ownsHorizontalGesture(targetEl) || hasActiveTextSelection()) return false;
     return true;
   }
 
-  function installEdgeSwipeBackGesture() {
-    if (swipeBackInstalled || typeof document === 'undefined') return;
+  function canRootSwipeFromCurrentScreen(targetEl) {
+    if (typeof document === 'undefined') return false;
+    if (stateMachine.isLocked() || isFocusSessionRunning()) return false;
+    if (getRootTabIndex(resolveCurrentSwipeScreen()) === -1) return false;
+    const wrapper = document.getElementById('screenWrapper');
+    if (wrapper && !wrapper.classList.contains('has-bottom-nav')) return false;
+    if (isGestureBlockingOverlayOpen()) return false;
+    if (ownsHorizontalGesture(targetEl) || hasActiveTextSelection()) return false;
+    return true;
+  }
+
+  function prepareRootGestureTarget(section) {
+    try {
+      if (section === 'missions') {
+        if (typeof root.ensureMissionManagementScreenV116 === 'function') root.ensureMissionManagementScreenV116();
+        if (typeof root.renderMissionManagementV116 === 'function') root.renderMissionManagementV116();
+      } else if (section === 'history') {
+        if (typeof root.renderSessionHistory === 'function') root.renderSessionHistory();
+      } else if (section === 'home') {
+        if (typeof root.refreshHomeStats === 'function') root.refreshHomeStats();
+      }
+    } catch (_) {}
+  }
+
+  function installNavigationGestures() {
+    if (navigationGesturesInstalled || typeof document === 'undefined') return;
     const appBody = document.getElementById('appBody');
     if (!appBody) return;
-    swipeBackInstalled = true;
+    navigationGesturesInstalled = true;
 
-    const EDGE_THRESHOLD_PX = 28;
-    const DIRECTION_LOCK_PX = 10;
-    const COMPLETE_DISTANCE_RATIO = 0.32;
-    const COMPLETE_VELOCITY_PX_PER_MS = 0.5;
-
+    const C = GESTURE_CONFIG;
     let gesture = null;
+    let settling = null;
     let rafId = null;
+    let suppressClickUntil = 0;
 
-    function applyDragFrame() {
-      rafId = null;
-      if (!gesture || !gesture.lockedHorizontal) return;
-      const dx = Math.max(0, gesture.currentX - gesture.startX);
-      const width = Math.max(280, gesture.viewportWidth || 390);
-      const progress = Math.min(1, dx / width);
-
-      if (gesture.fromEl) {
-        gesture.fromEl.style.transform = 'translate3d(' + dx + 'px, 0, 0)';
-        gesture.fromEl.style.boxShadow =
-          '-16px 0 38px rgba(24, 16, 40, ' + (0.16 * (1 - progress * 0.7)).toFixed(3) + ')';
-      }
-      if (gesture.toEl) {
-        const underOffsetPct = -8 * (1 - progress);
-        const underScale = 0.985 + 0.015 * progress;
-        const underOpacity = 0.88 + 0.12 * progress;
-        gesture.toEl.style.transform =
-          'translate3d(' + underOffsetPct.toFixed(2) + '%, 0, 0) scale(' + underScale.toFixed(4) + ')';
-        gesture.toEl.style.opacity = underOpacity.toFixed(3);
-      }
-    }
-
-    function cleanupGestureDOM(g) {
+    function cancelFrame() {
       if (rafId !== null) {
         cancelAnimationFrame(rafId);
         rafId = null;
       }
+    }
+
+    function displacement(g) {
+      const d = g.x - g.originX;
+      if (g.mode === 'back') return Math.max(0, Math.min(g.width, d));
+      if (g.resist) {
+        const pull = Math.min(C.edgeResistMaxPx, Math.abs(d) * C.edgeResistance);
+        return d < 0 ? -pull : pull;
+      }
+      return g.dir > 0 ? Math.max(-g.width, Math.min(0, d)) : Math.max(0, Math.min(g.width, d));
+    }
+
+    function underlayFrame(g, progress) {
+      if (g.mode === 'back') {
+        return {
+          transform: 'translate3d(' + (C.underlayOffsetPct * (1 - progress)).toFixed(2) + '%, 0, 0)',
+          opacity: (0.92 + 0.08 * progress).toFixed(3)
+        };
+      }
+      return {
+        transform: 'translate3d(' + (g.dir * C.rootPeekPct * (1 - progress)).toFixed(2) + '%, 0, 0)',
+        opacity: (0.5 + 0.5 * progress).toFixed(3)
+      };
+    }
+
+    function applyFrame() {
+      rafId = null;
+      const g = gesture;
+      if (!g || !g.locked) return;
+      if (resolveCurrentSwipeScreen() !== g.currentScreen) {
+        abortGesture();
+        return;
+      }
+      const d = displacement(g);
+      g.fromEl.style.transform = 'translate3d(' + d.toFixed(1) + 'px, 0, 0)';
+      if (g.toEl) {
+        const frame = underlayFrame(g, Math.abs(d) / g.width);
+        g.toEl.style.transform = frame.transform;
+        g.toEl.style.opacity = frame.opacity;
+      }
+    }
+
+    function releaseCapture(g) {
+      if (g && g.captureEl && g.pointerId !== null) {
+        try {
+          if (g.captureEl.hasPointerCapture(g.pointerId)) g.captureEl.releasePointerCapture(g.pointerId);
+        } catch (_) {}
+      }
+    }
+
+    function cleanupGestureDOM(g) {
+      cancelFrame();
       if (!g) return;
-      appBody.classList.remove('fm-dual-transition', 'fm-swipe-back-active');
+      releaseCapture(g);
+      appBody.classList.remove(
+        'fm-dual-transition',
+        'fm-swipe-back-active',
+        'fm-root-swipe-active',
+        'fm-root-swipe-backward'
+      );
       if (g.fromEl) {
+        cancelElementAnimations(g.fromEl);
         g.fromEl.classList.remove('fm-layer-outgoing', 'fm-layer-top', 'fm-motion-active');
         clearInlineMotionStyles(g.fromEl);
       }
       if (g.toEl) {
+        cancelElementAnimations(g.toEl);
         g.toEl.classList.remove('fm-layer-incoming', 'fm-swipe-back-underlay', 'fm-motion-active');
         clearInlineMotionStyles(g.toEl);
       }
     }
 
-    function beginGesture(clientX, clientY, targetEl, pointerId) {
-      if (gesture) return false;
+    function velocityOf(g) {
+      const now = performance.now();
+      const samples = g.samples;
+      if (samples.length < 2) return 0;
+      const last = samples[samples.length - 1];
+      if (now - last.t > C.staleReleaseMs) return 0;
+      let first = samples[0];
+      for (let i = samples.length - 2; i >= 0; i--) {
+        first = samples[i];
+        if (last.t - samples[i].t >= C.velocityWindowMs) break;
+      }
+      const dt = last.t - first.t;
+      return dt >= 8 ? (last.x - first.x) / dt : 0;
+    }
+
+    function beginGesture(clientX, clientY, targetEl, input, pointerId) {
+      if (gesture || settling || stateMachine.isLocked()) return false;
       const wrapper = document.getElementById('screenWrapper') || appBody;
       const rect = wrapper.getBoundingClientRect();
       const relX = clientX - rect.left;
       const relY = clientY - rect.top;
-      if (relX < -4 || relX > EDGE_THRESHOLD_PX) return false;
-      if (relY < 0 || relY > rect.height) return false;
-      if (!canSwipeBackFromCurrentScreen(targetEl)) return false;
+      if (relY < 0 || relY > rect.height || relX < -4 || relX > rect.width + 4) return false;
 
       const currentScreen = resolveCurrentSwipeScreen();
-      const targetScreen =
-        typeof root.getBackTargetScreen === 'function' ? root.getBackTargetScreen(currentScreen) : 'home';
-      if (!currentScreen || !targetScreen || currentScreen === targetScreen) return false;
+      const fromEl = document.getElementById('app-screen-' + currentScreen);
+      if (!fromEl) return false;
 
-      if (targetScreen === 'missions' && typeof root.ensureMissionManagementScreenV116 === 'function') {
-        root.ensureMissionManagementScreenV116();
-        if (typeof root.renderMissionManagementV116 === 'function') {
-          root.renderMissionManagementV116();
+      let mode = null;
+      let targetScreen = null;
+      let toEl = null;
+      if (SWIPEABLE_STACK_SCREENS.has(currentScreen)) {
+        if (relX > C.edgePx || !canSwipeBackFromCurrentScreen(targetEl)) return false;
+        targetScreen =
+          typeof root.getBackTargetScreen === 'function' ? root.getBackTargetScreen(currentScreen) : 'home';
+        if (!targetScreen || targetScreen === currentScreen) return false;
+        if (targetScreen === 'missions' && typeof root.ensureMissionManagementScreenV116 === 'function') {
+          root.ensureMissionManagementScreenV116();
         }
+        toEl = document.getElementById('app-screen-' + targetScreen);
+        if (!toEl) return false;
+        mode = 'back';
+      } else if (getRootTabIndex(currentScreen) !== -1) {
+        if (!canRootSwipeFromCurrentScreen(targetEl)) return false;
+        mode = 'root';
+      } else {
+        return false;
       }
 
-      const fromEl = document.getElementById('app-screen-' + currentScreen);
-      const toEl = document.getElementById('app-screen-' + targetScreen);
-      if (!fromEl || !toEl) return false;
-
       gesture = {
+        mode: mode,
+        input: input,
         pointerId: pointerId !== undefined ? pointerId : null,
+        captureEl: null,
         startX: clientX,
         startY: clientY,
-        currentX: clientX,
-        lastX: clientX,
-        lastTime: performance.now(),
-        velocityX: 0,
-        viewportWidth: rect.width || 390,
-        lockedHorizontal: false,
-        aborted: false,
+        originX: clientX,
+        x: clientX,
+        samples: [{ x: clientX, t: performance.now() }],
+        width: Math.max(280, rect.width || 390),
+        locked: false,
+        resist: false,
+        dir: 0,
         currentScreen: currentScreen,
         targetScreen: targetScreen,
         fromEl: fromEl,
@@ -2024,187 +2141,246 @@
       return true;
     }
 
-    function updateGesture(clientX, clientY, ev) {
-      if (!gesture || gesture.aborted) return;
-      const dx = clientX - gesture.startX;
-      const dy = clientY - gesture.startY;
+    function lockGesture(g, dx) {
+      if (g.mode === 'root') {
+        g.dir = dx < 0 ? 1 : -1;
+        const targetIdx = getRootTabIndex(g.currentScreen) + g.dir;
+        if (targetIdx >= 0 && targetIdx < ROOT_TAB_ORDER.length) {
+          g.targetScreen = ROOT_TAB_ORDER[targetIdx];
+          if (g.targetScreen === 'missions' && typeof root.ensureMissionManagementScreenV116 === 'function') {
+            root.ensureMissionManagementScreenV116();
+          }
+          g.toEl = document.getElementById('app-screen-' + g.targetScreen);
+        }
+        g.resist = !g.toEl;
+      }
+      g.locked = true;
+      // Follow the finger from the lock point on: only the lock slop is absorbed.
+      g.originX = g.startX + (dx < 0 ? -C.lockPx : C.lockPx);
+      appBody.classList.add('fm-dual-transition', g.mode === 'back' ? 'fm-swipe-back-active' : 'fm-root-swipe-active');
+      if (g.mode === 'root' && g.dir < 0) appBody.classList.add('fm-root-swipe-backward');
+      g.fromEl.classList.add('fm-layer-outgoing', 'fm-layer-top', 'fm-motion-active');
+      if (g.toEl) {
+        g.toEl.classList.add('fm-layer-incoming', 'fm-swipe-back-underlay', 'fm-motion-active');
+        // Render the destination once, while it is laid out underneath; never during drag.
+        if (g.mode === 'root') prepareRootGestureTarget(g.targetScreen);
+        if (typeof root.restoreScreenScrollPosition === 'function') {
+          try {
+            root.restoreScreenScrollPosition(g.targetScreen);
+          } catch (_) {}
+        }
+      }
+      if (g.input === 'pointer' && g.pointerId !== null) {
+        try {
+          appBody.setPointerCapture(g.pointerId);
+          g.captureEl = appBody;
+        } catch (_) {}
+      }
+      applyFrame();
+    }
 
-      if (!gesture.lockedHorizontal) {
-        if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > DIRECTION_LOCK_PX) {
-          gesture.aborted = true;
+    function updateGesture(clientX, clientY, ev) {
+      const g = gesture;
+      if (!g) return;
+      g.x = clientX;
+      const now = performance.now();
+      g.samples.push({ x: clientX, t: now });
+      while (g.samples.length > 2 && now - g.samples[0].t > C.velocityWindowMs * 2) g.samples.shift();
+
+      if (!g.locked) {
+        const dx = clientX - g.startX;
+        const dy = clientY - g.startY;
+        const adx = Math.abs(dx);
+        const ady = Math.abs(dy);
+        if (Math.max(adx, ady) < C.lockPx) return;
+        if (adx < ady * C.dominance || (g.mode === 'back' && dx <= 0)) {
           gesture = null;
           return;
         }
-        if (dx >= DIRECTION_LOCK_PX && Math.abs(dx) > Math.abs(dy) * 1.15) {
-          gesture.lockedHorizontal = true;
-          appBody.classList.add('fm-dual-transition', 'fm-swipe-back-active');
-          gesture.fromEl.classList.add('fm-layer-outgoing', 'fm-layer-top', 'fm-motion-active');
-          gesture.toEl.classList.add('fm-layer-incoming', 'fm-swipe-back-underlay', 'fm-motion-active');
-          if (typeof root.restoreScreenScrollPosition === 'function') {
-            try {
-              root.restoreScreenScrollPosition(gesture.targetScreen);
-            } catch (_) {}
-          }
-        } else {
-          return;
+        lockGesture(g, dx);
+      }
+
+      if (ev && ev.cancelable) ev.preventDefault();
+      if (rafId === null) rafId = requestAnimationFrame(applyFrame);
+    }
+
+    function commitRoute(g) {
+      if (g.mode === 'back') {
+        if (typeof root.navigateBack === 'function') root.navigateBack({ skipMotion: true });
+        return;
+      }
+      if (typeof root.navigateToRoot === 'function') {
+        root.navigateToRoot(g.targetScreen, { skipMotion: true });
+        if (typeof root.restoreScreenScrollPosition === 'function') {
+          try {
+            root.restoreScreenScrollPosition(g.targetScreen);
+          } catch (_) {}
         }
-      }
-
-      if (ev && ev.cancelable) {
-        ev.preventDefault();
-      }
-
-      const now = performance.now();
-      const dt = Math.max(1, now - gesture.lastTime);
-      gesture.velocityX = (clientX - gesture.lastX) / dt;
-      gesture.lastX = clientX;
-      gesture.lastTime = now;
-      gesture.currentX = clientX;
-
-      if (rafId === null) {
-        rafId = requestAnimationFrame(applyDragFrame);
+        animateDockActiveTab(g.targetScreen, prefersReducedMotion());
       }
     }
 
     function finishGesture(cancelled) {
-      if (!gesture) return;
       const g = gesture;
       gesture = null;
-      if (!g.lockedHorizontal || g.aborted) {
+      if (!g) return;
+      if (!g.locked) {
         cleanupGestureDOM(g);
         return;
       }
+      suppressClickUntil = performance.now() + 350;
+      cancelFrame();
 
-      const dx = Math.max(0, g.currentX - g.startX);
-      const width = Math.max(280, g.viewportWidth || 390);
-      const progress = Math.min(1, dx / width);
-      const now = performance.now();
-      const effectiveVel = now - g.lastTime > 60 ? 0 : g.velocityX;
-      const shouldComplete =
-        !cancelled &&
-        (progress >= COMPLETE_DISTANCE_RATIO ||
-          (effectiveVel >= COMPLETE_VELOCITY_PX_PER_MS && progress >= 0.22));
-
-      const underOffsetPct = -8 * (1 - progress);
-      const underScale = 0.985 + 0.015 * progress;
-      const underOpacity = 0.88 + 0.12 * progress;
-
-      if (
-        typeof g.fromEl.animate !== 'function' ||
-        typeof g.toEl.animate !== 'function' ||
-        prefersReducedMotion()
-      ) {
-        cleanupGestureDOM(g);
-        if (shouldComplete && typeof root.navigateBack === 'function') {
-          root.navigateBack({ skipMotion: true });
+      const d = displacement(g);
+      const progress = Math.abs(d) / g.width;
+      const velocity = velocityOf(g);
+      let shouldComplete = false;
+      if (!cancelled && !g.resist && g.toEl) {
+        if (g.mode === 'back') {
+          shouldComplete =
+            progress >= C.backCompleteRatio ||
+            (velocity >= C.completeVelocity && progress >= C.minFlingRatio);
+        } else {
+          shouldComplete =
+            progress >= C.rootCompleteRatio ||
+            (-g.dir * velocity >= C.completeVelocity && progress >= C.minFlingRatio);
         }
+      }
+
+      if (prefersReducedMotion() || typeof g.fromEl.animate !== 'function') {
+        cleanupGestureDOM(g);
+        if (shouldComplete) commitRoute(g);
         return;
       }
 
-      const durationMs = shouldComplete
-        ? Math.max(140, Math.min(280, Math.round((1 - progress) * 260)))
-        : Math.max(150, Math.round(240 * (0.4 + progress * 0.6)));
+      const exitX = g.mode === 'back' ? g.width : -g.dir * g.width;
+      const remaining = shouldComplete ? Math.abs(exitX - d) : Math.abs(d);
+      const fraction = Math.min(1, remaining / g.width);
+      const speed = Math.abs(velocity);
+      let durationMs = shouldComplete ? 130 + 210 * fraction : 150 + 170 * fraction;
+      if (shouldComplete && speed > 0.3) {
+        durationMs = Math.min(durationMs, Math.max(110, (remaining / speed) * 1.7));
+      }
+      durationMs = Math.round(Math.max(110, Math.min(340, durationMs)));
+      const easing = 'cubic-bezier(0.2, 0.75, 0.25, 1)';
 
-      stateMachine.acquireLock('swipe-back', durationMs + 120, function () {
+      let finalized = false;
+      const finalize = function (commit) {
+        if (finalized) return;
+        finalized = true;
+        if (settling === finalize) settling = null;
+        if (activeScreenCleanup === abortSettle) activeScreenCleanup = null;
         cleanupGestureDOM(g);
+        stateMachine.releaseLock();
+        if (commit) commitRoute(g);
+      };
+      const abortSettle = function () {
+        finalize(false);
+      };
+      settling = finalize;
+      activeScreenCleanup = abortSettle;
+      stateMachine.acquireLock(g.mode === 'back' ? 'swipe-back' : 'root-swipe', durationMs + 160, function () {
+        finalize(shouldComplete);
       });
+      stateMachine.setState('animating', g.mode === 'back' ? 'swipe-back' : 'root-swipe');
 
       const fromAnim = g.fromEl.animate(
         [
-          { transform: 'translate3d(' + dx + 'px, 0, 0)' },
-          {
-            transform: shouldComplete
-              ? 'translate3d(' + width + 'px, 0, 0)'
-              : 'translate3d(0px, 0, 0)'
-          }
+          { transform: 'translate3d(' + d.toFixed(1) + 'px, 0, 0)' },
+          { transform: 'translate3d(' + (shouldComplete ? exitX : 0) + 'px, 0, 0)' }
         ],
-        {
-          duration: durationMs,
-          easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-          fill: 'forwards'
-        }
+        { duration: durationMs, easing: easing, fill: 'forwards' }
       );
+      const anims = [fromAnim.finished];
+      if (g.toEl) {
+        const startFrame = underlayFrame(g, progress);
+        const endFrame = underlayFrame(g, shouldComplete ? 1 : 0);
+        anims.push(
+          g.toEl.animate(
+            [
+              { transform: startFrame.transform, opacity: Number(startFrame.opacity) },
+              { transform: endFrame.transform, opacity: Number(endFrame.opacity) }
+            ],
+            { duration: durationMs, easing: easing, fill: 'forwards' }
+          ).finished
+        );
+      }
+      Promise.all(anims)
+        .then(function () {
+          finalize(shouldComplete);
+        })
+        .catch(function () {
+          finalize(false);
+        });
+    }
 
-      const toAnim = g.toEl.animate(
-        [
-          {
-            transform:
-              'translate3d(' +
-              underOffsetPct.toFixed(2) +
-              '%, 0, 0) scale(' +
-              underScale.toFixed(4) +
-              ')',
-            opacity: underOpacity
-          },
-          {
-            transform: shouldComplete
-              ? 'translate3d(0%, 0, 0) scale(1)'
-              : 'translate3d(-8%, 0, 0) scale(0.985)',
-            opacity: shouldComplete ? 1 : 0.88
-          }
-        ],
-        {
-          duration: durationMs,
-          easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-          fill: 'forwards'
-        }
-      );
-
-      Promise.all([
-        fromAnim.finished.catch(function () {}),
-        toAnim.finished.catch(function () {})
-      ]).finally(function () {
-        cancelElementAnimations(g.fromEl);
-        cancelElementAnimations(g.toEl);
-        cleanupGestureDOM(g);
-        stateMachine.releaseLock();
-        if (shouldComplete && typeof root.navigateBack === 'function') {
-          root.navigateBack({ skipMotion: true });
-        }
-      });
+    function abortGesture() {
+      const g = gesture;
+      gesture = null;
+      if (g) cleanupGestureDOM(g);
+      if (settling) settling(false);
     }
 
     function onTouchStart(ev) {
-      if (!ev.touches || ev.touches.length !== 1) return;
+      if (!ev.touches) return;
+      if (ev.touches.length !== 1) {
+        if (gesture) finishGesture(true);
+        return;
+      }
       const touch = ev.touches[0];
       beginGesture(touch.clientX, touch.clientY, ev.target, 'touch');
     }
 
     function onTouchMove(ev) {
-      if (!gesture || gesture.pointerId !== 'touch' || !ev.touches || ev.touches.length !== 1) return;
+      if (!gesture || gesture.input !== 'touch' || !ev.touches || ev.touches.length !== 1) return;
       const touch = ev.touches[0];
       updateGesture(touch.clientX, touch.clientY, ev);
     }
 
-    function onTouchEnd() {
-      if (!gesture || gesture.pointerId !== 'touch') return;
+    function onTouchEnd(ev) {
+      if (!gesture || gesture.input !== 'touch') return;
+      if (ev.touches && ev.touches.length > 0) return;
       finishGesture(false);
     }
 
     function onTouchCancel() {
-      if (!gesture || gesture.pointerId !== 'touch') return;
+      if (!gesture || gesture.input !== 'touch') return;
       finishGesture(true);
     }
 
+    // Touch input is handled exclusively through touch events (cancelable touchmove);
+    // pointer events only drive mouse and pen so one physical gesture never has two owners.
+    function isTouchPointer(ev) {
+      return ev.pointerType === 'touch';
+    }
+
     function onPointerDown(ev) {
-      if (gesture) return;
+      if (gesture || isTouchPointer(ev)) return;
       if (ev.button !== undefined && ev.button !== 0) return;
-      beginGesture(ev.clientX, ev.clientY, ev.target, ev.pointerId);
+      beginGesture(ev.clientX, ev.clientY, ev.target, 'pointer', ev.pointerId);
     }
 
     function onPointerMove(ev) {
-      if (!gesture || gesture.pointerId === 'touch' || gesture.pointerId !== ev.pointerId) return;
+      if (!gesture || gesture.input !== 'pointer' || gesture.pointerId !== ev.pointerId) return;
       updateGesture(ev.clientX, ev.clientY, ev);
     }
 
     function onPointerUp(ev) {
-      if (!gesture || gesture.pointerId === 'touch' || gesture.pointerId !== ev.pointerId) return;
+      if (!gesture || gesture.input !== 'pointer' || gesture.pointerId !== ev.pointerId) return;
       finishGesture(false);
     }
 
     function onPointerCancel(ev) {
-      if (!gesture || gesture.pointerId === 'touch' || gesture.pointerId !== ev.pointerId) return;
+      if (!gesture || gesture.input !== 'pointer' || gesture.pointerId !== ev.pointerId) return;
       finishGesture(true);
+    }
+
+    function onClickCapture(ev) {
+      if (performance.now() < suppressClickUntil) {
+        suppressClickUntil = 0;
+        ev.preventDefault();
+        ev.stopPropagation();
+      }
     }
 
     window.addEventListener('touchstart', onTouchStart, { passive: true });
@@ -2216,6 +2392,14 @@
     window.addEventListener('pointermove', onPointerMove, { passive: false });
     window.addEventListener('pointerup', onPointerUp, { passive: true });
     window.addEventListener('pointercancel', onPointerCancel, { passive: true });
+    window.addEventListener('click', onClickCapture, true);
+
+    window.addEventListener('resize', abortGesture, { passive: true });
+    window.addEventListener('orientationchange', abortGesture, { passive: true });
+    window.addEventListener('pagehide', abortGesture);
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'hidden') abortGesture();
+    });
   }
 
   function installLifecycleSafetyHandlers() {
@@ -2238,7 +2422,7 @@
   }
 
   const MotionController = {
-    version: 'v17.5.1 Interaction Fixes',
+    version: 'v17.6 Navigation, Insights & League Polish',
     ROOT_TAB_ORDER,
     VALID_STATES,
     getRootTabIndex,
@@ -2258,6 +2442,7 @@
     forceCleanupScreenLayers,
     dismissStartupSplash,
     canSwipeBackFromCurrentScreen,
+    canRootSwipeFromCurrentScreen,
     init: function () {
       installGlobalTriggerTracking();
       installLifecycleSafetyHandlers();
@@ -2266,11 +2451,11 @@
         if (document.readyState === 'loading') {
           document.addEventListener('DOMContentLoaded', function () {
             installFeatureMotionEnhancements();
-            installEdgeSwipeBackGesture();
+            installNavigationGestures();
           });
         } else {
           installFeatureMotionEnhancements();
-          installEdgeSwipeBackGesture();
+          installNavigationGestures();
         }
       }
     }

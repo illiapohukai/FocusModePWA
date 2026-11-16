@@ -90,6 +90,8 @@ function renderSessionHistory(filter=activeHistoryFilter){
  if(compCountEl)compCountEl.textContent=String(cDone);
  if(partCountEl)partCountEl.textContent=String(cPart);
  if(abortCountEl)abortCountEl.textContent=String(cAbort);
+ const historyChartHost=document.getElementById('historyFocusChart');
+ if(historyChartHost&&window.FocusInsights)window.FocusInsights.renderChart(historyChartHost);
 
  if(!items.length)list.append(createHistoryEmpty(filter,all.length));
  else items.forEach(x=>list.append(createHistoryCard(x)));
@@ -177,18 +179,60 @@ function refreshHomeStats(){
  lucide.createIcons();
  historyLog('home_stats_refreshed',{todayMinutes:todayM,weekMinutes:weekM,weekSessions:week.length});
 }
-function getWeekDailyMinutes(){
- const monday=startOfHistoryWeek(),days=Array(7).fill(0);
- sessionRepository.getThisWeek().filter(countedFocus).forEach(s=>{const d=new Date(s.finishedAt);d.setHours(0,0,0,0);const index=Math.floor((d.getTime()-monday)/86400000);if(index>=0&&index<7)days[index]+=Number(s.actualMinutes)||0});
- return days;
-}
 function refreshStatsScreen(){
- const completed=sessionRepository.getCompleted().filter(countedFocus),today=sessionRepository.getToday().filter(countedFocus),todayMinutes=today.reduce((n,s)=>n+Number(s.actualMinutes||0),0),totalMinutes=completed.reduce((n,s)=>n+Number(s.actualMinutes||0),0),missionCount=completed.filter(s=>s.type==='mission').length;
- const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value};
- set('statsTodayFocus',formatHistoryDuration(todayMinutes));set('statsMissionSteps',missionCount+' abgeschlossen');set('statsTotalFocus',formatHistoryDuration(totalMinutes));set('statsCompletedSessions',completed.length+' abgeschlossen');
- const days=getWeekDailyMinutes(),max=Math.max(1,...days),todayIndex=(new Date().getDay()+6)%7;
- document.querySelectorAll('#statsWeekChart [data-history-day]').forEach((day,index)=>{const minutes=days[index]||0,bar=day.querySelector('div:nth-last-child(2)'),label=day.querySelector('span:last-child');let tip=day.querySelector('.focus-tooltip');if(!tip){tip=document.createElement('div');tip.className='focus-tooltip';day.prepend(tip)}tip.textContent=minutes+' Min.';if(bar){bar.style.height=(minutes?Math.max(8,Math.round(minutes/max*100)):2)+'%';bar.className='w-full rounded-t-lg '+(index===todayIndex?'bg-[#6D28D9]':minutes?'bg-purple-300':'bg-stone-200')}if(label){label.classList.toggle('text-[#6D28D9]',index===todayIndex);label.classList.toggle('font-semibold',index===todayIndex)}});
- historyLog('stats_refreshed',{todayMinutes,totalMinutes,completedSessions:completed.length});
+ const insightsApi=window.FocusInsights;
+ if(!insightsApi)return;
+ const ins=insightsApi.computeInsights();
+ const fmt=insightsApi.formatDuration;
+ const set=(id,value)=>{const el=document.getElementById(id);if(el&&el.textContent!==value)el.textContent=value};
+ const hasData=ins.countedCount>0;
+ set('statsTotalFocus',fmt(ins.totalMinutes));
+ set('statsHeroSub',hasData?(ins.activeDays28+(ins.activeDays28===1?' aktiver Tag':' aktive Tage')+' in den letzten 4 Wochen'):'Noch keine gezählte Fokuszeit');
+ set('statsCompletedSessions',String(ins.countedCount));
+ set('statsCompletedSessionsLabel',ins.countedCount===1?'SITZUNG':'SITZUNGEN');
+ set('statsAverageSession',hasData?fmt(ins.averageMinutes):'–');
+ set('statsCompletionRate',ins.completionRate===null?'–':ins.completionRate+' %');
+ set('statsTodayFocus',fmt(ins.todayMinutes));
+ ['statsConsistencyCard','statsBestCard','statsTypesCard'].forEach(id=>document.getElementById(id)?.classList.toggle('hidden',!hasData));
+ document.getElementById('statsEmptyCard')?.classList.toggle('hidden',hasData);
+ const streak=ins.streak;
+ set('statsStreakValue',String(streak.current));
+ set('statsStreakUnit',streak.current===1?'Tag in Folge':'Tage in Folge');
+ set('statsStreakCopy',streak.current===0?'Starte heute eine neue Serie':streak.todayActive?'Heute bereits fokussiert':'Fokussiere heute, um die Serie zu halten');
+ set('statsActiveDays',ins.activeDays28+' von 28 Tagen aktiv');
+ set('statsBestStreak','Beste Serie: '+streak.best+(streak.best===1?' Tag':' Tage'));
+ const grid=document.getElementById('statsConsistencyGrid');
+ if(grid){
+   const maxDay=Math.max(1,...ins.recentDays.map(d=>d.minutes));
+   const sig=ins.recentDays.map(d=>d.minutes).join(',');
+   if(grid.dataset.sig!==sig){
+     grid.dataset.sig=sig;
+     grid.replaceChildren(...ins.recentDays.map(d=>{
+       const cell=document.createElement('span');
+       const level=d.minutes<=0?0:d.minutes>=maxDay*0.66?3:d.minutes>=maxDay*0.33?2:1;
+       cell.className='fm-consistency-cell level-'+level+(d.isToday?' is-today':'');
+       cell.title=insightsApi.formatDayShort(d.start)+': '+fmt(d.minutes);
+       return cell;
+     }));
+   }
+   grid.setAttribute('aria-label',ins.activeDays28+' aktive Tage in den letzten 28 Tagen');
+ }
+ set('statsBestDay',ins.bestDay?insightsApi.formatDayShort(ins.bestDay.start)+' · '+fmt(ins.bestDay.minutes):'–');
+ set('statsBestWeek',ins.bestWeek?insightsApi.formatWeekRange(ins.bestWeek.start).split(' · ')[0]+' · '+fmt(ins.bestWeek.minutes):'–');
+ set('statsLongestSession',ins.longestSession?fmt(ins.longestSession.minutes)+' · '+(ins.longestSession.type==='mission'?'Mission':'Quick'):'–');
+ const missionCount=ins.mission.count;
+ set('statsMissionSteps',missionCount+(missionCount===1?' Schritt':' Schritte')+' · '+fmt(ins.mission.minutes));
+ set('statsQuickSessions',ins.quick.count+(ins.quick.count===1?' Sitzung':' Sitzungen')+' · '+fmt(ins.quick.minutes));
+ const split=document.getElementById('statsTypeSplit');
+ if(split){
+   const total=Math.max(1,ins.mission.minutes+ins.quick.minutes);
+   const mi=split.querySelector('.is-mission'),qi=split.querySelector('.is-quick');
+   if(mi)mi.style.flexGrow=String(ins.mission.minutes/total);
+   if(qi)qi.style.flexGrow=String(ins.quick.minutes/total);
+ }
+ const chartHost=document.getElementById('statsFocusChart');
+ if(chartHost)insightsApi.renderChart(chartHost);
+ historyLog('stats_refreshed',{todayMinutes:ins.todayMinutes,totalMinutes:ins.totalMinutes,completedSessions:ins.countedCount});
 }
 const historyApplyScreen=applyAppScreenImmediately;applyAppScreenImmediately=function(screen){const result=historyApplyScreen.apply(this,arguments);if(screen==='history')renderSessionHistory(activeHistoryFilter);if(screen==='home')refreshHomeStats();if(screen==='stats')refreshStatsScreen();return result};
 document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{loadHistoryStore();refreshHomeStats();refreshStatsScreen();renderSessionHistory(activeHistoryFilter)},60));

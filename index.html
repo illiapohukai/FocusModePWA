@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 
-<html class="dark" lang="de"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/><meta content="#F6F1E7" name="theme-color"/><title>v17.5.1 Interaction Fixes</title>
-<meta name="description" content="Focus Mode+ v17.5.1 Interaction Fixes — Interaktions- und Layout-Korrekturen für Missionen, Karussell, Plus-Panel und Swipe-Back-Navigation.">
-<meta property="og:title" content="v17.5.1 Interaction Fixes">
-<meta property="og:description" content="Focus Mode+ v17.5.1 Interaction Fixes — Interaktions- und Layout-Korrekturen für Missionen, Karussell, Plus-Panel und Swipe-Back-Navigation."><script src="https://cdn.tailwindcss.com"></script><script>window.tailwind=window.tailwind||{};tailwind.config={darkMode:'class'}</script><script src="https://unpkg.com/lucide@latest"></script><script>window.lucide=window.lucide||{createIcons:function(){}}</script><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>  <link rel="stylesheet" href="./styles/app.css" />
+<html class="dark" lang="de"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/><meta content="#F6F1E7" name="theme-color"/><title>v17.6 Navigation, Insights &amp; League Polish</title>
+<meta name="description" content="Focus Mode+ v17.6 Navigation, Insights &amp; League Polish — stabile Navigation, Root-Swipe, moderner Fokusverlauf und Liga-Vorschau.">
+<meta property="og:title" content="v17.6 Navigation, Insights &amp; League Polish">
+<meta property="og:description" content="Focus Mode+ v17.6 Navigation, Insights &amp; League Polish — stabile Navigation, Root-Swipe, moderner Fokusverlauf und Liga-Vorschau."><script src="https://cdn.tailwindcss.com"></script><script>window.tailwind=window.tailwind||{};tailwind.config={darkMode:'class'}</script><script src="https://unpkg.com/lucide@latest"></script><script>window.lucide=window.lucide||{createIcons:function(){}}</script><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>  <link rel="stylesheet" href="./styles/app.css" />
   <link rel="stylesheet" href="./styles/timer.css" />
   <link rel="stylesheet" href="./styles/recovery.css" />
   <link rel="stylesheet" href="./styles/quick-focus.css" />
   <link rel="stylesheet" href="./styles/missions.css" />
   <link rel="stylesheet" href="./styles/data-management.css" />
   <link rel="stylesheet" href="./styles/navigation.css" />
+<link rel="stylesheet" href="./styles/insights.css" />
   <link rel="stylesheet" href="./styles/motion.css" /><link rel="manifest" href="./manifest.webmanifest"/><link rel="icon" type="image/png" href="./icon-192.png"/><link rel="apple-touch-icon" href="./apple-touch-icon.png"/><meta name="apple-mobile-web-app-capable" content="yes"/><meta id="appleStatusBarStyle" name="apple-mobile-web-app-status-bar-style" content="black-translucent"/><meta name="apple-mobile-web-app-title" content="Focus Mode+"/>
 
 </head><body>
@@ -262,6 +263,15 @@
         <button class="home-section-link" type="button" onclick="navigateToRoot('history')">Alle anzeigen</button>
       </div>
       <div class="home-activity-timeline" id="homeActivityList"></div>
+    </section>
+
+    <!-- 6. Compact League preview -->
+    <section class="home-section-block home-league-section" aria-labelledby="homeLeagueHeading">
+      <div class="home-section-head">
+        <span class="home-section-label" id="homeLeagueHeading">DEINE LIGA</span>
+        <button class="home-section-link" type="button" onclick="openLeagueFromHome()">Rangliste ansehen</button>
+      </div>
+      <button class="home-league-card" id="homeLeagueCard" type="button" onclick="openLeagueFromHome()" aria-label="Rangliste ansehen"></button>
     </section>
   </div>
 </div>
@@ -691,6 +701,7 @@
       </div>
     </div>
   </section>
+  <section class="fm-focus-chart-card shrink-0 mb-3" id="historyFocusChart" data-chart-kicker="FOKUS-RHYTHMUS" aria-label="Fokuszeit im Zeitverlauf"></section>
   <div class="grid grid-cols-3 gap-2 mb-3 shrink-0" id="historyFilters">
     <button class="history-filter active" data-filter="today" onclick="setHistoryFilter('today',this)">Heute</button>
     <button class="history-filter" data-filter="week" onclick="setHistoryFilter('week',this)">Diese Woche</button>
@@ -701,73 +712,113 @@
 </div>
 <!-- ЭКРАН 3: Statistik -->
 <div class="app-screen p-4 flex flex-col flex-1 hidden min-h-0" id="app-screen-stats">
-<div class="space-y-3">
-<div class="flex items-center gap-3">
-<button class="fm-top-back-btn" onclick="navigateBack()" aria-label="Zurück" title="Zurück" type="button"><i class="w-4 h-4" data-lucide="arrow-left"></i></button>
-<div>
-<span class="text-2xs text-slate-400 font-semibold uppercase tracking-wider block">Fortschritt</span>
-<h3 class="text-xl font-bold text-slate-900">Dein Fokusverlauf</h3>
-</div>
-</div>
-<!-- График -->
-<div class="bg-white p-3.5 rounded-3xl border border-slate-200/60 space-y-2.5 shadow-xs">
-<div class="flex justify-between items-center">
-<span class="text-xs font-semibold text-slate-700">Wochenübersicht</span>
-</div>
-<div class="h-24 flex items-end justify-between gap-1.5 pt-3" id="statsWeekChart">
-<div class="focus-day group flex-1 flex flex-col items-center gap-1.5 h-full justify-end relative" data-history-day="0"><div class="focus-tooltip">48 Min.</div><div class="w-full bg-indigo-200 rounded-t-lg" style="height:64%"></div><span class="text-[9px] text-slate-400">M</span></div>
-<div class="focus-day group flex-1 flex flex-col items-center gap-1.5 h-full justify-end relative" data-history-day="1"><div class="focus-tooltip">57 Min.</div><div class="w-full bg-indigo-300 rounded-t-lg" style="height:78%"></div><span class="text-[9px] text-slate-400">D</span></div>
-<div class="focus-day group flex-1 flex flex-col items-center gap-1.5 h-full justify-end relative" data-history-day="2"><div class="focus-tooltip">42 Min.</div><div class="w-full bg-indigo-600 rounded-t-lg" style="height:56%"></div><span class="text-[9px] text-indigo-600 font-semibold">M</span></div>
-<div class="focus-day flex-1 flex flex-col items-center gap-1.5 h-full justify-end relative" data-history-day="3"><div class="w-full bg-slate-100 rounded-t-lg h-0.5"></div><span class="text-[9px] text-slate-300">D</span></div>
-<div class="focus-day flex-1 flex flex-col items-center gap-1.5 h-full justify-end relative" data-history-day="4"><div class="w-full bg-slate-100 rounded-t-lg h-0.5"></div><span class="text-[9px] text-slate-300">F</span></div>
-<div class="focus-day flex-1 flex flex-col items-center gap-1.5 h-full justify-end relative" data-history-day="5"><div class="w-full bg-slate-100 rounded-t-lg h-0.5"></div><span class="text-[9px] text-slate-300">S</span></div>
-<div class="focus-day flex-1 flex flex-col items-center gap-1.5 h-full justify-end relative" data-history-day="6"><div class="w-full bg-slate-100 rounded-t-lg h-0.5"></div><span class="text-[9px] text-slate-300">S</span></div>
-</div>
-</div>
-<!-- Индикаторы -->
-<div class="space-y-2.5">
-<div class="p-2.5 bg-white border border-slate-200/60 rounded-2xl flex items-center justify-between text-xs">
-<span class="text-slate-500">Fokuszeit heute</span><span class="font-semibold text-slate-800" id="statsTodayFocus">0 Min.</span>
-</div>
-<div class="p-2.5 bg-white border border-slate-200/60 rounded-2xl flex items-center justify-between text-xs">
-<span class="text-slate-500">Mission-Schritte</span><span class="font-semibold text-amber-500" id="statsMissionSteps">0 abgeschlossen</span>
-</div>
-</div>
-</div>
-<!-- Кнопки управления (в том числе возврат) -->
-<div class="grid grid-cols-2 gap-2 mt-2"><div class="p-2.5 bg-indigo-50 border border-indigo-100 rounded-2xl"><div class="text-[8px] uppercase tracking-wider font-bold text-indigo-400">Gesamte Fokuszeit</div><div class="text-[13px] font-black text-indigo-700 mt-1" id="statsTotalFocus">0 Min.</div></div><div class="p-2.5 bg-emerald-50 border border-emerald-100 rounded-2xl"><div class="text-[8px] uppercase tracking-wider font-bold text-emerald-500">Sitzungen</div><div class="text-[13px] font-black text-emerald-700 mt-1" id="statsCompletedSessions">0 abgeschlossen</div></div></div><div class="mt-auto space-y-1.5 pt-2">
-<button class="w-full py-2.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-2xl transition flex items-center justify-center gap-2" onclick="navigateForward('score',{parent:'stats',rootSection:'history'})" type="button">
-                   Rangliste &amp; Erfolge
-                   <i class="w-4 h-4" data-lucide="arrow-right"></i>
-</button>
-</div>
+  <div class="fm-insights-shell">
+    <header class="fm-insights-header">
+      <button class="fm-top-back-btn" onclick="navigateBack()" aria-label="Zurück" title="Zurück" type="button"><i class="w-4 h-4" data-lucide="arrow-left"></i></button>
+      <div>
+        <span class="fm-insights-kicker">Fortschritt</span>
+        <h3 class="fm-insights-title">Dein Fokusverlauf</h3>
+      </div>
+    </header>
+    <section class="fm-dark-summary-card fm-insights-hero" aria-labelledby="statsHeroLabel">
+      <div class="fm-dark-summary-top">
+        <div>
+          <span class="fm-dark-kicker" id="statsHeroLabel"><i></i><span>GESAMTE FOKUSZEIT</span></span>
+          <div class="fm-dark-main-val tabular-nums" id="statsTotalFocus">0 Min.</div>
+          <div class="fm-dark-sub-copy" id="statsHeroSub">Noch keine gezählte Fokuszeit</div>
+        </div>
+        <div class="fm-dark-badge">
+          <strong class="tabular-nums" id="statsCompletedSessions">0</strong>
+          <span id="statsCompletedSessionsLabel">SITZUNGEN</span>
+        </div>
+      </div>
+      <div class="fm-insights-hero-grid">
+        <div><strong class="tabular-nums" id="statsAverageSession">–</strong><span>Ø pro Sitzung</span></div>
+        <div><strong class="tabular-nums" id="statsCompletionRate">–</strong><span>Abschlussquote</span></div>
+        <div><strong class="tabular-nums" id="statsTodayFocus">0 Min.</strong><span>Heute</span></div>
+      </div>
+    </section>
+    <section class="fm-focus-chart-card" id="statsFocusChart" data-chart-kicker="FOKUS-RHYTHMUS" data-default-range="4w" aria-label="Fokuszeit im Zeitverlauf"></section>
+    <section class="fm-insight-card fm-insight-empty hidden" id="statsEmptyCard">
+      <span class="fm-insight-icon"><i data-lucide="sparkles"></i></span>
+      <div>
+        <h4>Dein Fortschritt beginnt mit der ersten Sitzung</h4>
+        <p>Sobald du fokussierst, erscheinen hier Konstanz, Bestwerte und deine Sitzungsarten.</p>
+      </div>
+    </section>
+    <section class="fm-insight-card" id="statsConsistencyCard" aria-labelledby="statsConsistencyTitle">
+      <div class="fm-insight-card-head">
+        <span class="fm-insight-icon"><i data-lucide="flame"></i></span>
+        <div class="fm-insight-card-copy">
+          <h4 id="statsConsistencyTitle">Konstanz</h4>
+          <p id="statsStreakCopy">Tage mit gezählter Fokuszeit</p>
+        </div>
+        <div class="fm-insight-stat">
+          <strong class="tabular-nums" id="statsStreakValue">0</strong>
+          <span id="statsStreakUnit">Tage in Folge</span>
+        </div>
+      </div>
+      <div class="fm-consistency-grid" id="statsConsistencyGrid" role="img" aria-label="Aktive Tage der letzten 4 Wochen"></div>
+      <div class="fm-consistency-foot">
+        <span id="statsActiveDays">0 von 28 Tagen aktiv</span>
+        <span id="statsBestStreak">Beste Serie: 0 Tage</span>
+      </div>
+    </section>
+    <section class="fm-insight-card" id="statsBestCard" aria-labelledby="statsBestTitle">
+      <div class="fm-insight-card-head">
+        <span class="fm-insight-icon is-gold"><i data-lucide="medal"></i></span>
+        <div class="fm-insight-card-copy">
+          <h4 id="statsBestTitle">Bestwerte</h4>
+          <p>Deine stärksten Zeiträume</p>
+        </div>
+      </div>
+      <dl class="fm-insight-rows">
+        <div><dt>Stärkster Tag</dt><dd id="statsBestDay">–</dd></div>
+        <div><dt>Stärkste Woche</dt><dd id="statsBestWeek">–</dd></div>
+        <div><dt>Längste Sitzung</dt><dd id="statsLongestSession">–</dd></div>
+      </dl>
+    </section>
+    <section class="fm-insight-card" id="statsTypesCard" aria-labelledby="statsTypesTitle">
+      <div class="fm-insight-card-head">
+        <span class="fm-insight-icon"><i data-lucide="layers"></i></span>
+        <div class="fm-insight-card-copy">
+          <h4 id="statsTypesTitle">Sitzungsarten</h4>
+          <p>Gezählte Fokuszeit nach Art</p>
+        </div>
+      </div>
+      <div class="fm-type-split" id="statsTypeSplit" aria-hidden="true"><i class="is-mission"></i><i class="is-quick"></i></div>
+      <dl class="fm-insight-rows">
+        <div><dt><span class="fm-type-dot is-mission"></span>Focus Mission</dt><dd id="statsMissionSteps">0 abgeschlossen</dd></div>
+        <div><dt><span class="fm-type-dot is-quick"></span>Quick Focus</dt><dd id="statsQuickSessions">0 Sitzungen</dd></div>
+      </dl>
+    </section>
+    <button class="fm-insights-link" onclick="navigateForward('score',{parent:'stats',rootSection:'history'})" type="button">
+      <span class="fm-insight-icon is-gold"><i data-lucide="trophy"></i></span>
+      <span class="fm-insights-link-copy"><strong>Rangliste &amp; Erfolge</strong><small>Deine Woche in der Focus League</small></span>
+      <i class="fm-insights-link-chevron" data-lucide="chevron-right"></i>
+    </button>
+  </div>
 </div>
 <!-- ЭКРАН 4: Motivation & Leaderboard -->
 <div class="app-screen flex-1 hidden flex flex-col overflow-y-auto hide-scrollbar" id="app-screen-score">
-<div class="p-5 space-y-5 flex-1">
-<div class="flex items-center gap-3"><button class="fm-top-back-btn" onclick="navigateBack()" aria-label="Zurück" title="Zurück" type="button"><i class="w-4 h-4" data-lucide="arrow-left"></i></button><div><span class="text-2xs text-slate-400 font-semibold uppercase tracking-wider block">Motivation</span><h3 class="text-xl font-bold text-slate-900">Weekly Focus League</h3></div></div>
-<section class="p-4 rounded-3xl bg-gradient-to-br from-amber-50 via-white to-indigo-50 border border-amber-200/60 shadow-xs">
-<div class="flex items-start justify-between"><div><div class="text-[8px] uppercase tracking-[.15em] font-black text-amber-600">Gold League</div><div class="text-xl font-black text-slate-900 mt-1">Platz 12</div><div class="text-[9px] text-slate-400 mt-1">684 Focus Score · diese Woche</div></div><div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-300 to-yellow-500 flex items-center justify-center text-white shadow-lg"><i class="w-5 h-5" data-lucide="trophy"></i></div></div>
-<div class="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-amber-100"><div><div class="text-[8px] text-slate-400">Aufstieg</div><div class="text-[9px] font-bold text-emerald-600 mt-0.5">Top 5</div></div><div><div class="text-[8px] text-slate-400">Verbleibend</div><div class="text-[9px] font-bold text-slate-700 mt-0.5">3 Tage</div></div></div>
-</section>
-<section class="space-y-2.5">
-<div class="flex items-center justify-between"><h4 class="text-xs font-bold text-slate-800 uppercase tracking-wide">Diese Woche</h4><span class="text-[8px] text-slate-400">Score statt Lifetime-Zeit</span></div>
-<div class="bg-white rounded-2xl border border-slate-200/70 overflow-hidden shadow-xs divide-y divide-slate-100">
-<div class="p-3 flex items-center justify-between bg-amber-50/40"><div class="flex items-center gap-3"><span class="w-6 text-center text-lg">🥇</span><span class="font-semibold text-xs text-slate-800">AnnaK</span></div><span class="text-xs font-black text-slate-700">926</span></div>
-<div class="p-3 flex items-center justify-between"><div class="flex items-center gap-3"><span class="w-6 text-center text-lg">🥈</span><span class="font-semibold text-xs text-slate-800">Max_Müller</span></div><span class="text-xs font-black text-slate-700">890</span></div>
-<div class="p-3 flex items-center justify-between"><div class="flex items-center gap-3"><span class="w-6 text-center text-lg">🥉</span><span class="font-semibold text-xs text-slate-800">StudyKing</span></div><span class="text-xs font-black text-slate-700">845</span></div>
-<div class="p-3 flex items-center justify-between bg-indigo-600 text-white"><div class="flex items-center gap-3"><span class="w-6 text-center text-[9px] font-black opacity-80">#12</span><span class="font-bold text-xs">👤 Du</span></div><span class="text-xs font-black">684</span></div>
-</div>
-</section>
-<section class="space-y-2.5">
-<h4 class="text-xs font-bold text-slate-800 uppercase tracking-wide">Erfolge</h4>
-<div class="grid grid-cols-2 gap-2.5">
-<div class="p-3 bg-white border border-slate-200/70 rounded-xl text-center"><div class="w-9 h-9 mx-auto rounded-full bg-indigo-50 flex items-center justify-center text-lg">🎯</div><div class="text-[9px] font-bold text-slate-800 mt-1.5">Mission Complete</div><div class="text-[8px] text-slate-400 mt-0.5">Erste Mission geschafft</div></div>
-<div class="p-3 bg-white border border-slate-200/70 rounded-xl text-center"><div class="w-9 h-9 mx-auto rounded-full bg-orange-50 flex items-center justify-center text-lg">🔥</div><div class="text-[9px] font-bold text-slate-800 mt-1.5">Im Rhythmus</div><div class="text-[8px] text-slate-400 mt-0.5">3 Plan-Wochen</div></div>
-<div class="p-3 bg-white border border-slate-200/70 rounded-xl text-center"><div class="w-9 h-9 mx-auto rounded-full bg-emerald-50 flex items-center justify-center text-lg">⏱️</div><div class="text-[9px] font-bold text-slate-800 mt-1.5">10 Stunden</div><div class="text-[8px] text-slate-400 mt-0.5">Zeit investiert</div></div>
-<div class="p-3 bg-slate-50 border border-slate-200/70 rounded-xl text-center opacity-60"><div class="w-9 h-9 mx-auto rounded-full bg-violet-50 flex items-center justify-center text-lg grayscale">↩️</div><div class="text-[9px] font-bold text-slate-800 mt-1.5">Comeback</div><div class="text-[8px] text-slate-400 mt-0.5">Nach Pause zurückkehren</div></div>
-</div>
-</section>
+<div class="fm-league-shell">
+  <header class="fm-insights-header">
+    <button class="fm-top-back-btn" onclick="navigateBack()" aria-label="Zurück" title="Zurück" type="button"><i class="w-4 h-4" data-lucide="arrow-left"></i></button>
+    <div>
+      <span class="fm-insights-kicker">Motivation</span>
+      <h3 class="fm-insights-title">Weekly Focus League</h3>
+    </div>
+  </header>
+  <section class="fm-league-hero" id="leagueHeroCard" aria-label="Deine Liga"></section>
+  <p class="fm-league-demo-note" id="leagueDemoNote"><i data-lucide="info" aria-hidden="true"></i><span>Vorschau mit Beispieldaten – Live-Ranglisten sind noch nicht verbunden.</span></p>
+  <section class="fm-league-section" aria-labelledby="leagueRankingTitle">
+    <div class="fm-league-section-head"><h4 id="leagueRankingTitle">Diese Woche</h4><span>Score statt Lifetime-Zeit</span></div>
+    <div class="fm-rank-card" id="leagueRankingList"></div>
+  </section>
+  <section class="fm-league-section" aria-labelledby="leagueAchievementsTitle">
+    <div class="fm-league-section-head"><h4 id="leagueAchievementsTitle">Erfolge</h4><span>Aus deinen echten Sitzungen</span></div>
+    <div class="fm-achievement-grid" id="leagueAchievements"></div>
+  </section>
 </div>
 </div>
 <!-- ЭКРАН 5: Einstellungen (v17.3 Home System) -->
@@ -894,7 +945,7 @@
               <div class="settings-row-sub">Offline-fähig · Lokale Speicherung</div>
             </div>
           </div>
-          <span class="text-[10px] font-bold text-slate-600">v17.5.1 Interaction Fixes</span>
+          <span class="text-[10px] font-bold text-slate-600">v17.6 Navigation, Insights &amp; League Polish</span>
         </div>
       </div>
     </div>
@@ -911,7 +962,7 @@
 <span class="text-[9px] font-black uppercase tracking-wider text-indigo-600 block">Lokale Datenstabilität</span>
 <h3 class="text-base font-black text-slate-900 truncate">Daten &amp; Backup</h3>
 </div>
-<span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100" id="dataAppVersionBadge">v17.5.1 Interaction Fixes</span>
+<span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100" id="dataAppVersionBadge">v17.6 Navigation, Insights &amp; League Polish</span>
 </div>
 
 <div class="data-summary-card">
@@ -1320,6 +1371,7 @@
 
 <script id="sessionRepositoryV129" src="./src/repositories/session-repository.js"></script>
 <script id="sessionHistoryCoreV111" src="./src/features/history/session-history.js"></script>
+<script id="focusInsightsV176" src="./src/features/history/focus-insights.js"></script>
 <script id="sessionCoreV11" src="./src/features/focus-session/session-model.js"></script>
 <script src="./src/features/focus-session/session-runtime.js"></script>
 <script id="sessionPersistenceMigrationV13" src="./src/features/focus-session/session-finalization.js"></script>
@@ -1944,6 +1996,7 @@ END V13.2.5 ARCHITECTURE STABILIZATION MANIFEST -->
 <script id="dataImportV16" src="./src/data/data-import.js"></script>
 <script id="dataResetV16" src="./src/data/data-reset.js"></script>
 <script id="dataManagementControllerV16" src="./src/features/data-management/data-management-controller.js"></script>
+<script id="focusLeagueV176" src="./src/features/league/league.js"></script>
 <script id="motionControllerV1732" src="./src/core/motion-controller.js"></script>
 
 <!-- Restored from v13.3.2 without replacing newer runtime features. -->

@@ -1,4 +1,4 @@
-const CACHE = "focus-mode-v17-5-1-interaction-fixes";
+const CACHE = "focus-mode-v17-6-navigation-insights-league";
 const CACHE_PREFIX = "focus-mode";
 
 const CORE = [
@@ -17,6 +17,7 @@ const CORE = [
   "./styles/quick-focus.css",
   "./styles/data-management.css",
   "./styles/motion.css",
+  "./styles/insights.css",
   "./src/core/architecture-shell.js",
   "./src/core/runtime-ownership.js",
   "./src/services/storage-service.js",
@@ -36,6 +37,8 @@ const CORE = [
   "./src/features/missions/mission-renderer.js",
   "./src/features/quick-focus/quick-focus.js",
   "./src/features/history/session-history.js",
+  "./src/features/history/focus-insights.js",
+  "./src/features/league/league.js",
   "./src/features/recovery/recovery-controller.js",
   "./src/features/focus-session/session-runtime.js",
   "./src/features/focus-session/session-finalization.js",

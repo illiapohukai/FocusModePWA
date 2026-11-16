@@ -173,15 +173,12 @@ html,body{width:100%;max-width:100%;overflow-x:clip!important;overscroll-behavio
 /* === END CLEAN HOME + SCROLL FIX === */
 
 /* === COSMETIC + INTERACTION REFINEMENTS === */
-.focus-tooltip{position:absolute;left:50%;top:-4px;transform:translate(-50%,-100%) translateY(4px);opacity:0;pointer-events:none;white-space:nowrap;padding:4px 6px;border-radius:7px;background:#0f172a;color:white;font-size:7px;font-weight:800;box-shadow:0 8px 20px rgba(15,23,42,.18);transition:.2s}
-.focus-day:hover .focus-tooltip{opacity:1;transform:translate(-50%,-100%) translateY(0)}
 #confidenceRatingButtons .flow-chip.active{border-color:#c7d2fe;background:#eef2ff;color:#4338ca;box-shadow:0 0 0 2px rgba(99,102,241,.08)}
 #missionPlanButton:disabled{box-shadow:none!important}
 /* === END COSMETIC + INTERACTION REFINEMENTS === */
 
 /* === V4 POLISH === */
 #app-screen-stats{overflow:hidden!important}
-#app-screen-stats .focus-tooltip{z-index:5}
 #app-screen-home .home-metric{min-height:65px}
 #app-screen-home .metric-label{min-height:15px;overflow:visible!important;white-space:normal!important}
 #app-screen-home .metric-icon{stroke-width:2.35;filter:drop-shadow(0 2px 4px currentColor)}
@@ -546,8 +543,6 @@ html.pwa-dark-status #screenWrapper,html.pwa-dark-status #appBody{background:#0f
 
 /* === V11.1.1 SESSION HISTORY STABILIZATION === */
 .history-empty-action{margin-top:17px;min-height:48px;padding:0 18px;border:0;border-radius:16px;background:#4f46e5;color:#fff;font-size:11px;font-weight:900;box-shadow:0 12px 26px rgba(79,70,229,.22)}
-#statsWeekChart .focus-day>div:nth-last-child(2){min-height:2px;transition:height .45s cubic-bezier(.16,1,.3,1),background-color .25s ease}
-#statsWeekChart .focus-tooltip{display:block}
 /* === END V11.1.1 SESSION HISTORY STABILIZATION === */
 
 /* === V11.2 SESSION RECOVERY === */

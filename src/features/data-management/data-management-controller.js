@@ -236,9 +236,6 @@
         '<div><span>' + escapeHTML(t('Bundle-Version', 'Bundle version')) + '</span><strong id="importPreviewVersion">v' + escapeHTML(preview.bundleVersion) + ' (Schema v' + escapeHTML(preview.schemaVersion) + ')</strong></div>';
     }
     card.classList.remove('hidden');
-    if (typeof global.hideBottomNavigation === 'function') {
-      global.hideBottomNavigation();
-    }
   }
 
   function hideImportPreviewCard() {
@@ -309,9 +306,6 @@
     hideImportPreviewCard();
     const card = global.document?.getElementById('dataResetConfirmCard');
     if (card) card.classList.remove('hidden');
-    if (typeof global.hideBottomNavigation === 'function') {
-      global.hideBottomNavigation();
-    }
   }
 
   function hideResetConfirmCard() {

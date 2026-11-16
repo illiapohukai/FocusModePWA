@@ -340,7 +340,6 @@ function openMissionSheetV116(content,triggerEl){
  const lang=(window.FocusModeApp?.services?.storage?.getText('focus-mode-language','de')||document.documentElement.lang||'de')==='en'?'en':'de';
  if(typeof translateTree==='function')translateTree(card,lang);
  sheet.classList.add('open');
- window.hideBottomNavigation?.();
  lucide.createIcons();
 }
 function closeMissionSheetV116(){

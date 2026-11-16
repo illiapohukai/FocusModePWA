@@ -886,11 +886,8 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
     const actualScreen = screen || getVisibleScreenName();
     navState.currentScreen = actualScreen;
 
-    if (isCriticalModalOrSheetOpen()) {
-      hideBottomNavigation();
-      return false;
-    }
-
+    // Ordinary overlays (sheets, menus, dialogs) cover the dock; they never hide it.
+    // Dock visibility depends on the route only.
     const activeSection = resolveActiveRootForScreen(actualScreen);
     if (!activeSection) {
       hideBottomNavigation();
@@ -909,8 +906,9 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
 
   let isBackNavigationInProgress = false;
 
-  function navigateToRoot(section) {
+  function navigateToRoot(section, rootOptions = {}) {
     if (!ROOT_SECTIONS.includes(section)) return false;
+    const skipRootMotion = Boolean(rootOptions && rootOptions.skipMotion);
     if (hasRunningFocusSessionOnTimer()) {
       return false;
     }
@@ -962,7 +960,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
 
     navState.__motionContext = isBackNavigationInProgress
       ? { type: 'pop', direction: 'back', fromRoot, toRoot: section, skipMotion: Boolean(isSwipeBackCommitInProgress) }
-      : { type: 'root', fromRoot, toRoot: section };
+      : { type: 'root', fromRoot, toRoot: section, skipMotion: skipRootMotion };
 
     global.setAppScreen(section, { immediate: true, __fromNavController: true });
     syncBottomNavigationForScreen(section);
@@ -1417,14 +1415,11 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
   if (typeof origCloseChoice === 'function') {
     global.closeFocusChoice = function closeFocusChoiceWithNavV17(options) {
       const res = origCloseChoice.apply(this, arguments);
-      const delayMs = options && options.immediate ? 0 : 210;
-      setTimeout(() => {
-        if (navState.pendingScreen && !resolveActiveRootForScreen(navState.pendingScreen)) {
-          hideBottomNavigation();
-          return;
-        }
+      if (navState.pendingScreen && !resolveActiveRootForScreen(navState.pendingScreen)) {
+        hideBottomNavigation();
+      } else {
         syncBottomNavigationForScreen(getVisibleScreenName());
-      }, delayMs);
+      }
       return res;
     };
   }
