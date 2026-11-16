@@ -27,7 +27,9 @@
   /* Reinstall the final Plan übernehmen handler after repairing the store loader. */
   global.confirmAIPlan=function confirmAIPlanV1311(){
     if(!pendingAIPlan){showMissionError?.('Der AI-Plan ist nicht mehr verfügbar. Bitte starte die Analyse erneut.');return false}
-    const result=missions.create({title:pendingAIPlan.goal.title,subject:pendingAIPlan.goal.subject,type:pendingAIPlan.goal.type,deadlineText:pendingAIPlan.goal.deadlineText,estimate:pendingAIPlan.estimate,sourceAnalysis:pendingAIPlan.sourceAnalysis,steps:pendingAIPlan.sessions});
+    /* v17.7: reuse the briefing's draft id so the Mission keeps the identity color shown before confirming. */
+    const draftId=typeof global.consumePendingMissionDraftId==='function'?global.consumePendingMissionDraftId():null;
+    const result=missions.create({...(draftId&&!missions.getById(draftId)?{id:draftId}:{}),title:pendingAIPlan.goal.title,subject:pendingAIPlan.goal.subject,type:pendingAIPlan.goal.type,deadlineText:pendingAIPlan.goal.deadlineText,estimate:pendingAIPlan.estimate,sourceAnalysis:pendingAIPlan.sourceAnalysis,steps:pendingAIPlan.sessions});
     if(!result?.ok){
       showMissionError?.(result?.error==='active_mission_limit_reached'?'Du kannst momentan bis zu zwei aktive Focus Missions haben. Schließe eine Mission ab oder archiviere sie.':'Die Mission konnte nicht gespeichert werden. Bitte versuche es erneut.');
       return false;

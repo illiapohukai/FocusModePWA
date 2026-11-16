@@ -27,8 +27,8 @@ function buildResult(mode){
  const step=mission.steps.find(x=>x.id===s.missionStepId);if(!step&&!mission.progress?.history?.some(x=>x.sessionId===s.id))throw new Error('mission_step_missing');
  return Object.freeze({sessionId:s.id,missionId:s.missionId,missionStepId:s.missionStepId,title:s.title,task:s.task,outcome:readSelectedStatus(),rating:readSelectedRating(),feedback:String(document.getElementById('sessionFeedbackText')?.value||'').trim(),plannedMinutes:Number(s.plannedMinutes)||0,actualMinutes:Number(g.currentSessionActualMinutes??s.actualMinutes)||0,completedAt:new Date().toISOString(),adaptationMode:mode});
 }
-function setBusy(busy,label=''){const root=document.getElementById('app-screen-result'),a=document.getElementById('adaptMissionButton'),b=document.getElementById('skipAdaptationButton');root?.classList.toggle('optional-adaptation-locked',busy);for(const x of[a,b])if(x)x.disabled=busy;if(label&&a){const sp=a.querySelector('span');if(sp)sp.textContent=label}}
-function restoreButtons(){const a=document.getElementById('adaptMissionButton'),b=document.getElementById('skipAdaptationButton'),en=isEn();if(a){const sp=a.querySelector('span');if(sp)sp.textContent=en?'Adapt Plan with AI':'Plan mit AI anpassen'}if(b){const sp=b.querySelector('span');if(sp)sp.textContent=en?'Continue without Adaptation':'Ohne Anpassung fortfahren'}setBusy(false)}
+function setBusy(busy,label=''){const root=document.getElementById('app-screen-result'),a=document.getElementById('adaptMissionButton'),b=document.getElementById('skipAdaptationButton');root?.classList.toggle('optional-adaptation-locked',busy);for(const x of[a,b])if(x)x.disabled=busy;if(label&&a){const sp=a.querySelector('[data-label]')||a.querySelector('span');if(sp)sp.textContent=label}}
+function restoreButtons(){const a=document.getElementById('adaptMissionButton'),b=document.getElementById('skipAdaptationButton'),en=isEn();if(a){const sp=a.querySelector('[data-label]')||a.querySelector('span');if(sp)sp.textContent=en?'Adapt Plan with AI':'Plan mit AI anpassen'}if(b){const sp=b.querySelector('[data-label]')||b.querySelector('span');if(sp)sp.textContent=en?'Continue without Adaptation':'Ohne Anpassung fortfahren'}setBusy(false)}
 function updateSession(result){
  const repo=g.sessionRepository;const existing=repo?.getById?.(result.sessionId);if(!existing)throw new Error('history_session_missing');
  const saved=repo.update(result.sessionId,{result:{...(existing.result||{}),outcome:result.outcome,feedback:result.feedback,rating:result.rating,countAsFocus:Number(existing.actualMinutes||result.actualMinutes)>=1,reason:'user_reviewed',adaptationMode:result.adaptationMode}});
@@ -133,7 +133,39 @@ async function adaptMissionAfterSession(retry=false){
  }finally{restoreButtons()}
 }
 function retryOptionalAdaptation(){return adaptMissionAfterSession(true)}
-function offered(){if(document.getElementById('app-screen-result')?.classList.contains('hidden'))return;state={status:'ready',result:null,missionUpdatedAt:null,controller:null};emit('adaptation_offered',sourceSession()||null);restoreButtons()}
+/* v17.7 review summary: read-only view of the finished step; never writes Mission or Session data. */
+function reviewMinutes(s){let v;try{v=currentSessionActualMinutes}catch{v=g.currentSessionActualMinutes}const n=Number(v??s?.actualMinutes);if(Number.isFinite(n)&&n>=0)return Math.round(n);return Math.floor((Number(s?.elapsedMs)||0)/60000)}
+function esc(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+function renderReviewSummary(){
+ const hero=document.getElementById('sessionReviewHero'),screen=document.getElementById('app-screen-result');if(!hero||!screen)return;
+ const s=sourceSession(),mission=s?M.getById(s.missionId):null,steps=mission?.steps||[],idx=steps.findIndex(x=>x.id===s?.missionStepId),step=idx>=0?steps[idx]:null;
+ const theme=mission&&typeof g.getMissionThemeV177==='function'?g.getMissionThemeV177(mission.id):'aubergine';
+ for(const el of[hero,screen]){el.className=el.className.replace(/\btheme-[a-z]+\b/g,'').trim()+' theme-'+theme}
+ const status=readSelectedStatus(),planned=Math.max(0,Math.round(Number(s?.plannedMinutes)||Number(step?.durationMinutes)||0)),actual=reviewMinutes(s);
+ const doneIds=new Set(mission?.progress?.completedStepIds||[]),alreadyDone=step?doneIds.has(step.id):false,total=steps.length,done=steps.filter(x=>doneIds.has(x.id)||x.status==='completed').length;
+ const willComplete=status==='completed'&&step&&!alreadyDone,after=done+(willComplete?1:0);
+ const next=status==='completed'?steps.find((x,i)=>i!==idx&&!doneIds.has(x.id)&&x.status!=='completed'):step;
+ const pill={completed:['check','Schritt erledigt','is-completed'],partial:['circle-dashed','Teilweise geschafft','is-partial'],aborted:['pause','Abgebrochen · Fortschritt bleibt','is-aborted']}[status]||['circle-dashed','Teilweise geschafft','is-partial'];
+ const ratio=planned?Math.min(1,actual/planned):0;
+ const segs=steps.map((x,i)=>{const d=doneIds.has(x.id)||x.status==='completed';const cls=d?'is-done':i===idx?(willComplete?'is-saving':'is-current'):'';return '<i class="'+cls+'"></i>'}).join('');
+ const nextLine=status==='completed'
+  ?(next?'<span class="sr-next-label">Als Nächstes</span><strong>'+esc(next.title)+'</strong><em>'+(Number(next.durationMinutes)||0)+' Min.</em>':'<span class="sr-next-label">Danach</span><strong>Alle Schritte dieser Mission sind erledigt.</strong>')
+  :'<span class="sr-next-label">Als Nächstes</span><strong>Dieser Schritt bleibt offen.</strong><em class="is-hint">Dein Fortschritt wird gespeichert, du kannst ihn erneut starten.</em>';
+ hero.innerHTML='<div class="sr-hero-grid" aria-hidden="true"></div>'
+  +'<div class="sr-hero-top"><span class="sr-kicker">'+(step&&total?'Schritt '+(idx+1)+' von '+total:'Mission')+(mission?' · '+esc(mission.title):'')+'</span></div>'
+  +'<h3 class="sr-title">'+esc(step?.title||s?.title||'Missionsschritt')+'</h3>'
+  +'<span class="sr-status-pill '+pill[2]+'"><i data-lucide="'+pill[0]+'"></i>'+pill[1]+'</span>'
+  +'<div class="sr-time" role="img" aria-label="'+actual+' von '+planned+' geplanten Minuten fokussiert">'
+   +'<div><small>Fokuszeit</small><strong>'+actual+'<span> Min.</span></strong></div>'
+   +'<div class="sr-time-bar" aria-hidden="true"><i style="transform:scaleX('+ratio.toFixed(3)+')"></i></div>'
+   +'<div class="is-planned"><small>Geplant</small><strong>'+planned+'<span> Min.</span></strong></div>'
+  +'</div>'
+  +(total?'<div class="sr-progress"><div class="sr-progress-head"><span>Mission</span><strong>'+(willComplete?done+' → '+after:String(done))+' von '+total+' Schritten</strong></div><div class="sr-progress-segs" aria-hidden="true">'+segs+'</div></div>':'')
+  +'<div class="sr-next">'+nextLine+'</div>';
+ g.lucide?.createIcons?.();
+}
+function offered(){if(document.getElementById('app-screen-result')?.classList.contains('hidden'))return;state={status:'ready',result:null,missionUpdatedAt:null,controller:null};emit('adaptation_offered',sourceSession()||null);restoreButtons();renderReviewSummary();g.syncConfidenceRatingUI?.()}
+document.addEventListener('click',e=>{if(e.target.closest?.('#sessionStatusButtons .session-status-option'))setTimeout(renderReviewSummary,0)});
 const previousApply=g.applyAppScreenImmediately;g.applyAppScreenImmediately=function(screen){const r=previousApply.apply(this,arguments);if(screen==='result'){offered();setTimeout(offered,0)}return r};
 g.adaptMissionAfterSession=adaptMissionAfterSession;g.continueMissionWithoutAdaptation=continueMissionWithoutAdaptation;g.retryOptionalAdaptation=retryOptionalAdaptation;g.finishOptionalAdaptationFlow=finishOptionalAdaptationFlow;g.showPlanUpdate=adaptMissionAfterSession;
 const api=Object.freeze({version:'17.2',buildResult,commitMissionSessionResult,adaptMissionAfterSession,continueMissionWithoutAdaptation,retryOptionalAdaptation,inspect:()=>clone({status:state.status,result:state.result})});

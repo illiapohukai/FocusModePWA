@@ -841,32 +841,236 @@ function escapeHTML(value) {
   }[c]));
 }
 
-function renderAIConfirmation(plan) {
-  const rows = [
-    ['Fach', plan.goal.subject],
-    ['Thema', plan.goal.title],
-    ['Frist', plan.goal.deadlineText || 'Nicht angegeben'],
-    ['Erkannte Aufgaben', plan.sourceAnalysis.detectedTasks || 'Nicht eindeutig erkannt'],
-    ['Erkannte Seiten', plan.sourceAnalysis.detectedPages || 'Nicht eindeutig erkannt'],
-    ['Geschätzter Aufwand', formatMinutes(plan.estimate.totalMinutes) + ' · ' + plan.sessions.length + ' Sitzungen']
-  ];
-  const fieldsEl = document.getElementById('aiConfirmFields');
-  if (fieldsEl) {
-    fieldsEl.innerHTML = rows.map(([l, v]) =>
-      '<div class="ai-confirm-row"><div class="ai-confirm-label">' + escapeHTML(l) + '</div><div class="ai-confirm-value">' + escapeHTML(v) + '</div></div>'
-    ).join('');
+/* v17.7 Mission-Briefing: presents the normalized plan without changing it.
+   Facts, estimates and open questions stay visibly separate; unavailable fields are omitted. */
+let pendingMissionDraftId = null;
+
+function newMissionDraftId() {
+  const schema = window.FocusModeApp?.data?.schema;
+  if (schema?.generateUUID) return schema.generateUUID();
+  if (globalThis.crypto?.randomUUID) return crypto.randomUUID();
+  return 'mission_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
+}
+
+function consumePendingMissionDraftId() {
+  const id = pendingMissionDraftId;
+  pendingMissionDraftId = null;
+  return id;
+}
+
+function briefText(item) {
+  if (item == null) return '';
+  if (typeof item === 'string' || typeof item === 'number') return String(item).trim();
+  if (typeof item === 'object') {
+    const label = item.label || item.name || item.title || '';
+    const value = item.value ?? item.text ?? item.description ?? item.detail ?? '';
+    return [label, value].map(v => String(v || '').trim()).filter(Boolean).join(': ');
   }
+  return '';
+}
+
+function briefList(arr) {
+  return (Array.isArray(arr) ? arr : []).map(briefText).filter(Boolean);
+}
+
+function briefDate(iso, withWeekday) {
+  if (!isValidISODateString(iso)) return '';
+  const [y, m, d] = iso.split('-').map(Number);
+  try {
+    return new Intl.DateTimeFormat(isEnglishLanguage() ? 'en-GB' : 'de-DE', withWeekday
+      ? { weekday: 'short', day: 'numeric', month: 'short' }
+      : { day: 'numeric', month: 'short' }).format(new Date(y, m - 1, d));
+  } catch (_) {
+    return iso;
+  }
+}
+
+function briefConfidence(raw) {
+  let n = Number(raw);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  if (n > 1) n = n / 100;
+  n = Math.max(0, Math.min(1, n));
+  if (n >= 0.75) return { level: 3, label: 'hoch' };
+  if (n >= 0.45) return { level: 2, label: 'mittel' };
+  return { level: 1, label: 'niedrig' };
+}
+
+function briefDifficulty(raw) {
+  const key = String(raw || '').toLowerCase();
+  return ({ easy: 'Leicht', low: 'Leicht', medium: 'Mittel', moderate: 'Mittel', hard: 'Anspruchsvoll', high: 'Anspruchsvoll', difficult: 'Anspruchsvoll' })[key] || '';
+}
+
+function briefWeekdays(days) {
+  const wk = [...new Set((days || []).map(Number).filter(n => n >= 1 && n <= 7))].sort((a, b) => a - b);
+  if (!wk.length) return '';
+  const joined = wk.join(',');
+  if (joined === '1,2,3,4,5') return 'Unter der Woche';
+  if (joined === '6,7') return 'Wochenende';
+  return wk.map(d => ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'][d - 1]).join(', ');
+}
+
+function briefGroup(icon, title, items, tone) {
+  if (!items.length) return '';
+  return '<section class="mb-source-group is-' + tone + '">'
+    + '<h5><i data-lucide="' + icon + '"></i>' + escapeHTML(title) + '</h5>'
+    + '<ul>' + items.map(t => '<li>' + escapeHTML(t) + '</li>').join('') + '</ul>'
+    + '</section>';
+}
+
+function toggleBriefSource(btn) {
+  const panel = document.getElementById('mbSourcePanel');
+  if (!btn || !panel) return;
+  const open = btn.getAttribute('aria-expanded') !== 'true';
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  panel.hidden = !open;
+  btn.closest('.mb-source')?.classList.toggle('is-open', open);
+}
+
+function toggleBriefStep(btn) {
+  const panel = btn?.nextElementSibling;
+  if (!panel) return;
+  const open = btn.getAttribute('aria-expanded') !== 'true';
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  panel.hidden = !open;
+}
+
+function renderAIConfirmation(plan) {
+  const fieldsEl = document.getElementById('aiConfirmFields');
   const missing = document.getElementById('aiMissingInfo');
+  if (!plan || !fieldsEl) return;
+
+  pendingMissionDraftId = newMissionDraftId();
+  const theme = typeof window.previewMissionThemeV177 === 'function' ? window.previewMissionThemeV177(pendingMissionDraftId) : 'aubergine';
+  const screen = document.getElementById('app-screen-confirm');
+  if (screen) {
+    screen.className = screen.className.replace(/\btheme-[a-z]+\b/g, '').trim() + ' theme-' + theme;
+    screen.dataset.missionTheme = theme;
+  }
+
+  const goal = plan.goal || {};
+  const src = plan.sourceAnalysis || {};
+  const est = plan.estimate || {};
+  const sched = plan.schedule || null;
+  const sessions = Array.isArray(plan.sessions) ? plan.sessions : [];
+  const totalMinutes = Number(est.totalMinutes) || sessions.reduce((a, x) => a + (Number(x.durationMinutes) || 0), 0);
+  const subject = goal.subject && goal.subject !== 'Allgemein' ? goal.subject : '';
+  const deadlineText = goal.deadlineText && goal.deadlineText !== 'Nicht angegeben' ? goal.deadlineText : '';
+  const deadlineLabel = sched?.deadlineDate ? briefDate(sched.deadlineDate, true) : (isValidISODateString(deadlineText) ? briefDate(deadlineText, true) : deadlineText);
+  const difficulty = briefDifficulty(est.difficulty);
+  const confidence = briefConfidence(src.confidence);
+  const hadImage = typeof window.hasMissionImageAttached === 'function' && window.hasMissionImageAttached();
+
+  /* A. Hero + B. key summary */
+  const summary = [
+    { icon: 'layers', value: String(sessions.length), label: sessions.length === 1 ? 'Sitzung' : 'Sitzungen' },
+    totalMinutes ? { icon: 'clock-3', value: formatMinutes(totalMinutes), label: 'geschätzt' } : null,
+    difficulty ? { icon: 'gauge', value: difficulty, label: 'Niveau' } : null
+  ].filter(Boolean);
+  const hero = '<article class="mb-hero mission-theme theme-' + theme + '">'
+    + '<div class="mb-hero-grid" aria-hidden="true"></div>'
+    + '<div class="mb-hero-top"><span class="mb-kicker"><i></i>Neue Mission · ' + escapeHTML(missionTypeLabel(goal.type)) + '</span>'
+    + (deadlineLabel ? '<span class="mb-deadline"><i data-lucide="flag"></i>' + escapeHTML(deadlineLabel) + '</span>' : '') + '</div>'
+    + '<h4 class="mb-title">' + escapeHTML(goal.title || 'Focus Mission') + '</h4>'
+    + (subject ? '<p class="mb-subject">' + escapeHTML(subject) + '</p>' : '')
+    + '<div class="mb-summary" role="list">' + summary.map(x =>
+      '<div class="mb-summary-item" role="listitem"><i data-lucide="' + x.icon + '"></i><span><strong>' + escapeHTML(x.value) + '</strong><small>' + escapeHTML(x.label) + '</small></span></div>'
+    ).join('') + '</div>'
+    + '</article>';
+
+  /* C. Preparation route (only with a real selected schedule) */
+  let route = '';
+  if (sched && isValidISODateString(sched.deadlineDate)) {
+    const startISO = isValidISODateString(sched.preparationStartDate) ? sched.preparationStartDate : (sched.currentLocalDate || '');
+    const days = Math.max(0, Number(sched.preparationDays) || 0);
+    const rhythm = [briefWeekdays(sched.preferredWeekdays), sched.preferredSessionMinutes ? sched.preferredSessionMinutes + ' Min. pro Sitzung' : ''].filter(Boolean);
+    route = '<section class="mb-card mb-route" aria-label="Vorbereitung">'
+      + '<div class="mb-route-line">'
+      + '<div class="mb-route-end"><small>Start</small><strong>' + escapeHTML(briefDate(startISO) || 'Heute') + '</strong></div>'
+      + '<div class="mb-route-mid" aria-hidden="true"><span></span><em>' + (days === 1 ? '1 Tag' : days + ' Tage') + '</em><span></span></div>'
+      + '<div class="mb-route-end is-goal"><small>' + (goal.type === 'exam' ? 'Prüfung' : 'Ziel') + '</small><strong>' + escapeHTML(briefDate(sched.deadlineDate)) + '</strong></div>'
+      + '</div>'
+      + '<p class="mb-route-meta"><i data-lucide="calendar-range"></i>' + escapeHTML(rhythm.length ? rhythm.join(' · ') : 'Flexibler Lernrhythmus') + '</p>'
+      + '</section>';
+  }
+
+  /* E. Session plan */
+  const steps = '<section class="mb-steps" aria-label="Sitzungsplan">'
+    + '<div class="mb-section-head"><h5>Deine Sitzungen</h5><span>' + sessions.length + ' Schritte</span></div>'
+    + '<ol class="mb-step-list">' + sessions.map((x, i) => {
+      const first = i === 0;
+      const tools = briefList(x.requiredTools), apps = briefList(x.recommendedApps);
+      const hasMore = Boolean(String(x.reason || '').trim() || tools.length || apps.length);
+      const date = isValidISODateString(x.scheduledDate) ? briefDate(x.scheduledDate, true) : '';
+      return '<li class="mb-step' + (first ? ' is-first' : '') + '">'
+        + '<span class="mb-step-num" aria-hidden="true">' + (i + 1) + '</span>'
+        + '<div class="mb-step-body">'
+        + (first ? '<span class="mb-step-badge"><i data-lucide="play"></i>Erster Schritt</span>' : '')
+        + '<div class="mb-step-head"><strong>' + escapeHTML(x.title) + '</strong><span class="mb-step-time">' + (Number(x.durationMinutes) || 0) + ' Min.</span></div>'
+        + '<p class="mb-step-task">' + escapeHTML(x.task || '') + '</p>'
+        + (date ? '<span class="mb-step-date"><i data-lucide="calendar"></i>' + escapeHTML(date) + '</span>' : '')
+        + (hasMore ? '<button type="button" class="mb-step-why" aria-expanded="false" onclick="toggleBriefStep(this)"><span>Warum so?</span><i data-lucide="chevron-down"></i></button>'
+          + '<div class="mb-step-more" hidden>'
+          + (String(x.reason || '').trim() ? '<p>' + escapeHTML(x.reason) + '</p>' : '')
+          + (tools.length ? '<div class="mb-step-tags"><small>Brauchst du</small>' + tools.map(t => '<span>' + escapeHTML(t) + '</span>').join('') + '</div>' : '')
+          + (apps.length ? '<div class="mb-step-tags"><small>Empfohlene Apps</small>' + apps.map(t => '<span>' + escapeHTML(t) + '</span>').join('') + '</div>' : '')
+          + '</div>' : '')
+        + '</div></li>';
+    }).join('')
+    + '<li class="mb-step is-finish"><span class="mb-step-num" aria-hidden="true"><i data-lucide="flag"></i></span><div class="mb-step-body"><strong>'
+    + escapeHTML(deadlineLabel ? 'Bereit bis ' + deadlineLabel : 'Mission abgeschlossen') + '</strong></div></li>'
+    + '</ol></section>';
+
+  /* D. How the plan was built: user input / recognized / estimated */
+  const userItems = [];
+  const chosenType = typeof selectedMissionTypeValue === 'string' ? selectedMissionTypeValue.replace(/^[^\p{L}]+/u, '').trim() : '';
+  if (chosenType) userItems.push('Mission-Typ: ' + chosenType);
+  if (typeof selectedMissionConfidenceValue === 'string' && selectedMissionConfidenceValue) {
+    userItems.push('Deine Sicherheit: ' + ({ uncertain: 'Unsicher', partial: 'Teilsicher', confident: 'Sicher' })[confidenceForAPI()]);
+  }
+  if (sched?.deadlineDate) userItems.push('Termin: ' + briefDate(sched.deadlineDate, true));
+  if (sched && Array.isArray(sched.preferredWeekdays) && sched.preferredWeekdays.length) userItems.push('Lerntage: ' + briefWeekdays(sched.preferredWeekdays));
+  if (sched?.preferredSessionMinutes) userItems.push('Sitzungsdauer: ' + sched.preferredSessionMinutes + ' Min.');
+  const recognized = [];
+  if (String(src.detectedTasks || '').trim()) recognized.push('Aufgaben: ' + src.detectedTasks);
+  if (String(src.detectedPages || '').trim()) recognized.push('Seiten: ' + src.detectedPages);
+  recognized.push(...briefList(src.facts));
+  const estimated = briefList(src.estimates);
+  if (totalMinutes) estimated.push('Gesamtaufwand ca. ' + formatMinutes(totalMinutes));
+  if (String(est.explanation || '').trim()) estimated.push(est.explanation);
+  const unreadable = hadImage && !recognized.length;
+  const sourceBody = briefGroup('user-round', 'Aus deinen Angaben', userItems, 'user')
+    + (unreadable
+      ? '<section class="mb-source-group is-unclear"><h5><i data-lucide="image-off"></i>Material</h5><ul><li>Im Foto wurde nichts eindeutig erkannt. Der Plan stützt sich auf deine Beschreibung.</li></ul></section>'
+      : briefGroup('scan-text', hadImage ? 'Aus dem Material erkannt' : 'Aus deinem Ziel erkannt', recognized, 'fact'))
+    + briefGroup('calculator', 'Geschätzt', estimated, 'estimate');
+  const source = sourceBody ? '<section class="mb-card mb-source">'
+    + '<button type="button" class="mb-source-toggle" aria-expanded="false" aria-controls="mbSourcePanel" onclick="toggleBriefSource(this)">'
+    + '<span class="mb-source-icon"><i data-lucide="brain-circuit"></i></span>'
+    + '<span class="mb-source-copy"><strong>So wurde der Plan erstellt</strong>'
+    + '<small>' + (confidence
+      ? '<span class="mb-meter is-' + confidence.level + '" aria-hidden="true"><i></i><i></i><i></i></span>AI-Erkennung: ' + confidence.label
+      : 'Angaben, Erkanntes und Schätzungen') + '</small></span>'
+    + '<i data-lucide="chevron-down" class="mb-source-chevron"></i></button>'
+    + '<div class="mb-source-panel" id="mbSourcePanel" hidden>' + sourceBody
+    + '<p class="mb-source-note">Zeiten und Umfang sind Schätzungen und werden nach deinen Sitzungen genauer.</p></div>'
+    + '</section>' : '';
+
+  fieldsEl.innerHTML = hero + route;
+  const planEl = document.getElementById('aiConfirmPlan');
+  if (planEl) planEl.innerHTML = steps + source;
+  else fieldsEl.insertAdjacentHTML('beforeend', steps + source);
+
   if (missing) {
     const warnings = [];
     if (plan.scheduleWarning) warnings.push(plan.scheduleWarning);
-    if (Array.isArray(plan.sourceAnalysis?.missingInformation)) {
-      warnings.push(...plan.sourceAnalysis.missingInformation);
-    }
+    warnings.push(...briefList(src.missingInformation));
     if (warnings.length) {
-      missing.innerHTML = '<strong>Bitte prüfen:</strong><br>' + warnings.map(escapeHTML).join('<br>');
+      missing.innerHTML = '<span class="mb-attention-icon"><i data-lucide="circle-help"></i></span><div><strong>Noch unklar</strong>'
+        + '<ul>' + warnings.map(w => '<li>' + escapeHTML(w) + '</li>').join('') + '</ul>'
+        + '<small>Ergänze es über „Angaben ändern“ oder passe den Plan später an.</small></div>';
       missing.classList.remove('hidden');
     } else {
+      missing.innerHTML = '';
       missing.classList.add('hidden');
     }
   }
@@ -898,6 +1102,9 @@ if (typeof window !== 'undefined' && typeof window.addEventListener === 'functio
 (function registerAIService(global) {
   const App = global.FocusModeApp;
   global.isMissionAnalyzeInFlight = () => isMissionAnalyzeInFlight;
+  global.toggleBriefSource = toggleBriefSource;
+  global.toggleBriefStep = toggleBriefStep;
+  global.consumePendingMissionDraftId = consumePendingMissionDraftId;
   global.hasMissionImageAttached = () => Boolean(missionImageFile && missionImageFile instanceof Blob && missionImageFile.size > 0);
   if (App?.core?.registerModule && !App.core.hasModule('services.ai')) {
     App.services.ai = App.core.registerModule('services.ai', Object.freeze({

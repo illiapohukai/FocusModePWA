@@ -482,19 +482,30 @@ document.addEventListener('wheel',keepPhoneScrollInside,{passive:true});document
 
 (function(){
 const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
-const darkScreens=new Set(['timer','premium','analyzing','feedbackprocessing','update']);
-function syncPWAChrome(screen){
- const dark=darkScreens.has(screen),isTimer=screen==='timer',root=document.documentElement;
- const bg=isTimer?'#050714':(dark?'#0f1328':'#F6F1E7');
- root.classList.toggle('pwa-dark-status',dark);
- root.classList.toggle('pwa-timer-active',isTimer);
+const darkScreens=new Set(['premium','analyzing','feedbackprocessing','update']);
+/* v17.7 single status-theme owner. The route decides the mode: only the full-screen Focus timer
+   is 'focus'; dark flow screens are 'dark'; everything else restores the warm app theme.
+   theme-color is updated dynamically (honoured by Safari tabs and Android Chrome/PWA); html/body paint
+   the top safe area. apple-mobile-web-app-status-bar-style stays static: iOS reads it at launch. */
+const CHROME_COLORS=Object.freeze({app:'#F6F1E7',dark:'#0f1328',focus:'#050714'});
+function resolveChromeMode(screen){return screen==='timer'?'focus':(darkScreens.has(screen)?'dark':'app')}
+function applyChromeMode(mode){
+ if(!CHROME_COLORS[mode])mode='app';
+ const root=document.documentElement,bg=CHROME_COLORS[mode];
+ root.classList.toggle('pwa-dark-status',mode!=='app');
+ root.classList.toggle('pwa-timer-active',mode==='focus');
  root.style.setProperty('--pwa-status-bg',bg);
- const theme=document.querySelector('meta[name="theme-color"]');if(theme)theme.content=bg;
- const apple=document.getElementById('appleStatusBarStyle');if(apple)apple.content=dark?'black-translucent':'default';
+ document.querySelectorAll('meta[name="theme-color"]').forEach(m=>{if(m.content!==bg)m.content=bg});
+ return mode;
 }
+function visibleAppScreen(){return document.querySelector('#appBody > .app-screen:not(.hidden)')?.id?.replace('app-screen-','')||'home'}
+function syncPWAChrome(screen){return applyChromeMode(resolveChromeMode(screen||visibleAppScreen()))}
+window.restoreAppTheme=function(){return syncPWAChrome(visibleAppScreen())};
 window.syncPWAChrome=syncPWAChrome;
 document.addEventListener('DOMContentLoaded',()=>{
- document.body.classList.add('pwa-app');syncPWAChrome('home');
+ document.body.classList.add('pwa-app');syncPWAChrome(visibleAppScreen());
+ addEventListener('pageshow',()=>window.restoreAppTheme());
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)window.restoreAppTheme()});
  const original=window.applyAppScreenImmediately;
  if(typeof original==='function'){window.applyAppScreenImmediately=function(screen){const result=original.apply(this,arguments);syncPWAChrome(screen);return result}}
  // Initial screen is resolved once by Session Recovery bootstrap.

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 
-<html class="dark" lang="de"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/><meta content="#F6F1E7" name="theme-color"/><title>v17.6 Navigation, Insights &amp; League Polish</title>
+<html class="dark" lang="de"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/><meta content="#F6F1E7" name="theme-color"/><title>v17.7 Mission Flow &amp; Visual Cohesion</title>
 <meta name="description" content="Focus Mode+ v17.6 Navigation, Insights &amp; League Polish — stabile Navigation, Root-Swipe, moderner Fokusverlauf und Liga-Vorschau.">
 <meta property="og:title" content="v17.6 Navigation, Insights &amp; League Polish">
-<meta property="og:description" content="Focus Mode+ v17.6 Navigation, Insights &amp; League Polish — stabile Navigation, Root-Swipe, moderner Fokusverlauf und Liga-Vorschau."><script src="https://cdn.tailwindcss.com"></script><script>window.tailwind=window.tailwind||{};tailwind.config={darkMode:'class'}</script><script src="https://unpkg.com/lucide@latest"></script><script>window.lucide=window.lucide||{createIcons:function(){}}</script><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>  <link rel="stylesheet" href="./styles/app.css" />
+<meta property="og:description" content="Focus Mode+ v17.7 Mission Flow &amp; Visual Cohesion — Missionsfarben, Mission-Briefing, neues Schritt-Feedback und klarer Zeitplan."><script src="https://cdn.tailwindcss.com"></script><script>window.tailwind=window.tailwind||{};tailwind.config={darkMode:'class'}</script><script src="https://unpkg.com/lucide@latest"></script><script>window.lucide=window.lucide||{createIcons:function(){}}</script><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>  <link rel="stylesheet" href="./styles/app.css" />
   <link rel="stylesheet" href="./styles/timer.css" />
   <link rel="stylesheet" href="./styles/recovery.css" />
   <link rel="stylesheet" href="./styles/quick-focus.css" />
@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="./styles/data-management.css" />
   <link rel="stylesheet" href="./styles/navigation.css" />
 <link rel="stylesheet" href="./styles/insights.css" />
-  <link rel="stylesheet" href="./styles/motion.css" /><link rel="manifest" href="./manifest.webmanifest"/><link rel="icon" type="image/png" href="./icon-192.png"/><link rel="apple-touch-icon" href="./apple-touch-icon.png"/><meta name="apple-mobile-web-app-capable" content="yes"/><meta id="appleStatusBarStyle" name="apple-mobile-web-app-status-bar-style" content="black-translucent"/><meta name="apple-mobile-web-app-title" content="Focus Mode+"/>
+  <link rel="stylesheet" href="./styles/motion.css" /><link rel="manifest" href="./manifest.webmanifest"/><link rel="icon" type="image/png" href="./icon-192.png"/><link rel="apple-touch-icon" href="./apple-touch-icon.png"/><meta name="apple-mobile-web-app-capable" content="yes"/><meta id="appleStatusBarStyle" name="apple-mobile-web-app-status-bar-style" content="default"/><meta name="apple-mobile-web-app-title" content="Focus Mode+"/>
 
 </head><body>
 <script id="architectureShellV122" src="./src/core/architecture-shell.js"></script>
@@ -182,7 +182,7 @@
       </div>
     </section>
 
-    <section class="hidden mission-hero-v116 theme-violet" id="activeMissionCard">
+    <section class="hidden mission-hero-v116 theme-aubergine" id="activeMissionCard">
       <div class="mh-top-row">
         <span class="mh-kicker"><i></i><span id="homeMissionRoleLabel">AKTIVE MISSION</span></span>
         <span class="mh-step-counter" id="homeMissionStepCounter">SCHRITT 01 / 04</span>
@@ -341,124 +341,107 @@
       </div>
       <div class="mg-confidence-track"><i></i></div>
     </section>
-    <section class="mg-section mg-schedule" id="missionScheduleSection" aria-label="Zeitplan">
+    <section class="mg-section mg-schedule" id="missionScheduleSection" aria-labelledby="mgScheduleTitle">
       <div class="mg-schedule-head">
-        <h4>ZEITPLAN</h4>
-        <span class="mg-schedule-opt-pill">OPTIONAL</span>
+        <h4 id="mgScheduleTitle">Zeitplan</h4>
+        <span class="mg-schedule-hint">optional</span>
       </div>
-      <p class="mg-schedule-intro">Plane, wann du beginnen möchtest und bis wann dein Ziel erreicht sein soll.</p>
 
-      <!-- Layer A: Prominent Aubergine Schedule Summary Hero Board -->
+      <!-- A. Schedule board: deadline, start and preparation time at a glance -->
       <div class="mg-plan-board" id="mgScheduleBoard">
         <div class="mg-plan-board-grid" aria-hidden="true"></div>
         <div class="mg-plan-board-inner">
-          <div class="mg-board-top">
-            <span class="mg-board-kicker">
-              <span class="mg-board-dot" aria-hidden="true"></span>
-              <span id="mgBoardKickerText">ZIELTERMIN</span>
-            </span>
-            <span class="mg-timeline-days hidden" id="mgTimelineDaysBadge">14 TAGE VORBEREITUNG</span>
-            <button type="button" class="mg-board-reset hidden" id="mgDeadlineClearBtn" onclick="clearMissionDeadline(event)" aria-label="Datum zurücksetzen" title="Datum zurücksetzen">
-              <i data-lucide="rotate-ccw" aria-hidden="true"></i>
-              <span>Zurücksetzen</span>
-            </button>
-          </div>
-
-          <!-- Intentional Empty State (No Fake Timeline) -->
           <div class="mg-board-empty" id="mgTimelineEmpty">
-            <h5 class="mg-board-empty-title">Wann ist deine Prüfung oder Abgabe?</h5>
-            <p class="mg-board-empty-copy">Wähle ein Datum, um deinen Vorbereitungszeitraum sichtbar zu planen.</p>
+            <span class="mg-board-empty-icon" aria-hidden="true"><i data-lucide="calendar-days"></i></span>
+            <div>
+              <h5 class="mg-board-empty-title">Wann ist deine Prüfung oder Abgabe?</h5>
+              <p class="mg-board-empty-copy">Mit einem Datum plant die AI deine Vorbereitung bis dahin.</p>
+            </div>
           </div>
 
-          <!-- Active Study-Period Trajectory -->
           <div class="mg-timeline-active hidden" id="mgTimelineActive">
-            <div class="mg-route-nodes">
+            <div class="mg-route" role="group" aria-label="Vorbereitungszeitraum">
               <div class="mg-route-node is-start">
                 <span class="mg-route-role">START</span>
                 <strong class="mg-route-date" id="mgTimelineStartLabel">Heute</strong>
               </div>
-              <div class="mg-route-connector" aria-hidden="true">
-                <span class="mg-route-line"></span>
-                <div class="mg-trajectory-nodes" id="mgTrajectoryNodes"></div>
-              </div>
+              <div class="mg-route-connector" aria-hidden="true"><span class="mg-route-line"></span></div>
               <div class="mg-route-node is-end">
                 <span class="mg-route-role">ZIEL</span>
-                <strong class="mg-route-date" id="mgTimelineEndLabel">18. Dez.</strong>
+                <strong class="mg-route-date" id="mgTimelineEndLabel">–</strong>
               </div>
             </div>
-            <div class="mg-board-live-summary" id="mgScheduleLiveSummary"></div>
+            <div class="mg-board-facts">
+              <span class="mg-timeline-days" id="mgTimelineDaysBadge"></span>
+              <span class="mg-board-live-summary" id="mgScheduleLiveSummary"></span>
+              <button type="button" class="mg-board-reset hidden" id="mgDeadlineClearBtn" onclick="clearMissionDeadline(event)" aria-label="Datum zurücksetzen" title="Datum zurücksetzen">
+                <i data-lucide="rotate-ccw" aria-hidden="true"></i><span>Zurücksetzen</span>
+              </button>
+            </div>
           </div>
 
-          <!-- Single Authoritative Deadline Trigger (Empty & Selected States) -->
-          <button type="button" class="mg-deadline-trigger" id="mgDeadlineTrigger" onclick="openMissionCalendarSheet('deadline', this)" aria-label="Prüfung oder Abgabe auswählen">
-            <span class="mg-deadline-icon" aria-hidden="true">
-              <i data-lucide="calendar"></i>
-            </span>
-            <span class="mg-deadline-copy">
-              <span class="mg-deadline-kicker">PRÜFUNG / ABGABE</span>
-              <strong class="mg-deadline-val is-placeholder" id="mgDeadlineValue">Datum auswählen</strong>
-            </span>
-            <span class="mg-deadline-cta-tag" id="mgDeadlineCtaTag">Auswählen</span>
-            <span class="mg-deadline-arrow" aria-hidden="true">
-              <i data-lucide="chevron-right"></i>
-            </span>
-          </button>
+          <div class="mg-board-actions">
+            <button type="button" class="mg-deadline-trigger" id="mgDeadlineTrigger" onclick="openMissionCalendarSheet('deadline', this)" aria-label="Prüfung oder Abgabe auswählen">
+              <span class="mg-deadline-icon" aria-hidden="true"><i data-lucide="calendar"></i></span>
+              <span class="mg-deadline-copy">
+                <span class="mg-deadline-kicker">PRÜFUNG / ABGABE</span>
+                <strong class="mg-deadline-val is-placeholder" id="mgDeadlineValue">Datum auswählen</strong>
+              </span>
+              <span class="mg-deadline-cta" aria-hidden="true"><i class="mg-cta-empty" data-lucide="chevron-right"></i><i class="mg-cta-edit" data-lucide="pencil"></i></span>
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- Layer B: Preparation Start Controls (shown once deadline is selected) -->
+      <!-- B. Preparation start (shown once a deadline is selected) -->
       <div class="mg-prep-start-block hidden" id="mgPrepStartBlock">
         <div class="mg-sub-head">
-          <span class="mg-sub-label">START DER VORBEREITUNG</span>
-          <span class="mg-rec-badge" id="mgStartRecBadge">Empfohlen: Sofort</span>
+          <span class="mg-sub-label">Wann startest du?</span>
         </div>
         <div class="mg-start-chips" id="mgStartModeChips" role="group" aria-label="Start der Vorbereitung">
           <button type="button" class="mg-start-chip active" data-start-mode="immediate" onclick="selectMissionStartMode('immediate')">
+            <span class="mg-start-rec-mark hidden">Empfohlen</span>
             <span class="mg-start-chip-label">Sofort</span>
-            <span class="mg-start-rec-mark hidden" aria-hidden="true">Empfohlen</span>
+            <span class="mg-start-chip-date"></span>
           </button>
           <button type="button" class="mg-start-chip" data-start-mode="one_week_before" onclick="selectMissionStartMode('one_week_before')">
+            <span class="mg-start-rec-mark hidden">Empfohlen</span>
             <span class="mg-start-chip-label">1 Woche vorher</span>
-            <span class="mg-start-rec-mark hidden" aria-hidden="true">Empfohlen</span>
+            <span class="mg-start-chip-date"></span>
           </button>
           <button type="button" class="mg-start-chip" data-start-mode="two_weeks_before" onclick="selectMissionStartMode('two_weeks_before')">
+            <span class="mg-start-rec-mark hidden">Empfohlen</span>
             <span class="mg-start-chip-label">2 Wochen vorher</span>
-            <span class="mg-start-rec-mark hidden" aria-hidden="true">Empfohlen</span>
+            <span class="mg-start-chip-date"></span>
           </button>
-          <button type="button" class="mg-start-chip" data-start-mode="custom" onclick="selectMissionStartMode('custom')">
+          <button type="button" class="mg-start-chip is-custom" data-start-mode="custom" onclick="selectMissionStartMode('custom')">
+            <span class="mg-start-custom-icon" aria-hidden="true"><i data-lucide="calendar-plus"></i></span>
             <span class="mg-start-chip-label">Eigene Wahl</span>
-            <span class="mg-start-rec-mark hidden" aria-hidden="true">Empfohlen</span>
+            <span class="mg-start-rec-mark hidden">Empfohlen</span>
+            <span class="mg-start-chip-date"></span>
           </button>
         </div>
       </div>
 
-      <!-- Inline Notice / Validation -->
       <div class="mg-schedule-notice hidden" id="mgScheduleNotice" role="status" aria-live="polite">
         <i data-lucide="info" class="mg-notice-icon" aria-hidden="true"></i>
         <span id="mgScheduleNoticeText"></span>
       </div>
 
-      <!-- Layer C: Expandable Optional Learning Preferences -->
+      <!-- C. Learning rhythm (secondary, collapsible) -->
       <div class="mg-prefs-accordion" id="mgPrefsAccordion">
         <button type="button" class="mg-prefs-toggle" id="mgPrefsToggleBtn" onclick="toggleMissionSchedulePrefs()" aria-expanded="false" aria-controls="mgPrefsPanel">
+          <span class="mg-prefs-icon" aria-hidden="true"><i data-lucide="repeat"></i></span>
           <span class="mg-prefs-toggle-left">
-            <span class="mg-prefs-title-row">
-              <strong class="mg-prefs-title">Lernrhythmus anpassen</strong>
-              <span class="mg-prefs-opt-dot">Optional</span>
-            </span>
+            <strong class="mg-prefs-title">Lernrhythmus anpassen</strong>
             <span class="mg-prefs-summary" id="mgPrefsSummary">Flexibel · AI entscheidet</span>
           </span>
-          <span class="mg-prefs-chevron" aria-hidden="true">
-            <i data-lucide="chevron-down"></i>
-          </span>
+          <span class="mg-prefs-chevron" aria-hidden="true"><i data-lucide="chevron-down"></i></span>
         </button>
 
         <div class="mg-prefs-panel hidden" id="mgPrefsPanel">
           <div class="mg-weekdays-block">
-            <div class="mg-sub-head">
-              <span class="mg-sub-label">WANN KANNST DU LERNEN?</span>
-            </div>
-            <p class="mg-sub-copy">Keine Auswahl bedeutet, dass dein Plan flexibel verteilt werden kann.</p>
+            <span class="mg-sub-label">An welchen Tagen kannst du lernen?</span>
             <div class="mg-weekday-row" id="mgWeekdayRow" role="group" aria-label="Verfügbare Lerntage">
               <button type="button" class="mg-weekday-btn" data-weekday="1" onclick="toggleMissionWeekday(1)" aria-pressed="false">Mo</button>
               <button type="button" class="mg-weekday-btn" data-weekday="2" onclick="toggleMissionWeekday(2)" aria-pressed="false">Di</button>
@@ -475,29 +458,13 @@
             </div>
           </div>
 
-          <div class="mg-schedule-divider"></div>
-
           <div class="mg-duration-pref-block">
-            <div class="mg-sub-head">
-              <span class="mg-sub-label">BEVORZUGTE SITZUNGSDAUER</span>
-            </div>
+            <span class="mg-sub-label">Wie lang soll eine Sitzung sein?</span>
             <div class="mg-duration-chips" id="mgDurationPrefChips" role="group" aria-label="Bevorzugte Sitzungsdauer">
-              <button type="button" class="mg-dur-chip" data-minutes="20" onclick="selectMissionPreferredDuration(20)">
-                <strong>20 Min.</strong>
-                <span>Kurz &amp; fokussiert</span>
-              </button>
-              <button type="button" class="mg-dur-chip" data-minutes="30" onclick="selectMissionPreferredDuration(30)">
-                <strong>30 Min.</strong>
-                <span>Ausgewogen</span>
-              </button>
-              <button type="button" class="mg-dur-chip" data-minutes="45" onclick="selectMissionPreferredDuration(45)">
-                <strong>45 Min.</strong>
-                <span>Tiefer Fokus</span>
-              </button>
-              <button type="button" class="mg-dur-chip active" data-minutes="auto" onclick="selectMissionPreferredDuration(null)">
-                <strong>AI wählt</strong>
-                <span>AI entscheidet</span>
-              </button>
+              <button type="button" class="mg-dur-chip" data-minutes="20" onclick="selectMissionPreferredDuration(20)"><strong>20 Min.</strong><span>Kurz &amp; fokussiert</span></button>
+              <button type="button" class="mg-dur-chip" data-minutes="30" onclick="selectMissionPreferredDuration(30)"><strong>30 Min.</strong><span>Ausgewogen</span></button>
+              <button type="button" class="mg-dur-chip" data-minutes="45" onclick="selectMissionPreferredDuration(45)"><strong>45 Min.</strong><span>Tiefer Fokus</span></button>
+              <button type="button" class="mg-dur-chip active" data-minutes="auto" onclick="selectMissionPreferredDuration(null)"><strong>AI wählt</strong><span>Passend zum Plan</span></button>
             </div>
           </div>
         </div>
@@ -534,18 +501,32 @@
 </div>
 <button type="button" id="cancelAnalysisBtn" onclick="cancelMissionAnalysis()" class="mt-6 px-4 py-2 rounded-full border border-white/15 bg-white/5 text-[11px] font-bold text-slate-300 hover:bg-white/10 transition">Abbrechen</button>
 </div>
-<!-- REAL AI: Erkannte Angaben bestätigen -->
-<div class="app-screen flow-screen p-5 flex flex-col flex-1 hidden bg-slate-50" id="app-screen-confirm">
-  <div class="flex items-center justify-between mb-5"><button class="fm-top-back-btn w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600" onclick="navigateBack()" aria-label="Zurück" title="Zurück" type="button"><i class="w-4 h-4" data-lucide="arrow-left"></i></button><span class="text-[9px] font-black uppercase tracking-[.18em] text-indigo-500">AI-Analyse prüfen</span><div class="w-9"></div></div>
-  <div class="mb-4"><h3 class="text-[24px] leading-[1.06] font-black tracking-tight text-slate-950">Haben wir alles richtig erkannt?</h3><p class="text-[10px] leading-relaxed text-slate-500 mt-2">Prüfe die Angaben, bevor deine Focus Mission erstellt wird.</p></div>
-  <div class="space-y-2.5" id="aiConfirmFields"></div>
-  <div id="aiMissingInfo" class="hidden mt-3 p-3 rounded-2xl bg-amber-50 border border-amber-100 text-[9px] leading-relaxed text-amber-800"></div>
-  <div class="mt-auto pt-4 space-y-2"><button class="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold text-xs shadow-lg shadow-indigo-100" onclick="confirmAIPlan()">Plan übernehmen</button><button class="w-full py-3 text-[10px] font-semibold text-slate-500" onclick="navigateBack()">Angaben ändern</button></div>
+<!-- REAL AI: Mission-Briefing (v17.7) -->
+<div class="app-screen flow-screen hidden" id="app-screen-confirm">
+  <div class="mission-brief-shell">
+    <div class="mg-topbar mb-topbar">
+      <button class="mg-back fm-top-back-btn" onclick="navigateBack()" aria-label="Zurück" title="Zurück" type="button"><i data-lucide="arrow-left"></i></button>
+      <span class="mg-badge mg-top-badge"><i data-lucide="sparkles"></i> Mission-Briefing</span><div></div>
+    </div>
+    <div class="mb-intro">
+      <h3>Dein Plan ist bereit.</h3>
+      <p>Prüfe kurz, was erkannt wurde. Du kannst die Angaben vor dem Start noch ändern.</p>
+    </div>
+    <div class="mb-content">
+      <div id="aiConfirmFields" class="mb-slot"></div>
+      <div id="aiMissingInfo" class="hidden mb-attention" role="note"></div>
+      <div id="aiConfirmPlan" class="mb-slot"></div>
+    </div>
+    <div class="mb-actions">
+      <button class="mb-primary" type="button" onclick="confirmAIPlan()"><span>Plan übernehmen</span><i data-lucide="arrow-right"></i></button>
+      <button class="mb-secondary" type="button" onclick="navigateBack()"><i data-lucide="pencil"></i><span>Angaben ändern</span></button>
+    </div>
+  </div>
 </div>
 <!-- LEARNING FLOW: Generierter Plan -->
 <div class="app-screen flow-screen p-5 flex flex-col flex-1 hidden bg-slate-50" id="app-screen-plan">
 <div class="flex items-center justify-between mb-4"><button class="fm-top-back-btn w-10 h-10 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-600" onclick="navigateBack()" title="Zurück" aria-label="Zurück" type="button"><i class="w-4 h-4" data-lucide="arrow-left"></i></button><span class="text-[9px] font-black uppercase tracking-[.18em] text-slate-400">Focus Mission</span><button class="w-10 h-10 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-500" onclick="navigateForward('goal',{parent:'plan',rootSection:'missions'})" title="Mission bearbeiten" aria-label="Mission bearbeiten" type="button"><i class="w-4 h-4" data-lucide="pencil"></i></button></div>
-<div class="rounded-3xl p-4 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-white shadow-xl mb-4">
+<div class="rounded-3xl p-4 text-white shadow-xl mb-4 mission-plan-hero" id="aiPlanHero">
 <div class="flex justify-between items-start"><div><div class="text-[8px] font-bold text-indigo-300 uppercase tracking-wider" id="aiPlanEyebrow">Mathematik · Mission</div><h3 class="text-lg font-black leading-tight mt-1" id="aiPlanTitle">Deine Focus Mission</h3></div><div class="w-11 h-11 rounded-2xl bg-white/10 flex items-center justify-center"><i class="w-5 h-5 text-indigo-300" data-lucide="function-square"></i></div></div>
 <div class="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-white/10"><div><div class="text-[8px] text-slate-400">Frist</div><div class="text-[10px] font-bold mt-0.5" id="aiPlanDeadline">Nicht angegeben</div></div><div><div class="text-[8px] text-slate-400">Gesamt</div><div class="text-[10px] font-bold mt-0.5" id="aiPlanTotal">–</div></div><div><div class="text-[8px] text-slate-400">Sitzungen</div><div class="text-[10px] font-bold mt-0.5" id="aiPlanSessionCount">–</div></div></div>
 </div>
@@ -564,30 +545,52 @@
 <button class="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold text-xs shadow-lg shadow-indigo-100 flex items-center justify-center gap-2 mt-auto" id="missionStartButton" onclick="prepareLearningSession()"><i class="w-4 h-4" data-lucide="play"></i> Aktuellen Schritt starten</button>
 <button class="w-full py-2.5 text-[10px] font-semibold text-slate-400" onclick="navigateForward('goal',{parent:'plan',rootSection:'missions'})" type="button">Mission anpassen</button>
 </div>
-<!-- LEARNING FLOW: Ergebnis -->
-<div class="app-screen flow-screen p-5 flex flex-col flex-1 hidden bg-slate-50" id="app-screen-result">
-<div class="flex items-center justify-between mb-4"><span class="text-[9px] font-black uppercase tracking-[.18em] text-slate-400">Sitzung beendet</span><button class="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center" onclick="setAppScreen('plan')"><i class="w-4 h-4" data-lucide="x"></i></button></div>
-<div class="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-4"><i class="w-7 h-7" data-lucide="check"></i></div>
-<h3 class="text-[22px] font-black tracking-tight text-slate-950 leading-tight">Wie ist die Sitzung gelaufen?</h3>
-<p class="text-[10px] text-slate-500 leading-relaxed mt-2 mb-4" id="sessionTimeSummary">Bewerte das Ergebnis ehrlich. Früher fertig zu sein ist völlig in Ordnung.</p>
-<div class="grid grid-cols-3 gap-1.5 mb-4" id="sessionStatusButtons">
-<button class="session-status-option" data-status="completed" onclick="selectSessionStatus(this,'completed')">Abgeschlossen</button>
-<button class="session-status-option active" data-status="partial" onclick="selectSessionStatus(this,'partial')">Teilweise</button>
-<button class="session-status-option" data-status="aborted" onclick="selectSessionStatus(this,'aborted')">Abgebrochen</button>
-</div>
-<div class="text-[8px] font-black uppercase tracking-wider text-slate-400 mb-2">Wie sicher fühlst du dich jetzt?</div>
-<div class="grid grid-cols-5 gap-2 mb-3" id="confidenceRatingButtons">
-<button class="flow-chip rounded-xl py-3 text-xs font-black" onclick="selectConfidenceRating(this,1)">1</button><button class="flow-chip rounded-xl py-3 text-xs font-black" onclick="selectConfidenceRating(this,2)">2</button><button class="flow-chip rounded-xl py-3 text-xs font-black active" onclick="selectConfidenceRating(this,3)">3</button><button class="flow-chip rounded-xl py-3 text-xs font-black" onclick="selectConfidenceRating(this,4)">4</button><button class="flow-chip rounded-xl py-3 text-xs font-black" onclick="selectConfidenceRating(this,5)">5</button>
-</div>
-<div class="p-3 rounded-2xl bg-white border border-slate-200 mb-3"><div class="flex items-center justify-between"><span class="text-[10px] text-slate-500">Deine Einschätzung</span><span class="text-[10px] font-bold text-amber-600" id="confidenceRatingLabel">Mittel verstanden</span></div></div>
-<label class="block mb-3"><span class="text-[8px] font-black uppercase tracking-wider text-slate-400">Was war schwierig oder ist noch unklar?</span><textarea id="sessionFeedbackText" rows="3" maxlength="1000" class="mt-2 w-full resize-none p-3 rounded-2xl bg-white border border-slate-200 text-[10px] leading-relaxed text-slate-700 outline-none focus:border-indigo-300" placeholder="Zum Beispiel: Ich kann die Begriffe erklären, aber bei den Fällen bin ich noch unsicher."></textarea></label>
-<div id="adaptationError" class="hidden mb-3 p-3 rounded-2xl bg-rose-50 border border-rose-100 text-[9px] leading-relaxed text-rose-700"></div>
-<div class="mt-auto optional-adaptation-actions" id="optionalAdaptationActions">
-<div class="text-[9px] leading-relaxed text-slate-400 text-center mb-2">Du entscheidest, ob dein weiterer Plan angepasst werden soll.</div>
-<button class="optional-adaptation-primary" id="adaptMissionButton" onclick="adaptMissionAfterSession()"><i data-lucide="wand-sparkles"></i><span>Plan mit AI anpassen</span></button>
-<div class="text-[8px] text-slate-400 text-center mt-1.5">Passt nur offene Schritte dieser Mission an.</div>
-<button class="optional-adaptation-secondary" id="skipAdaptationButton" onclick="continueMissionWithoutAdaptation()"><span>Ohne Anpassung fortfahren</span><i data-lucide="arrow-right"></i></button>
-<div class="text-[8px] text-slate-400 text-center mt-1.5">Speichert dein Ergebnis und lässt den Plan unverändert.</div>
+<!-- LEARNING FLOW: Ergebnis & Feedback (v17.7) -->
+<div class="app-screen flow-screen hidden" id="app-screen-result">
+<div class="session-review-shell">
+  <div class="mg-topbar sr-topbar">
+    <div></div>
+    <span class="mg-badge mg-top-badge" id="sessionReviewBadge"><i data-lucide="flag"></i> Sitzung beendet</span>
+    <button class="mg-back" type="button" onclick="setAppScreen('plan')" aria-label="Schließen" title="Schließen"><i data-lucide="x"></i></button>
+  </div>
+  <section class="sr-hero mission-theme" id="sessionReviewHero" aria-live="polite"></section>
+  <p class="sr-summary-text" id="sessionTimeSummary">Bewerte das Ergebnis ehrlich. Früher fertig zu sein ist völlig in Ordnung.</p>
+
+  <section class="sr-block">
+    <h4 class="sr-question">Wie weit bist du gekommen?</h4>
+    <div class="sr-status" id="sessionStatusButtons" role="group" aria-label="Ergebnis der Sitzung">
+      <button type="button" class="session-status-option" data-status="completed" onclick="selectSessionStatus(this,'completed')"><span class="sr-status-icon"><i data-lucide="check"></i></span><strong>Abgeschlossen</strong><small>Schritt erledigt</small></button>
+      <button type="button" class="session-status-option active" data-status="partial" onclick="selectSessionStatus(this,'partial')"><span class="sr-status-icon"><i data-lucide="circle-dashed"></i></span><strong>Teilweise</strong><small>Später weiter</small></button>
+      <button type="button" class="session-status-option" data-status="aborted" onclick="selectSessionStatus(this,'aborted')"><span class="sr-status-icon"><i data-lucide="pause"></i></span><strong>Abgebrochen</strong><small>Neu ansetzen</small></button>
+    </div>
+  </section>
+
+  <section class="sr-block sr-rating-block">
+    <div class="sr-rating-head">
+      <h4 class="sr-question" id="confidenceRatingQuestion">Wie sicher fühlst du dich jetzt?</h4>
+      <span class="sr-rating-value" id="confidenceRatingLabel">Mittel verstanden</span>
+    </div>
+    <div class="sr-scale" id="confidenceRatingButtons" data-value="3">
+      <div class="sr-scale-hit" id="confidenceRatingSlider" data-block-swipe-back="true" role="slider" tabindex="0" aria-labelledby="confidenceRatingQuestion" aria-valuemin="1" aria-valuemax="5" aria-valuenow="3" aria-valuetext="3 von 5 · Mittel verstanden">
+        <span class="sr-track" aria-hidden="true"><span class="sr-fill"></span></span>
+        <span class="sr-stops" aria-hidden="true"><button type="button" tabindex="-1" class="sr-stop" data-rating="1" onclick="selectConfidenceRating(this,1)"></button><button type="button" tabindex="-1" class="sr-stop" data-rating="2" onclick="selectConfidenceRating(this,2)"></button><button type="button" tabindex="-1" class="sr-stop active" data-rating="3" onclick="selectConfidenceRating(this,3)"></button><button type="button" tabindex="-1" class="sr-stop" data-rating="4" onclick="selectConfidenceRating(this,4)"></button><button type="button" tabindex="-1" class="sr-stop" data-rating="5" onclick="selectConfidenceRating(this,5)"></button></span>
+        <span class="sr-thumb-rail" aria-hidden="true"><span class="sr-thumb"></span></span>
+      </div>
+      <div class="sr-scale-labels" aria-hidden="true"><span>Kaum verstanden</span><span>Mittel</span><span>Vollständig</span></div>
+    </div>
+  </section>
+
+  <details class="sr-block sr-note">
+    <summary><span><i data-lucide="message-square-text"></i>Notiz hinzufügen</span><small>Was war schwierig oder ist noch unklar?</small></summary>
+    <textarea id="sessionFeedbackText" rows="3" maxlength="1000" aria-label="Was war schwierig oder ist noch unklar?" placeholder="Zum Beispiel: Ich kann die Begriffe erklären, aber bei den Fällen bin ich noch unsicher."></textarea>
+  </details>
+
+  <div id="adaptationError" class="hidden sr-error" role="alert"></div>
+  <div class="optional-adaptation-actions sr-actions" id="optionalAdaptationActions">
+    <button class="optional-adaptation-primary" id="adaptMissionButton" type="button" onclick="adaptMissionAfterSession()"><span class="sr-ai-icon"><i data-lucide="wand-sparkles"></i></span><span class="sr-ai-copy"><span data-label>Plan mit AI anpassen</span><small>Optional · passt nur offene Schritte dieser Mission an</small></span><i data-lucide="chevron-right"></i></button>
+    <button class="optional-adaptation-secondary" id="skipAdaptationButton" type="button" onclick="continueMissionWithoutAdaptation()"><span data-label>Ohne Anpassung fortfahren</span><i data-lucide="arrow-right"></i></button>
+    <p class="sr-actions-hint">Speichert dein Ergebnis. Der Plan bleibt unverändert.</p>
+  </div>
 </div>
 </div>
 <!-- LEARNING FLOW: Feedback wird ausgewertet -->

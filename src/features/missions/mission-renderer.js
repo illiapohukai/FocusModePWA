@@ -62,22 +62,58 @@ function updateMissionPlanButton(){
   btn.classList.toggle('opacity-40',!ready);
   btn.classList.toggle('cursor-not-allowed',!ready);
 }
-function selectConfidenceRating(btn,value){
-  selectedConfidenceRating=value;
-  document.querySelectorAll('#confidenceRatingButtons .flow-chip').forEach(x=>x.classList.remove('active'));
-  btn.classList.add('active');
-  const label=document.getElementById('confidenceRatingLabel');
-  const states={
-    1:{text:'Gar nichts verstanden',classes:['text-rose-600']},
-    2:{text:'Sehr wenig verstanden',classes:['text-rose-500']},
-    3:{text:'Mittel verstanden',classes:['text-amber-600']},
-    4:{text:'Ziemlich gut verstanden',classes:['text-emerald-600']},
-    5:{text:'Vollständig verstanden',classes:['text-indigo-600']}
-  };
-  const state=states[value];
-  label.textContent=state.text;
-  label.className='text-[10px] font-bold '+state.classes.join(' ');
+/* v17.7 continuous confidence line. Stored value stays the existing 1–5 integer (selectedConfidenceRating). */
+const CONFIDENCE_RATING_STATES={1:'Gar nichts verstanden',2:'Sehr wenig verstanden',3:'Mittel verstanden',4:'Ziemlich gut verstanden',5:'Vollständig verstanden'};
+function syncConfidenceRatingUI(value=selectedConfidenceRating,preview=null){
+  const v=Math.max(1,Math.min(5,Math.round(Number(value)||3)));
+  const scale=document.getElementById('confidenceRatingButtons'),slider=document.getElementById('confidenceRatingSlider'),label=document.getElementById('confidenceRatingLabel');
+  if(scale){
+    scale.dataset.value=String(v);
+    scale.style.setProperty('--sr-t',String(preview==null?(v-1)/4:Math.max(0,Math.min(1,preview))));
+    scale.querySelectorAll('.sr-stop').forEach(x=>{const n=Number(x.dataset.rating);x.classList.toggle('active',n===v);x.classList.toggle('is-filled',n<=v)});
+  }
+  if(label){label.textContent=CONFIDENCE_RATING_STATES[v];label.dataset.level=String(v)}
+  if(slider){slider.setAttribute('aria-valuenow',String(v));slider.setAttribute('aria-valuetext',v+' von 5 · '+CONFIDENCE_RATING_STATES[v])}
 }
+window.syncConfidenceRatingUI=syncConfidenceRatingUI;
+function selectConfidenceRating(btn,value){
+  const v=Math.max(1,Math.min(5,Math.round(Number(value)||3)));
+  selectedConfidenceRating=v;
+  syncConfidenceRatingUI(v);
+}
+(function bindConfidenceRatingLineV177(){
+  function bind(){
+    const slider=document.getElementById('confidenceRatingSlider'),scale=document.getElementById('confidenceRatingButtons');
+    if(!slider||!scale||slider.dataset.bound==='1')return;
+    slider.dataset.bound='1';
+    let dragging=false,pointerId=null;
+    const ratioAt=x=>{const track=slider.querySelector('.sr-track')||slider,r=track.getBoundingClientRect();return r.width?Math.max(0,Math.min(1,(x-r.left)/r.width)):0};
+    const toValue=t=>1+Math.round(t*4);
+    slider.addEventListener('pointerdown',e=>{
+      if(slider.closest('.optional-adaptation-locked'))return;
+      dragging=true;pointerId=e.pointerId;slider.setPointerCapture?.(e.pointerId);scale.classList.add('is-dragging');
+      const t=ratioAt(e.clientX);syncConfidenceRatingUI(toValue(t),t);e.preventDefault();
+    });
+    slider.addEventListener('pointermove',e=>{if(!dragging||e.pointerId!==pointerId)return;const t=ratioAt(e.clientX);syncConfidenceRatingUI(toValue(t),t)});
+    const end=e=>{
+      if(!dragging||(e&&e.pointerId!==pointerId))return;
+      dragging=false;scale.classList.remove('is-dragging');
+      try{slider.releasePointerCapture?.(pointerId)}catch{}
+      selectConfidenceRating(null,toValue(ratioAt(e.clientX)));
+    };
+    slider.addEventListener('pointerup',end);
+    slider.addEventListener('pointercancel',()=>{if(!dragging)return;dragging=false;scale.classList.remove('is-dragging');syncConfidenceRatingUI(selectedConfidenceRating)});
+    slider.addEventListener('keydown',e=>{
+      if(slider.closest('.optional-adaptation-locked'))return;
+      const map={ArrowRight:1,ArrowUp:1,ArrowLeft:-1,ArrowDown:-1};
+      let v=null;
+      if(e.key in map)v=selectedConfidenceRating+map[e.key];else if(e.key==='Home')v=1;else if(e.key==='End')v=5;
+      if(v==null)return;e.preventDefault();selectConfidenceRating(null,v);
+    });
+    syncConfidenceRatingUI(selectedConfidenceRating);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
+})();
 
 function confirmAIPlan(){if(!pendingAIPlan)return;activeAIPlan=pendingAIPlan;renderAIPlan(activeAIPlan);revealCreatedMission();window.FocusModeApp.services.storage.setJSON('focus-mode-active-mission',activeAIPlan);setAppScreen('plan');}
 function formatMinutes(total){const m=Math.max(0,Math.round(Number(total)||0)),h=Math.floor(m/60),r=m%60;return h?(h+'h'+(r?' '+r+'m':'')):(r+' Min.')}
@@ -278,16 +314,9 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
   function registerScheduleI18N() {
     if (typeof I18N !== 'undefined' && I18N.en) {
       Object.assign(I18N.en, {
-        'ZEITPLAN': 'SCHEDULE',
-        'OPTIONAL': 'OPTIONAL',
-        'Optional': 'Optional',
-        'Plane, wann du beginnen möchtest und bis wann dein Ziel erreicht sein soll.': 'Plan when you want to start and when your goal should be reached.',
-        'ZIELTERMIN': 'DEADLINE',
         'Wann ist deine Prüfung oder Abgabe?': 'When is your exam or deadline?',
-        'Wähle ein Datum, um deinen Vorbereitungszeitraum sichtbar zu planen.': 'Choose a date to visualize your preparation window.',
         'Zurücksetzen': 'Reset',
         'Auswählen': 'Select',
-        'Ändern': 'Change',
         'PRÜFUNG / ABGABE': 'EXAM / DEADLINE',
         'Datum auswählen': 'Select date',
         'START DER VORBEREITUNG': 'PREPARATION START',
@@ -299,14 +328,10 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
         'Wähle zuerst einen Prüfungstermin oder eine Abgabe.': 'Select an exam date or deadline first.',
         'START': 'START',
         'ZIEL': 'GOAL',
-        'PRÜFUNG': 'DEADLINE',
         'Lernrhythmus anpassen': 'Adjust study rhythm',
-        'WANN KANNST DU LERNEN?': 'WHEN CAN YOU STUDY?',
-        'Keine Auswahl bedeutet, dass dein Plan flexibel verteilt werden kann.': 'No selection means your plan can be distributed flexibly.',
         'Unter der Woche': 'Weekdays',
         'Wochenende': 'Weekend',
         'Flexibel': 'Flexible',
-        'BEVORZUGTE SITZUNGSDAUER': 'PREFERRED SESSION LENGTH',
         '20 Min.': '20 min',
         '30 Min.': '30 min',
         '45 Min.': '45 min',
@@ -319,7 +344,14 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
         'Abbrechen': 'Cancel',
         'Erneut versuchen': 'Try Again',
         'Schließen': 'Dismiss',
-        'Foto entfernen': 'Remove photo'
+        'Foto entfernen': 'Remove photo',
+        'Zeitplan': 'Schedule',
+        'optional': 'optional',
+        'Mit einem Datum plant die AI deine Vorbereitung bis dahin.': 'With a date, the AI plans your preparation up to it.',
+        'Wann startest du?': 'When do you start?',
+        'An welchen Tagen kannst du lernen?': 'Which days can you study?',
+        'Wie lang soll eine Sitzung sein?': 'How long should a session be?',
+        'Passend zum Plan': 'Fits the plan'
       });
     }
   }
@@ -416,7 +448,7 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
     const locale = getActiveLang() === 'en' ? 'en-US' : 'de-DE';
     try {
       return new Intl.DateTimeFormat(locale, {
-        weekday: 'long',
+        weekday: 'short',
         day: 'numeric',
         month: 'long',
         year: 'numeric'
@@ -495,6 +527,19 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
         missionScheduleState.preparationStartDate = diffCalendarDays(todayISO, fallback) >= 0 ? fallback : todayISO;
       }
     }
+  }
+
+  /* Display-only preview of the start date each option would produce (mirrors recomputePreparationStartDate). */
+  function previewStartDateForMode(mode) {
+    const deadlineISO = missionScheduleState.deadlineDate;
+    if (!deadlineISO) return null;
+    const todayISO = getTodayISO();
+    if (mode === 'immediate') return todayISO;
+    if (mode === 'one_week_before' || mode === 'two_weeks_before') {
+      const candidate = addDaysISO(deadlineISO, mode === 'one_week_before' ? -7 : -14);
+      return diffCalendarDays(todayISO, candidate) < 0 ? todayISO : candidate;
+    }
+    return missionScheduleState.startMode === 'custom' ? missionScheduleState.preparationStartDate : null;
   }
 
   function hasMatchingWeekdayInRange(startISO, endISO, weekdays) {
@@ -592,46 +637,6 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
     return wk.map(d => names[d - 1]).join(', ');
   }
 
-  function renderScheduleTrajectoryNodes(startISO, endISO, isEn) {
-    const container = document.getElementById('mgTrajectoryNodes');
-    if (!container) return;
-    const span = diffCalendarDays(startISO, endISO);
-    if (span < 0) {
-      container.replaceChildren();
-      return;
-    }
-    const maxNodes = 7;
-    const count = Math.min(maxNodes, Math.max(2, span + 1));
-    const sampledISOs = [];
-    for (let i = 0; i < count; i++) {
-      const offset = count === 1 ? 0 : Math.round((i * span) / (count - 1));
-      sampledISOs.push(addDaysISO(startISO, offset));
-    }
-    const dayLabels = isEn ? ['M', 'T', 'W', 'T', 'F', 'S', 'S'] : ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
-    const prefSet = new Set(missionScheduleState.preferredWeekdays.map(Number));
-
-    container.replaceChildren();
-    sampledISOs.forEach((iso, idx) => {
-      const wd = getISOWeekday(iso);
-      const isEndpoint = idx === 0;
-      const isDeadline = idx === sampledISOs.length - 1;
-      const isAvailable = prefSet.size === 0 || prefSet.has(wd);
-      const step = document.createElement('span');
-      step.className = 'mg-traj-step'
-        + (isAvailable ? ' is-available' : '')
-        + (isEndpoint ? ' is-endpoint' : '')
-        + (isDeadline ? ' is-deadline' : '');
-      const dot = document.createElement('span');
-      dot.className = 'mg-traj-dot';
-      const lbl = document.createElement('span');
-      lbl.className = 'mg-traj-lbl';
-      lbl.textContent = dayLabels[wd - 1] || '';
-      step.appendChild(dot);
-      step.appendChild(lbl);
-      container.appendChild(step);
-    });
-  }
-
   function updatePrefsAccordionUI() {
     const toggleBtn = document.getElementById('mgPrefsToggleBtn');
     const panel = document.getElementById('mgPrefsPanel');
@@ -656,10 +661,8 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
     const board = document.getElementById('mgScheduleBoard');
     const deadlineTrigger = document.getElementById('mgDeadlineTrigger');
     const deadlineVal = document.getElementById('mgDeadlineValue');
-    const ctaTag = document.getElementById('mgDeadlineCtaTag');
     const clearBtn = document.getElementById('mgDeadlineClearBtn');
     const prepBlock = document.getElementById('mgPrepStartBlock');
-    const recBadge = document.getElementById('mgStartRecBadge');
     const timelineEmpty = document.getElementById('mgTimelineEmpty');
     const timelineActive = document.getElementById('mgTimelineActive');
     const startLabel = document.getElementById('mgTimelineStartLabel');
@@ -677,6 +680,9 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
     }
     if (deadlineTrigger) {
       deadlineTrigger.classList.toggle('has-value', hasDeadline);
+      deadlineTrigger.setAttribute('aria-label', hasDeadline
+        ? (isEn ? 'Change exam or deadline date' : 'Prüfungs- oder Abgabedatum ändern')
+        : (isEn ? 'Select exam or deadline date' : 'Prüfung oder Abgabe auswählen'));
     }
     if (deadlineVal) {
       if (hasDeadline) {
@@ -686,9 +692,6 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
         deadlineVal.textContent = isEn ? 'Select date' : 'Datum auswählen';
         deadlineVal.classList.add('is-placeholder');
       }
-    }
-    if (ctaTag) {
-      ctaTag.textContent = hasDeadline ? (isEn ? 'Change' : 'Ändern') : (isEn ? 'Select' : 'Auswählen');
     }
     if (clearBtn) {
       clearBtn.classList.toggle('hidden', !hasDeadline);
@@ -701,9 +704,6 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
     }
 
     const recommendedMode = getRecommendedStartMode(missionScheduleState.deadlineDate);
-    if (recBadge && hasDeadline) {
-      recBadge.textContent = (isEn ? 'Recommended: ' : 'Empfohlen: ') + getModeLabel(recommendedMode);
-    }
 
     document.querySelectorAll('#mgStartModeChips .mg-start-chip').forEach(btn => {
       const mode = btn.getAttribute('data-start-mode');
@@ -712,13 +712,14 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
       btn.classList.toggle('active', isSelected);
       btn.classList.toggle('is-recommended', isRec);
       btn.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
-      const labelEl = btn.querySelector('.mg-start-chip-label') || btn.querySelector('span');
-      if (labelEl && mode === 'custom') {
-        if (missionScheduleState.startMode === 'custom' && missionScheduleState.preparationStartDate) {
-          labelEl.textContent = (isEn ? 'Custom · ' : 'Eigene Wahl · ') + formatShortDate(missionScheduleState.preparationStartDate, false);
-        } else {
-          labelEl.textContent = isEn ? 'Custom date' : 'Eigene Wahl';
-        }
+      const labelEl = btn.querySelector('.mg-start-chip-label');
+      if (labelEl) labelEl.textContent = getModeLabel(mode);
+      const dateEl = btn.querySelector('.mg-start-chip-date');
+      if (dateEl) {
+        const startISO = hasDeadline ? previewStartDateForMode(mode) : null;
+        dateEl.textContent = startISO
+          ? (startISO === getTodayISO() ? (isEn ? 'from today' : 'ab heute') : (isEn ? 'from ' : 'ab ') + formatShortDate(startISO, false))
+          : (mode === 'custom' ? (isEn ? 'Pick a date' : 'Datum wählen') : '');
       }
       const recMark = btn.querySelector('.mg-start-rec-mark');
       if (recMark) {
@@ -749,17 +750,17 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
       const rawDiff = diffCalendarDays(startISO, endISO);
       const prepDays = Math.max(0, rawDiff);
       if (daysBadge) {
+        daysBadge.classList.toggle('is-invalid', rawDiff < 0);
         if (rawDiff < 0) {
-          daysBadge.textContent = isEn ? 'INVALID PERIOD' : 'UNGÜLTIGER ZEITRAUM';
+          daysBadge.textContent = isEn ? 'Invalid period' : 'Ungültiger Zeitraum';
         } else if (prepDays === 0) {
-          daysBadge.textContent = isEn ? 'TODAY · 1 DAY PREP' : 'HEUTE · 1 TAG VORBEREITUNG';
+          daysBadge.textContent = isEn ? 'Today · 1 day' : 'Heute · 1 Tag Vorbereitung';
         } else if (prepDays === 1) {
-          daysBadge.textContent = isEn ? '1 DAY PREPARATION' : '1 TAG VORBEREITUNG';
+          daysBadge.textContent = isEn ? '1 day of preparation' : '1 Tag Vorbereitung';
         } else {
-          daysBadge.textContent = prepDays + (isEn ? ' DAYS PREPARATION' : ' TAGE VORBEREITUNG');
+          daysBadge.textContent = prepDays + (isEn ? ' days of preparation' : ' Tage Vorbereitung');
         }
       }
-      renderScheduleTrajectoryNodes(startISO, endISO, isEn);
       if (liveSummary) {
         liveSummary.textContent = rhythmTxt + ' · ' + (missionScheduleState.preferredSessionMinutes
           ? (missionScheduleState.preferredSessionMinutes + (isEn ? ' min sessions' : ' Min.-Blöcke'))

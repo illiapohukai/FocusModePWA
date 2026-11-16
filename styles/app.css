@@ -173,7 +173,6 @@ html,body{width:100%;max-width:100%;overflow-x:clip!important;overscroll-behavio
 /* === END CLEAN HOME + SCROLL FIX === */
 
 /* === COSMETIC + INTERACTION REFINEMENTS === */
-#confidenceRatingButtons .flow-chip.active{border-color:#c7d2fe;background:#eef2ff;color:#4338ca;box-shadow:0 0 0 2px rgba(99,102,241,.08)}
 #missionPlanButton:disabled{box-shadow:none!important}
 /* === END COSMETIC + INTERACTION REFINEMENTS === */
 
@@ -316,15 +315,10 @@ html.pwa-dark-status,html.pwa-dark-status body{background:#0f1328!important}html
 /* === REAL AI MISSION V6 === */
 #selectedFileCard img{width:44px;height:44px;object-fit:cover;border-radius:12px}
 #missionPlanButton.ai-loading{opacity:.7!important;cursor:wait!important}
-.ai-confirm-row{padding:12px 13px;border:1px solid #e2e8f0;border-radius:16px;background:#fff}
-.ai-confirm-label{font-size:8px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#94a3b8}
-.ai-confirm-value{margin-top:4px;font-size:11px;font-weight:750;line-height:1.35;color:#1e293b}
 #aiPlanSteps .flow-step-line:last-child:after{display:none}
 /* === END REAL AI MISSION V6 === */
 
 /* === ADAPTIVE MISSION V7 === */
-.session-status-option{padding:10px 4px;border:1px solid #e2e8f0;border-radius:13px;background:#fff;color:#64748b;font-size:8px;font-weight:850;line-height:1.1;transition:.2s}
-.session-status-option.active{border-color:#818cf8;background:#eef2ff;color:#4338ca;box-shadow:0 0 0 2px rgba(99,102,241,.08)}
 .mission-step-complete{opacity:.68}.mission-step-complete .step-bubble{background:#dcfce7!important;border-color:#bbf7d0!important;color:#16a34a!important}
 .mission-step-active .step-bubble{background:#4f46e5!important;color:white!important;border-color:#4f46e5!important}
 #adaptMissionButton:disabled{opacity:.58;cursor:wait}

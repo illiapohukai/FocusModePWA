@@ -77,10 +77,38 @@ function renderMultiMissionUIV115(){
     if(!switcher){switcher=document.createElement('div');switcher.id='missionSwitcherV115';anchor.insertAdjacentElement('afterend',switcher)}
     switcher.innerHTML=active.map(m=>'<button class="'+(m.id===selected?.id?'active':'')+'" onclick="openMission(\''+m.id+'\')">'+escapeHTML(m.title)+'</button>').join('');
   }else switcher?.remove();
+  applyMissionThemeClassV177(document.getElementById('aiPlanHero'),selected?.id||null);
   lucide.createIcons();
 }
+function applyMissionThemeClassV177(el,missionId){
+  if(!el)return;
+  const theme=missionId?getMissionThemeV177(missionId):'aubergine';
+  MISSION_THEMES_V177.forEach(t=>el.classList.toggle('theme-'+t,t===theme));
+  el.classList.add('mission-theme');
+  el.dataset.missionTheme=theme;
+}
 
-const MISSION_THEMES_V116=['violet','aqua'];
+/* v17.7: stable Mission identity colors. Derived from the Mission ID (no stored field);
+   a Mission only avoids a tone already held by an earlier Mission that was still running when it was created. */
+const MISSION_THEMES_V177=Object.freeze(['aubergine','forest','ember','burgundy']);
+function missionThemeHashV177(id){let h=2166136261;for(const c of String(id||'')){h^=c.charCodeAt(0);h=Math.imul(h,16777619)>>>0}return h%MISSION_THEMES_V177.length}
+function resolveMissionThemesV177(draft){
+ const all=(typeof missionRepository!=='undefined'?missionRepository.getAll():[]).slice();
+ if(draft&&draft.id&&!all.some(x=>x.id===draft.id))all.push(draft);
+ all.sort((a,b)=>(Number(a.createdAt)||0)-(Number(b.createdAt)||0)||String(a.id).localeCompare(String(b.id)));
+ const map={},held=[];
+ for(const m of all){
+  const born=Number(m.createdAt)||0,taken=new Set(held.filter(h=>h.end>born).map(h=>h.idx));
+  let idx=missionThemeHashV177(m.id);
+  for(let i=0;i<MISSION_THEMES_V177.length&&taken.has(idx);i++)idx=(idx+1)%MISSION_THEMES_V177.length;
+  map[m.id]=MISSION_THEMES_V177[idx];
+  held.push({idx,end:m.status==='active'?Infinity:(Number(m.completedAt||m.archivedAt||m.updatedAt)||0)});
+ }
+ return map;
+}
+function getMissionThemeV177(id){return id?(resolveMissionThemesV177()[id]||MISSION_THEMES_V177[missionThemeHashV177(id)]):MISSION_THEMES_V177[0]}
+function previewMissionThemeV177(draftId){return draftId?resolveMissionThemesV177({id:draftId,createdAt:Date.now(),status:'active'})[draftId]:MISSION_THEMES_V177[0]}
+window.getMissionThemeV177=getMissionThemeV177;window.previewMissionThemeV177=previewMissionThemeV177;
 let missionManagementFilterV116='active';
 function missionViewModelV116(m){
  const stepsArr=Array.isArray(m?.steps)?m.steps:[];
@@ -118,7 +146,7 @@ function missionViewModelV116(m){
    updatedAt:m.updatedAt||m.createdAt||Date.now(),
    completedAt:m.completedAt||null,
    archivedAt:m.archivedAt||null,
-   theme:MISSION_THEMES_V116[Math.abs([...m.id].reduce((a,c)=>a+c.charCodeAt(0),0))%MISSION_THEMES_V116.length]
+   theme:getMissionThemeV177(m.id)
  };
 }
 function sortedActiveMissionsV116(){const active=missionRepository.getActive();const primary=missionRepository.getPrimaryId();return active.sort((a,b)=>a.id===primary?-1:b.id===primary?1:a.createdAt-b.createdAt)}

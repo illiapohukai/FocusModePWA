@@ -1,4 +1,4 @@
-const CACHE = "focus-mode-v17-6-navigation-insights-league";
+const CACHE = "focus-mode-v17-7-mission-flow-cohesion";
 const CACHE_PREFIX = "focus-mode";
 
 const CORE = [
