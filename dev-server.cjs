@@ -1,14 +1,12 @@
 const http = require("node:http");
 const fs = require("node:fs");
 const path = require("node:path");
-
-const ROOT = __dirname;
-const PORT = Number(process.env.PORT || 5173);
-
-const MIME_TYPES = {
+const root = __dirname;
+const port = Number(process.env.PORT || 5173);
+const mimeTypes = {
   ".html": "text/html; charset=utf-8",
-  ".js": "text/javascript; charset=utf-8",
   ".css": "text/css; charset=utf-8",
+  ".js": "text/javascript; charset=utf-8",
   ".json": "application/json; charset=utf-8",
   ".webmanifest": "application/manifest+json; charset=utf-8",
   ".png": "image/png",
@@ -16,70 +14,47 @@ const MIME_TYPES = {
   ".jpeg": "image/jpeg",
   ".webp": "image/webp",
   ".svg": "image/svg+xml",
-  ".ico": "image/x-icon",
-  ".txt": "text/plain; charset=utf-8"
+  ".ico": "image/x-icon"
 };
-
-function resolveRequestPath(requestPath) {
-  const decodedPath = decodeURIComponent(requestPath);
-  const relativePath =
-    decodedPath === "/" ? "index.html" : decodedPath.replace(/^\/+/, "");
-
-  const resolvedPath = path.resolve(ROOT, relativePath);
-
-  if (
-    resolvedPath !== ROOT &&
-    !resolvedPath.startsWith(`${ROOT}${path.sep}`)
-  ) {
-    return null;
-  }
-
-  return resolvedPath;
-}
-
-const server = http.createServer((request, response) => {
+http.createServer((request, response) => {
   const requestUrl = new URL(
-    request.url,
+    request.url || "/",
     `http://${request.headers.host || "localhost"}`
   );
-
-  let filePath = resolveRequestPath(requestUrl.pathname);
-
-  if (!filePath) {
+  let requestedPath = decodeURIComponent(requestUrl.pathname);
+  if (requestedPath === "/") {
+    requestedPath = "/index.html";
+  }
+  const filePath = path.resolve(
+    root,
+    requestedPath.replace(/^\/+/, "")
+  );
+  if (
+    filePath !== root &&
+    !filePath.startsWith(root + path.sep)
+  ) {
     response.writeHead(403, {
       "Content-Type": "text/plain; charset=utf-8"
     });
     response.end("Forbidden");
     return;
   }
-
-  fs.stat(filePath, (statError, stats) => {
-    if (!statError && stats.isDirectory()) {
-      filePath = path.join(filePath, "index.html");
-    }
-
-    fs.readFile(filePath, (readError, data) => {
-      if (readError) {
-        response.writeHead(404, {
-          "Content-Type": "text/plain; charset=utf-8"
-        });
-        response.end("Not found");
-        return;
-      }
-
-      const extension = path.extname(filePath).toLowerCase();
-
-      response.writeHead(200, {
-        "Content-Type":
-          MIME_TYPES[extension] || "application/octet-stream",
-        "Cache-Control": "no-store"
+  fs.readFile(filePath, (error, content) => {
+    if (error) {
+      response.writeHead(404, {
+        "Content-Type": "text/plain; charset=utf-8"
       });
-
-      response.end(data);
+      response.end("Not found");
+      return;
+    }
+    const extension = path.extname(filePath).toLowerCase();
+    response.writeHead(200, {
+      "Content-Type":
+        mimeTypes[extension] || "application/octet-stream",
+      "Cache-Control": "no-store"
     });
+    response.end(content);
   });
-});
-
-server.listen(PORT, "0.0.0.0", () => {
-  console.log(`Focus Mode+ dev server: http://0.0.0.0:${PORT}\`);
+}).listen(port, "0.0.0.0", () => {
+  console.log(`Focus Mode+ running on http://0.0.0.0:${port}\`);
 });
