@@ -56,7 +56,21 @@ function startSessionRuntime(){
 startSession=function(session){
  const check=validateSession(session);if(!check.valid){console.error('[SessionCore]',{event:'session_validation_failed',errors:check.errors});alert('Die Fokus-Sitzung konnte nicht gestartet werden.');return false}
  if(activeSession){alert('Beende zuerst deine aktuelle Fokus-Sitzung.');return false}
- const now=Date.now(),running={...cloneSession(session),status:'running',lifecycleState:'running',startedAt:now,elapsedMs:0,remainingSeconds:session.plannedMinutes*60,lastActiveAt:now,lastCheckpointAt:now,endsAt:null,finalizationState:null};setActiveSession(running);currentSessionStartedAt=now;currentSessionPlannedMinutes=running.plannedMinutes;currentSessionActualMinutes=0;renderSession(running);setAppScreen('timer');startSessionRuntime();recoveryLog('session_started',{sessionId:running.id,type:running.type});return true;
+ const now=Date.now(),running={...cloneSession(session),status:'running',lifecycleState:'running',startedAt:now,elapsedMs:0,remainingSeconds:session.plannedMinutes*60,lastActiveAt:now,lastCheckpointAt:now,endsAt:null,finalizationState:null};
+ setActiveSession(running);
+ currentSessionStartedAt=now;
+ currentSessionPlannedMinutes=running.plannedMinutes;
+ currentSessionActualMinutes=0;
+ renderSession(running);
+ if(typeof syncUcData==='function')syncUcData();
+ if(typeof syncTimerProtectionBadge==='function')syncTimerProtectionBadge();
+ timerDuration=Math.max(0,Math.ceil((plannedSessionMs(running)-sessionElapsedMs(running,true))/1000));
+ originalDuration=Math.max(1,running.plannedMinutes*60);
+ updateTimerUI();
+ setAppScreen('timer');
+ startSessionRuntime();
+ recoveryLog('session_started',{sessionId:running.id,type:running.type});
+ return true;
 };
 endSessionByUser=function(){
  if(!activeSession||activeSession.lifecycleState!=='running')return null;checkpointActiveSession('user_end',true);if(Math.floor(activeSession.elapsedMs/60000)<1){stopSessionRuntime();const cancelled={...buildFinalSessionV112(activeSession,'aborted','ended_too_early'),status:'cancelled',result:{...(activeSession.result||{}),reason:'ended_too_early',outcome:'aborted',countAsFocus:false}};sessionRepository.save(cancelled);saveSessionSnapshot(cancelled);setActiveSession(null);setAppScreen('home');return cancelled}

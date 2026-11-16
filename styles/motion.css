@@ -27,6 +27,11 @@
   isolation: isolate;
 }
 
+#screenWrapper #appBody.fm-dual-transition {
+  overflow: hidden !important;
+  overflow: clip !important;
+}
+
 /* Allow MotionController Web Animations / CSS transitions on active screens */
 html body #screenWrapper #appBody > .app-screen.fm-motion-active:not(.hidden) {
   animation: none !important;
@@ -36,6 +41,8 @@ html body #screenWrapper #appBody > .app-screen.fm-motion-active:not(.hidden) {
 /* Outgoing & swipe-back underlay screens kept visually rendered while remaining .hidden */
 html body #screenWrapper #appBody.fm-dual-transition > .app-screen.fm-layer-outgoing.hidden,
 html body #screenWrapper #appBody.fm-dual-transition > .app-screen.fm-swipe-back-underlay.hidden,
+html body #screenWrapper #appBody.fm-dual-transition > #app-screen-home.fm-layer-outgoing.hidden,
+html body #screenWrapper #appBody.fm-dual-transition > #app-screen-home.fm-swipe-back-underlay.hidden,
 html body #screenWrapper.has-bottom-nav #appBody.fm-dual-transition > #app-screen-home.fm-layer-outgoing.hidden,
 html body #screenWrapper.has-bottom-nav #appBody.fm-dual-transition > #app-screen-home.fm-swipe-back-underlay.hidden,
 html body #screenWrapper #appBody.fm-dual-transition > #app-screen-missions.fm-layer-outgoing.hidden,
@@ -61,7 +68,9 @@ html body #screenWrapper #appBody.fm-dual-transition > #app-screen-result.fm-lay
   position: absolute !important;
   inset: 0 !important;
   width: 100% !important;
+  max-width: 100% !important;
   height: 100% !important;
+  box-sizing: border-box !important;
   pointer-events: none !important;
   z-index: 14 !important;
   will-change: transform, opacity;
@@ -69,6 +78,8 @@ html body #screenWrapper #appBody.fm-dual-transition > #app-screen-result.fm-lay
   filter: none !important;
 }
 
+html body #screenWrapper #appBody.fm-dual-transition > #app-screen-home.fm-layer-outgoing.hidden,
+html body #screenWrapper #appBody.fm-dual-transition > #app-screen-home.fm-swipe-back-underlay.hidden,
 html body #screenWrapper.has-bottom-nav #appBody.fm-dual-transition > #app-screen-home.fm-layer-outgoing.hidden,
 html body #screenWrapper.has-bottom-nav #appBody.fm-dual-transition > #app-screen-home.fm-swipe-back-underlay.hidden {
   padding: 16px 18px calc(var(--fm-nav-total-height) + 24px) !important;
@@ -79,11 +90,20 @@ html body #screenWrapper #appBody.fm-dual-transition > .app-screen.fm-layer-outg
 html body #screenWrapper #appBody.fm-dual-transition > .app-screen.fm-layer-outgoing.fm-layer-top:not(.hidden) {
   position: absolute !important;
   inset: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
   z-index: 24 !important;
 }
 
 html body #screenWrapper #appBody.fm-dual-transition > .app-screen.fm-layer-incoming:not(.hidden) {
-  position: relative !important;
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
   z-index: 18 !important;
   will-change: transform, opacity;
   animation: none !important;

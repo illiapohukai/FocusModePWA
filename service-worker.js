@@ -1,4 +1,4 @@
-const CACHE = "focus-mode-v17-5-interaction-polish";
+const CACHE = "focus-mode-v17-5-1-interaction-fixes";
 const CACHE_PREFIX = "focus-mode";
 
 const CORE = [

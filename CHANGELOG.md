@@ -1,5 +1,29 @@
 # Changelog — Focus Mode+
 
+## v17.5.1 Interaction Fixes (2026-11-16)
+
+### Empty Mission Card Alignment, 2-Mission Carousel Depth, Mission-List Opening Repair, Plus Panel Cleanup, Zero-Jump Session Entry & Interactive Edge-Swipe Back
+- **Empty Mission Card Internal Content Alignment (`styles/missions.css`)**:
+  - Raised the shared `.home-hero-content` layout inside `#emptyMissionCard` by ~8–10 CSS pixels (`padding: 12px 18px 24px !important; transform: translateY(-2px);`, `h3.mh-empty-title` `margin-top: 4px !important`, `.mh-empty-next-box` `margin-top: 20px !important`, and hid the unused `.mh-bottom-row` inside `#emptyMissionCard`).
+  - Eliminated bottom clipping on the `ERSTER SCHRITT / AI PLAN` panel (`21px` bottom clearance vs `11px` previously) while preserving exact card height (`330px` on 390×844), card boundaries, grid background, and typography.
+- **Active Mission Emphasis in the 2-Mission Carousel (`src/features/missions/multi-mission-ui.js`, `styles/missions.css`)**:
+  - Added continuous scroll-linked emphasis across `.mission-hero-v116` cards inside `#missionCarouselV1181.multi-mission`:
+    - Centered/active card: `scale(1)`, `opacity: 1`, `translate3d(0, 0px, 0)`, `.is-carousel-active` (`box-shadow: 0 18px 38px rgba(37, 22, 43, 0.24)`).
+    - Adjacent/inactive card: `scale(0.972)`, `opacity: 0.90`, `translate3d(0, 4.5px, 0)`, `.is-carousel-inactive` (`box-shadow: 0 8px 20px rgba(37, 22, 43, 0.11)`), with `prefers-reduced-motion: reduce` fallback (`transform: none`, `opacity: 1 / 0.91`).
+- **Mission-List Opening Animation Repair (`styles/motion.css`, `styles/navigation.css`, `src/features/missions/mission-management.js`, `src/core/bootstrap.js`)**:
+  - Locked `.fm-layer-incoming:not(.hidden)` and `.fm-layer-outgoing` inside `#appBody.fm-dual-transition` to `position: absolute !important; inset: 0 !important; width: 100% !important; max-width: 100% !important; height: 100% !important; box-sizing: border-box !important;` with `overflow: clip !important`, preventing `#app-screen-missions` from extending past the right viewport edge (`left: 51px, right: 441px` bug fixed to `left: 0..390px`).
+  - Removed the redundant `setTimeout(renderMissionManagementV116, 0)` mid-transition re-render and scoped `translateTree` attribute queries to `root` so opening `Deine Missionen` runs at 60fps with zero main-thread freeze.
+- **Deterministic "Missionen verwalten" Destination (`src/features/missions/mission-management.js`)**:
+  - Added `resetMissionManagementFilterToActiveV1751()` and `syncMissionFilterTabsV1751()` so opening `Missionen verwalten` from the Plus panel always resets `missionManagementFilterV116 = 'active'` and highlights the `Aktiv` tab (`[data-filter="active"]`), never opening a stale `Archiv` or `Abgeschlossen` filter.
+- **Plus Panel Duplicate Mission Rows Removed (`src/features/missions/mission-management.js`, `index.html`, `styles/navigation.css`)**:
+  - Removed the `BESTEHENDE MISSIONEN` section (`.fm-plus-missions-section` / `#focusMissionListV116`) from the Plus panel so it contains only the 3 clean sections: Header (`Was möchtest du fokussieren?`), Primary choices (`Kurzer Fokus` & `Focus Mission`), and Footer (`Missionen verwalten` with icon and subtitle `Aktiv, abgeschlossen und archiviert`).
+- **Zero Vertical Jump on Quick Focus & Focus Session Entry (`styles/motion.css`, `src/core/navigation.js`, `src/features/quick-focus/quick-focus.js`, `src/features/focus-session/session-runtime.js`, `src/core/motion-controller.js`)**:
+  - Kept `#app-screen-quicksetup` at `position: absolute; inset: 0; height: 100%` throughout `.fm-dual-transition` and pre-populated `updateQuickRing()` + `updateProtectionSummary()` before navigation so the bottom `Fokus starten` button (`.qb-bottom button`) stays at fixed vertical coordinates (`top: 773px, bottom: 832px`) from frame 0 through transition completion.
+  - Pre-populated `renderSession(running)`, `syncUcData()`, `syncTimerProtectionBadge()`, and `updateTimerUI()` before `setAppScreen('timer')` and removed `translateY(12px)` from `focusCardEl` (`#ucFocusCard`) and `actionsEl` in `animateFocusEnter` so the lower task panel never shifts vertically on session entry.
+- **Reliable Interactive Left-Edge Swipe-Back Navigation (`src/core/motion-controller.js`, `src/core/navigation.js`)**:
+  - Exported `window.getActiveScreenV17` and `window.isCriticalModalOrSheetOpenV17` from `src/core/navigation.js` and updated `SWIPEABLE_STACK_SCREENS` in `src/core/motion-controller.js` to cover all stacked inner screens (`goal`, `quicksetup`, `plan`, `stats`, `data`, `distractions`, `confirm`, `filepicker`, `score`, `premium`, `chat`).
+  - Added unified Touch + Pointer left-edge (`<= 28px`) drag tracking with `10px` horizontal direction lock, continuous `requestAnimationFrame` `translate3d(dx, 0, 0)` on the outgoing screen + `-8% -> 0%` parallax on the underlying target screen, completion at `>= 32%` width or `>= 0.5 px/ms` velocity with distance-proportional duration, spring-back cancellation below threshold, and scroll-position preservation.
+
 ## v17.5 Interaction Polish (2026-11-15)
 
 ### Plus Panel Hub Redesign, Sharp Floating Navigation Dock, Mission Three-Dot Menu Icons, Continuous Focus Session Transition & Interactive Edge-Swipe Navigation

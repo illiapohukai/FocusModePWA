@@ -456,19 +456,17 @@
     if (intent === 'root-tab-right' || intent === 'root-tab-left') {
       const fromRoot = (context && context.fromRoot) || fromScreen;
       const toRoot = (context && context.toRoot) || toScreen;
-      const metrics = computeRootTabMetrics(fromRoot, toRoot);
-      const dir = metrics.direction || (intent === 'root-tab-right' ? 1 : -1);
-      const pct = reduced ? 4 : metrics.travelPct || 13;
-      durationMs = reduced ? 100 : metrics.durationMs || 350;
+      durationMs = reduced ? 90 : 250;
+      incomingOnTop = true;
       easingIn = 'cubic-bezier(0.22, 1, 0.36, 1)';
       easingOut = 'cubic-bezier(0.4, 0, 0.2, 1)';
       toKeyframes = [
-        { transform: 'translate3d(' + dir * pct + '%, 0, 0)', opacity: 0 },
+        { transform: 'translate3d(0%, 0, 0)', opacity: 0 },
         { transform: 'translate3d(0%, 0, 0)', opacity: 1 }
       ];
       fromKeyframes = [
         { transform: 'translate3d(0%, 0, 0)', opacity: 1 },
-        { transform: 'translate3d(' + -dir * pct + '%, 0, 0)', opacity: 0 }
+        { transform: 'translate3d(0%, 0, 0)', opacity: 0 }
       ];
       animateDockActiveTab(toRoot, reduced);
     } else if (intent === 'push' || intent === 'focus-exit-result') {
@@ -807,14 +805,15 @@
 
         if (focusCardEl && typeof focusCardEl.animate === 'function') {
           cancelElementAnimations(focusCardEl);
+          focusCardEl.style.transform = 'none';
           focusCardEl.animate(
             [
-              { transform: 'translateY(12px)', opacity: 0 },
-              { transform: 'translateY(0px)', opacity: 1 }
+              { opacity: 0 },
+              { opacity: 1 }
             ],
             {
-              duration: 400,
-              delay: 210,
+              duration: 320,
+              delay: 140,
               easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
               fill: 'backwards'
             }
@@ -823,14 +822,15 @@
 
         if (actionsEl && typeof actionsEl.animate === 'function') {
           cancelElementAnimations(actionsEl);
+          actionsEl.style.transform = 'none';
           actionsEl.animate(
             [
-              { transform: 'translateY(12px)', opacity: 0 },
-              { transform: 'translateY(0px)', opacity: 1 }
+              { opacity: 0 },
+              { opacity: 1 }
             ],
             {
-              duration: 400,
-              delay: 245,
+              duration: 320,
+              delay: 165,
               easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
               fill: 'backwards'
             }
@@ -1862,32 +1862,62 @@
      ======================================================================== */
   let swipeBackInstalled = false;
 
+  const SWIPEABLE_STACK_SCREENS = new Set([
+    'goal',
+    'quicksetup',
+    'plan',
+    'stats',
+    'data',
+    'distractions',
+    'confirm',
+    'filepicker',
+    'score',
+    'premium',
+    'chat'
+  ]);
+
+  function resolveCurrentSwipeScreen() {
+    if (typeof root.getActiveScreenV17 === 'function') {
+      const s = root.getActiveScreenV17();
+      if (s) return s;
+    }
+    if (root.__navigationStateV17 && root.__navigationStateV17.currentScreen) {
+      return root.__navigationStateV17.currentScreen;
+    }
+    if (typeof document !== 'undefined') {
+      const vis =
+        document.querySelector('.app-screen:not(.hidden):not(.fm-motion-leave)') ||
+        document.querySelector('.app-screen:not(.hidden)');
+      if (vis && vis.id) return vis.id.replace('app-screen-', '');
+    }
+    return '';
+  }
+
   function canSwipeBackFromCurrentScreen(targetEl) {
     if (typeof document === 'undefined') return false;
     if (stateMachine.isLocked()) return false;
-    const currentScreen =
-      typeof root.getActiveScreenV17 === 'function' ? root.getActiveScreenV17() : '';
-    const SWIPEABLE_STACK_SCREENS = new Set([
-      'quicksetup',
-      'mission',
-      'schedule',
-      'plan',
-      'stats',
-      'data'
-    ]);
+    if (root.activeSession && root.activeSession.status === 'running') return false;
+
+    const currentScreen = resolveCurrentSwipeScreen();
     if (!SWIPEABLE_STACK_SCREENS.has(currentScreen)) return false;
+
+    if (typeof root.isCriticalModalOrSheetOpenV17 === 'function' && root.isCriticalModalOrSheetOpenV17()) {
+      return false;
+    }
 
     const focusOverlay = document.getElementById('focusChoiceOverlay');
     if (focusOverlay && !focusOverlay.classList.contains('hidden')) return false;
     const missionSheet = document.getElementById('missionSheetV116');
     if (missionSheet && missionSheet.classList.contains('open')) return false;
+    const calendarSheet = document.getElementById('missionCalendarSheet');
+    if (calendarSheet && !calendarSheet.classList.contains('hidden')) return false;
     const confirmModal = document.getElementById('sessionConfirmModal');
     if (confirmModal && !confirmModal.classList.contains('hidden')) return false;
 
     if (targetEl && typeof targetEl.closest === 'function') {
       if (
         targetEl.closest(
-          'input, textarea, select, [contenteditable="true"], [data-block-swipe-back="true"], #missionCarouselV1181, #missionAuraShellV1181, #missionTypeCarousel'
+          'input, textarea, select, [contenteditable="true"], [data-block-swipe-back="true"], #missionCarouselV1181, #missionAuraShellV1181, #missionTypeCarousel, .mg-type-carousel'
         )
       ) {
         return false;
@@ -1949,30 +1979,38 @@
       }
     }
 
-    function onTouchStart(ev) {
-      if (!ev.touches || ev.touches.length !== 1) return;
-      const touch = ev.touches[0];
+    function beginGesture(clientX, clientY, targetEl, pointerId) {
+      if (gesture) return false;
       const wrapper = document.getElementById('screenWrapper') || appBody;
       const rect = wrapper.getBoundingClientRect();
-      const relX = touch.clientX - rect.left;
-      if (relX < 0 || relX > EDGE_THRESHOLD_PX) return;
-      if (!canSwipeBackFromCurrentScreen(ev.target)) return;
+      const relX = clientX - rect.left;
+      const relY = clientY - rect.top;
+      if (relX < -4 || relX > EDGE_THRESHOLD_PX) return false;
+      if (relY < 0 || relY > rect.height) return false;
+      if (!canSwipeBackFromCurrentScreen(targetEl)) return false;
 
-      const currentScreen =
-        typeof root.getActiveScreenV17 === 'function' ? root.getActiveScreenV17() : '';
+      const currentScreen = resolveCurrentSwipeScreen();
       const targetScreen =
-        typeof root.getBackTargetScreen === 'function' ? root.getBackTargetScreen() : 'home';
-      if (!currentScreen || !targetScreen || currentScreen === targetScreen) return;
+        typeof root.getBackTargetScreen === 'function' ? root.getBackTargetScreen(currentScreen) : 'home';
+      if (!currentScreen || !targetScreen || currentScreen === targetScreen) return false;
+
+      if (targetScreen === 'missions' && typeof root.ensureMissionManagementScreenV116 === 'function') {
+        root.ensureMissionManagementScreenV116();
+        if (typeof root.renderMissionManagementV116 === 'function') {
+          root.renderMissionManagementV116();
+        }
+      }
 
       const fromEl = document.getElementById('app-screen-' + currentScreen);
       const toEl = document.getElementById('app-screen-' + targetScreen);
-      if (!fromEl || !toEl) return;
+      if (!fromEl || !toEl) return false;
 
       gesture = {
-        startX: touch.clientX,
-        startY: touch.clientY,
-        currentX: touch.clientX,
-        lastX: touch.clientX,
+        pointerId: pointerId !== undefined ? pointerId : null,
+        startX: clientX,
+        startY: clientY,
+        currentX: clientX,
+        lastX: clientX,
         lastTime: performance.now(),
         velocityX: 0,
         viewportWidth: rect.width || 390,
@@ -1983,13 +2021,13 @@
         fromEl: fromEl,
         toEl: toEl
       };
+      return true;
     }
 
-    function onTouchMove(ev) {
-      if (!gesture || gesture.aborted || !ev.touches || ev.touches.length !== 1) return;
-      const touch = ev.touches[0];
-      const dx = touch.clientX - gesture.startX;
-      const dy = touch.clientY - gesture.startY;
+    function updateGesture(clientX, clientY, ev) {
+      if (!gesture || gesture.aborted) return;
+      const dx = clientX - gesture.startX;
+      const dy = clientY - gesture.startY;
 
       if (!gesture.lockedHorizontal) {
         if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > DIRECTION_LOCK_PX) {
@@ -1997,7 +2035,7 @@
           gesture = null;
           return;
         }
-        if (dx > DIRECTION_LOCK_PX && Math.abs(dx) > Math.abs(dy) * 1.15) {
+        if (dx >= DIRECTION_LOCK_PX && Math.abs(dx) > Math.abs(dy) * 1.15) {
           gesture.lockedHorizontal = true;
           appBody.classList.add('fm-dual-transition', 'fm-swipe-back-active');
           gesture.fromEl.classList.add('fm-layer-outgoing', 'fm-layer-top', 'fm-motion-active');
@@ -2012,23 +2050,23 @@
         }
       }
 
-      if (ev.cancelable) {
+      if (ev && ev.cancelable) {
         ev.preventDefault();
       }
 
       const now = performance.now();
       const dt = Math.max(1, now - gesture.lastTime);
-      gesture.velocityX = (touch.clientX - gesture.lastX) / dt;
-      gesture.lastX = touch.clientX;
+      gesture.velocityX = (clientX - gesture.lastX) / dt;
+      gesture.lastX = clientX;
       gesture.lastTime = now;
-      gesture.currentX = touch.clientX;
+      gesture.currentX = clientX;
 
       if (rafId === null) {
         rafId = requestAnimationFrame(applyDragFrame);
       }
     }
 
-    function onTouchEnd() {
+    function finishGesture(cancelled) {
       if (!gesture) return;
       const g = gesture;
       gesture = null;
@@ -2040,8 +2078,12 @@
       const dx = Math.max(0, g.currentX - g.startX);
       const width = Math.max(280, g.viewportWidth || 390);
       const progress = Math.min(1, dx / width);
+      const now = performance.now();
+      const effectiveVel = now - g.lastTime > 60 ? 0 : g.velocityX;
       const shouldComplete =
-        progress >= COMPLETE_DISTANCE_RATIO || g.velocityX >= COMPLETE_VELOCITY_PX_PER_MS;
+        !cancelled &&
+        (progress >= COMPLETE_DISTANCE_RATIO ||
+          (effectiveVel >= COMPLETE_VELOCITY_PX_PER_MS && progress >= 0.22));
 
       const underOffsetPct = -8 * (1 - progress);
       const underScale = 0.985 + 0.015 * progress;
@@ -2060,7 +2102,7 @@
       }
 
       const durationMs = shouldComplete
-        ? Math.max(160, Math.round(280 * (1 - progress * 0.55)))
+        ? Math.max(140, Math.min(280, Math.round((1 - progress) * 260)))
         : Math.max(150, Math.round(240 * (0.4 + progress * 0.6)));
 
       stateMachine.acquireLock('swipe-back', durationMs + 120, function () {
@@ -2122,10 +2164,58 @@
       });
     }
 
-    appBody.addEventListener('touchstart', onTouchStart, { passive: true });
-    appBody.addEventListener('touchmove', onTouchMove, { passive: false });
-    appBody.addEventListener('touchend', onTouchEnd, { passive: true });
-    appBody.addEventListener('touchcancel', onTouchEnd, { passive: true });
+    function onTouchStart(ev) {
+      if (!ev.touches || ev.touches.length !== 1) return;
+      const touch = ev.touches[0];
+      beginGesture(touch.clientX, touch.clientY, ev.target, 'touch');
+    }
+
+    function onTouchMove(ev) {
+      if (!gesture || gesture.pointerId !== 'touch' || !ev.touches || ev.touches.length !== 1) return;
+      const touch = ev.touches[0];
+      updateGesture(touch.clientX, touch.clientY, ev);
+    }
+
+    function onTouchEnd() {
+      if (!gesture || gesture.pointerId !== 'touch') return;
+      finishGesture(false);
+    }
+
+    function onTouchCancel() {
+      if (!gesture || gesture.pointerId !== 'touch') return;
+      finishGesture(true);
+    }
+
+    function onPointerDown(ev) {
+      if (gesture) return;
+      if (ev.button !== undefined && ev.button !== 0) return;
+      beginGesture(ev.clientX, ev.clientY, ev.target, ev.pointerId);
+    }
+
+    function onPointerMove(ev) {
+      if (!gesture || gesture.pointerId === 'touch' || gesture.pointerId !== ev.pointerId) return;
+      updateGesture(ev.clientX, ev.clientY, ev);
+    }
+
+    function onPointerUp(ev) {
+      if (!gesture || gesture.pointerId === 'touch' || gesture.pointerId !== ev.pointerId) return;
+      finishGesture(false);
+    }
+
+    function onPointerCancel(ev) {
+      if (!gesture || gesture.pointerId === 'touch' || gesture.pointerId !== ev.pointerId) return;
+      finishGesture(true);
+    }
+
+    window.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: false });
+    window.addEventListener('touchend', onTouchEnd, { passive: true });
+    window.addEventListener('touchcancel', onTouchCancel, { passive: true });
+
+    window.addEventListener('pointerdown', onPointerDown, { passive: true });
+    window.addEventListener('pointermove', onPointerMove, { passive: false });
+    window.addEventListener('pointerup', onPointerUp, { passive: true });
+    window.addEventListener('pointercancel', onPointerCancel, { passive: true });
   }
 
   function installLifecycleSafetyHandlers() {
@@ -2148,7 +2238,7 @@
   }
 
   const MotionController = {
-    version: 'v17.5 Interaction Polish',
+    version: 'v17.5.1 Interaction Fixes',
     ROOT_TAB_ORDER,
     VALID_STATES,
     getRootTabIndex,

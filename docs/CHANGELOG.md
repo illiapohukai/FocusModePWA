@@ -1,16 +1,93 @@
 # Changelog — Focus Mode+
 
+## v17.5.1 Interaction Fixes (2026-11-16)
+
+### Empty Mission Card Alignment, 2-Mission Carousel Depth, Mission-List Opening Repair, Plus Panel Cleanup, Zero-Jump Session Entry & Interactive Edge-Swipe Back
+- **Empty Mission Card Internal Content Alignment (`styles/missions.css`)**:
+  - Raised the shared `.home-hero-content` layout inside `#emptyMissionCard` by ~8–10 CSS pixels (`padding: 12px 18px 24px !important; transform: translateY(-2px);`, `h3.mh-empty-title` `margin-top: 4px !important`, `.mh-empty-next-box` `margin-top: 20px !important`, and hid the unused `.mh-bottom-row` inside `#emptyMissionCard`).
+  - Eliminated bottom clipping on the `ERSTER SCHRITT / AI PLAN` panel (`21px` bottom clearance vs `11px` previously) while preserving exact card height (`330px` on 390×844), card boundaries, grid background, and typography.
+- **Active Mission Emphasis in the 2-Mission Carousel (`src/features/missions/multi-mission-ui.js`, `styles/missions.css`)**:
+  - Added continuous scroll-linked emphasis across `.mission-hero-v116` cards inside `#missionCarouselV1181.multi-mission`:
+    - Centered/active card: `scale(1)`, `opacity: 1`, `translate3d(0, 0px, 0)`, `.is-carousel-active` (`box-shadow: 0 18px 38px rgba(37, 22, 43, 0.24)`).
+    - Adjacent/inactive card: `scale(0.972)`, `opacity: 0.90`, `translate3d(0, 4.5px, 0)`, `.is-carousel-inactive` (`box-shadow: 0 8px 20px rgba(37, 22, 43, 0.11)`), with `prefers-reduced-motion: reduce` fallback (`transform: none`, `opacity: 1 / 0.91`).
+- **Mission-List Opening Animation Repair (`styles/motion.css`, `styles/navigation.css`, `src/features/missions/mission-management.js`, `src/core/bootstrap.js`)**:
+  - Locked `.fm-layer-incoming:not(.hidden)` and `.fm-layer-outgoing` inside `#appBody.fm-dual-transition` to `position: absolute !important; inset: 0 !important; width: 100% !important; max-width: 100% !important; height: 100% !important; box-sizing: border-box !important;` with `overflow: clip !important`, preventing `#app-screen-missions` from extending past the right viewport edge (`left: 51px, right: 441px` bug fixed to `left: 0..390px`).
+  - Removed the redundant `setTimeout(renderMissionManagementV116, 0)` mid-transition re-render and scoped `translateTree` attribute queries to `root` so opening `Deine Missionen` runs at 60fps with zero main-thread freeze.
+- **Deterministic "Missionen verwalten" Destination (`src/features/missions/mission-management.js`)**:
+  - Added `resetMissionManagementFilterToActiveV1751()` and `syncMissionFilterTabsV1751()` so opening `Missionen verwalten` from the Plus panel always resets `missionManagementFilterV116 = 'active'` and highlights the `Aktiv` tab (`[data-filter="active"]`), never opening a stale `Archiv` or `Abgeschlossen` filter.
+- **Plus Panel Duplicate Mission Rows Removed (`src/features/missions/mission-management.js`, `index.html`, `styles/navigation.css`)**:
+  - Removed the `BESTEHENDE MISSIONEN` section (`.fm-plus-missions-section` / `#focusMissionListV116`) from the Plus panel so it contains only the 3 clean sections: Header (`Was möchtest du fokussieren?`), Primary choices (`Kurzer Fokus` & `Focus Mission`), and Footer (`Missionen verwalten` with icon and subtitle `Aktiv, abgeschlossen und archiviert`).
+- **Zero Vertical Jump on Quick Focus & Focus Session Entry (`styles/motion.css`, `src/core/navigation.js`, `src/features/quick-focus/quick-focus.js`, `src/features/focus-session/session-runtime.js`, `src/core/motion-controller.js`)**:
+  - Kept `#app-screen-quicksetup` at `position: absolute; inset: 0; height: 100%` throughout `.fm-dual-transition` and pre-populated `updateQuickRing()` + `updateProtectionSummary()` before navigation so the bottom `Fokus starten` button (`.qb-bottom button`) stays at fixed vertical coordinates (`top: 773px, bottom: 832px`) from frame 0 through transition completion.
+  - Pre-populated `renderSession(running)`, `syncUcData()`, `syncTimerProtectionBadge()`, and `updateTimerUI()` before `setAppScreen('timer')` and removed `translateY(12px)` from `focusCardEl` (`#ucFocusCard`) and `actionsEl` in `animateFocusEnter` so the lower task panel never shifts vertically on session entry.
+- **Reliable Interactive Left-Edge Swipe-Back Navigation (`src/core/motion-controller.js`, `src/core/navigation.js`)**:
+  - Exported `window.getActiveScreenV17` and `window.isCriticalModalOrSheetOpenV17` from `src/core/navigation.js` and updated `SWIPEABLE_STACK_SCREENS` in `src/core/motion-controller.js` to cover all stacked inner screens (`goal`, `quicksetup`, `plan`, `stats`, `data`, `distractions`, `confirm`, `filepicker`, `score`, `premium`, `chat`).
+  - Added unified Touch + Pointer left-edge (`<= 28px`) drag tracking with `10px` horizontal direction lock, continuous `requestAnimationFrame` `translate3d(dx, 0, 0)` on the outgoing screen + `-8% -> 0%` parallax on the underlying target screen, completion at `>= 32%` width or `>= 0.5 px/ms` velocity with distance-proportional duration, spring-back cancellation below threshold, and scroll-position preservation.
+
 ## v17.5 Interaction Polish (2026-11-15)
 
 ### Plus Panel Hub Redesign, Sharp Floating Navigation Dock, Mission Three-Dot Menu Icons, Continuous Focus Session Transition & Interactive Edge-Swipe Navigation
 - **Plus Panel Hub Redesign (`src/features/missions/mission-management.js`, `styles/navigation.css`, `index.html`, `src/core/bootstrap.js`)**:
-  - Redesigned `#focusChoiceOverlay` into a warm-cream creation and Mission-access hub (`Was möchtest du fokussieren?`) with two equal-height side-by-side primary cards (`Kurzer Fokus` & `Focus Mission`), real active Missions list (`BESTEHENDE MISSIONEN` + compact empty state), and bottom `Missionen verwalten` entry.
-- **Floating Navigation Blur Removal (`styles/app.css`, `styles/motion.css`, `src/core/navigation.js`)**:
-  - Removed all blur filters from `#bottomNavigationV17` and `#appBody` when the Plus panel is open so the floating navigation dock and central Plus button remain visually sharp above the dim backdrop.
-- **Mission Three-Dot Menu Icons (`src/features/missions/mission-management.js`, `styles/missions.css`, `src/core/bootstrap.js`)**:
-  - Added offline-safe SVG icons (`renderFocusIconSvg`) for `Öffnen` (`folder-open`), `Als Hauptmission festlegen` (`star`), `Umbenennen` (`pencil`), `Archivieren` (`archive`, neutral purple-gray), `Wiederherstellen` (`rotate-ccw`), `Löschen` (`trash-2`, destructive red separated by divider), and `Abbrechen` (`x`).
-- **Continuous Focus Session Start Transition & Navigation Polish (`src/core/motion-controller.js`, `src/core/navigation.js`, `src/features/quick-focus/quick-focus.js`)**:
-  - Rebuilt `animateFocusEnter` (`720ms` 5-phase continuous seed-to-planet transition into `#app-screen-timer`), connected `.uc-protect` to real `getSelectedDistractions()` state, tuned root-tab (`350ms–450ms`) and stack (`390ms` push / `370ms` pop) transitions, and added interactive left-edge swipe-back with scroll preservation.
+  - Redesigned `#focusChoiceOverlay` into a warm-cream creation and Mission-access hub (`#F6F1E7`, `border-radius: 30px 30px 0 0`) anchored cleanly above the floating bottom navigation dock.
+  - Added localized header (`Was möchtest du fokussieren?` / `What would you like to focus on?`), subtitle (`Starte direkt oder arbeite an einer Mission weiter.`), and compact close button (`x`).
+  - Built two equal-height side-by-side primary Focus cards (`.fm-plus-primary-grid`):
+    - **Left Card (`#plusQuickFocusCard`)**: `Kurzer Fokus` (`Eine Aufgabe, direkt starten.`) with timer/stopwatch icon (`timer`) on warm cream card surface (`#FFFDF9`) with subtle purple border, invoking `openQuickSetupFromChoice()`.
+    - **Right Card (`#plusFocusMissionCard`)**: `Focus Mission` (`Ein Ziel planen und in Schritte teilen.`) with plan/clipboard icon (`clipboard-list`) on deep aubergine surface (`#25162B`), invoking `newMissionFromFocusV116()`.
+  - Added `BESTEHENDE MISSIONEN` section displaying real active Missions (`sortedActiveMissionsV116()`) with primary/mission icon (`star` / `target`), title, current or next step title, step duration (`Min.`), progress bar and percentage (`%`), and disclosure arrow (`chevron-right`) opening `openMissionFromFocusV116(id)`, plus a compact empty state (`Noch keine aktive Mission.`) when zero active Missions exist.
+  - Added bottom `Missionen verwalten` action row (`Aktiv, abgeschlossen und archiviert`) with `sliders-horizontal` icon and live mission count summary opening `openMissionManagementV116()`.
+- **Floating Navigation Blur Removal (`styles/app.css`, `styles/motion.css`, `src/core/navigation.js`, `src/features/missions/mission-management.js`)**:
+  - Removed all `filter: blur(...)` and `backdrop-filter: blur(...)` rules affecting `#appBody`, `.focus-choice-backdrop`, and `#bottomNavigationV17` when the Plus panel is open.
+  - Kept `#bottomNavigationV17` and `#bottomNavPlus` visually sharp and readable above the dim backdrop (`z-index: 125 !important`, `filter: none !important`, `backdrop-filter: none !important`).
+- **Mission Three-Dot Menu Icons & Action Hierarchy (`src/features/missions/mission-management.js`, `styles/missions.css`, `src/core/bootstrap.js`)**:
+  - Added offline-safe SVG icon helper (`window.renderFocusIconSvg(name, extraClass)`) and iconized every action in `#missionSheetV116`:
+    - `Öffnen` (`folder-open`), `Als Hauptmission festlegen` (`star`), `Umbenennen` (`pencil`), `Archivieren` (`archive`, calm neutral purple-gray `.archive-neutral`), `Wiederherstellen` (`rotate-ccw`), separator (`.mission-sheet-separator-v116`), `Löschen` / `Endgültig löschen` (`trash-2`, destructive red `.danger`), and `Abbrechen` (`x`, neutral `.cancel`).
+  - Added repeatable open/close sheet choreography and focus restoration to the invoking three-dot trigger button.
+- **Continuous Focus Session Start Transition (`src/core/motion-controller.js`, `src/features/quick-focus/quick-focus.js`, `src/features/focus-session/session-runtime.js`, `styles/timer.css`)**:
+  - Rebuilt `animateFocusEnter` into a continuous 5-phase choreography (`720ms` total) from Quick Focus or Mission Step Start button into `#app-screen-timer`:
+    - Tactile button press feedback -> circular purple focus seed expansion along an eased arc to the exact `.uc-planet` bounding box -> continuous `.uc-planet` growth (`0.42 -> 1`), orbit ring reveal, `#timerDigits` scale-in (`0.93 -> 1`), and `.uc-header` / `#ucFocusCard` / `.uc-actions` entrance while source screen shifts only `-6px` vertically (never sliding left).
+  - Connected `.uc-protect` (`#ucProtectBadge` / `#ucProtectText`) to real `getSelectedDistractions()` state with active green styling (`Fokusschutz aktiv`) when apps are selected and calm neutral styling (`Fokusschutz aus`) when 0 apps are selected.
+- **Navigation Motion Speed, Scroll Preservation & Interactive Left-Edge Swipe-Back (`src/core/motion-controller.js`, `src/core/navigation.js`, `styles/motion.css`, `src/features/missions/multi-mission-ui.js`)**:
+  - Tuned root-tab switch durations (`350ms` neighboring tabs at `13%` width; `420ms–450ms` distant tabs at `18%–20%` width without showing intermediate tabs) and stack push/pop durations (`390ms` forward push, `370ms` backward pop with `-8%` / `scale(0.985)` parallax and zero blur).
+  - Implemented interactive left-edge swipe-back (`<= 28px` left edge start, `10px` horizontal lock, `requestAnimationFrame` interpolation of outgoing top screen and underlying screen, completion at `>= 32%` width or `>= 0.5 px/ms` velocity via `navigateBack({ skipMotion: true })`, smooth spring-back cancel otherwise, and strict guards for root tabs, active timer, result, session recovery, overlays, and `[data-block-swipe-back="true"]` carousels).
+  - Added scroll-position save/restore across stack push/pop and swipe-back transitions.
+
+## v17.4.2 Gemini 3.8 Flash Integration (2026-11-15)
+
+### Standalone Cloudflare Worker (`worker.js`) & Frontend Contract Integration
+- **Official Gemini Model (`const MODEL = "gemini-3.8-flash"`)**:
+  - Pinned `const MODEL = "gemini-3.8-flash"` across `GET /health`, `POST /create-mission`, and `POST /adapt-mission` (`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent` via `x-goog-api-key: env.GEMINI_API_KEY`).
+- **Controlled Retry & Per-Attempt Timeout Budget (`const MAX_ATTEMPTS = 2`)**:
+  - Replaced the 4-attempt timeout cascade with `MAX_ATTEMPTS = 2` (1 primary attempt + at most 1 retry).
+  - Retries only transient upstream statuses (`408`, `429`, `500`, `502`, `503`, `504`, `524`); never retries `400`, `401`, `403`, `404`, unsupported MIME types, oversized images, invalid schedule JSON, missing API key, or schema/JSON validation failures.
+  - Enforced per-attempt `AbortController` timeouts and total Worker budgets strictly inside the v17.4.1 frontend budgets (`38s` text / `52s` image):
+    - Text-only: `18s` first attempt, `14s` retry attempt, total Worker budget `35s` (`< 36s`).
+    - Image multimodal: `24s` first attempt, `20s` retry attempt, total Worker budget `47s` (`< 48s`).
+- **Combined Multimodal Image & Optional Schedule (`Zeitplan`) Support**:
+  - Accepts `image/jpeg`, `image/png`, and `image/webp` up to `4 MB` under `FormData` field `image` and sends text + `inlineData` in a single combined Gemini `generateContent` request (`maxOutputTokens: 1536`).
+  - Parses and validates optional `FormData` field `schedule` (`currentLocalDate`, `deadlineDate`, `preparationStartDate`, `preparationDays`, `startMode`, `preferredWeekdays`, `preferredSessionMinutes`, `timezone`) using pure `YYYY-MM-DD` calendar validation without UTC day shifts.
+- **Strict Response Validation & Structured German Error Contract**:
+  - Enforces 2–6 sessions, 5–60 minute session durations, non-empty titles/tasks, and returns `{ ok: false, error: { code, message, retryable, requestId } }` using safe error codes (`INVALID_REQUEST`, `UNSUPPORTED_FILE_TYPE`, `FILE_TOO_LARGE`, `AI_TIMEOUT`, `AI_RATE_LIMITED`, `AI_UNAVAILABLE`, `INVALID_AI_RESPONSE`, `INTERNAL_ERROR`).
+
+## v17.4.1 Mission Generation Repair (2026-11-13)
+
+### Viewport-Fixed Calendar Bottom Sheet, ZEITPLAN Study-Planning Board, Image Pipeline & Generation Reliability
+- **Calendar Bottom Sheet Viewport Positioning Fix (`index.html`, `styles/missions.css`, `src/features/missions/mission-renderer.js`, `src/core/navigation.js`)**:
+  - Moved `#missionCalendarSheet` directly under `document.body` (outside `#app-screen-goal` scroll container and `#appBody` transform/will-change context) with defensive `document.body.appendChild` mounting.
+  - Configured `.mg-cal-backdrop` with `position: fixed; inset: 0; width: 100%; height: 100vh; height: 100dvh; z-index: 1200;` and anchored `.mg-cal-sheet` to `bottom: 0; bottom: var(--mg-cal-vv-bottom, 0px); left: 0; right: 0;` respecting `env(safe-area-inset-bottom)` and iOS Safari `visualViewport` insets.
+  - Added scroll-position preservation (`#app-screen-goal.scrollTop` and window scroll) and scroll locking on open, reverse slide-down closing animation, focus restoration (`preventScroll: true`) to `#mgDeadlineTrigger` (or invoking control), and `Escape` / critical-modal coordination in `navigation.js`.
+- **ZEITPLAN Study-Planning Board Redesign (`index.html`, `styles/missions.css`, `src/features/missions/mission-renderer.js`)**:
+  - Restructured `#missionScheduleSection` into a 3-layer Study-Planning Board using approved Focus Mode+ tokens (`#F6F1E7` cream, `#25162B` aubergine, `#6D28D9` purple, `#1D1A17` graphite):
+    - Layer A: Deep aubergine hero board (`#mgScheduleBoard`) with intentional empty state and active `START` → preparation trajectory dots (`#mgTrajectoryNodes`) → `ZIEL` visualization plus live summary and reset button.
+    - Layer B: Preparation Start selector (`Sofort`, `1 Woche vorher`, `2 Wochen vorher`, `Eigene Wahl`) with clear non-overriding recommendation indicator.
+    - Layer C: Expandable optional learning preferences accordion (`Lernrhythmus anpassen`) with live summary (`#mgPrefsSummary`), connected 7-day weekday strip (`Mo..So`) + presets (`Unter der Woche`, `Wochenende`, `Flexibel`), and 2×2 session duration grid (`20 Min.`, `30 Min.`, `45 Min.`, `AI wählt`).
+  - Fixed `I18N_MAP` → `I18N` bug in `mission-renderer.js` so English translations apply to all schedule and calendar labels.
+- **Mission Generation, Image Pipeline & Optional Schedule Integration (`src/services/ai-service.js`, `index.html`, `service-worker.js`)**:
+  - Added single-flight request lock (`isMissionAnalyzeInFlight`), explicit button disabling during flight, aligned bounded timeouts (`38s` text / `52s` image), explicit cancellation (`cancelMissionAnalysis()` + `pagehide`), structured error parsing (`parseMissionErrorResponse`, fixing `[object Object]` bug), preserved form/schedule/image inputs across errors, and retryable inline error UI.
+  - Restored reliable photo/camera input (`image/jpeg`, `image/png`, `image/webp`, 20 MB original limit, EXIF-aware canvas compression to max 1800px / <= 1.5 MB JPEG `File` in `FormData` `image`, preview & remove button, `ObjectURL` cleanup).
+  - Integrated optional `schedule` JSON in `FormData` only when `deadlineDate` is selected, with strict `normalizeAIPlan` validation (`title`, `type`, 1–6 sessions, `scheduledDate <= deadlineDate`, `scheduleWarning` rendering).
+  - Bumped Service Worker cache name (`focus-mode-v17-4-1-mission-generation-repair`) and synced `index.html` metadata.
+- **Worker Source Gap (`WORKER_REQUIRED.md`)**:
+  - Documented that the Cloudflare Worker source (`create-mission` / `adapt-mission`) was absent from the input ZIP and listed exact missing files and required Worker fixes.
 
 ## v17.4 Mission Scheduling UI (2026-11-11)
 
@@ -38,3 +115,30 @@
 - **Authoritative MotionController (`src/core/motion-controller.js` & `styles/motion.css`)**:
   - Implemented `window.MotionController` with a deterministic 4-state machine (`idle` -> `preparing` -> `animating` -> `cleaning` -> `idle`), automatic timeout release, and cleanup on `pagehide`, `visibilitychange`, `Escape`, and rapid interrupted navigation.
   - Preserved all v17.3 visual design tokens (`#F6F1E7` cream background, `#25162B` aubergine Mission cards, typography, layout, Cosmic Timer) and all business/routing logic in `src/core/navigation.js`.
+- **Startup Splash & First-Screen Choreography**:
+  - Added startup splash overlay (`#fmStartupSplash`) with cosmic emblem pulse (`520ms–1150ms`), 220ms exit dissolve, and staggered entrance of the initial screen (`Home` or `Session Recovery`) and floating bottom dock (`#bottomNavigationV17`).
+- **Directional Root Tab & Hierarchical Push/Pop Transitions**:
+  - Root tab transitions (`Home`, `Missionen`, `Verlauf`, `Einstellungen`) animate directionally with distance-scaled travel and duration (`distance 1: 24px/250ms`, `distance 2: 32px/280ms`, `distance 3: 40px/300ms`).
+  - Same-tab tap smoothly scrolls the active root screen container to top and pulses the active tab icon.
+  - Forward push transitions (`Home/Missionen -> Goal`, `Home -> Quick Focus`, `Quick Focus/Plan/Settings -> Distractions`, `Verlauf -> Statistik -> Score`, `Einstellungen -> Daten & Backup`, `Einstellungen -> Premium`) and Back pop transitions animate with layered depth and parallax while keeping the floating bottom dock anchored.
+- **Shared-Element & Morph Transitions**:
+  - **Central Plus (`#bottomNavPlus`) <-> Focus Choice Sheet (`#focusChoiceOverlay`)**: Spatial origin morph from the central purple `+` button into the bottom sheet with 45° icon rotation, backdrop dim, and staggered option cards; reverses cleanly into `#bottomNavPlus` on close, backdrop click, or `Escape`.
+  - **Home/Mission Card <-> Mission Plan (`#app-screen-plan`)**: Hero surface morph proxy between the aubergine Mission card and the Mission Plan header with staggered step cascade; reverses back to the originating surface (`Home` or `Missionen`).
+  - **Setup/Plan CTA -> Cosmic Timer (`#app-screen-timer`)**: Shared planet seed expansion from the start CTA into the Cosmic Timer `.uc-planet` (`620ms`), orbit ring reveal, and green protection pill (`#ucProtectBadge`) pulse.
+  - **Cosmic Timer -> Home (`focus-exit-home`)**: Planet contraction trajectory from `.uc-planet` into the central `#bottomNavPlus` button with dock reception pulse and new `.home-activity-row` highlight.
+  - **Cosmic Timer -> Result -> Adaptation/Update -> Home**: Smooth post-session evaluation, progress-bar fill, and learning flow transitions.
+- **Interactive Micro-Motions & Accessibility**:
+  - Goal Intake mission type cards animate via `transform`, `box-shadow`, and `border-color` only (zero `width`/`height`/`font-size` layout shift) with confidence progress bar choreography.
+  - Mission Plan step cards expand/collapse smoothly using measured height interpolation while keeping the card top in view.
+  - Full `prefers-reduced-motion: reduce` compliance (instant/100ms opacity-only crossfades, no spatial morphs or stagger delays) and clean Web Animations API fallback when `document.startViewTransition` is unavailable.
+  - Updated `service-worker.js` cache key to `focus-mode-pwa-v17-3-2-fluid-motion-system` with `./styles/motion.css` and `./src/core/motion-controller.js` pre-cached.
+
+## v17.3 Home System (2026-11-10)
+
+### Visual & Interface Architecture Redesign
+- **Home Screen (`#app-screen-home`)**:
+  - Redesigned Home around the warm editorial cream palette (`#F6F1E7` background, `#FCF9F4` cards, `#E7DFD2` borders, `#6D28D9` primary violet CTA) and one dark aubergine Focus Mission hero block (`#25162B`).
+  - Added compact Home header with `Focus Mode+` brand mark, subtitle `Starte fokussiert in den Tag`, and top-right `Verlauf` pill button.
+  - Rebuilt `#activeMissionHeroCard` and `.mission-carousel-card` in `src/features/missions.js` and `styles/navigation.css`.
+  - Replaced the second large Quick Focus card with a compact Quick Focus row (`#quickFocusCompactCard`) and a 3-column `HEUTE` statistics grid (`Sessions`, `Fokuszeit`, `Erfolgsquote`) backed by `SessionHistoryRepository`.
+  - Refined the slim 5-item bottom navigation bar (`Home`, `Verlauf`, central `+` button, `Missionen`, `Einstellungen`).

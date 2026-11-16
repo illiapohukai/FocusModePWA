@@ -18,6 +18,8 @@ function openQuickSetupFromHome(){
   if(window.activeSession||window.sessionRecoveryCandidate||(typeof getRecoverableSessionV1151==='function'&&getRecoverableSessionV1151())){
     if(typeof routeExistingSessionV1151==='function'){routeExistingSessionV1151();return;}
   }
+  updateQuickRing();
+  updateProtectionSummary();
   if(typeof navigateForward==='function'){
     navigateForward('quicksetup',{parent:'home',rootSection:'home',reopenFocusChoice:false});
   }else{
@@ -82,5 +84,5 @@ document.addEventListener("DOMContentLoaded",()=>{quickBreak=0;updateQuickRing()
     if(screenName==='timer')syncTimerProtectionBadge();
     return result;
   };
-  document.title='v17.5 Interaction Polish';
+  document.title='v17.5.1 Interaction Fixes';
 })();

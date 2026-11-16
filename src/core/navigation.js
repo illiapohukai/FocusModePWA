@@ -1091,6 +1091,9 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
     if (screen === 'missions') {
       global.ensureMissionManagementScreenV116?.();
       global.renderMissionManagementV116?.();
+    } else if (screen === 'quicksetup') {
+      global.updateQuickRing?.();
+      global.updateProtectionSummary?.();
     }
 
     navState.__motionContext = {
@@ -1332,6 +1335,8 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
         const fromScreen = getVisibleScreenName() || 'home';
         const fromRoot = navState.currentRootSection || resolveActiveRootForScreen(fromScreen) || 'home';
         navState.pendingScreen = 'quicksetup';
+        global.updateQuickRing?.();
+        global.updateProtectionSummary?.();
         global.closeFocusChoice?.({ immediate: true });
         hideBottomNavigation();
         navigateForward('quicksetup', {
@@ -1429,6 +1434,8 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
   global.navigateBack = navigateBack;
   global.replaceScreen = replaceScreen;
   global.getBackTargetScreen = getBackTargetScreen;
+  global.getActiveScreenV17 = getVisibleScreenName;
+  global.isCriticalModalOrSheetOpenV17 = isCriticalModalOrSheetOpen;
   global.saveScreenScrollPosition = saveScreenScrollPosition;
   global.restoreScreenScrollPosition = restoreScreenScrollPosition;
   global.showBottomNavigation = showBottomNavigation;

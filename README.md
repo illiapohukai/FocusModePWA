@@ -1,10 +1,13 @@
-# Focus Mode+ · v17.4 Mission Scheduling UI
+# Focus Mode+ · v17.5.1 Interaction Fixes
 
-**v17.4 Mission Scheduling UI** erweitert **Focus Mode+ v17.3.2 Fluid Motion System** um vier gezielte Verbesserungen:
-1. Wiederherstellung der markanten zweizeiligen Home-Header-Typografie (`#homeCurrentDate` in Versalien über dem kräftigen Produkttitel `Focus Mode+`).
-2. Ausgewogene vertikale Textpositionierung innerhalb der leeren Home-Missionskarte (`#emptyMissionCard`).
-3. Korrekte Positionierung des `Fokusschutz aktiv`-Indikators (`.uc-protect`) direkt unterhalb des Cosmic-Timer-Planeten und oberhalb der Aufgabenkarte (`#ucFocusCard`).
-4. Neuer `ZEITPLAN`-Bereich (`#missionScheduleSection`) in der Missionserstellung (`#app-screen-goal`) inklusive eigenem Kalender-Bottom-Sheet (`#missionCalendarSheet`), Vorbereitungsstart-Empfehlungen, visueller Vorbereitungs-Timeline, optionaler Lerntags-Auswahl (`Mo–So` + Schnell-Presets), bevorzugter Sitzungsdauer und clientseitiger Validierung.
+**v17.5.1 Interaction Fixes** behebt sieben gezielte Layout- und Interaktionsprobleme auf Basis von **Focus Mode+ v17.5 Interaction Polish**:
+1. Ausgewogene vertikale Ausrichtung des gesamten internen Inhaltsflusses der leeren Home-Missionskarte (`#emptyMissionCard` / `.home-hero-content`) um ca. 8–10 px nach oben.
+2. Kontinuierliche aktive/inaktive Karten-Tiefenstaffelung (`scale`, `opacity`, `translateY`, Schatten) im 2-Missionen-Karussell (`#missionCarouselV1181.multi-mission`).
+3. Fehlerfreie Öffnungsanimation der Missionsliste (`#app-screen-missions`) ohne rechten Viewport-Überlauf oder Einfrieren während des Übergangs.
+4. Eindeutiges Ziel für „Missionen verwalten“ aus dem Plus-Panel (`Aktiv`-Tab wird deterministisch ausgewählt).
+5. Bereinigung des Plus-Panels (`#focusChoiceOverlay`) durch Entfernen doppelter Missionszeilen (`BESTEHENDE MISSIONEN`).
+6. Eliminierung vertikaler Layout-Sprünge beim Öffnen von Kurzer Fokus (`#app-screen-quicksetup`) und beim Start der Fokus-Sitzung (`#app-screen-timer` / `#ucFocusCard`).
+7. Zuverlässige interaktive Swipe-Back-Navigation vom linken Bildschirmrand (`<= 28 px`) für gestapelte Unterbildschirme.
 
 ---
 

@@ -895,11 +895,13 @@ html:not(.pwa-dark-status) body::after {
   overflow-y: auto !important;
 }
 
+#app-screen-missions,
 #screenWrapper.has-bottom-nav #app-screen-missions {
   padding: 18px 18px 0 !important;
   overflow: hidden !important;
 }
 
+#missionManagementListV116,
 #screenWrapper.has-bottom-nav #missionManagementListV116 {
   padding-bottom: var(--fm-screen-bottom-padding) !important;
 }
@@ -1469,9 +1471,13 @@ html:not(.pwa-dark-status) body::after {
 }
 
 /* Mission Management Row at Bottom of Plus Panel */
+.fm-plus-missions-section {
+  display: none !important;
+}
+
 .fm-plus-footer-section {
-  margin-top: 10px;
-  padding-top: 10px;
+  margin-top: 12px;
+  padding-top: 12px;
   border-top: 1px solid rgba(45, 35, 30, 0.08);
 }
 

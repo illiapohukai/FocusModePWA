@@ -189,7 +189,6 @@ function renderFocusChoiceV116(){
  const sheet=document.querySelector('#focusChoiceOverlay .focus-choice-sheet');if(!sheet)return;
  const all=missionRepository.getAll(),active=missionRepository.getActive(),activeCount=active.length,totalCount=all.length,full=activeCount>=2;
  const lang=(window.FocusModeApp?.services?.storage?.getText('focus-mode-language','de')||document.documentElement.lang||'de')==='en'?'en':'de';
- const countBadge=activeCount+' / 2';
  const manageSub=lang==='en'?'Active, completed and archived':'Aktiv, abgeschlossen und archiviert';
  const limitBadge=full?'<span class="fm-limit-badge-v17"><i data-lucide="info"></i><span>'+(lang==='en'?'2 active Missions reached':'2 aktive Missionen erreicht')+'</span></span>':'';
  sheet.innerHTML='<div class="fm-plus-handle" aria-hidden="true"></div>'
@@ -222,13 +221,6 @@ function renderFocusChoiceV116(){
        +'</div>'
      +'</button>'
    +'</div>'
-   +'<div class="focus-section-v116 fm-plus-missions-section">'
-     +'<div class="fm-plus-section-head">'
-       +'<span class="focus-section-label-v116">BESTEHENDE MISSIONEN</span>'
-       +'<span class="fm-plus-slot-pill" data-dynamic-slot-pill="true">'+escapeHTML(countBadge)+'</span>'
-     +'</div>'
-     +'<div class="fm-plus-mission-list" id="plusExistingMissionsList">'+focusMissionListV116()+'</div>'
-   +'</div>'
    +'<div class="fm-plus-footer-section">'
      +'<button class="focus-manage-v116 focus-manage-card-v17 fm-plus-manage-row" id="plusManageMissionsBtn" type="button" onclick="openMissionManagementV116()">'
        +'<span class="fm-manage-main">'
@@ -246,17 +238,15 @@ function renderFocusChoiceV116(){
  if(typeof translateTree==='function')translateTree(sheet,lang);
  const subEl=sheet.querySelector('[data-dynamic-mission-counts="true"]');
  if(subEl)subEl.textContent=activeCount+' · '+totalCount;
- const slotEl=sheet.querySelector('[data-dynamic-slot-pill="true"]');
- if(slotEl)slotEl.textContent=countBadge;
  lucide.createIcons();
 }
 function openMissionFromFocusV116(id){
- closeFocusChoice();
+ closeFocusChoice({immediate:true});
  openMission(id);
 }
 function newMissionFromFocusV116(){
  if(missionRepository.getActive().length>=2){
-   closeFocusChoice();
+   closeFocusChoice({immediate:true});
    openMissionManagementV116();
    setTimeout(()=>showMissionLimitV116(),90);
    return;
@@ -264,7 +254,7 @@ function newMissionFromFocusV116(){
  const navState=window.__navigationStateV17;
  const currentScreen=navState?.currentScreen||'home';
  const currentRoot=navState?.currentRoot||'home';
- closeFocusChoice();
+ closeFocusChoice({immediate:true});
  openGoalIntake({parent:currentScreen,rootSection:currentRoot,reopenFocusChoice:false});
 }
 const openFocusChoicePreV116=openFocusChoice;
@@ -369,13 +359,26 @@ function restoreMissionV116(id){if(missionRepository.getActive().length>=2)retur
 function archiveMissionV116(id){if(missionHasActiveSessionV116(id))return{ok:false,error:'active_session_exists'};const m=missionRepository.getById(id);if(!m)return{ok:false,error:'mission_not_found'};return missionRepository.archive(id,{archivedCurrentStepId:m.currentStepId})}
 const repoArchiveV116=missionRepository.archive.bind(missionRepository);missionRepository.archive=function(id){const m=this.getById(id);if(!m)return{ok:false,error:'mission_not_found'};if(missionHasActiveSessionV116(id))return{ok:false,error:'active_session_exists'};const r=this.update(id,{status:'archived',archivedAt:Date.now(),archivedCurrentStepId:m.currentStepId,currentStepId:null});return r?{ok:true,mission:r}:{ok:false,error:'mission_not_found'}};
 missionRepository.rename=renameMissionV116;missionRepository.restore=restoreMissionV116;missionRepository.getCompleted=function(){return this.getAll().filter(x=>x.status==='completed')};missionRepository.getArchived=function(){return this.getAll().filter(x=>x.status==='archived')};
-function setMissionFilterV116(filter,button){missionManagementFilterV116=filter;document.querySelectorAll('.mission-tab-v116').forEach(x=>x.classList.toggle('active',x===button));renderMissionManagementV116()}
+function syncMissionFilterTabsV1751(){
+ const valid=['active','completed','archived'];
+ if(!valid.includes(missionManagementFilterV116))missionManagementFilterV116='active';
+ document.querySelectorAll('.mission-tab-v116').forEach(btn=>{
+   btn.classList.toggle('active',btn.dataset.filter===missionManagementFilterV116);
+ });
+}
+function resetMissionManagementFilterToActiveV1751(){
+ missionManagementFilterV116='active';
+ syncMissionFilterTabsV1751();
+}
+window.resetMissionManagementFilterToActiveV1751=resetMissionManagementFilterToActiveV1751;
+function setMissionFilterV116(filter,button){missionManagementFilterV116=filter;syncMissionFilterTabsV1751();renderMissionManagementV116()}
 function formatMissionShortDateV173(ts){
  if(!ts)return '';
  try{return new Intl.DateTimeFormat('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'}).format(new Date(ts));}catch{return '';}
 }
 function renderMissionManagementV116(){
  ensureMissionManagementScreenV116();
+ syncMissionFilterTabsV1751();
  const list=document.getElementById('missionManagementListV116');
  const all=missionRepository.getAll();
  const activeList=all.filter(x=>x.status==='active');
@@ -449,7 +452,14 @@ function renderMissionManagementV116(){
  });
  lucide.createIcons();
 }
-function openMissionManagementV116(){closeFocusChoice();ensureMissionManagementScreenV116();renderMissionManagementV116();if(typeof navigateToRoot==='function')navigateToRoot('missions');else setAppScreen('missions',{immediate:true})}
+function openMissionManagementV116(){
+ closeFocusChoice({immediate:true});
+ ensureMissionManagementScreenV116();
+ resetMissionManagementFilterToActiveV1751();
+ renderMissionManagementV116();
+ if(typeof navigateToRoot==='function')navigateToRoot('missions');
+ else setAppScreen('missions',{immediate:true});
+}
 function openMissionManagementFromSettings(){openMissionManagementV116()}
 window.openMissionManagementV116=openMissionManagementV116;
 window.openMissionManagementFromSettings=openMissionManagementFromSettings;
@@ -583,6 +593,16 @@ function confirmDeleteV116(id){
 }
 function deleteMissionActionV116(id){const r=missionRepository.delete(id);if(!r.ok)return;closeMissionSheetV116();refreshMissionUIV116()}
 function refreshMissionUIV116(){renderMultiMissionUIV115();renderHomeCarouselV116();renderFocusChoiceV116();if(document.getElementById('app-screen-missions'))renderMissionManagementV116();const selected=missionRepository.getSelected();if(selected){bindMissionCompatibilityV115(selected);if(!document.getElementById('app-screen-plan').classList.contains('hidden'))renderAIPlan(activeAIPlan)}}
-const applyScreenBeforeV116=applyAppScreenImmediately;applyAppScreenImmediately=function(screen){const r=applyScreenBeforeV116.apply(this,arguments);if(screen==='home')setTimeout(renderHomeCarouselV116,0);if(screen==='missions')setTimeout(renderMissionManagementV116,0);return r};
+const applyScreenBeforeV116=applyAppScreenImmediately;
+applyAppScreenImmediately=function(screen){
+ if(screen==='missions'){
+   ensureMissionManagementScreenV116();
+   const list=document.getElementById('missionManagementListV116');
+   if(!list||!list.childNodes.length)renderMissionManagementV116();
+ }
+ const r=applyScreenBeforeV116.apply(this,arguments);
+ if(screen==='home')setTimeout(renderHomeCarouselV116,0);
+ return r;
+};
 const createBeforeV116=missionRepository.create.bind(missionRepository);missionRepository.create=function(input){const r=createBeforeV116(input);if(r.ok)setTimeout(refreshMissionUIV116,0);return r};
-document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{ensureMissionManagementScreenV116();refreshMissionUIV116();console.info('[MissionsUX]',{event:'v17_5_ready',active:missionRepository.getActive().length})},260),{once:true});
+document.addEventListener('DOMContentLoaded',()=>{ensureMissionManagementScreenV116();setTimeout(()=>{refreshMissionUIV116();console.info('[MissionsUX]',{event:'v17_5_1_ready',active:missionRepository.getActive().length})},60)},{once:true});
