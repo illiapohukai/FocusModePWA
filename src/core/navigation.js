@@ -858,10 +858,12 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
     doc?.body?.classList.add('has-bottom-nav');
 
     if (!nav) return;
+    const wasHidden = nav.classList.contains('hidden');
     nav.classList.remove('hidden');
     nav.removeAttribute('aria-hidden');
     nav.removeAttribute('inert');
 
+    // Route semantics only; the visual indicator is owned by MotionController (data-lit).
     nav.querySelectorAll('.fm-nav-item').forEach(btn => {
       const isMatch = btn.dataset.navSection === resolvedSection;
       btn.classList.toggle('active', isMatch);
@@ -871,6 +873,12 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();el
         btn.removeAttribute('aria-current');
       }
     });
+    const dockOwner = global.MotionController && global.MotionController.syncDockIndicator;
+    if (typeof dockOwner === 'function') {
+      dockOwner(resolvedSection, { instant: wasHidden });
+    } else {
+      nav.dataset.lit = resolvedSection;
+    }
   }
 
   function hideBottomNavigation() {

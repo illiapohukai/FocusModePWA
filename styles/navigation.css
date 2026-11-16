@@ -104,6 +104,7 @@ html:not(.pwa-dark-status) body::after {
 }
 
 .fm-bottom-nav-inner {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 56px minmax(0, 1fr) minmax(0, 1fr);
   gap: 2px;
@@ -116,9 +117,10 @@ html:not(.pwa-dark-status) body::after {
 
 .fm-nav-item {
   position: relative;
+  z-index: 1;
   min-height: 48px;
   min-width: 44px;
-  padding: 4px 2px;
+  padding: 12px 2px 4px;
   border: 1px solid transparent;
   border-radius: 999px;
   background: transparent;
@@ -130,7 +132,6 @@ html:not(.pwa-dark-status) body::after {
   gap: 2px;
   cursor: pointer;
   text-align: center;
-  transition: background-color 0.16s ease, color 0.16s ease, transform 0.12s ease;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -138,23 +139,44 @@ html:not(.pwa-dark-status) body::after {
   color: var(--text-primary);
 }
 
-.fm-nav-item:active {
-  transform: scale(0.95);
-}
-
 .fm-nav-item:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
 
-.fm-nav-indicator {
-  width: 5px;
-  height: 5px;
+/* v17.8: one persistent active indicator ("glider") for the whole dock.
+   Its resting position is derived from nav[data-lit] (pure CSS, no layout reads);
+   src/core/motion-controller.js owns its movement between roots.
+   Column math: 4 equal items of w = (100% - 64px) / 4 around the 56px Plus slot, 2px gaps.
+   translate % is relative to the glider's own width (= w). */
+.fm-nav-glider {
+  position: absolute;
+  z-index: 0;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: calc((100% - 64px) / 4);
   border-radius: 999px;
-  background: transparent;
-  margin-bottom: 1px;
-  transition: width 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+  background: rgba(239, 233, 221, 0.78);
+  pointer-events: none;
+  transform: translate3d(0, 0, 0);
 }
+
+.fm-nav-glider-bar {
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  width: 14px;
+  height: 3.5px;
+  margin-left: -7px;
+  border-radius: 999px;
+  background: var(--primary);
+}
+
+#bottomNavigationV17[data-lit="home"] .fm-nav-glider { transform: translate3d(0, 0, 0); }
+#bottomNavigationV17[data-lit="missions"] .fm-nav-glider { transform: translate3d(calc(100% + 2px), 0, 0); }
+#bottomNavigationV17[data-lit="history"] .fm-nav-glider { transform: translate3d(calc(200% + 62px), 0, 0); }
+#bottomNavigationV17[data-lit="settings"] .fm-nav-glider { transform: translate3d(calc(300% + 64px), 0, 0); }
 
 .fm-nav-icon {
   display: inline-flex;
@@ -168,7 +190,6 @@ html:not(.pwa-dark-status) body::after {
   width: 18px !important;
   height: 18px !important;
   stroke-width: 2.1;
-  transition: transform 0.18s ease, stroke-width 0.18s ease;
 }
 
 .fm-nav-label {
@@ -183,28 +204,28 @@ html:not(.pwa-dark-status) body::after {
   text-overflow: ellipsis;
 }
 
-.fm-nav-item.active,
-.fm-nav-item[aria-current="page"] {
+/* Visual emphasis follows the dock's lit section (data-lit), not .active,
+   so the glider, icon and label always change together. .active / aria-current stay semantic. */
+#bottomNavigationV17[data-lit="home"] #bottomNavHome,
+#bottomNavigationV17[data-lit="missions"] #bottomNavMissions,
+#bottomNavigationV17[data-lit="history"] #bottomNavHistory,
+#bottomNavigationV17[data-lit="settings"] #bottomNavSettings {
   color: var(--text-primary);
-  background: rgba(239, 233, 221, 0.72);
+  --fm-emph: 1;
 }
 
-.fm-nav-item.active .fm-nav-indicator,
-.fm-nav-item[aria-current="page"] .fm-nav-indicator {
-  width: 14px;
-  height: 3.5px;
-  background: var(--primary);
-}
-
-.fm-nav-item.active .fm-nav-icon svg,
-.fm-nav-item[aria-current="page"] .fm-nav-icon svg {
+#bottomNavigationV17[data-lit="home"] #bottomNavHome .fm-nav-icon svg,
+#bottomNavigationV17[data-lit="missions"] #bottomNavMissions .fm-nav-icon svg,
+#bottomNavigationV17[data-lit="history"] #bottomNavHistory .fm-nav-icon svg,
+#bottomNavigationV17[data-lit="settings"] #bottomNavSettings .fm-nav-icon svg {
   stroke-width: 2.45;
   color: var(--primary);
 }
 
-.fm-nav-item.active .fm-nav-label,
-.fm-nav-item[aria-current="page"] .fm-nav-label {
-  color: var(--text-primary);
+#bottomNavigationV17[data-lit="home"] #bottomNavHome .fm-nav-label,
+#bottomNavigationV17[data-lit="missions"] #bottomNavMissions .fm-nav-label,
+#bottomNavigationV17[data-lit="history"] #bottomNavHistory .fm-nav-label,
+#bottomNavigationV17[data-lit="settings"] #bottomNavSettings .fm-nav-label {
   font-weight: 850;
 }
 

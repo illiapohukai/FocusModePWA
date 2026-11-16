@@ -71,3 +71,77 @@ html.quick-focus-surface #appBody{
 html.quick-focus-surface body::after{
   background:#F6F1E7!important;
 }
+
+/* ==========================================================================
+   v17.8 FOKUS-SCHUTZ — app selection (#app-screen-distractions)
+   Selection state stays on .distraction-row.selected (owned by quick-focus.js).
+   ========================================================================== */
+#app-screen-distractions{position:absolute!important;inset:0!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;padding:0!important}
+#app-screen-distractions.hidden{display:none!important}
+.fs-main{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;padding:18px 20px 20px}
+.fs-main::-webkit-scrollbar{display:none}
+.fs-topbar{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center}
+.fs-topbar-label{text-align:center;font-size:12px;font-weight:850;letter-spacing:.12em;text-transform:uppercase;color:#6D28D9}
+.fs-header{margin-top:22px}
+.fs-header h3{margin:0;font-size:32px;line-height:1.04;font-weight:950;letter-spacing:-.045em;color:#1D1A17}
+.fs-header p{margin:10px 0 0;font-size:15px;line-height:1.45;color:#766E65}
+
+.fs-summary{display:flex;align-items:center;gap:14px;margin-top:20px;padding:14px 16px;border-radius:24px;border:1px solid rgba(45,35,30,.10);background:#FCF9F4;box-shadow:0 10px 26px rgba(37,22,43,.06);transition:border-color var(--motion-normal,350ms) ease,background-color var(--motion-normal,350ms) ease}
+.fs-summary[data-protection="ready"]{border-color:rgba(22,163,74,.22);background:linear-gradient(150deg,#FCF9F4 0%,#FCF9F4 60%,#EEF7F1 100%)}
+.fs-summary-icons{flex:0 0 auto;display:flex;align-items:center;min-width:44px;height:44px;padding-left:10px}
+.fs-summary-icons .app-dot,.fs-summary-more,.fs-summary-empty{width:34px;height:34px;margin-left:-10px;border-radius:11px;border:2px solid #FCF9F4;font-size:13px;box-shadow:0 3px 8px rgba(37,22,43,.12)}
+.fs-summary-icons .app-dot svg{width:16px;height:16px}
+.fs-summary-more{display:grid;place-items:center;background:#EFE9DD;color:#5C544D;font-size:12px;font-weight:900}
+.fs-summary-empty{display:grid;place-items:center;background:#EFE9DD;color:#8A8178}
+.fs-summary-empty svg{width:17px;height:17px}
+.fs-summary-copy{display:flex;flex-direction:column;flex:1 1 auto;min-width:0}
+.fs-summary-copy strong{font-size:17px;line-height:1.2;font-weight:900;color:#1D1A17}
+.fs-summary-copy span{margin-top:3px;font-size:13.5px;font-weight:700;color:#8A8178}
+.fs-summary[data-protection="ready"] .fs-summary-copy span{color:#15803D}
+.fs-summary-badge{flex:0 0 40px;width:40px;height:40px;border-radius:14px;display:grid;place-items:center;background:#EFE9DD;color:#8A8178;transition:background-color var(--motion-normal,350ms) ease,color var(--motion-normal,350ms) ease}
+.fs-summary[data-protection="ready"] .fs-summary-badge{background:#E3F4EA;color:#15803D}
+.fs-summary-badge svg{width:20px;height:20px}
+
+.fs-list-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:24px 2px 10px}
+.fs-list-head h4{margin:0;font-size:12px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#8A8178}
+.fs-bulk{min-height:36px;padding:0 14px;border:1px solid rgba(109,40,217,.18);border-radius:999px;background:#F5F0FC;color:#6D28D9;font-size:13.5px;font-weight:800;cursor:pointer;transition:transform var(--motion-instant,90ms) ease,background-color var(--motion-fast,160ms) ease}
+.fs-bulk:active{transform:scale(.97)}
+.fs-bulk:focus-visible{outline:2px solid #6D28D9;outline-offset:2px}
+
+.fs-list{display:flex;flex-direction:column;gap:8px}
+#distractionList .distraction-row{display:flex;align-items:center;gap:14px;width:100%;min-height:68px;padding:12px 14px 12px 12px;border:1.5px solid rgba(45,35,30,.10);border-radius:20px;background:#FCF9F4;color:#1D1A17;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;box-shadow:0 4px 12px rgba(37,22,43,.035);
+  transition:border-color var(--motion-fast,160ms) ease,background-color var(--motion-fast,160ms) ease,box-shadow var(--motion-fast,160ms) ease,transform var(--motion-instant,90ms) ease}
+#distractionList .distraction-row:active{transform:scale(.985)}
+#distractionList .distraction-row:focus-visible{outline:2px solid #6D28D9;outline-offset:2px}
+#distractionList .distraction-row.selected{border-color:rgba(109,40,217,.42);background:#F7F2FD;box-shadow:0 8px 20px rgba(109,40,217,.10)}
+#distractionList .app-dot{flex:0 0 44px;width:44px;height:44px;border-radius:14px;font-size:18px;font-weight:900;box-shadow:inset 0 1px rgba(255,255,255,.18),0 3px 8px rgba(37,22,43,.12)}
+#distractionList .app-dot svg{width:21px;height:21px}
+.fs-row-name{flex:1 1 auto;min-width:0;font-size:16.5px;line-height:1.25;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fs-check{flex:0 0 28px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;border:2px solid rgba(45,35,30,.22);background:#FFFFFF;color:transparent;transition:background-color var(--motion-fast,160ms) ease,border-color var(--motion-fast,160ms) ease,color var(--motion-fast,160ms) ease,transform var(--motion-fast,160ms) var(--ease-soft-spring,ease)}
+.fs-check svg{width:16px;height:16px;stroke-width:3}
+#distractionList .distraction-row.selected .fs-check{border-color:#6D28D9;background:#6D28D9;color:#FFFFFF;transform:scale(1.04)}
+
+.fs-note{display:flex;gap:11px;margin-top:18px;padding:14px 16px;border-radius:18px;background:#EFE9DD}
+.fs-note>svg{flex:0 0 18px;width:18px;height:18px;margin-top:1px;color:#8A8178}
+.fs-note p{margin:0;font-size:13px;line-height:1.5;color:#5C544D}
+
+.fs-bottom{flex:0 0 auto;padding:12px 20px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(246,241,231,0) 0%,#F6F1E7 28%);margin-top:-18px;position:relative;z-index:2}
+.fs-save{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;height:58px;border:0;border-radius:20px;color:#FFFFFF;font-size:17px;font-weight:900;cursor:pointer;background:linear-gradient(105deg,#7C3AED 0%,#6D28D9 60%,#5B21B6 100%);box-shadow:0 16px 32px rgba(109,40,217,.26),inset 0 1px rgba(255,255,255,.2);transition:transform var(--motion-instant,90ms) ease,opacity var(--motion-instant,90ms) ease}
+.fs-save svg{width:19px;height:19px;stroke-width:2.6}
+.fs-save:active:not(:disabled){transform:scale(.985)}
+.fs-save:disabled{opacity:.55;cursor:default}
+.fs-save:focus-visible{outline:2px solid #6D28D9;outline-offset:3px}
+
+@media (max-width:360px){
+  .fs-main{padding:16px 16px 18px}
+  .fs-bottom{padding-left:16px;padding-right:16px}
+  .fs-header h3{font-size:28px}
+  #distractionList .distraction-row{min-height:64px;gap:12px}
+  .fs-row-name{font-size:15.5px}
+}
+@media (max-height:680px){
+  .fs-header{margin-top:14px}
+  .fs-summary{margin-top:14px}
+  .fs-list-head{margin-top:18px}
+}
+.fs-summary[data-protection="off"] .fs-summary-badge{display:none}

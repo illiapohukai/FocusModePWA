@@ -475,7 +475,6 @@
         { transform: 'translate3d(0%, 0, 0)', opacity: 1 },
         { transform: 'translate3d(' + -dir * travel * 0.55 + '%, 0, 0)', opacity: 0 }
       ];
-      animateDockActiveTab(toRoot, reduced);
     } else if (intent === 'push' || intent === 'focus-exit-result') {
       durationMs = reduced ? 100 : 390;
       incomingOnTop = true;
@@ -1034,44 +1033,175 @@
   }
 
   /* ========================================================================
-     BOTTOM NAVIGATION DOCK ACTIVE FEEDBACK & SAME-TAB BOUNCE
+     BOTTOM NAVIGATION DOCK: SINGLE PERSISTENT ACTIVE INDICATOR (v17.8)
+     The glider's resting position comes from nav[data-lit] in CSS. This module is
+     the only writer of data-lit and the only animator of the glider. Geometry is
+     expressed in the glider's own width (CSS calc), so no layout is read per frame.
      ======================================================================== */
-  function animateDockActiveTab(section, reduced) {
-    if (typeof document === 'undefined' || reduced) return;
+  // [multiple of glider width, extra px] for each root (see .fm-nav-glider in navigation.css).
+  const DOCK_GLIDER_POS = Object.freeze({
+    home: [0, 0],
+    missions: [1, 2],
+    history: [2, 62],
+    settings: [3, 64]
+  });
+  const dockState = { anim: null, tracking: null };
+
+  function dockGliderTransform(from, to, progress) {
+    const a = DOCK_GLIDER_POS[from];
+    const b = DOCK_GLIDER_POS[to] || a;
+    const p = Math.max(0, Math.min(1, progress || 0));
+    const mul = a[0] + (b[0] - a[0]) * p;
+    const px = a[1] + (b[1] - a[1]) * p;
+    return 'translate3d(calc(' + (mul * 100).toFixed(3) + '% + ' + px.toFixed(2) + 'px), 0, 0)';
+  }
+
+  function getDockParts() {
+    if (typeof document === 'undefined') return null;
     const nav = document.getElementById('bottomNavigationV17');
-    if (!nav) return;
-    const btn = nav.querySelector('[data-nav-section="' + section + '"]');
-    if (!btn) return;
-    const icon = btn.querySelector('.fm-nav-icon');
-    const indicator = btn.querySelector('.fm-nav-indicator');
-    if (icon && typeof icon.animate === 'function') {
-      cancelElementAnimations(icon);
-      icon.animate(
-        [
-          { transform: 'scale(0.92)' },
-          { transform: 'scale(1.08)', offset: 0.55 },
-          { transform: 'scale(1.06)' }
-        ],
-        {
-          duration: 240,
-          easing: 'cubic-bezier(0.34, 1.16, 0.64, 1)'
-        }
-      );
+    const glider = document.getElementById('bottomNavGlider');
+    return nav && glider ? { nav: nav, glider: glider } : null;
+  }
+
+  function dockCrossesPlus(from, to) {
+    return getRootTabIndex(from) <= 1 !== getRootTabIndex(to) <= 1;
+  }
+
+  function stopDockAnimation(glider) {
+    if (!dockState.anim) return null;
+    let current = null;
+    try {
+      current = getComputedStyle(glider).transform;
+    } catch (_) {}
+    try {
+      dockState.anim.cancel();
+    } catch (_) {}
+    dockState.anim = null;
+    return current && current !== 'none' ? current : null;
+  }
+
+  function runDockAnimation(parts, frames, durationMs, easing) {
+    const nav = parts.nav;
+    if (typeof parts.glider.animate !== 'function' || durationMs <= 0) {
+      nav.style.removeProperty('--fm-dock-dur');
+      return;
     }
-    if (indicator && typeof indicator.animate === 'function') {
-      cancelElementAnimations(indicator);
-      indicator.animate(
-        [
-          { transform: 'translateX(-50%) scaleX(0.4)', opacity: 0.4 },
-          { transform: 'translateX(-50%) scaleX(1.12)', opacity: 1, offset: 0.65 },
-          { transform: 'translateX(-50%) scaleX(1)', opacity: 1 }
-        ],
-        {
-          duration: 260,
-          easing: 'cubic-bezier(0.34, 1.16, 0.64, 1)'
+    const anim = parts.glider.animate(frames, { duration: durationMs, easing: easing });
+    dockState.anim = anim;
+    anim.finished
+      .then(function () {
+        if (dockState.anim === anim) {
+          dockState.anim = null;
+          nav.style.removeProperty('--fm-dock-dur');
         }
-      );
+      })
+      .catch(function () {});
+  }
+
+  function clearDockTracking(parts) {
+    const t = dockState.tracking;
+    dockState.tracking = null;
+    if (!t) return null;
+    parts.nav.classList.remove('fm-dock-tracking');
+    [t.fromBtn, t.toBtn].forEach(function (btn) {
+      if (!btn) return;
+      btn.classList.remove('fm-nav-tracked');
+      btn.style.removeProperty('--fm-emph');
+    });
+    const start = parts.glider.style.transform || null;
+    parts.glider.style.removeProperty('transform');
+    return { tracking: t, start: start };
+  }
+
+  /* Settle the dock on a root section. Called by navigation.js whenever the route's
+     root changes; animates in step with the root page transition (same metrics). */
+  function syncDockIndicator(section, options) {
+    const parts = getDockParts();
+    if (!parts || !DOCK_GLIDER_POS[section]) return;
+    const opts = options && typeof options === 'object' ? options : {};
+    const nav = parts.nav;
+    if (dockState.tracking) clearDockTracking(parts);
+    const from = nav.dataset.lit;
+    if (from === section) return;
+
+    const start = stopDockAnimation(parts.glider);
+    nav.dataset.lit = section;
+    if (opts.instant || !DOCK_GLIDER_POS[from]) {
+      nav.style.removeProperty('--fm-dock-dur');
+      return;
     }
+
+    const reduced = prefersReducedMotion();
+    const metrics = computeRootTabMetrics(from, section);
+    const durationMs = reduced ? 120 : opts.durationMs || metrics.durationMs || 360;
+    nav.style.setProperty('--fm-dock-dur', durationMs + 'ms');
+    const end = dockGliderTransform(section, section, 0);
+    let frames;
+    if (reduced) {
+      frames = [{ opacity: 0 }, { opacity: 1 }];
+    } else if (dockCrossesPlus(from, section)) {
+      frames = [
+        { transform: start || dockGliderTransform(from, from, 0), opacity: 1 },
+        { opacity: 0.6, offset: 0.5 },
+        { transform: end, opacity: 1 }
+      ];
+    } else {
+      frames = [{ transform: start || dockGliderTransform(from, from, 0) }, { transform: end }];
+    }
+    runDockAnimation(parts, frames, durationMs, opts.easing || 'cubic-bezier(0.22, 1, 0.36, 1)');
+  }
+
+  /* Interactive root swipe: the glider and both icons follow real progress. */
+  function beginDockTracking(from, to) {
+    const parts = getDockParts();
+    if (!parts || !DOCK_GLIDER_POS[from] || !DOCK_GLIDER_POS[to] || from === to) return false;
+    stopDockAnimation(parts.glider);
+    if (dockState.tracking) clearDockTracking(parts);
+    const nav = parts.nav;
+    nav.dataset.lit = from;
+    nav.style.removeProperty('--fm-dock-dur');
+    const fromBtn = nav.querySelector('[data-nav-section="' + from + '"]');
+    const toBtn = nav.querySelector('[data-nav-section="' + to + '"]');
+    nav.classList.add('fm-dock-tracking');
+    if (fromBtn) fromBtn.classList.add('fm-nav-tracked');
+    if (toBtn) toBtn.classList.add('fm-nav-tracked');
+    dockState.tracking = { from: from, to: to, fromBtn: fromBtn, toBtn: toBtn };
+    setDockTrackingProgress(0);
+    return true;
+  }
+
+  function setDockTrackingProgress(progress) {
+    const t = dockState.tracking;
+    const parts = t && getDockParts();
+    if (!parts) return;
+    const p = Math.max(0, Math.min(1, progress || 0));
+    parts.glider.style.transform = dockGliderTransform(t.from, t.to, p);
+    if (t.fromBtn) t.fromBtn.style.setProperty('--fm-emph', (1 - p).toFixed(3));
+    if (t.toBtn) t.toBtn.style.setProperty('--fm-emph', p.toFixed(3));
+  }
+
+  /* Release: settle toward the destination (commit) or back to the source (cancel),
+     with the page's own settle duration. The later route commit finds data-lit already
+     correct and does nothing, so the destination settles exactly once. */
+  function endDockTracking(commit, durationMs, easing) {
+    const parts = getDockParts();
+    if (!parts || !dockState.tracking) return;
+    const nav = parts.nav;
+    const ms = Math.max(0, Math.round(durationMs || 0));
+    nav.style.setProperty('--fm-dock-dur', Math.max(1, ms) + 'ms');
+    const cleared = clearDockTracking(parts);
+    const target = commit ? cleared.tracking.to : cleared.tracking.from;
+    nav.dataset.lit = target;
+    if (!cleared.start || ms <= 0) {
+      nav.style.removeProperty('--fm-dock-dur');
+      return;
+    }
+    runDockAnimation(
+      parts,
+      [{ transform: cleared.start }, { transform: dockGliderTransform(target, target, 0) }],
+      ms,
+      easing || 'cubic-bezier(0.2, 0.75, 0.25, 1)'
+    );
   }
 
   function handleSameRootTabTap(section) {
@@ -1622,6 +1752,36 @@
     }
   }
 
+  /* v17.8: Mission A <-> B on the Mission Plan. Content is already re-rendered in the
+     new Mission's tone; this only fades it in once (opacity + small translate). */
+  function animateMissionPlanSwitch() {
+    if (typeof document === 'undefined') return;
+    const reduced = prefersReducedMotion();
+    const targets = [
+      document.getElementById('aiPlanHero'),
+      document.querySelector('#app-screen-plan .mp-section-head'),
+      document.getElementById('aiPlanSteps')
+    ].filter(Boolean);
+    targets.forEach(function (el, i) {
+      if (typeof el.animate !== 'function') return;
+      cancelElementAnimations(el);
+      el.animate(
+        reduced
+          ? [{ opacity: 0.6 }, { opacity: 1 }]
+          : [
+              { opacity: 0.35, transform: 'translate3d(0, 6px, 0)' },
+              { opacity: 1, transform: 'translate3d(0, 0, 0)' }
+            ],
+        {
+          duration: reduced ? 100 : 240,
+          delay: reduced ? 0 : i * 30,
+          easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+          fill: 'backwards'
+        }
+      );
+    });
+  }
+
   function installFeatureMotionEnhancements() {
     if (typeof document === 'undefined') return;
 
@@ -2039,6 +2199,7 @@
         g.toEl.style.transform = frame.transform;
         g.toEl.style.opacity = frame.opacity;
       }
+      if (g.dockTracked) setDockTrackingProgress(Math.abs(d) / g.width);
     }
 
     function releaseCapture(g) {
@@ -2049,10 +2210,19 @@
       }
     }
 
+    function syncDockToRoute() {
+      const screen = resolveCurrentSwipeScreen();
+      if (getRootTabIndex(screen) !== -1) syncDockIndicator(screen, { durationMs: 200 });
+    }
+
     function cleanupGestureDOM(g) {
       cancelFrame();
       if (!g) return;
       releaseCapture(g);
+      if (g.dockTracked) {
+        g.dockTracked = false;
+        endDockTracking(false, 0);
+      }
       appBody.classList.remove(
         'fm-dual-transition',
         'fm-swipe-back-active',
@@ -2136,7 +2306,8 @@
         currentScreen: currentScreen,
         targetScreen: targetScreen,
         fromEl: fromEl,
-        toEl: toEl
+        toEl: toEl,
+        dockTracked: false
       };
       return true;
     }
@@ -2163,7 +2334,10 @@
       if (g.toEl) {
         g.toEl.classList.add('fm-layer-incoming', 'fm-swipe-back-underlay', 'fm-motion-active');
         // Render the destination once, while it is laid out underneath; never during drag.
-        if (g.mode === 'root') prepareRootGestureTarget(g.targetScreen);
+        if (g.mode === 'root') {
+          prepareRootGestureTarget(g.targetScreen);
+          g.dockTracked = beginDockTracking(g.currentScreen, g.targetScreen);
+        }
         if (typeof root.restoreScreenScrollPosition === 'function') {
           try {
             root.restoreScreenScrollPosition(g.targetScreen);
@@ -2216,7 +2390,6 @@
             root.restoreScreenScrollPosition(g.targetScreen);
           } catch (_) {}
         }
-        animateDockActiveTab(g.targetScreen, prefersReducedMotion());
       }
     }
 
@@ -2248,8 +2421,13 @@
       }
 
       if (prefersReducedMotion() || typeof g.fromEl.animate !== 'function') {
+        if (g.dockTracked) {
+          g.dockTracked = false;
+          endDockTracking(shouldComplete, 120);
+        }
         cleanupGestureDOM(g);
         if (shouldComplete) commitRoute(g);
+        syncDockToRoute();
         return;
       }
 
@@ -2263,6 +2441,10 @@
       }
       durationMs = Math.round(Math.max(110, Math.min(340, durationMs)));
       const easing = 'cubic-bezier(0.2, 0.75, 0.25, 1)';
+      if (g.dockTracked) {
+        g.dockTracked = false;
+        endDockTracking(shouldComplete, durationMs, easing);
+      }
 
       let finalized = false;
       const finalize = function (commit) {
@@ -2273,6 +2455,8 @@
         cleanupGestureDOM(g);
         stateMachine.releaseLock();
         if (commit) commitRoute(g);
+        // An interrupted settle never leaves the dock on a route that was not committed.
+        syncDockToRoute();
       };
       const abortSettle = function () {
         finalize(false);
@@ -2422,7 +2606,7 @@
   }
 
   const MotionController = {
-    version: 'v17.6 Navigation, Insights & League Polish',
+    version: 'v17.8 Mission Plan & Focus Protection Polish',
     ROOT_TAB_ORDER,
     VALID_STATES,
     getRootTabIndex,
@@ -2435,6 +2619,8 @@
     prefersReducedMotion,
     animateScreenTransition,
     handleSameRootTabTap,
+    syncDockIndicator,
+    animateMissionPlanSwitch,
     openPlusSheet,
     closePlusSheet,
     openMissionSheet,

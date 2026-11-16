@@ -1,4 +1,4 @@
-const CACHE = "focus-mode-v17-7-mission-flow-cohesion";
+const CACHE = "focus-mode-v17-8-mission-plan-focus-protection";
 const CACHE_PREFIX = "focus-mode";
 
 const CORE = [

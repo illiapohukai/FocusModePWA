@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 
-<html class="dark" lang="de"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/><meta content="#F6F1E7" name="theme-color"/><title>v17.7 Mission Flow &amp; Visual Cohesion</title>
+<html class="dark" lang="de"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/><meta content="#F6F1E7" name="theme-color"/><title>v17.8 Mission Plan &amp; Focus Protection Polish</title>
 <meta name="description" content="Focus Mode+ v17.6 Navigation, Insights &amp; League Polish — stabile Navigation, Root-Swipe, moderner Fokusverlauf und Liga-Vorschau.">
 <meta property="og:title" content="v17.6 Navigation, Insights &amp; League Polish">
-<meta property="og:description" content="Focus Mode+ v17.7 Mission Flow &amp; Visual Cohesion — Missionsfarben, Mission-Briefing, neues Schritt-Feedback und klarer Zeitplan."><script src="https://cdn.tailwindcss.com"></script><script>window.tailwind=window.tailwind||{};tailwind.config={darkMode:'class'}</script><script src="https://unpkg.com/lucide@latest"></script><script>window.lucide=window.lucide||{createIcons:function(){}}</script><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>  <link rel="stylesheet" href="./styles/app.css" />
+<meta property="og:description" content="Focus Mode+ v17.8 Mission Plan &amp; Focus Protection Polish — Mission-Plan in Missionsfarbe, neutraler Zeitplan, neuer Fokus-Schutz und ruhige Navigation."><script src="https://cdn.tailwindcss.com"></script><script>window.tailwind=window.tailwind||{};tailwind.config={darkMode:'class'}</script><script src="https://unpkg.com/lucide@latest"></script><script>window.lucide=window.lucide||{createIcons:function(){}}</script><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>  <link rel="stylesheet" href="./styles/app.css" />
   <link rel="stylesheet" href="./styles/timer.css" />
   <link rel="stylesheet" href="./styles/recovery.css" />
   <link rel="stylesheet" href="./styles/quick-focus.css" />
@@ -277,20 +277,24 @@
 </div>
 <!-- FOCUS CHOICE: Schnell oder adaptiv -->
 <!-- LEARNING FLOW: Zieleingabe -->
-<div class="app-screen flow-screen qb hidden" id="app-screen-quicksetup"><div class="qb-main"><div class="qb-top"><button onclick="navigateBack()" aria-label="Zurück" title="Zurück" type="button"><i data-lucide="arrow-left"></i></button><b>Quick Focus</b><span></span></div><header><h3>Richte deine Sitzung ein.</h3><p>Wähle Dauer und Ablenkungen. Alle anderen Apps bleiben verfügbar.</p></header><section><h4>Woran arbeitest du?</h4><label class="qb-task"><span>🎯</span><input id="quickTaskInput" value="" placeholder="Hier eingeben…" autocomplete="off"><i data-lucide="pencil"></i></label></section><section class="qb-duration"><h4>Dauer</h4><div class="qb-time"><div class="qb-ring"><svg viewBox="0 0 180 180"><defs><linearGradient id="qbg"><stop stop-color="#38bdf8"/><stop offset=".52" stop-color="#c084fc"/><stop offset="1" stop-color="#4f46e5"/></linearGradient></defs><circle class="track" cx="90" cy="90" r="69"/><circle id="quickRingProgress" class="progress" cx="90" cy="90" r="69"/></svg><div><strong id="quickMinuteValue">25</strong><span>Min.</span></div></div><aside><button onclick="adjustQuickDuration(5)">+</button><button onclick="adjustQuickDuration(-5)">−</button></aside></div><div class="qb-presets" id="quickDurationButtons"><button class="quick-option" onclick="selectQuickDuration(this,15)">15 Min.</button><button class="quick-option active" onclick="selectQuickDuration(this,25)">25 Min.</button><button class="quick-option" onclick="selectQuickDuration(this,35)">35 Min.</button><button class="quick-option" onclick="selectQuickDuration(this,50)">50 Min.</button></div></section><button class="qb-app" onclick="openDistractionPicker('quicksetup')"><span class="qb-visual"><span class="qb-icons" id="quickSelectedAppIcons"></span><span class="qb-shield"><i data-lucide="shield-off"></i></span></span><span class="qb-copy"><small>Ablenkungen</small><strong><span class="blockedCount">7</span> Apps blockiert</strong><em class="blockedSummary">TikTok · Instagram · YouTube +4</em></span><i data-lucide="chevron-right"></i></button><div class="qb-info"><span><i data-lucide="smartphone"></i></span><p><strong>Dein Smartphone bleibt nutzbar.</strong><br>Nur die ausgewählten Ablenkungen werden blockiert.</p></div></div><div class="qb-bottom"><button onclick="startConfiguredQuickFocus()"><i data-lucide="play"></i> Fokus starten</button></div></div><div class="app-screen flow-screen p-5 flex flex-col flex-1 hidden bg-slate-50" id="app-screen-distractions">
-<div class="flex items-center justify-between mb-4"><button class="fm-top-back-btn w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600" onclick="returnFromDistractionPicker()" aria-label="Zurück" title="Zurück" type="button"><i class="w-4 h-4" data-lucide="arrow-left"></i></button><span class="text-[9px] font-black uppercase tracking-[.18em] text-indigo-500">Fokus-Schutz</span><div class="w-9"></div></div>
-<div class="mb-4"><h3 class="text-[24px] leading-[1.06] font-black tracking-tight text-slate-950">Was lenkt dich ab?</h3><p class="text-[10px] leading-relaxed text-slate-500 mt-2">Wähle nur die Apps, die während einer Sitzung blockiert werden sollen.</p></div>
-<div class="p-3 rounded-2xl bg-indigo-50 border border-indigo-100 mb-3 flex gap-2.5"><i class="w-4 h-4 text-indigo-600 shrink-0" data-lucide="shield-check"></i><p class="text-[9px] leading-relaxed text-indigo-800">In der echten iPhone-App öffnet sich hier die sichere Systemauswahl von Screen Time.</p></div>
-<div class="space-y-2" id="distractionList">
-<button class="distraction-row selected" data-name="TikTok" onclick="toggleDistraction(this)"><span class="app-dot bg-slate-950">T</span><span>TikTok</span><i data-lucide="check"></i></button>
-<button class="distraction-row selected" data-name="Instagram" onclick="toggleDistraction(this)"><span class="app-dot bg-gradient-to-br from-fuchsia-500 to-orange-400">I</span><span>Instagram</span><i data-lucide="check"></i></button>
-<button class="distraction-row selected" data-name="YouTube" onclick="toggleDistraction(this)"><span class="app-dot bg-red-500">Y</span><span>YouTube</span><i data-lucide="check"></i></button>
-<button class="distraction-row selected" data-name="Spiele" onclick="toggleDistraction(this)"><span class="app-dot bg-violet-500"><i data-lucide="gamepad-2"></i></span><span>Spiele</span><i data-lucide="check"></i></button>
-<button class="distraction-row selected" data-name="Reddit" onclick="toggleDistraction(this)"><span class="app-dot bg-orange-500">R</span><span>Reddit</span><i data-lucide="check"></i></button>
-<button class="distraction-row selected" data-name="Shopping" onclick="toggleDistraction(this)"><span class="app-dot bg-cyan-500"><i data-lucide="shopping-bag"></i></span><span>Shopping</span><i data-lucide="check"></i></button>
-<button class="distraction-row selected" data-name="News" onclick="toggleDistraction(this)"><span class="app-dot bg-blue-500"><i data-lucide="newspaper"></i></span><span>News</span><i data-lucide="check"></i></button>
+<div class="app-screen flow-screen qb hidden" id="app-screen-quicksetup"><div class="qb-main"><div class="qb-top"><button onclick="navigateBack()" aria-label="Zurück" title="Zurück" type="button"><i data-lucide="arrow-left"></i></button><b>Quick Focus</b><span></span></div><header><h3>Richte deine Sitzung ein.</h3><p>Wähle Dauer und Ablenkungen. Alle anderen Apps bleiben verfügbar.</p></header><section><h4>Woran arbeitest du?</h4><label class="qb-task"><span>🎯</span><input id="quickTaskInput" value="" placeholder="Hier eingeben…" autocomplete="off"><i data-lucide="pencil"></i></label></section><section class="qb-duration"><h4>Dauer</h4><div class="qb-time"><div class="qb-ring"><svg viewBox="0 0 180 180"><defs><linearGradient id="qbg"><stop stop-color="#38bdf8"/><stop offset=".52" stop-color="#c084fc"/><stop offset="1" stop-color="#4f46e5"/></linearGradient></defs><circle class="track" cx="90" cy="90" r="69"/><circle id="quickRingProgress" class="progress" cx="90" cy="90" r="69"/></svg><div><strong id="quickMinuteValue">25</strong><span>Min.</span></div></div><aside><button onclick="adjustQuickDuration(5)">+</button><button onclick="adjustQuickDuration(-5)">−</button></aside></div><div class="qb-presets" id="quickDurationButtons"><button class="quick-option" onclick="selectQuickDuration(this,15)">15 Min.</button><button class="quick-option active" onclick="selectQuickDuration(this,25)">25 Min.</button><button class="quick-option" onclick="selectQuickDuration(this,35)">35 Min.</button><button class="quick-option" onclick="selectQuickDuration(this,50)">50 Min.</button></div></section><button class="qb-app" onclick="openDistractionPicker('quicksetup')"><span class="qb-visual"><span class="qb-icons" id="quickSelectedAppIcons"></span><span class="qb-shield"><i data-lucide="shield-off"></i></span></span><span class="qb-copy"><small>Ablenkungen</small><strong><span class="blockedCount">7</span> Apps blockiert</strong><em class="blockedSummary">TikTok · Instagram · YouTube +4</em></span><i data-lucide="chevron-right"></i></button><div class="qb-info"><span><i data-lucide="smartphone"></i></span><p><strong>Dein Smartphone bleibt nutzbar.</strong><br>Nur die ausgewählten Ablenkungen werden blockiert.</p></div></div><div class="qb-bottom"><button onclick="startConfiguredQuickFocus()"><i data-lucide="play"></i> Fokus starten</button></div></div><div class="app-screen flow-screen hidden fs-screen" id="app-screen-distractions">
+<div class="fs-main">
+<div class="fs-topbar"><button class="fm-top-back-btn" onclick="returnFromDistractionPicker()" aria-label="Zurück" title="Zurück" type="button"><i data-lucide="arrow-left"></i></button><span class="fs-topbar-label">Fokus-Schutz</span><span aria-hidden="true"></span></div>
+<header class="fs-header"><h3>Was lenkt dich ab?</h3><p>Wähle die Apps, die während deiner Fokus-Sitzung tabu sind.</p></header>
+<section class="fs-summary" id="distractionSummary" data-protection-summary="true" aria-live="polite"><span class="fs-summary-icons" id="distractionSummaryIcons" aria-hidden="true"></span><span class="fs-summary-copy"><strong id="distractionSummaryCount">7 Apps ausgewählt</strong><span id="distractionSummaryState">Fokus-Schutz bereit</span></span><span class="fs-summary-badge" aria-hidden="true"><i data-lucide="shield-check"></i></span></section>
+<div class="fs-list-head"><h4>Apps</h4><button class="fs-bulk" id="distractionBulkToggle" type="button" onclick="toggleAllDistractions()">Alle abwählen</button></div>
+<div class="fs-list" id="distractionList" role="group" aria-label="Apps für Fokus-Schutz">
+<button class="distraction-row selected" data-name="TikTok" type="button" aria-pressed="true" onclick="toggleDistraction(this)"><span class="app-dot bg-slate-950" aria-hidden="true">T</span><span class="fs-row-name">TikTok</span><span class="fs-check" aria-hidden="true"><i data-lucide="check"></i></span></button>
+<button class="distraction-row selected" data-name="Instagram" type="button" aria-pressed="true" onclick="toggleDistraction(this)"><span class="app-dot bg-gradient-to-br from-fuchsia-500 to-orange-400" aria-hidden="true">I</span><span class="fs-row-name">Instagram</span><span class="fs-check" aria-hidden="true"><i data-lucide="check"></i></span></button>
+<button class="distraction-row selected" data-name="YouTube" type="button" aria-pressed="true" onclick="toggleDistraction(this)"><span class="app-dot bg-red-500" aria-hidden="true">Y</span><span class="fs-row-name">YouTube</span><span class="fs-check" aria-hidden="true"><i data-lucide="check"></i></span></button>
+<button class="distraction-row selected" data-name="Spiele" type="button" aria-pressed="true" onclick="toggleDistraction(this)"><span class="app-dot bg-violet-500" aria-hidden="true"><i data-lucide="gamepad-2"></i></span><span class="fs-row-name">Spiele</span><span class="fs-check" aria-hidden="true"><i data-lucide="check"></i></span></button>
+<button class="distraction-row selected" data-name="Reddit" type="button" aria-pressed="true" onclick="toggleDistraction(this)"><span class="app-dot bg-orange-500" aria-hidden="true">R</span><span class="fs-row-name">Reddit</span><span class="fs-check" aria-hidden="true"><i data-lucide="check"></i></span></button>
+<button class="distraction-row selected" data-name="Shopping" type="button" aria-pressed="true" onclick="toggleDistraction(this)"><span class="app-dot bg-cyan-500" aria-hidden="true"><i data-lucide="shopping-bag"></i></span><span class="fs-row-name">Shopping</span><span class="fs-check" aria-hidden="true"><i data-lucide="check"></i></span></button>
+<button class="distraction-row selected" data-name="News" type="button" aria-pressed="true" onclick="toggleDistraction(this)"><span class="app-dot bg-blue-500" aria-hidden="true"><i data-lucide="newspaper"></i></span><span class="fs-row-name">News</span><span class="fs-check" aria-hidden="true"><i data-lucide="check"></i></span></button>
 </div>
-<button class="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold text-xs mt-auto" id="distractionSaveButton" type="button" onclick="saveDistractions()">Fertig</button>
+<div class="fs-note"><i data-lucide="info" aria-hidden="true"></i><p>Diese Web-Version sperrt Apps nicht technisch. Deine Auswahl gilt für die Sitzung und wird im Timer als Fokus-Schutz angezeigt. In der iPhone-App öffnet sich hier die Auswahl von Bildschirmzeit.</p></div>
+</div>
+<div class="fs-bottom"><button class="fs-save" id="distractionSaveButton" type="button" onclick="saveDistractions()"><i data-lucide="check"></i> Auswahl übernehmen</button></div>
 </div>
 <div class="app-screen flow-screen hidden" id="app-screen-goal">
   <div class="mission-goal-shell">
@@ -347,9 +351,8 @@
         <span class="mg-schedule-hint">optional</span>
       </div>
 
-      <!-- A. Schedule board: deadline, start and preparation time at a glance -->
+      <!-- v17.8: one neutral planning card — deadline first, then preparation route and start. -->
       <div class="mg-plan-board" id="mgScheduleBoard">
-        <div class="mg-plan-board-grid" aria-hidden="true"></div>
         <div class="mg-plan-board-inner">
           <div class="mg-board-empty" id="mgTimelineEmpty">
             <span class="mg-board-empty-icon" aria-hidden="true"><i data-lucide="calendar-days"></i></span>
@@ -359,67 +362,63 @@
             </div>
           </div>
 
+          <button type="button" class="mg-deadline-trigger" id="mgDeadlineTrigger" onclick="openMissionCalendarSheet('deadline', this)" aria-label="Prüfung oder Abgabe auswählen">
+            <span class="mg-deadline-icon" aria-hidden="true"><i data-lucide="calendar"></i></span>
+            <span class="mg-deadline-copy">
+              <span class="mg-deadline-kicker">PRÜFUNG / ABGABE</span>
+              <strong class="mg-deadline-val is-placeholder" id="mgDeadlineValue">Datum auswählen</strong>
+            </span>
+            <span class="mg-deadline-cta" aria-hidden="true"><i class="mg-cta-empty" data-lucide="chevron-right"></i><i class="mg-cta-edit" data-lucide="pencil"></i></span>
+          </button>
+
           <div class="mg-timeline-active hidden" id="mgTimelineActive">
             <div class="mg-route" role="group" aria-label="Vorbereitungszeitraum">
               <div class="mg-route-node is-start">
                 <span class="mg-route-role">START</span>
                 <strong class="mg-route-date" id="mgTimelineStartLabel">Heute</strong>
               </div>
-              <div class="mg-route-connector" aria-hidden="true"><span class="mg-route-line"></span></div>
+              <div class="mg-route-connector">
+                <span class="mg-route-line" aria-hidden="true"></span>
+                <span class="mg-timeline-days" id="mgTimelineDaysBadge"></span>
+              </div>
               <div class="mg-route-node is-end">
                 <span class="mg-route-role">ZIEL</span>
-                <strong class="mg-route-date" id="mgTimelineEndLabel">–</strong>
+                <span class="mg-route-flag" aria-hidden="true"><i data-lucide="flag"></i></span>
               </div>
             </div>
-            <div class="mg-board-facts">
-              <span class="mg-timeline-days" id="mgTimelineDaysBadge"></span>
-              <span class="mg-board-live-summary" id="mgScheduleLiveSummary"></span>
+          </div>
+
+          <div class="mg-prep-start-block hidden" id="mgPrepStartBlock">
+            <div class="mg-sub-head">
+              <span class="mg-sub-label">Wann startest du?</span>
               <button type="button" class="mg-board-reset hidden" id="mgDeadlineClearBtn" onclick="clearMissionDeadline(event)" aria-label="Datum zurücksetzen" title="Datum zurücksetzen">
                 <i data-lucide="rotate-ccw" aria-hidden="true"></i><span>Zurücksetzen</span>
               </button>
             </div>
+            <div class="mg-start-chips" id="mgStartModeChips" role="group" aria-label="Start der Vorbereitung">
+              <button type="button" class="mg-start-chip active" data-start-mode="immediate" onclick="selectMissionStartMode('immediate')">
+                <span class="mg-start-rec-mark hidden">Empfohlen</span>
+                <span class="mg-start-chip-label">Sofort</span>
+                <span class="mg-start-chip-date"></span>
+              </button>
+              <button type="button" class="mg-start-chip" data-start-mode="one_week_before" onclick="selectMissionStartMode('one_week_before')">
+                <span class="mg-start-rec-mark hidden">Empfohlen</span>
+                <span class="mg-start-chip-label">1 Woche vorher</span>
+                <span class="mg-start-chip-date"></span>
+              </button>
+              <button type="button" class="mg-start-chip" data-start-mode="two_weeks_before" onclick="selectMissionStartMode('two_weeks_before')">
+                <span class="mg-start-rec-mark hidden">Empfohlen</span>
+                <span class="mg-start-chip-label">2 Wochen vorher</span>
+                <span class="mg-start-chip-date"></span>
+              </button>
+              <button type="button" class="mg-start-chip is-custom" data-start-mode="custom" onclick="selectMissionStartMode('custom')">
+                <span class="mg-start-custom-icon" aria-hidden="true"><i data-lucide="calendar-plus"></i></span>
+                <span class="mg-start-chip-label">Eigene Wahl</span>
+                <span class="mg-start-rec-mark hidden">Empfohlen</span>
+                <span class="mg-start-chip-date"></span>
+              </button>
+            </div>
           </div>
-
-          <div class="mg-board-actions">
-            <button type="button" class="mg-deadline-trigger" id="mgDeadlineTrigger" onclick="openMissionCalendarSheet('deadline', this)" aria-label="Prüfung oder Abgabe auswählen">
-              <span class="mg-deadline-icon" aria-hidden="true"><i data-lucide="calendar"></i></span>
-              <span class="mg-deadline-copy">
-                <span class="mg-deadline-kicker">PRÜFUNG / ABGABE</span>
-                <strong class="mg-deadline-val is-placeholder" id="mgDeadlineValue">Datum auswählen</strong>
-              </span>
-              <span class="mg-deadline-cta" aria-hidden="true"><i class="mg-cta-empty" data-lucide="chevron-right"></i><i class="mg-cta-edit" data-lucide="pencil"></i></span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- B. Preparation start (shown once a deadline is selected) -->
-      <div class="mg-prep-start-block hidden" id="mgPrepStartBlock">
-        <div class="mg-sub-head">
-          <span class="mg-sub-label">Wann startest du?</span>
-        </div>
-        <div class="mg-start-chips" id="mgStartModeChips" role="group" aria-label="Start der Vorbereitung">
-          <button type="button" class="mg-start-chip active" data-start-mode="immediate" onclick="selectMissionStartMode('immediate')">
-            <span class="mg-start-rec-mark hidden">Empfohlen</span>
-            <span class="mg-start-chip-label">Sofort</span>
-            <span class="mg-start-chip-date"></span>
-          </button>
-          <button type="button" class="mg-start-chip" data-start-mode="one_week_before" onclick="selectMissionStartMode('one_week_before')">
-            <span class="mg-start-rec-mark hidden">Empfohlen</span>
-            <span class="mg-start-chip-label">1 Woche vorher</span>
-            <span class="mg-start-chip-date"></span>
-          </button>
-          <button type="button" class="mg-start-chip" data-start-mode="two_weeks_before" onclick="selectMissionStartMode('two_weeks_before')">
-            <span class="mg-start-rec-mark hidden">Empfohlen</span>
-            <span class="mg-start-chip-label">2 Wochen vorher</span>
-            <span class="mg-start-chip-date"></span>
-          </button>
-          <button type="button" class="mg-start-chip is-custom" data-start-mode="custom" onclick="selectMissionStartMode('custom')">
-            <span class="mg-start-custom-icon" aria-hidden="true"><i data-lucide="calendar-plus"></i></span>
-            <span class="mg-start-chip-label">Eigene Wahl</span>
-            <span class="mg-start-rec-mark hidden">Empfohlen</span>
-            <span class="mg-start-chip-date"></span>
-          </button>
         </div>
       </div>
 
@@ -524,26 +523,21 @@
   </div>
 </div>
 <!-- LEARNING FLOW: Generierter Plan -->
-<div class="app-screen flow-screen p-5 flex flex-col flex-1 hidden bg-slate-50" id="app-screen-plan">
-<div class="flex items-center justify-between mb-4"><button class="fm-top-back-btn w-10 h-10 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-600" onclick="navigateBack()" title="Zurück" aria-label="Zurück" type="button"><i class="w-4 h-4" data-lucide="arrow-left"></i></button><span class="text-[9px] font-black uppercase tracking-[.18em] text-slate-400">Focus Mission</span><button class="w-10 h-10 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-500" onclick="navigateForward('goal',{parent:'plan',rootSection:'missions'})" title="Mission bearbeiten" aria-label="Mission bearbeiten" type="button"><i class="w-4 h-4" data-lucide="pencil"></i></button></div>
-<div class="rounded-3xl p-4 text-white shadow-xl mb-4 mission-plan-hero" id="aiPlanHero">
-<div class="flex justify-between items-start"><div><div class="text-[8px] font-bold text-indigo-300 uppercase tracking-wider" id="aiPlanEyebrow">Mathematik · Mission</div><h3 class="text-lg font-black leading-tight mt-1" id="aiPlanTitle">Deine Focus Mission</h3></div><div class="w-11 h-11 rounded-2xl bg-white/10 flex items-center justify-center"><i class="w-5 h-5 text-indigo-300" data-lucide="function-square"></i></div></div>
-<div class="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-white/10"><div><div class="text-[8px] text-slate-400">Frist</div><div class="text-[10px] font-bold mt-0.5" id="aiPlanDeadline">Nicht angegeben</div></div><div><div class="text-[8px] text-slate-400">Gesamt</div><div class="text-[10px] font-bold mt-0.5" id="aiPlanTotal">–</div></div><div><div class="text-[8px] text-slate-400">Sitzungen</div><div class="text-[10px] font-bold mt-0.5" id="aiPlanSessionCount">–</div></div></div>
-</div>
-<div class="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-2">Deine Missionsschritte</div>
-<div class="space-y-0 mb-4" id="aiPlanSteps">
-<div class="flow-step-line flex gap-3 pb-3"><div class="w-7 h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[9px] font-black shrink-0">1</div><div class="flex-1 pt-0.5"><div class="flex justify-between gap-2"><div class="text-[10px] font-bold text-slate-800">Schneller Wissenscheck</div><span class="text-[9px] font-bold text-indigo-600">10 Min.</span></div><div class="text-[9px] text-slate-400 mt-1">5 Diagnoseaufgaben · empfohlen</div></div></div>
-<div class="flow-step-line flex gap-3 pb-3"><div class="w-7 h-7 rounded-full bg-white border border-slate-200 text-slate-500 flex items-center justify-center text-[9px] font-black shrink-0">2</div><div class="flex-1 pt-0.5"><div class="flex justify-between gap-2"><div class="text-[10px] font-bold text-slate-700">Formeln verstehen</div><span class="text-[9px] text-slate-400">20 Min.</span></div><div class="text-[9px] text-slate-400 mt-1">Schlüsselwissen für die Aufgaben</div></div></div>
-<div class="flow-step-line flex gap-3 pb-3"><div class="w-7 h-7 rounded-full bg-white border border-slate-200 text-slate-500 flex items-center justify-center text-[9px] font-black shrink-0">3</div><div class="flex-1 pt-0.5"><div class="flex justify-between gap-2"><div class="text-[10px] font-bold text-slate-700">Aufgaben 1–10 lösen</div><span class="text-[9px] text-slate-400">35 Min.</span></div><div class="text-[9px] text-slate-400 mt-1">Praxisblock · hohe Relevanz</div></div></div>
-<div class="flow-step-line flex gap-3"><div class="w-7 h-7 rounded-full bg-white border border-slate-200 text-slate-500 flex items-center justify-center text-[9px] font-black shrink-0">4</div><div class="flex-1 pt-0.5"><div class="flex justify-between gap-2"><div class="text-[10px] font-bold text-slate-700">Üben &amp; selbst prüfen</div><span class="text-[9px] text-slate-400">65 Min.</span></div><div class="text-[9px] text-slate-400 mt-1">Aufgaben 11–20 + Kurztest</div></div></div>
-</div>
-<div class="p-3 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-start gap-2.5 mb-4"><i class="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" data-lucide="brain-circuit"></i><p class="text-[9px] leading-relaxed text-indigo-800" id="aiPlanExplanation"><strong>Warum so?</strong> Der Plan wurde anhand deiner Angaben erstellt.</p></div>
-<button class="w-full p-3 rounded-2xl bg-white border border-slate-200 text-left mb-3 shadow-sm" id="missionProtectionCard" onclick="openDistractionPicker('plan')">
-<div class="flex items-center justify-between"><div class="flex items-center gap-2.5"><div class="w-9 h-9 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center"><i class="w-4 h-4" data-lucide="shield-off"></i></div><div><div class="text-[8px] font-black uppercase tracking-wider text-slate-400">Fokus-Schutz</div><div class="text-[10px] font-bold text-slate-800 mt-0.5"><span class="blockedCount">7</span> Ablenkungen blockiert</div><div class="text-[8px] text-slate-400 mt-0.5 blockedSummary">TikTok · Instagram · Spiele +4</div></div></div><i class="w-4 h-4 text-slate-300" data-lucide="chevron-right"></i></div>
-<div class="mt-2 pt-2 border-t border-slate-100 text-[8px] text-emerald-600 font-semibold">Alle anderen Apps bleiben verfügbar.</div>
-</button>
-<button class="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold text-xs shadow-lg shadow-indigo-100 flex items-center justify-center gap-2 mt-auto" id="missionStartButton" onclick="prepareLearningSession()"><i class="w-4 h-4" data-lucide="play"></i> Aktuellen Schritt starten</button>
-<button class="w-full py-2.5 text-[10px] font-semibold text-slate-400" onclick="navigateForward('goal',{parent:'plan',rootSection:'missions'})" type="button">Mission anpassen</button>
+<div class="app-screen flow-screen hidden mp-screen" id="app-screen-plan">
+<div class="mp-topbar"><button class="fm-top-back-btn mp-icon-btn" onclick="navigateBack()" title="Zurück" aria-label="Zurück" type="button"><i data-lucide="arrow-left"></i></button><span class="mp-topbar-label">Focus Mission</span><button class="mp-icon-btn" onclick="navigateForward('goal',{parent:'plan',rootSection:'missions'})" title="Mission bearbeiten" aria-label="Mission bearbeiten" type="button"><i data-lucide="pencil"></i></button></div>
+<section class="mp-hero mission-plan-hero" id="aiPlanHero" aria-labelledby="aiPlanTitle">
+<div class="mp-hero-head"><span class="mp-hero-emblem" id="aiPlanEmblem" aria-hidden="true"><i data-lucide="target"></i></span><span class="mp-hero-eyebrow" id="aiPlanEyebrow">Focus Mission</span><span class="mp-hero-deadline hidden" id="aiPlanDeadlineBadge"><i data-lucide="calendar-days"></i><span class="fm-sr-only">Frist: </span><span id="aiPlanDeadline">Nicht angegeben</span></span></div>
+<h3 class="mp-hero-title" id="aiPlanTitle">Deine Focus Mission</h3>
+<div class="mp-hero-progress"><div class="mp-hero-percent"><strong id="aiPlanPercent">0</strong><span>%</span></div><div class="mp-hero-progress-copy"><b id="aiPlanStatus">Bereit für den ersten Schritt</b><span id="aiPlanProgressText">0 von 0 Schritten erledigt</span></div></div>
+<ol class="mp-route" id="aiPlanRoute" aria-hidden="true"></ol>
+<dl class="mp-hero-meta"><div><dt>Offen</dt><dd id="aiPlanSessionCount">–</dd></div><div><dt>Restzeit</dt><dd id="aiPlanTotal">–</dd></div><div><dt>Nächster Fokus</dt><dd id="aiPlanNextFocus">–</dd></div></dl>
+</section>
+<div class="mp-section-head"><h4>Deine Missionsschritte</h4><span id="aiPlanStepsMeta"></span></div>
+<div class="mp-steps" id="aiPlanSteps"></div>
+<button class="mp-protect" id="missionProtectionCard" type="button" onclick="openDistractionPicker('plan')" data-protection-summary="true"><span class="mp-protect-icon" aria-hidden="true"><i data-lucide="shield-check"></i></span><span class="mp-protect-copy"><small>Fokus-Schutz</small><strong><span class="blockedCount">7</span> <span class="mp-protect-unit">Ablenkungen ausgewählt</span></strong><em class="blockedSummary">TikTok · Instagram · YouTube +4</em></span><i class="mp-protect-chevron" data-lucide="chevron-right"></i></button>
+<div class="mp-why-card"><button class="mp-why-toggle" type="button" aria-expanded="false" aria-controls="aiPlanExplanation" onclick="toggleMissionWhyV178(this)"><span class="mp-why-icon" aria-hidden="true"><i data-lucide="brain-circuit"></i></span><span class="mp-why-copy"><b>Warum so?</b><small>So ist deine Mission aufgebaut</small></span><i class="mp-why-chevron" data-lucide="chevron-down"></i></button><p class="mp-why-text" id="aiPlanExplanation">Der Plan wurde anhand deiner Angaben erstellt.</p></div>
+<button class="mp-start" id="missionStartButton" type="button" onclick="prepareLearningSession()"><i data-lucide="play"></i> Aktuellen Schritt starten</button>
+<button class="mp-adjust" onclick="navigateForward('goal',{parent:'plan',rootSection:'missions'})" type="button">Mission anpassen</button>
 </div>
 <!-- LEARNING FLOW: Ergebnis & Feedback (v17.7) -->
 <div class="app-screen flow-screen hidden" id="app-screen-result">
@@ -1208,15 +1202,14 @@
 </div>
 </div>
 <!-- V17.3 Floating Bottom Navigation Dock -->
-<nav aria-label="Hauptnavigation" class="fm-bottom-nav" id="bottomNavigationV17">
+<nav aria-label="Hauptnavigation" class="fm-bottom-nav" data-lit="home" id="bottomNavigationV17">
   <div class="fm-bottom-nav-inner">
+    <span aria-hidden="true" class="fm-nav-glider" id="bottomNavGlider"><span class="fm-nav-glider-bar"></span></span>
     <button aria-current="page" aria-label="Home" class="fm-nav-item active" data-nav-section="home" id="bottomNavHome" onclick="navigateToRoot('home')" type="button">
-      <span aria-hidden="true" class="fm-nav-indicator"></span>
       <span aria-hidden="true" class="fm-nav-icon"><i data-lucide="home"></i></span>
       <span class="fm-nav-label">Home</span>
     </button>
     <button aria-label="Missionen" class="fm-nav-item" data-nav-section="missions" id="bottomNavMissions" onclick="navigateToRoot('missions')" type="button">
-      <span aria-hidden="true" class="fm-nav-indicator"></span>
       <span aria-hidden="true" class="fm-nav-icon"><i data-lucide="target"></i></span>
       <span class="fm-nav-label">Missionen</span>
     </button>
@@ -1226,12 +1219,10 @@
       </button>
     </div>
     <button aria-label="Verlauf" class="fm-nav-item" data-nav-section="history" id="bottomNavHistory" onclick="navigateToRoot('history')" type="button">
-      <span aria-hidden="true" class="fm-nav-indicator"></span>
       <span aria-hidden="true" class="fm-nav-icon"><i data-lucide="clock-3"></i></span>
       <span class="fm-nav-label">Verlauf</span>
     </button>
     <button aria-label="Profil" class="fm-nav-item" data-nav-section="settings" id="bottomNavSettings" onclick="navigateToRoot('settings')" type="button">
-      <span aria-hidden="true" class="fm-nav-indicator"></span>
       <span aria-hidden="true" class="fm-nav-icon"><i data-lucide="user"></i></span>
       <span class="fm-nav-label">Profil</span>
     </button>

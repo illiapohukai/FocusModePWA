@@ -42,7 +42,7 @@ html,body{width:100%;max-width:100%;overflow-x:clip!important;overscroll-behavio
 .flow-glass{background:linear-gradient(145deg,rgba(255,255,255,.98),rgba(248,250,252,.92));border:1px solid rgba(148,163,184,.20);box-shadow:0 16px 40px rgba(15,23,42,.07)}
 .flow-chip{border:1px solid #e2e8f0;background:#fff;color:#64748b;transition:.2s}.flow-chip.active{border-color:#c7d2fe;background:#eef2ff;color:#4338ca;box-shadow:0 0 0 2px rgba(99,102,241,.08)}
 .flow-file{transition:.25s}.flow-file.selected{border-color:#a5b4fc;background:linear-gradient(145deg,#eef2ff,#fff);box-shadow:0 10px 26px rgba(79,70,229,.10)}
-.flow-step-line{position:relative}.flow-step-line:after{content:"";position:absolute;left:13px;top:29px;width:1px;height:calc(100% - 16px);background:#e2e8f0}.flow-step-line:last-child:after{display:none}
+
 @keyframes flowPulse{0%,100%{opacity:.48;transform:scale(.94)}50%{opacity:1;transform:scale(1)}}.flow-loader-dot{animation:flowPulse 1.15s infinite ease-in-out}.flow-loader-dot:nth-child(2){animation-delay:.15s}.flow-loader-dot:nth-child(3){animation-delay:.3s}
 @keyframes flowCheck{0%{opacity:0;transform:translateY(5px)}100%{opacity:1;transform:none}}.analysis-row.done{animation:flowCheck .35s ease forwards}
 
@@ -226,7 +226,7 @@ nav{max-width:720px;overflow:hidden}nav a{padding:9px 7px;font-size:8px;white-sp
 
 /* === V8 FOCUS PROTECTION FLOW === */
 .quick-option{padding:10px 4px;border:1px solid #e2e8f0;border-radius:12px;background:#fff;color:#64748b;font-size:9px;font-weight:800;transition:.2s}.quick-option.active{border-color:#818cf8;background:#eef2ff;color:#4338ca;box-shadow:0 0 0 2px rgba(99,102,241,.08)}
-.distraction-row{width:100%;display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid #e2e8f0;border-radius:14px;background:#fff;color:#334155;font-size:10px;font-weight:700;text-align:left}.distraction-row>span:nth-child(2){flex:1}.distraction-row>svg{width:15px;height:15px;color:transparent}.distraction-row.selected{border-color:#fecdd3;background:#fff1f2}.distraction-row.selected>svg{color:#e11d48}.app-dot{width:28px;height:28px;border-radius:9px;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900}.app-dot svg{width:14px;height:14px}
+.app-dot{width:28px;height:28px;border-radius:9px;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900}.app-dot svg{width:14px;height:14px}
 /* === END V8 FOCUS PROTECTION FLOW === */
 
 /* === V11 STRICT QUICK SETUP + TIMER === */
@@ -245,7 +245,6 @@ nav{max-width:720px;overflow:hidden}nav a{padding:9px 7px;font-size:8px;white-sp
 /* === END V11 STRICT QUICK SETUP + TIMER === */
 
 /* === V12 FOCUS ORBIT === */
-#distractionSaveButton{margin-top:10px!important;flex-shrink:0!important}
 .orbit-card{min-height:360px}
 .orbit-stars{position:absolute;inset:0;opacity:.36;background-image:radial-gradient(circle at 18% 28%,rgba(255,255,255,.45) 0 1px,transparent 1.5px),radial-gradient(circle at 78% 22%,rgba(196,181,253,.45) 0 1px,transparent 1.5px),radial-gradient(circle at 84% 64%,rgba(255,255,255,.28) 0 1px,transparent 1.5px),radial-gradient(circle at 29% 74%,rgba(167,139,250,.38) 0 1px,transparent 1.5px)}
 .focus-orbit-stage{position:relative;width:240px;height:210px;margin-top:2px;perspective:700px;transform-style:preserve-3d}
@@ -291,7 +290,6 @@ main.page{display:block!important;position:fixed!important;inset:0!important;wid
 body:after{content:"";position:fixed;z-index:0;left:0;right:0;top:0;height:env(safe-area-inset-top);background:var(--pwa-status-bg,#f8fafc);transition:background .25s ease;pointer-events:none}
 html.pwa-dark-status,html.pwa-dark-status body{background:#0f1328!important}html.pwa-dark-status body:after{background:var(--pwa-status-bg,#0f1328)}
 /* remove the clipped green line under focus protection in the generated mission plan */
-#missionProtectionCard>div:last-child{display:none!important}
 /* install helper */
 #pwaInstallHelp{position:fixed;inset:0;z-index:9999;background:#03050cb8;backdrop-filter:blur(18px);display:none;align-items:flex-end;padding:16px 16px calc(16px + env(safe-area-inset-bottom));pointer-events:auto!important}#pwaInstallHelp.open{display:flex}#pwaInstallCard{width:100%;padding:20px;border-radius:26px;background:#fff;color:#0f172a;box-shadow:0 25px 80px #0005}#pwaInstallCard h2{margin:0;font-size:20px;font-weight:900}#pwaInstallCard p{margin:8px 0 16px;color:#64748b;font-size:13px;line-height:1.55}#pwaInstallCard ol{border:0;margin:0;padding-left:20px;list-style:decimal}#pwaInstallCard li{border:0;padding:6px 0;font-size:13px;font-weight:650}#pwaInstallCard button{width:100%;margin-top:14px;padding:13px;border:0;border-radius:14px;background:#4f46e5;color:#fff;font-weight:800}
 @media(max-width:430px) and (min-height:700px){
@@ -315,12 +313,9 @@ html.pwa-dark-status,html.pwa-dark-status body{background:#0f1328!important}html
 /* === REAL AI MISSION V6 === */
 #selectedFileCard img{width:44px;height:44px;object-fit:cover;border-radius:12px}
 #missionPlanButton.ai-loading{opacity:.7!important;cursor:wait!important}
-#aiPlanSteps .flow-step-line:last-child:after{display:none}
 /* === END REAL AI MISSION V6 === */
 
 /* === ADAPTIVE MISSION V7 === */
-.mission-step-complete{opacity:.68}.mission-step-complete .step-bubble{background:#dcfce7!important;border-color:#bbf7d0!important;color:#16a34a!important}
-.mission-step-active .step-bubble{background:#4f46e5!important;color:white!important;border-color:#4f46e5!important}
 #adaptMissionButton:disabled{opacity:.58;cursor:wait}
 /* === END ADAPTIVE MISSION V7 === */
 
@@ -336,37 +331,6 @@ html.pwa-dark-status #screenWrapper,html.pwa-dark-status #appBody{background:#0f
 #app-screen-analyzing,#app-screen-feedbackprocessing,#app-screen-update{padding-top:calc(24px + env(safe-area-inset-top))!important}
 
 /* PLAN: readable hierarchy. Sticky CTA belongs to the scroll container, not viewport middle. */
-#app-screen-plan{padding:18px 18px calc(24px + env(safe-area-inset-bottom))!important;overflow-y:auto!important;display:block!important}
-#app-screen-plan.hidden{display:none!important}
-#app-screen-plan>div:first-child{margin-bottom:14px!important}
-#app-screen-plan>div:nth-child(2){padding:18px!important;margin-bottom:18px!important;border-radius:28px!important}
-#aiPlanEyebrow{font-size:11px!important;line-height:1.25!important}
-#aiPlanTitle{font-size:24px!important;line-height:1.1!important;letter-spacing:-.025em!important;overflow-wrap:anywhere}
-#aiPlanDeadline,#aiPlanTotal,#aiPlanSessionCount{font-size:14px!important;line-height:1.3!important}
-#app-screen-plan>div:nth-child(3){font-size:12px!important;margin-bottom:10px!important}
-#aiPlanSteps{display:flex;flex-direction:column;gap:10px;margin-bottom:16px!important}
-#aiPlanSteps .flow-step-line{padding:13px!important;gap:11px!important;border:1px solid #e2e8f0;border-radius:20px;background:#fff;box-shadow:0 8px 24px rgba(15,23,42,.04);overflow:hidden}
-#aiPlanSteps .flow-step-line:after{display:none!important}
-#aiPlanSteps .mission-step-active{padding:17px!important;gap:13px!important;border-color:#c7d2fe;background:linear-gradient(145deg,#eef2ff,#fff);box-shadow:0 14px 32px rgba(79,70,229,.11)}
-#aiPlanSteps .step-bubble{width:31px!important;height:31px!important;font-size:12px!important}
-#aiPlanSteps .mission-step-active .step-bubble{width:38px!important;height:38px!important;font-size:14px!important;box-shadow:0 8px 18px rgba(79,70,229,.2)}
-#aiPlanSteps .step-content{min-width:0}
-#aiPlanSteps .step-head{align-items:flex-start!important}
-#aiPlanSteps .step-title{font-size:15px!important;line-height:1.32!important;color:#334155!important;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:1;overflow:hidden}
-#aiPlanSteps .step-time{font-size:13px!important;line-height:1!important;white-space:nowrap;color:#64748b!important}
-#aiPlanSteps .step-task{font-size:13px!important;line-height:1.45!important;color:#94a3b8!important;margin-top:7px!important;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
-#aiPlanSteps .mission-step-active .step-title{font-size:18px!important;line-height:1.24!important;color:#172033!important;-webkit-line-clamp:unset}
-#aiPlanSteps .mission-step-active .step-time{font-size:14px!important;padding:7px 9px;border-radius:999px;background:#fff;color:#4f46e5!important;box-shadow:0 4px 12px rgba(79,70,229,.1)}
-#aiPlanSteps .mission-step-active .step-task{font-size:15px!important;line-height:1.5!important;color:#59657a!important;margin-top:10px!important;-webkit-line-clamp:unset}
-#aiPlanSteps .mission-step-complete{opacity:.68;padding:11px 13px!important}
-#aiPlanSteps .mission-step-complete .step-task{display:none!important}
-#aiPlanExplanation{font-size:14px!important;line-height:1.5!important}
-#missionProtectionCard{min-height:86px!important;padding:14px!important;margin-bottom:14px!important;overflow:hidden!important}
-#missionProtectionCard .blockedSummary{font-size:12px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:225px}
-#missionProtectionCard .text-\[8px\]{font-size:11px!important}
-#missionProtectionCard .text-\[10px\]{font-size:14px!important}
-#missionStartButton{position:sticky!important;left:auto!important;right:auto!important;bottom:calc(10px + env(safe-area-inset-bottom))!important;width:100%!important;height:62px!important;z-index:30!important;margin-top:14px!important;font-size:17px!important;border-radius:20px!important;box-shadow:0 18px 38px rgba(79,70,229,.28)!important}
-#missionStartButton+button{font-size:13px!important;padding:13px!important}
 
 /* HOME: bound dynamic AI copy; keep Rank and Plan-Serie. */
 #app-screen-home{padding:18px 18px calc(98px + env(safe-area-inset-bottom))!important;overflow-y:auto!important}
@@ -409,7 +373,7 @@ html.pwa-dark-status #screenWrapper,html.pwa-dark-status #appBody{background:#0f
 #timerCaption{font-size:11px!important}
 .timer-info-label{font-size:10px!important}.timer-info-value,.timer-blocked-value{font-size:13px!important}
 
-@media(max-width:430px) and (max-height:760px){#app-screen-plan{padding-bottom:18px!important}#app-screen-update h3{font-size:26px!important}#app-screen-timer{overflow-y:auto!important}}
+@media(max-width:430px) and (max-height:760px){#app-screen-update h3{font-size:26px!important}#app-screen-timer{overflow-y:auto!important}}
 /* === END MOBILE UI V8.1 === */
 
 /* === ULTRA COSMIC V9.1 === */
@@ -463,28 +427,6 @@ html.pwa-dark-status #screenWrapper,html.pwa-dark-status #appBody{background:#0f
 @media(max-width:380px){#app-screen-home #activeMissionCard{flex-basis:258px!important;height:258px!important;min-height:258px!important;max-height:258px!important;padding:13px 14px!important}#activeMissionCard>div.relative{grid-template-rows:auto 84px auto!important;gap:7px!important}#activeMissionCard h3{font-size:18.5px!important}#activeMissionCard .active-mission-step{height:84px!important;min-height:84px!important;max-height:84px!important}}
 
 
-/* === MISSION DEPTH V10.5 === */
-#app-screen-plan{perspective:1100px;perspective-origin:50% 42%}
-#app-screen-plan>div:nth-child(2){box-shadow:0 25px 58px rgba(30,27,75,.20),inset 0 1px 0 rgba(255,255,255,.08)!important}
-#aiPlanSteps{position:relative;isolation:isolate;padding:8px 0 22px;overflow:visible!important}
-#aiPlanSteps .flow-step-line{position:relative;transform-origin:center;will-change:transform,filter,opacity;transition:transform 520ms cubic-bezier(.16,1,.3,1),filter 420ms ease,opacity 360ms ease,box-shadow 520ms ease!important;box-shadow:0 9px 25px rgba(15,23,42,.045),inset 0 1px 0 rgba(255,255,255,.92)!important}
-#aiPlanSteps .mission-depth-near{z-index:2;opacity:.69!important;filter:blur(1.2px) saturate(.88);transform:translateZ(-18px) scale(.978)}
-#aiPlanSteps .mission-depth-far{z-index:1;opacity:.42!important;filter:blur(2.3px) saturate(.76);transform:translateZ(-40px) scale(.952)}
-#aiPlanSteps .mission-depth-before{transform:translateY(5px) translateZ(-18px) scale(.978)}
-#aiPlanSteps .mission-depth-after{transform:translateY(-5px) translateZ(-18px) scale(.978)}
-#aiPlanSteps .mission-step-active{z-index:5;display:grid!important;grid-template-columns:52px minmax(0,1fr)!important;column-gap:15px!important;padding:20px!important;border-color:rgba(129,140,248,.4)!important;border-radius:28px!important;background:linear-gradient(148deg,#fff,rgba(247,247,255,.97))!important;box-shadow:0 29px 64px rgba(79,70,229,.18),0 10px 27px rgba(15,23,42,.09),inset 0 1px 0 #fff!important;transform:translateZ(32px) scale(1.012)!important;filter:none!important;opacity:1!important;overflow:visible!important}
-#aiPlanSteps .mission-step-active:before{content:"AKTUELL";position:absolute;left:87px;top:20px;color:#5146ee;font-size:11px;line-height:1;letter-spacing:.09em;font-weight:900}
-#aiPlanSteps .mission-step-active .step-bubble{grid-column:1;grid-row:1;width:52px!important;height:52px!important;margin-top:8px;border:0!important;color:#fff!important;font-size:20px!important;background:linear-gradient(145deg,#4638f4,#6947ff)!important;box-shadow:0 13px 28px rgba(79,70,229,.31),inset 0 1px 0 rgba(255,255,255,.34)!important}
-#aiPlanSteps .mission-step-active .step-content{grid-column:2;grid-row:1;padding-top:25px!important;overflow:visible!important}
-#aiPlanSteps .mission-step-active .step-head{align-items:flex-start!important}
-#aiPlanSteps .mission-step-active .step-title{display:block!important;overflow:visible!important;-webkit-line-clamp:unset!important;font-size:20px!important;line-height:1.22!important;letter-spacing:-.02em;padding-right:4px}
-#aiPlanSteps .mission-step-active .step-time{flex:none;margin-top:-27px;padding:9px 12px!important;border-radius:999px;color:#4f46e5!important;background:linear-gradient(145deg,#eef2ff,#f5f3ff)!important;box-shadow:inset 0 0 0 1px rgba(129,140,248,.13),0 6px 16px rgba(79,70,229,.08)!important}
-#aiPlanSteps .mission-step-active .step-task{display:block!important;overflow:visible!important;-webkit-line-clamp:unset!important;max-height:none!important;margin-top:12px!important;color:#65708a!important;font-size:15px!important;line-height:1.48!important}
-.mission-active-start{grid-column:1/-1;width:100%;min-height:58px;margin-top:18px;border:0;border-radius:18px;color:#fff;background:linear-gradient(110deg,#4738f3,#6040ef 58%,#5435dc);box-shadow:0 15px 31px rgba(79,70,229,.25),inset 0 1px 0 rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;gap:9px;font-size:16px;font-weight:900}.mission-active-start svg{width:20px;height:20px}#missionStartButton{display:none!important}
-#aiPlanSteps .mission-step-future{cursor:pointer}
-#aiPlanSteps .mission-step-future:hover{filter:none;opacity:.84!important;transform:translateZ(-8px) scale(.99)!important}
-@media(max-width:380px){#aiPlanSteps .mission-step-active{grid-template-columns:45px minmax(0,1fr)!important;column-gap:12px!important;padding:17px!important}#aiPlanSteps .mission-step-active:before{left:74px;top:18px;font-size:10px}#aiPlanSteps .mission-step-active .step-bubble{width:45px!important;height:45px!important;font-size:18px!important}#aiPlanSteps .mission-step-active .step-title{font-size:18px!important}#aiPlanSteps .mission-step-active .step-time{font-size:12px!important;padding:8px 9px!important}#aiPlanSteps .mission-step-active .step-task{font-size:14px!important}.mission-active-start{min-height:54px;font-size:15px}}
-/* === END MISSION DEPTH V10.5 === */
 
 /* === QUICK CONTEXT + BLOCKED CARD V10.6 === */
 /* All three stat labels use the same row box and baseline. */

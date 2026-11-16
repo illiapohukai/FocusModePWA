@@ -266,35 +266,54 @@ html body #screenWrapper #appBody.fm-root-swipe-active.fm-root-swipe-backward > 
   pointer-events: auto !important;
 }
 
+/* v17.8 dock emphasis: one timing for glider, icon and label.
+   --fm-dock-dur is set per transition by MotionController.syncDockIndicator. */
+#bottomNavigationV17 {
+  --fm-dock-dur: var(--motion-normal);
+  --fm-dock-ease: var(--ease-standard);
+}
+
 #bottomNavigationV17 .fm-nav-item {
   transition:
-    background-color var(--motion-fast) var(--ease-standard),
-    border-color var(--motion-fast) var(--ease-standard),
-    color var(--motion-fast) var(--ease-standard),
+    color var(--fm-dock-dur) var(--fm-dock-ease),
     transform var(--motion-fast) var(--ease-soft-spring);
 }
 
-#bottomNavigationV17 .fm-nav-item .fm-nav-indicator {
+#bottomNavigationV17 .fm-nav-item:active {
+  transform: scale(0.95);
+}
+
+#bottomNavigationV17 .fm-nav-icon {
+  transform: scale(calc(1 + 0.06 * var(--fm-emph, 0)));
+  transition: transform var(--fm-dock-dur) var(--fm-dock-ease);
+}
+
+#bottomNavigationV17 .fm-nav-icon svg {
   transition:
-    width var(--motion-normal) var(--ease-soft-spring),
-    opacity var(--motion-fast) var(--ease-standard),
-    transform var(--motion-normal) var(--ease-soft-spring),
-    background-color var(--motion-normal) var(--ease-standard);
+    color var(--fm-dock-dur) var(--fm-dock-ease),
+    stroke-width var(--fm-dock-dur) var(--fm-dock-ease);
 }
 
-#bottomNavigationV17 .fm-nav-item .fm-nav-icon {
-  transition: transform var(--motion-normal) var(--ease-soft-spring);
+#bottomNavigationV17 .fm-nav-label {
+  transition: color var(--fm-dock-dur) var(--fm-dock-ease);
 }
 
-#bottomNavigationV17 .fm-nav-item.active .fm-nav-icon {
-  transform: scale(1.06);
+#bottomNavigationV17 .fm-nav-plus-slot {
+  z-index: 2;
 }
 
-#bottomNavigationV17 .fm-nav-item .fm-nav-label {
-  transition:
-    opacity var(--motion-fast) var(--ease-standard),
-    color var(--motion-fast) var(--ease-standard),
-    transform var(--motion-fast) var(--ease-standard);
+/* Interactive root swipe: emphasis follows --fm-emph (0..1) on the two tracked items. */
+#bottomNavigationV17.fm-dock-tracking .fm-nav-item,
+#bottomNavigationV17.fm-dock-tracking .fm-nav-item * {
+  transition: none !important;
+}
+
+#bottomNavigationV17.fm-dock-tracking .fm-nav-item.fm-nav-tracked {
+  color: color-mix(in srgb, var(--text-primary) calc(var(--fm-emph, 0) * 100%), var(--text-secondary)) !important;
+}
+
+#bottomNavigationV17.fm-dock-tracking .fm-nav-item.fm-nav-tracked .fm-nav-icon svg {
+  color: color-mix(in srgb, var(--primary) calc(var(--fm-emph, 0) * 100%), var(--text-secondary)) !important;
 }
 
 #bottomNavPlus {
@@ -483,15 +502,6 @@ html body #screenWrapper #appBody.fm-root-swipe-active.fm-root-swipe-backward > 
     color var(--motion-normal) var(--ease-standard),
     transform var(--motion-normal) var(--ease-soft-spring),
     border-color var(--motion-normal) var(--ease-standard);
-}
-
-#aiPlanSteps .flow-step-line {
-  transition:
-    transform var(--motion-normal) var(--ease-standard),
-    box-shadow var(--motion-normal) var(--ease-standard),
-    background-color var(--motion-normal) var(--ease-standard),
-    border-color var(--motion-normal) var(--ease-standard);
-  will-change: transform, opacity;
 }
 
 /* ==========================================================================

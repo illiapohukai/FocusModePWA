@@ -248,19 +248,72 @@ function finishLearningFlow(){learningFlowActive=false;renderAIPlan(activeAIPlan
 // Restore v7 progress after the v6 restoration handler has run.
 document.addEventListener('DOMContentLoaded',()=>{setTimeout(()=>{loadMissionProgress();if(activeAIPlan){if(!missionProgress.initialSessionCount)missionProgress.initialSessionCount=activeAIPlan.sessions.length;renderAIPlan(activeAIPlan);revealCreatedMission();saveMissionState()}},0)});
 
-let expandedFutureStepV81=null;
-function toggleFutureStepV81(index){expandedFutureStepV81=expandedFutureStepV81===index?null:index;if(activeAIPlan)renderAIPlan(activeAIPlan)}
+let expandedFutureStepV81=null,expandedFutureMissionV178=null;
+function toggleFutureStepV81(index){
+ const owner=activeAIPlan?.id||null;
+ const same=expandedFutureStepV81===index&&expandedFutureMissionV178===owner;
+ expandedFutureStepV81=same?null:index;expandedFutureMissionV178=same?null:owner;
+ const hadFocus=document.activeElement?.closest?.('#aiPlanSteps .mission-step-future');
+ if(activeAIPlan)renderAIPlan(activeAIPlan);
+ if(hadFocus){const card=document.querySelectorAll('#aiPlanSteps .flow-step-line')[index];card?.focus?.({preventScroll:true})}
+}
+function toggleMissionWhyV178(button){
+ const card=button?.closest('.mp-why-card');if(!card)return;
+ const open=!card.classList.contains('is-open');
+ card.classList.toggle('is-open',open);button.setAttribute('aria-expanded',open?'true':'false');
+}
+/* v17.8 Mission Plan: execution view in the Mission's identity tone. Only real values are shown. */
+function missionPlanDeadlineV178(text){
+ const t=String(text||'').trim();
+ if(!t||t==='Nicht angegeben'||t==='ohne Frist')return '';
+ const iso=/^(\d{4})-(\d{2})-(\d{2})$/.exec(t);
+ if(iso){try{return new Date(+iso[1],+iso[2]-1,+iso[3]).toLocaleDateString('de-DE',{day:'numeric',month:'short',year:'numeric'})}catch{return t}}
+ return t;
+}
 function renderAIPlan(plan){
- document.getElementById('aiPlanEyebrow').textContent=plan.goal.subject+' · '+missionTypeLabel(plan.goal.type);
- document.getElementById('aiPlanTitle').textContent=plan.goal.title;
- document.getElementById('aiPlanDeadline').textContent=plan.goal.deadlineText||'Nicht angegeben';
- const remaining=plan.sessions.slice(missionProgress.currentSessionIndex),minutes=remaining.reduce((a,s)=>a+(Number(s.durationMinutes)||0),0);
- document.getElementById('aiPlanTotal').textContent=formatMinutes(minutes);document.getElementById('aiPlanSessionCount').textContent=remaining.length+' offen';
- document.getElementById('aiPlanExplanation').innerHTML='<strong>Warum so?</strong> '+escapeHTML(plan.estimate?.explanation||'Der Plan wird nach jeder Sitzung angepasst.');
- document.getElementById('aiPlanSteps').innerHTML=plan.sessions.map((s,i)=>{const done=i<missionProgress.currentSessionIndex,active=i===missionProgress.currentSessionIndex,future=i>missionProgress.currentSessionIndex,expanded=future&&expandedFutureStepV81===i;const state=done?'mission-step-complete':active?'mission-step-active':'mission-step-future'+(expanded?' expanded':'');const click=future?' onclick="toggleFutureStepV81('+i+')"':'';const bubble=done?'<i data-lucide="check" class="w-3.5 h-3.5"></i>':String(i+1);return '<div class="flow-step-line '+state+' flex"'+click+'><div class="step-bubble rounded-full bg-white border border-slate-200 text-slate-500 flex items-center justify-center font-black shrink-0">'+bubble+'</div><div class="step-content flex-1 min-w-0"><div class="step-head flex justify-between gap-3"><div class="step-title font-bold">'+escapeHTML(s.title)+'</div><span class="step-time font-bold">'+s.durationMinutes+' Min.</span></div><div class="step-task" style="-webkit-line-clamp:'+(expanded?'unset':'2')+'">'+escapeHTML(s.task||s.reason)+'</div></div></div>'}).join('');
+ const sessions=Array.isArray(plan?.sessions)?plan.sessions:[];
+ const idx=missionProgress.currentSessionIndex,total=sessions.length;
+ const done=Math.min(idx,total),current=getCurrentMissionSession();
+ const remaining=sessions.slice(idx),minutes=remaining.reduce((a,s)=>a+(Number(s.durationMinutes)||0),0);
+ const percent=total?Math.round(done/total*100):0;
+ const setText=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v};
+ setText('aiPlanEyebrow',plan.goal.subject+' · '+missionTypeLabel(plan.goal.type));
+ setText('aiPlanTitle',plan.goal.title);
+ const deadline=missionPlanDeadlineV178(plan.goal.deadlineText);
+ setText('aiPlanDeadline',deadline||'Nicht angegeben');
+ document.getElementById('aiPlanDeadlineBadge')?.classList.toggle('hidden',!deadline);
+ const emblem=document.getElementById('aiPlanEmblem');
+ if(emblem)emblem.innerHTML='<i data-lucide="'+(({exam:'graduation-cap',assignment:'clipboard-list',project:'layers-3'})[plan.goal.type]||'target')+'"></i>';
+ setText('aiPlanPercent',String(percent));
+ setText('aiPlanStatus',!current?(total?'Mission abgeschlossen':'Noch keine Schritte'):(done===0?'Bereit für Schritt 1':'Schritt '+(idx+1)+' ist dran'));
+ setText('aiPlanProgressText',done+' von '+total+' '+(total===1?'Schritt':'Schritten')+' erledigt');
+ setText('aiPlanSessionCount',remaining.length+' '+(remaining.length===1?'Schritt':'Schritte'));
+ setText('aiPlanTotal',remaining.length?formatMinutes(minutes):'–');
+ setText('aiPlanNextFocus',current?(current.durationMinutes+' Min.'):'–');
+ setText('aiPlanStepsMeta',total?(total+' '+(total===1?'Schritt':'Schritte')):'');
+ const route=document.getElementById('aiPlanRoute');
+ if(route)route.innerHTML=sessions.map((s,i)=>'<li class="'+(i<idx?'is-done':i===idx?'is-current':'')+'"></li>').join('');
+ setText('aiPlanExplanation',plan.estimate?.explanation||'Der Plan wird nach jeder Sitzung angepasst.');
+ const expandedIndex=expandedFutureMissionV178===(plan.id||null)?expandedFutureStepV81:null;
+ document.getElementById('aiPlanSteps').innerHTML=sessions.map((s,i)=>{
+  const title=escapeHTML(s.title),task=escapeHTML(s.task||s.reason||''),mins=(Number(s.durationMinutes)||0)+' Min.';
+  const reason=String(s.reason||'').trim(),showReason=reason&&reason!==String(s.task||'').trim();
+  if(i<idx)return '<div class="flow-step-line mission-step-complete mp-step"><span class="step-bubble" aria-hidden="true"><i data-lucide="check"></i></span><div class="step-content"><div class="step-head"><span class="step-title">'+title+'</span><span class="step-time">'+mins+'</span></div><span class="mp-step-state"><span class="fm-sr-only">Schritt '+(i+1)+': </span>Erledigt</span></div></div>';
+  if(i===idx){
+   const tools=(Array.isArray(s.requiredTools)?s.requiredTools:[]).map(t=>String(t).trim()).filter(Boolean);
+   return '<article class="flow-step-line mission-step-active mp-step" aria-current="step"><div class="mp-active-top"><span class="mp-active-chip"><span class="mp-live-dot" aria-hidden="true"></span>Aktueller Schritt</span><span class="step-time"><i data-lucide="clock-3"></i>'+mins+'</span></div>'
+    +'<div class="mp-active-main"><span class="step-bubble" aria-hidden="true">'+(i+1)+'</span><div class="step-content"><span class="step-kicker">Schritt '+(i+1)+' von '+total+'</span><h5 class="step-title">'+title+'</h5></div></div>'
+    +(task?'<p class="step-task">'+task+'</p>':'')
+    +(tools.length?'<div class="mp-tools"><span class="mp-tools-label">Du brauchst</span>'+tools.map(t=>'<span class="mp-tool">'+escapeHTML(t)+'</span>').join('')+'</div>':'')
+    +(showReason?'<details class="mp-step-why"><summary><i data-lucide="sparkles"></i><span>Warum dieser Schritt?</span><i class="mp-step-why-chevron" data-lucide="chevron-down"></i></summary><p>'+escapeHTML(reason)+'</p></details>':'')
+    +'</article>';
+  }
+  const expanded=expandedIndex===i;
+  return '<div class="flow-step-line mission-step-future mp-step'+(expanded?' expanded':'')+'" role="button" tabindex="0" aria-expanded="'+(expanded?'true':'false')+'" onclick="toggleFutureStepV81('+i+')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();toggleFutureStepV81('+i+')}"><span class="step-bubble" aria-hidden="true">'+(i+1)+'</span><div class="step-content"><div class="step-head"><span class="step-title"><span class="fm-sr-only">Schritt '+(i+1)+': </span>'+title+'</span><span class="step-time">'+mins+'</span></div>'+(task?'<p class="step-task">'+task+'</p>':'')+(expanded&&showReason?'<p class="mp-step-reason">'+escapeHTML(reason)+'</p>':'')+'</div></div>';
+ }).join('');
  const homeTitle=document.querySelector('#activeMissionCard h3');if(homeTitle)homeTitle.textContent=plan.goal.title;const homeMeta=document.querySelector('#activeMissionCard h3 + p');if(homeMeta)homeMeta.textContent=plan.goal.subject+' · '+(plan.goal.deadlineText||'ohne Frist');
- const current=getCurrentMissionSession();document.getElementById('homeMissionNextStep').textContent=current?.title||'Mission abgeschlossen';document.getElementById('homeMissionMeta').textContent=current?((current.task||current.reason)+' · ca. '+current.durationMinutes+' Min.'):'Alle Schritte bearbeitet';
- const start=document.getElementById('missionStartButton');if(start){start.disabled=!current;start.innerHTML=current?'<i class="w-4 h-4" data-lucide="play"></i> Schritt '+(missionProgress.currentSessionIndex+1)+' starten':'<i class="w-4 h-4" data-lucide="check"></i> Mission abgeschlossen'}
+ document.getElementById('homeMissionNextStep').textContent=current?.title||'Mission abgeschlossen';document.getElementById('homeMissionMeta').textContent=current?((current.task||current.reason)+' · ca. '+current.durationMinutes+' Min.'):'Alle Schritte bearbeitet';
+ const start=document.getElementById('missionStartButton');if(start){start.disabled=!current;start.innerHTML=current?'<i data-lucide="play"></i> Schritt '+(idx+1)+' starten':'<i data-lucide="check"></i> Mission abgeschlossen'}
  updateMissionHome();lucide.createIcons();
 }
 // Real week card only. Rank and Plan-Serie stay intact.
@@ -328,6 +381,27 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
         'Wähle zuerst einen Prüfungstermin oder eine Abgabe.': 'Select an exam date or deadline first.',
         'START': 'START',
         'ZIEL': 'GOAL',
+        'Wann startest du?': 'When do you start?',
+        'Zeitplan': 'Schedule',
+        /* v17.8 Mission Plan and Fokus-Schutz */
+        'Deine Missionsschritte': 'Your mission steps',
+        'Offen': 'Open',
+        'Restzeit': 'Time left',
+        'Nächster Fokus': 'Next focus',
+        'Aktueller Schritt': 'Current step',
+        'Warum so?': 'Why this plan?',
+        'So ist deine Mission aufgebaut': 'How your mission is structured',
+        'Warum dieser Schritt?': 'Why this step?',
+        'Du brauchst': 'You need',
+        'Erledigt': 'Done',
+        'Mission bearbeiten': 'Edit mission',
+        'Mission auswählen': 'Select mission',
+        'Wähle die Apps, die während deiner Fokus-Sitzung tabu sind.': 'Choose the apps that are off-limits during your focus session.',
+        'Alle abwählen': 'Deselect all',
+        'Alle auswählen': 'Select all',
+        'Auswahl übernehmen': 'Apply selection',
+        'Apps für Fokus-Schutz': 'Apps for focus protection',
+        'Diese Web-Version sperrt Apps nicht technisch. Deine Auswahl gilt für die Sitzung und wird im Timer als Fokus-Schutz angezeigt. In der iPhone-App öffnet sich hier die Auswahl von Bildschirmzeit.': 'This web version does not technically block apps. Your selection applies to the session and is shown as focus protection in the timer. In the iPhone app, the Screen Time picker opens here.',
         'Lernrhythmus anpassen': 'Adjust study rhythm',
         'Unter der Woche': 'Weekdays',
         'Wochenende': 'Weekend',
@@ -1331,13 +1405,13 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
       parts.push(snap.preferredSessionMinutes + (isEn ? ' min' : ' Min.'));
     }
     const warningHtml = (typeof activeAIPlan === 'object' && activeAIPlan?.scheduleWarning)
-      ? '<div class="text-[10px] font-semibold text-amber-700 mt-0.5">' + escapeHTML(activeAIPlan.scheduleWarning) + '</div>'
+      ? '<span class="mp-schedule-warning">' + escapeHTML(activeAIPlan.scheduleWarning) + '</span>'
       : '';
     banner.innerHTML =
       '<span class="ai-plan-schedule-preview-icon"><i data-lucide="calendar-check"></i></span>' +
       '<div class="min-w-0 flex-1">' +
-        '<div class="text-[9px] font-black uppercase tracking-[0.11em] text-[#6D28D9]">' + (isEn ? 'SCHEDULE PREVIEW' : 'ZEITPLAN-VORSCHAU') + '</div>' +
-        '<div class="text-[11.5px] font-extrabold text-[#1D1A17] truncate">' + escapeHTML(parts.join(' · ')) + '</div>' +
+        '<span class="mp-schedule-label">' + (isEn ? 'Schedule' : 'Zeitplan') + '</span>' +
+        '<span class="mp-schedule-value">' + escapeHTML(parts.join(' · ')) + '</span>' +
         warningHtml +
       '</div>';
     if (typeof window.lucide?.createIcons === 'function') {
