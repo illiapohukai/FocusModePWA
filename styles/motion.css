@@ -394,10 +394,6 @@ html body #screenWrapper #appBody.fm-root-swipe-active.fm-root-swipe-backward > 
 /* ==========================================================================
    5. FOCUS MODE ENTRY & EXIT — COSMIC TIMER & PROTECTION BADGE
    ========================================================================== */
-#app-screen-timer .uc-planet {
-  will-change: transform, opacity;
-}
-
 #app-screen-timer .uc-protect {
   position: absolute;
   left: 50%;
@@ -582,9 +578,5 @@ html body #screenWrapper #appBody.fm-root-swipe-active.fm-root-swipe-backward > 
   *::after {
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
-  }
-
-  #app-screen-timer .uc-planet {
-    animation: none !important;
   }
 }

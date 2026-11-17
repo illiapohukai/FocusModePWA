@@ -634,12 +634,9 @@
   <div class="uc-headcopy"><div class="uc-kicker">Fokus-Sitzung</div><h2 id="activeTaskLabel">Aktueller Missionsschritt</h2><div class="uc-meta"><span><i data-lucide="book-open"></i><b id="ucDuration">25 Min.</b></span><span id="currentFocusModeLabel">Focus Mission</span></div></div>
 </header>
 <section class="uc-scene" id="ucScene">
-  <canvas id="ucBackCanvas" aria-hidden="true"></canvas>
-  <svg class="uc-main-ring uc-main-ring-back" viewBox="0 0 400 220" aria-hidden="true"><defs><filter id="ucGlowBack"><feGaussianBlur stdDeviation="5"/></filter><linearGradient id="ucBackGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8b5cf6" stop-opacity="0"/><stop offset=".23" stop-color="#8b5cf6" stop-opacity=".16"/><stop offset=".72" stop-color="#c084fc" stop-opacity=".17"/><stop offset="1" stop-color="#c084fc" stop-opacity="0"/></linearGradient></defs><ellipse cx="200" cy="110" rx="174" ry="57" fill="none" stroke="url(#ucBackGrad)" stroke-width="3"/><ellipse cx="200" cy="110" rx="174" ry="57" fill="none" stroke="#a855f7" stroke-opacity=".08" stroke-width="13" filter="url(#ucGlowBack)"/></svg>
-  <svg class="uc-far-orbit" viewBox="0 0 310 310" aria-hidden="true"><ellipse cx="155" cy="155" rx="129" ry="49" fill="none" stroke="#a78bfa" stroke-opacity=".10" stroke-width="1.2" transform="rotate(67 155 155)"/></svg>
-  <div class="uc-planet" aria-hidden="true"><div class="uc-violet-cloud"></div><div class="uc-violet-cloud second"></div><div class="uc-atmosphere"></div><div class="uc-highlight"></div></div>
-  <canvas id="ucFrontCanvas" aria-hidden="true"></canvas>
-  <svg class="uc-main-ring uc-main-ring-front" viewBox="0 0 400 220" aria-hidden="true"><defs><filter id="ucGlow"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><linearGradient id="ucFrontGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8b5cf6" stop-opacity="0"/><stop offset=".13" stop-color="#a78bfa" stop-opacity=".35"/><stop offset=".35" stop-color="#c084fc" stop-opacity=".93"/><stop offset=".68" stop-color="#e9d5ff" stop-opacity="1"/><stop offset=".88" stop-color="#a78bfa" stop-opacity=".42"/><stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/></linearGradient><clipPath id="ucFrontHalf"><rect x="0" y="110" width="400" height="110"/></clipPath></defs><ellipse clip-path="url(#ucFrontHalf)" cx="200" cy="110" rx="174" ry="57" fill="none" stroke="url(#ucFrontGrad)" stroke-width="14" stroke-opacity=".24" filter="url(#ucGlow)"/><ellipse clip-path="url(#ucFrontHalf)" cx="200" cy="110" rx="174" ry="57" fill="none" stroke="url(#ucFrontGrad)" stroke-width="5" filter="url(#ucGlow)"/><ellipse clip-path="url(#ucFrontHalf)" cx="200" cy="110" rx="174" ry="57" fill="none" stroke="#f3e8ff" stroke-opacity=".58" stroke-width="1.2"/></svg>
+  <canvas class="uc-cosmic-layer" id="ucCosmicBackdrop" aria-hidden="true"></canvas>
+  <canvas class="uc-cosmic-layer" id="ucCosmicCanvas" aria-hidden="true"></canvas>
+  <div class="uc-core" id="ucCore" aria-hidden="true"></div>
   <div class="uc-readout"><div id="timerDigits">25:00</div><div id="timerCaption">Minuten verbleibend</div></div>
   <button class="uc-protect" type="button" title="Tippen zum Anpassen" onclick="openDistractionPicker('timer')"><span></span>Fokusschutz aktiv<i data-lucide="chevron-right"></i></button>
 </section>
@@ -1991,6 +1988,7 @@ END V13.2.5 ARCHITECTURE STABILIZATION MANIFEST -->
 <script id="dataResetV16" src="./src/data/data-reset.js"></script>
 <script id="dataManagementControllerV16" src="./src/features/data-management/data-management-controller.js"></script>
 <script id="focusLeagueV176" src="./src/features/league/league.js"></script>
+<script id="cosmicCoreV179" src="./src/core/cosmic-core.js"></script>
 <script id="motionControllerV1732" src="./src/core/motion-controller.js"></script>
 
 <!-- Restored from v13.3.2 without replacing newer runtime features. -->

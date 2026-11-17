@@ -516,12 +516,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 if('serviceWorker'in navigator)addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js'));
 })();
 
-let ucFrame=null,ucInitFrame=null,ucState=null,ucActive=false,ucEndsAt=null;
-const UC_ORBIT_DEFS=Object.freeze([
- {id:'main',rxRatio:.452,ryRatio:.156,tilt:.122,speed:.072,width:2.35,glow:14,alpha:.86,color:'216,180,254',coreColor:'245,240,255',yOffset:-12,phase:.35},
- {id:'diagonal',rxRatio:.412,ryRatio:.142,tilt:-.64,speed:-.054,width:1.45,glow:9,alpha:.54,color:'192,132,252',coreColor:'233,213,255',yOffset:-8,phase:2.1},
- {id:'far',rxRatio:.432,ryRatio:.128,tilt:1.15,speed:.038,width:1.05,glow:6,alpha:.32,color:'167,139,250',coreColor:'221,214,254',yOffset:-10,phase:4.25}
-]);
+let ucEndsAt=null;
 function syncUcData(){
  const s=window.activeSession,title=document.getElementById('activeTaskLabel'),task=document.getElementById('timerTaskValue'),mode=document.getElementById('currentFocusModeLabel'),dur=document.getElementById('ucDuration'),prog=document.getElementById('ucProgressText'),bar=document.getElementById('ucProgressBar');
  if(!s)return;
@@ -529,217 +524,20 @@ function syncUcData(){
  const current=s.ui.progressCurrent,total=s.ui.progressTotal;prog.textContent=current+' / '+total;bar.style.width=Math.min(100,current/total*100)+'%';
 }
 function hideUcTask(){document.getElementById('ucTaskPopup')?.classList.remove('open')}
-function seedOrbit(n){
- const out=[];
- for(let i=0;i<n;i++){
-  const orbitIndex=i<Math.round(n*.48)?0:(i<Math.round(n*.80)?1:2);
-  const a=Math.PI*2*(i/n)+(Math.random()-.5)*.08;
-  const spread=orbitIndex===0?11:(orbitIndex===1?13:9);
-  const isBright=i%19===0;
-  out.push({
-   orbitIndex,
-   a,
-   offset:(Math.random()-.5)*spread,
-   normalOffset:(Math.random()-.5)*(spread*.38),
-   size:isBright?(1.35+Math.random()*.65):(.38+Math.random()*1.08),
-   alpha:isBright?(.68+Math.random()*.28):(.18+Math.random()*.58),
-   tw:Math.random()*6.28,
-   speedMul:.86+Math.random()*.28,
-   color:isBright?'250,245,255':(i%3===0?'233,213,255':'196,181,253')
-  });
- }
- return out;
+/* v17.9: the cosmic scene is rendered by src/core/cosmic-core.js (window.CosmicCore), which also
+   owns its resize and visibility handling. A Session that has just begun gets the birth sequence;
+   a restored or re-entered Session fades in calmly. The Mission tone only tints accents. */
+function ucCosmicOptions(){
+ const s=window.activeSession,startedAt=Number(s?.startedAt)||0;
+ const fresh=startedAt>0&&Date.now()-startedAt<2500&&!(Number(s.elapsedMs)>2500);
+ const theme=s?.type==='mission'&&typeof getMissionThemeV177==='function'?getMissionThemeV177(s.missionId):null;
+ return{entrance:fresh?'birth':'reentry',theme};
 }
-function seedGalaxy(n){
- const out=[];
- for(let i=0;i<n;i++){
-  const arm=i%3,r=12+Math.pow(Math.random(),.74)*108,a=arm*Math.PI*2/3+r*.048+(Math.random()-.5)*.62;
-  out.push({r,a,size:.35+Math.random()*.95,alpha:.08+Math.random()*.34,color:i%4===0?'216,180,254':'167,139,250'});
- }
- return out;
-}
-function initUc(){
- const scene=document.getElementById('ucScene'),back=document.getElementById('ucBackCanvas'),front=document.getElementById('ucFrontCanvas');
- if(!scene||!back||!front||!ucActive)return;
- const rect=scene.getBoundingClientRect();
- if(!rect.width||!rect.height)return;
- const dpr=Math.min(devicePixelRatio||1,2),reduced=matchMedia('(prefers-reduced-motion: reduce)').matches,small=rect.width<390;
- for(const c of [back,front]){
-  c.width=Math.round(rect.width*dpr);
-  c.height=Math.round(rect.height*dpr);
-  c.style.width=rect.width+'px';
-  c.style.height=rect.height+'px';
-  c.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
- }
- const heroStars=[
-  {x:.58,y:.15,size:1.55,alpha:.78,tw:.8,halo:true},
-  {x:.84,y:.14,size:1.75,alpha:.82,tw:2.1,halo:true},
-  {x:.17,y:.26,size:1.65,alpha:.76,tw:3.4,halo:true},
-  {x:.89,y:.30,size:1.85,alpha:.84,tw:4.7,halo:true},
-  {x:.13,y:.64,size:1.95,alpha:.80,tw:1.5,halo:true},
-  {x:.81,y:.78,size:1.55,alpha:.72,tw:5.2,halo:true}
- ];
- const randomStars=Array.from({length:small?8:11},()=>({
-  x:.08+Math.random()*.84,
-  y:.10+Math.random()*.74,
-  size:.6+Math.random()*1.15,
-  alpha:.22+Math.random()*.46,
-  tw:Math.random()*6.28,
-  halo:false
- }));
- ucState={
-  rect,
-  back:back.getContext('2d'),
-  front:front.getContext('2d'),
-  orbits:UC_ORBIT_DEFS.map(o=>({...o,cos:Math.cos(o.tilt),sin:Math.sin(o.tilt)})),
-  dust:seedOrbit(reduced?140:(small?240:320)),
-  galaxy:seedGalaxy(reduced?65:(small?110:150)),
-  stars:[...heroStars,...randomStars],
-  start:performance.now(),
-  last:performance.now(),
-  reduced
- };
- if(ucFrame){cancelAnimationFrame(ucFrame);ucFrame=null}
- drawUc(performance.now());
-}
-function dot(ctx,x,y,size,alpha,blur=5,color='221,198,255'){
- if(alpha<=.008)return;
- ctx.save();
- ctx.beginPath();
- ctx.fillStyle=`rgba(${color},${Math.min(1,alpha)})`;
- if(blur>0){ctx.shadowColor=`rgba(${color},.85)`;ctx.shadowBlur=blur}
- ctx.arc(x,y,size,0,Math.PI*2);
- ctx.fill();
- ctx.restore();
-}
-function projectOrbitPoint(cx,cy,rx,ry,cosT,sinT,a,radialOffset=0,normalOffset=0){
- const lx=(rx+radialOffset)*Math.cos(a),ly=(ry+normalOffset)*Math.sin(a);
- return{x:cx+lx*cosT-ly*sinT,y:cy+lx*sinT+ly*cosT};
-}
-function readoutMaskFactor(x,y,cx,cy){
- const dx=(x-cx)/78,dy=(y-(cy-2))/36,d2=dx*dx+dy*dy;
- if(d2>=1)return 1;
- return .12+.88*Math.pow(d2,1.35);
-}
-function drawOrbitHalf(ctx,orbit,cx,cy,rx,ry,isFront,elapsed){
- const startA=isFront?0:Math.PI,endA=isFront?Math.PI:Math.PI*2;
- ctx.save();
- ctx.translate(cx,cy+orbit.yOffset);
- ctx.rotate(orbit.tilt);
- ctx.scale(1,ry/rx);
- ctx.beginPath();
- ctx.arc(0,0,rx,startA,endA,false);
- const baseAlpha=orbit.alpha*(isFront?(orbit.id==='main'?.42:.34):.16);
- ctx.strokeStyle=`rgba(${orbit.color},${baseAlpha})`;
- ctx.lineWidth=(orbit.width*(isFront?1.15:.85))/(ry/rx*.58+.42);
- ctx.shadowColor=`rgba(${orbit.color},${isFront?.65:.3})`;
- ctx.shadowBlur=isFront?orbit.glow:orbit.glow*.5;
- ctx.stroke();
- if(isFront){
-  ctx.beginPath();
-  ctx.arc(0,0,rx,startA+.18,endA-.18,false);
-  ctx.strokeStyle=`rgba(${orbit.coreColor},${orbit.alpha*.46})`;
-  ctx.lineWidth=(orbit.width*.52)/(ry/rx*.58+.42);
-  ctx.shadowBlur=orbit.glow*.4;
-  ctx.stroke();
- }
- const crestCenter=(orbit.phase+elapsed*orbit.speed*3.6)%(Math.PI*2);
- const normCrest=crestCenter<0?crestCenter+Math.PI*2:crestCenter;
- const crestInHalf=isFront?(normCrest>=0&&normCrest<=Math.PI):(normCrest>Math.PI&&normCrest<=Math.PI*2);
- if(crestInHalf){
-  const span=.42,cStart=Math.max(startA,normCrest-span),cEnd=Math.min(endA,normCrest+span);
-  if(cEnd>cStart){
-   ctx.beginPath();
-   ctx.arc(0,0,rx,cStart,cEnd,false);
-   ctx.strokeStyle=`rgba(${orbit.coreColor},${orbit.alpha*(isFront?.72:.28)})`;
-   ctx.lineWidth=(orbit.width*(isFront?1.45:.95))/(ry/rx*.58+.42);
-   ctx.shadowColor=`rgba(${orbit.coreColor},.9)`;
-   ctx.shadowBlur=orbit.glow*1.15;
-   ctx.stroke();
-  }
- }
- ctx.restore();
-}
-function drawUc(now){
- const s=ucState;
- if(!s||!ucActive)return;
- const{rect,back,front}=s;
- back.clearRect(0,0,rect.width,rect.height);
- front.clearRect(0,0,rect.width,rect.height);
- const cx=rect.width*.5,cy=rect.height*.48,elapsed=s.reduced?0:(now-s.start)/1000,gal=s.reduced?0:elapsed*Math.PI*2/210;
- for(const g of s.galaxy){
-  const a=g.a+gal,r=g.r,x=cx+42+Math.cos(a)*r*1.18,y=cy-36+Math.sin(a)*r*.54;
-  const fade=Math.max(0,1-r/118);
-  dot(back,x,y,g.size,g.alpha*(.32+.68*fade),3,g.color);
- }
- for(const st of s.stars){
-  if(!s.reduced)st.tw+=.014;
-  const sx=rect.width*st.x,sy=rect.height*st.y,twinkle=.74+.26*Math.sin(st.tw);
-  if(st.halo)dot(back,sx,sy,st.size*2.2,st.alpha*.24*twinkle,11,'192,132,252');
-  dot(back,sx,sy,st.size,st.alpha*twinkle,st.halo?8:5,'245,240,255');
- }
- for(const orbit of s.orbits){
-  const rx=rect.width*orbit.rxRatio,ry=rect.height*orbit.ryRatio;
-  drawOrbitHalf(back,orbit,cx,cy,rx,ry,false,elapsed);
-  drawOrbitHalf(front,orbit,cx,cy,rx,ry,true,elapsed);
- }
- for(const p of s.dust){
-  const orbit=s.orbits[p.orbitIndex]||s.orbits[0];
-  if(!s.reduced)p.tw+=.016;
-  const a=p.a+elapsed*orbit.speed*p.speedMul+orbit.phase;
-  const rx=rect.width*orbit.rxRatio,ry=rect.height*orbit.ryRatio;
-  const pt=projectOrbitPoint(cx,cy+orbit.yOffset,rx,ry,orbit.cos,orbit.sin,a,p.offset,p.normalOffset);
-  const sinA=Math.sin(a),isFront=sinA>0,ctx=isFront?front:back;
-  const depth=isFront?(.62+.38*sinA):(.12+.18*Math.abs(sinA));
-  const cluster=.52+.48*Math.pow(Math.max(0,Math.cos(a-.75)),2);
-  const twinkle=.80+.20*Math.sin(p.tw);
-  const mask=isFront?readoutMaskFactor(pt.x,pt.y,cx,cy):1;
-  dot(ctx,pt.x,pt.y,p.size*(isFront?1.06:.82),p.alpha*orbit.alpha*depth*cluster*twinkle*mask,isFront?5:2.5,p.color);
- }
- s.last=now;
- if(!s.reduced&&ucActive){
-  ucFrame=requestAnimationFrame(drawUc);
- }else{
-  ucFrame=null;
- }
-}
-function startUc(){
- stopUc();
- ucActive=true;
- syncUcData();
- const scene=document.getElementById('ucScene');
- const rect=scene?scene.getBoundingClientRect():null;
- if(rect&&rect.width>0&&rect.height>0){
-  initUc();
- }else{
-  ucInitFrame=requestAnimationFrame(()=>{
-   ucInitFrame=null;
-   if(ucActive)initUc();
-  });
- }
-}
-function stopUc(){
- ucActive=false;
- if(ucInitFrame){cancelAnimationFrame(ucInitFrame);ucInitFrame=null}
- if(ucFrame){cancelAnimationFrame(ucFrame);ucFrame=null}
-}
-window.__ucCosmicState=function(){
- return{
-  active:ucActive,
-  frameId:ucFrame,
-  initFrameId:ucInitFrame,
-  hasActiveLoop:ucFrame!==null||ucInitFrame!==null,
-  orbitCount:ucState?.orbits?.length||0,
-  orbitIds:ucState?.orbits?.map(o=>o.id)||[],
-  dustCount:ucState?.dust?.length||0,
-  galaxyCount:ucState?.galaxy?.length||0,
-  starCount:ucState?.stars?.length||0,
-  reduced:Boolean(ucState?.reduced)
- };
-};
+function startUc(){syncUcData();window.CosmicCore?.start(ucCosmicOptions())}
+function stopUc(){window.CosmicCore?.stop()}
 const oldApplyUc=applyAppScreenImmediately;applyAppScreenImmediately=function(screen){const r=oldApplyUc.apply(this,arguments);screen==='timer'?startUc():stopUc();return r};
 
-document.addEventListener('visibilitychange',()=>{if(document.hidden)stopUc();else if(!document.getElementById('app-screen-timer')?.classList.contains('hidden')){if(ucEndsAt&&timerInterval){timerDuration=Math.max(0,Math.ceil((ucEndsAt-Date.now())/1000));updateTimerUI();if(timerDuration<=0)finishSession({status:'completed',reason:'timer_finished'})}startUc()}});window.addEventListener('resize',()=>{if(ucActive){if(ucInitFrame)cancelAnimationFrame(ucInitFrame);ucInitFrame=requestAnimationFrame(()=>{ucInitFrame=null;if(ucActive)initUc()})}},{passive:true});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!document.getElementById('app-screen-timer')?.classList.contains('hidden')){if(ucEndsAt&&timerInterval){timerDuration=Math.max(0,Math.ceil((ucEndsAt-Date.now())/1000));updateTimerUI();if(timerDuration<=0)finishSession({status:'completed',reason:'timer_finished'})}}});
 
 /* =========================================
    V17.1 COSMIC FOCUS NAVIGATION CONTROLLER

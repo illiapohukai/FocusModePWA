@@ -161,7 +161,6 @@
   const stateMachine = createMotionStateMachine();
 
   let activeScreenCleanup = null;
-  let lastTriggerRect = null;
   let lastMenuTriggerEl = null;
   let plusCloseTimer = null;
   let missionSheetCloseTimer = null;
@@ -235,24 +234,6 @@
     stateMachine.releaseLock();
   }
 
-  function recordTriggerElement(el) {
-    if (!el || typeof el.getBoundingClientRect !== 'function') return;
-    try {
-      const rect = el.getBoundingClientRect();
-      if (rect && rect.width > 0 && rect.height > 0) {
-        lastTriggerRect = {
-          left: rect.left,
-          top: rect.top,
-          width: rect.width,
-          height: rect.height,
-          cx: rect.left + rect.width / 2,
-          cy: rect.top + rect.height / 2,
-          timestamp: Date.now()
-        };
-      }
-    } catch (_) {}
-  }
-
   function installGlobalTriggerTracking() {
     if (typeof document === 'undefined') return;
     document.addEventListener(
@@ -264,7 +245,6 @@
             )
           : null;
         if (!target) return;
-        recordTriggerElement(target);
         if (target.classList.contains('mmc-menu')) {
           lastMenuTriggerEl = target;
         }
@@ -567,7 +547,10 @@
   }
 
   /* ========================================================================
-     SHARED PLANET TRANSITION: FOCUS ENTER & FOCUS EXIT TO HOME
+     FOCUS ENTER & FOCUS EXIT TO HOME
+     v17.9: the cosmic scene forms inside its own canvas (src/core/cosmic-core.js).
+     Focus enter is a screen crossfade only; every element of the timer screen is at
+     its final position from the first frame.
      ======================================================================== */
   function animateFocusEnter(appBody, fromEl, toEl, reduced) {
     const durationMs = reduced ? 120 : 720;
@@ -584,103 +567,22 @@
     fromEl.classList.add('fm-layer-outgoing', 'fm-motion-active');
     toEl.classList.add('fm-layer-incoming', 'fm-layer-top', 'fm-motion-active');
 
-    const planetEl = toEl.querySelector('.uc-planet');
     const protectBtn = toEl.querySelector('.uc-protect');
     const headerEl = toEl.querySelector('.uc-header');
     const readoutEl = toEl.querySelector('.uc-readout');
     const digitsEl = toEl.querySelector('#timerDigits');
     const focusCardEl = toEl.querySelector('#ucFocusCard');
     const actionsEl = toEl.querySelector('.uc-actions');
-    const rings = toEl.querySelectorAll('.uc-main-ring, .uc-far-orbit');
     const hasProtectionActive =
       typeof root.getSelectedDistractions === 'function' &&
       Array.isArray(root.getSelectedDistractions()) &&
       root.getSelectedDistractions().length > 0;
-
-    let seedEl = null;
-    if (!reduced && planetEl) {
-      const planetRect = planetEl.getBoundingClientRect();
-      const wrapperRect = (
-        document.getElementById('screenWrapper') || document.body
-      ).getBoundingClientRect();
-      const startCx =
-        lastTriggerRect && Date.now() - lastTriggerRect.timestamp < 2500
-          ? lastTriggerRect.cx
-          : wrapperRect.left + wrapperRect.width / 2;
-      const startCy =
-        lastTriggerRect && Date.now() - lastTriggerRect.timestamp < 2500
-          ? lastTriggerRect.cy
-          : wrapperRect.top + wrapperRect.height * 0.78;
-      const startSize =
-        lastTriggerRect && Date.now() - lastTriggerRect.timestamp < 2500
-          ? Math.max(40, Math.min(54, lastTriggerRect.height || 46))
-          : 46;
-      const endSize = Math.max(planetRect.width || 190, 160);
-      const endCx =
-        planetRect.width > 0
-          ? planetRect.left + planetRect.width / 2
-          : wrapperRect.left + wrapperRect.width / 2;
-      const endCy =
-        planetRect.height > 0
-          ? planetRect.top + planetRect.height / 2
-          : wrapperRect.top + wrapperRect.height * 0.42;
-
-      seedEl = document.createElement('div');
-      seedEl.className = 'fm-shared-morph-proxy';
-      seedEl.style.width = endSize + 'px';
-      seedEl.style.height = endSize + 'px';
-      seedEl.style.left = endCx - endSize / 2 + 'px';
-      seedEl.style.top = endCy - endSize / 2 + 'px';
-      seedEl.style.borderRadius = '50%';
-      seedEl.style.background =
-        'radial-gradient(circle at 38% 30%, rgba(196,181,253,0.92) 0%, rgba(124,58,237,0.82) 38%, rgba(30,27,75,0.96) 78%, rgba(5,7,20,1) 100%)';
-      seedEl.style.boxShadow =
-        '0 0 46px rgba(139,92,246,0.6), inset 0 0 24px rgba(192,132,252,0.38)';
-      document.body.appendChild(seedEl);
-
-      const dx = startCx - endCx;
-      const dy = startCy - endCy;
-      const scale0 = startSize / endSize;
-
-      seedEl.animate(
-        [
-          {
-            transform: 'translate3d(' + dx + 'px, ' + dy + 'px, 0) scale(' + scale0 + ')',
-            opacity: 0.96
-          },
-          {
-            transform: 'translate3d(' + dx * 0.28 + 'px, ' + dy * 0.22 + 'px, 0) scale(' + Math.max(scale0 * 1.9, 0.54) + ')',
-            opacity: 0.94,
-            offset: 0.44
-          },
-          {
-            transform: 'translate3d(0px, 0px, 0) scale(1)',
-            opacity: 0.82,
-            offset: 0.78
-          },
-          {
-            transform: 'translate3d(0px, 0px, 0) scale(1)',
-            opacity: 0
-          }
-        ],
-        {
-          duration: 540,
-          easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-          fill: 'forwards'
-        }
-      );
-    }
 
     let cleaned = false;
     function cleanup() {
       if (cleaned) return;
       cleaned = true;
       stateMachine.setState('cleaning', 'focus-enter');
-      if (seedEl) {
-        cancelElementAnimations(seedEl);
-        seedEl.remove();
-        seedEl = null;
-      }
       cancelElementAnimations(fromEl);
       cancelElementAnimations(toEl);
       appBody.classList.remove('fm-dual-transition', 'fm-focus-entering');
@@ -726,52 +628,14 @@
         }
       );
 
-      // Phase 4: planet and orbit rings grow together from the real planet center.
-      // Rings keep their own resolved base transform (translate/rotate) and only gain a
-      // trailing scale, so they never travel in from an offset position.
-      const growKeyframes = function (base, from) {
-        const prefix = base && base !== 'none' ? base + ' ' : '';
-        return [
-          { transform: prefix + 'scale(' + from + ')', opacity: 0 },
-          { transform: prefix + 'scale(' + (from + (1 - from) * 0.76) + ')', offset: 0.56 },
-          { transform: prefix + 'scale(1.012)', offset: 0.84 },
-          { transform: prefix + 'scale(1)' }
-        ];
-      };
-      if (!reduced && planetEl && typeof planetEl.animate === 'function') {
-        cancelElementAnimations(planetEl);
-        const planetFrames = growKeyframes('translate(-50%, -50%)', 0.42);
-        planetFrames[0].opacity = 0.15;
-        planetFrames[planetFrames.length - 1].opacity = 1;
-        planetEl.animate(planetFrames, {
-          duration: 600,
-          easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-          fill: 'backwards'
-        });
-      }
-
+      // Phase 4: the interface fades in without moving.
       if (!reduced) {
-        rings.forEach(function (ring) {
-          if (typeof ring.animate !== 'function') return;
-          cancelElementAnimations(ring);
-          const cs = root.getComputedStyle(ring);
-          const finalOpacity = Number(cs.opacity);
-          const frames = growKeyframes(cs.transform, 0.62);
-          frames[frames.length - 1].opacity = Number.isFinite(finalOpacity) ? finalOpacity : 1;
-          ring.animate(frames, {
-            duration: 560,
-            delay: 60,
-            easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-            fill: 'backwards'
-          });
-        });
-
         if (headerEl && typeof headerEl.animate === 'function') {
           cancelElementAnimations(headerEl);
           headerEl.animate(
             [
-              { transform: 'translateY(-6px)', opacity: 0 },
-              { transform: 'translateY(0px)', opacity: 1 }
+              { opacity: 0 },
+              { opacity: 1 }
             ],
             {
               duration: 380,
@@ -786,8 +650,8 @@
           cancelElementAnimations(readoutEl);
           readoutEl.animate(
             [
-              { transform: 'translate(-50%, -50%) scale(0.93)', opacity: 0 },
-              { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 }
+              { opacity: 0 },
+              { opacity: 1 }
             ],
             {
               duration: 420,
@@ -800,8 +664,8 @@
           cancelElementAnimations(digitsEl);
           digitsEl.animate(
             [
-              { transform: 'scale(0.93)', opacity: 0 },
-              { transform: 'scale(1)', opacity: 1 }
+              { opacity: 0 },
+              { opacity: 1 }
             ],
             {
               duration: 420,
@@ -852,8 +716,8 @@
           cancelElementAnimations(protectBtn);
           protectBtn.animate(
             [
-              { transform: 'translateX(-50%) scale(0.96)', opacity: 0 },
-              { transform: 'translateX(-50%) scale(1)', opacity: 1 }
+              { opacity: 0 },
+              { opacity: 1 }
             ],
             {
               duration: 380,
@@ -911,7 +775,7 @@
     fromEl.classList.add('fm-layer-outgoing', 'fm-layer-top', 'fm-motion-active');
     toEl.classList.add('fm-layer-incoming', 'fm-motion-active');
 
-    const planetEl = fromEl.querySelector('.uc-planet');
+    const planetEl = fromEl.querySelector('.uc-core');
     const plusBtn = document.getElementById('bottomNavPlus');
 
     let seedEl = null;
@@ -2606,7 +2470,7 @@
   }
 
   const MotionController = {
-    version: 'v17.8 Mission Plan & Focus Protection Polish',
+    version: 'v17.9 Cosmic Core',
     ROOT_TAB_ORDER,
     VALID_STATES,
     getRootTabIndex,
