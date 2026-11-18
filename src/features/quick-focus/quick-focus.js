@@ -27,20 +27,80 @@ function openQuickSetupFromHome(){
   }
 }
 window.openQuickSetupFromHome=openQuickSetupFromHome;
-function selectQuickDuration(btn,value){quickDuration=value;updateQuickRing()}
+/* v17.10: quickDuration stays the single duration owner. The circular dial, the presets and the
+   hidden range input (keyboard / assistive technology) all write through setQuickDuration().
+   Supported range is unchanged: 5–60 minutes in 5-minute steps. */
+const QUICK_DURATION_MIN=5,QUICK_DURATION_MAX=60,QUICK_DURATION_STEP=5;
+function normalizeQuickDuration(v){const n=Math.round(Number(v)/QUICK_DURATION_STEP)*QUICK_DURATION_STEP;return Number.isFinite(n)?Math.max(QUICK_DURATION_MIN,Math.min(QUICK_DURATION_MAX,n)):quickDuration}
+function setQuickDuration(v){const next=normalizeQuickDuration(v);if(next===quickDuration)return false;quickDuration=next;updateQuickRing();return true}
+function selectQuickDuration(btn,value){const dial=document.getElementById('quickDial');dial?.classList.remove('is-dragging');setQuickDuration(value);updateQuickRing()}
+function quickDurationIntensity(v){return v<=15?1:v<=30?2:v<=45?3:4}
 function updateQuickRing(){
-  const v=document.getElementById('quickMinuteValue'),r=document.getElementById('quickRingProgress');
+  const v=document.getElementById('quickMinuteValue'),r=document.getElementById('quickRingProgress'),thumb=document.getElementById('quickDialThumb'),input=document.getElementById('quickDurationInput'),dial=document.getElementById('quickDial');
+  const en=document.documentElement.lang==='en';
   if(v)v.textContent=quickDuration;
   const homeLbl=document.getElementById('homeQuickDurationLabel');
   if(homeLbl)homeLbl.textContent=quickDuration+' MIN';
-  if(r){const c=2*Math.PI*69,p=Math.max(0,Math.min(1,(quickDuration-5)/55));r.style.strokeDasharray=c;r.style.strokeDashoffset=c*(1-p)}
-  document.querySelectorAll('#quickDurationButtons .quick-option').forEach(b=>b.classList.toggle('active',parseInt(b.textContent,10)===quickDuration));
+  /* The arc uses pathLength=60, so one unit is one minute of a full 60-minute turn. */
+  if(r)r.style.strokeDashoffset=String(QUICK_DURATION_MAX-quickDuration);
+  if(thumb)thumb.style.transform='rotate('+(quickDuration/QUICK_DURATION_MAX*360)+'deg)';
+  if(input){input.value=String(quickDuration);input.setAttribute('aria-valuetext',quickDuration+(en?' minutes':' Minuten'))}
+  if(dial)dial.dataset.intensity=String(quickDurationIntensity(quickDuration));
+  document.querySelectorAll('#quickDurationButtons .quick-option').forEach(b=>{const on=Number(b.dataset.minutes||parseInt(b.textContent,10))===quickDuration;b.classList.toggle('active',on);b.setAttribute('aria-pressed',on?'true':'false')});
 }
-function adjustQuickDuration(d){quickDuration=Math.max(5,Math.min(60,quickDuration+d));updateQuickRing()}
+/* Circular drag: absolute angle on a 60-minute clock face, snapped to 5-minute steps. The 12 o'clock
+   seam is never crossed in one move, so a drag past 60 holds at 60 and a drag below 5 holds at 5. */
+function quickDialValueFromPoint(face,x,y){
+  const b=face.getBoundingClientRect(),cx=b.left+b.width/2,cy=b.top+b.height/2,dx=x-cx,dy=y-cy,R=b.width/2;
+  const dist=Math.hypot(dx,dy);
+  return{dist:dist/R,minutes:((Math.atan2(dx,-dy)*180/Math.PI+360)%360)/360*QUICK_DURATION_MAX};
+}
+function quickDialApplyMinutes(raw){
+  let m=raw;
+  if(quickDuration>=45&&m<15)m=QUICK_DURATION_MAX;
+  else if(quickDuration<=15&&m>45)m=QUICK_DURATION_MIN;
+  return setQuickDuration(m);
+}
+function initQuickDurationDial(){
+  const dial=document.getElementById('quickDial'),face=document.getElementById('quickDialFace'),input=document.getElementById('quickDurationInput');
+  if(!dial||!face||dial.__qbDialBound)return;
+  dial.__qbDialBound=true;
+  let pointerId=null;
+  const end=()=>{if(pointerId===null)return;try{face.releasePointerCapture(pointerId)}catch(_){}pointerId=null;dial.classList.remove('is-dragging')};
+  face.addEventListener('pointerdown',e=>{
+    if(pointerId!==null||(e.pointerType==='mouse'&&e.button!==0))return;
+    const hit=quickDialValueFromPoint(face,e.clientX,e.clientY);
+    /* Only the ring band owns the gesture; the centre readout is not a drag handle. */
+    if(hit.dist<.52||hit.dist>1.12)return;
+    e.preventDefault();
+    pointerId=e.pointerId;
+    try{face.setPointerCapture(pointerId)}catch(_){}
+    dial.classList.add('is-dragging');
+    input?.focus({preventScroll:true});
+    quickDialApplyMinutes(hit.minutes);
+  });
+  face.addEventListener('pointermove',e=>{if(e.pointerId!==pointerId)return;e.preventDefault();quickDialApplyMinutes(quickDialValueFromPoint(face,e.clientX,e.clientY).minutes)});
+  face.addEventListener('pointerup',e=>{if(e.pointerId===pointerId)end()});
+  face.addEventListener('pointercancel',e=>{if(e.pointerId===pointerId)end()});
+  face.addEventListener('lostpointercapture',e=>{if(e.pointerId===pointerId)end()});
+  input?.addEventListener('input',()=>{dial.classList.remove('is-dragging');setQuickDuration(input.value)});
+}
 function selectQuickBreak(btn,value){quickBreak=value;document.querySelectorAll('#quickBreakButtons .quick-option').forEach(x=>x.classList.remove('active'));btn.classList.add('active')}
 function openDistractionPicker(returnScreen){distractionReturnScreen=returnScreen||'quicksetup';setAppScreen('distractions')}
 function returnFromDistractionPicker(){setAppScreen(distractionReturnScreen)}
-function toggleDistraction(row){row.classList.toggle('selected');lucide.createIcons()}
+function toggleDistraction(row){const on=row.classList.toggle('selected');row.setAttribute('aria-pressed',on?'true':'false');updateProtectionSummary()}
+/* v17.8 picker selection control: select all when any app is unselected, otherwise clear all. */
+function toggleAllDistractions(){const rows=[...document.querySelectorAll('#distractionList .distraction-row')];const selectAll=rows.some(r=>!r.classList.contains('selected'));rows.forEach(r=>{r.classList.toggle('selected',selectAll);r.setAttribute('aria-pressed',selectAll?'true':'false')});updateProtectionSummary()}
+function isEnglishUIV178(){return document.documentElement.lang==='en'}
+/* Live summary on the Fokus-Schutz screen; reflects only the real selection state. */
+function syncDistractionPickerV178(apps){
+ const en=isEnglishUIV178(),count=apps.length,all=document.querySelectorAll('#distractionList .distraction-row').length;
+ const countEl=document.getElementById('distractionSummaryCount'),stateEl=document.getElementById('distractionSummaryState'),icons=document.getElementById('distractionSummaryIcons'),bulk=document.getElementById('distractionBulkToggle');
+ if(countEl)countEl.textContent=count===0?(en?'No apps selected':'Keine Apps ausgewählt'):(count+' '+(en?(count===1?'app selected':'apps selected'):(count===1?'App ausgewählt':'Apps ausgewählt')));
+ if(stateEl)stateEl.textContent=count===0?(en?'Focus protection is off':'Fokus-Schutz ist aus'):(en?'Focus protection ready':'Fokus-Schutz bereit');
+ if(icons){icons.innerHTML='';[...document.querySelectorAll('#distractionList .distraction-row.selected .app-dot')].slice(0,4).forEach(d=>icons.appendChild(d.cloneNode(true)));if(count>4){const more=document.createElement('span');more.className='fs-summary-more';more.textContent='+'+(count-4);icons.appendChild(more)}if(!count){const off=document.createElement('span');off.className='fs-summary-empty';off.innerHTML='<i data-lucide="shield-off"></i>';icons.appendChild(off)}}
+ if(bulk)bulk.textContent=count<all?(en?'Select all':'Alle auswählen'):(en?'Deselect all':'Alle abwählen');
+}
 function getSelectedDistractions(){return [...document.querySelectorAll('#distractionList .distraction-row.selected')].map(x=>x.dataset.name)}
 function syncTimerProtectionBadge(){
  const badge=document.querySelector('#app-screen-timer .uc-protect');
@@ -63,7 +123,10 @@ function updateProtectionSummary(){
  document.querySelectorAll('.blockedCount').forEach(x=>x.textContent=count);
  const shown=apps.slice(0,3).join(' · '),rest=Math.max(0,count-3);
  document.querySelectorAll('.blockedSummary').forEach(x=>x.textContent=count>0?(shown+(rest?' +'+rest:'')):((document.documentElement.lang==='en')?'No apps blocked':'Keine Apps blockiert'));
- const s=document.getElementById('quickSelectedAppIcons');if(s){s.innerHTML='';document.querySelectorAll('#distractionList .distraction-row.selected').forEach((r,i)=>{if(i<3){const d=r.querySelector('.app-dot');if(d)s.appendChild(d.cloneNode(true))}});if(window.lucide)lucide.createIcons()}
+ const s=document.getElementById('quickSelectedAppIcons');if(s){s.innerHTML='';document.querySelectorAll('#distractionList .distraction-row.selected').forEach((r,i)=>{if(i<3){const d=r.querySelector('.app-dot');if(d)s.appendChild(d.cloneNode(true))}})}
+ document.querySelectorAll('[data-protection-summary]').forEach(el=>{el.dataset.protection=count>0?'ready':'off';const unit=el.querySelector('.mp-protect-unit');if(unit)unit.textContent=isEnglishUIV178()?(count===1?'distraction selected':'distractions selected'):(count===1?'Ablenkung ausgewählt':'Ablenkungen ausgewählt')});
+ syncDistractionPickerV178(apps);
+ if(window.lucide)lucide.createIcons();
  syncTimerProtectionBadge();
 }
 function saveDistractions(){updateProtectionSummary();setAppScreen(distractionReturnScreen)}
@@ -74,7 +137,10 @@ function showBlockedAppsPopup(){
 }
 function hideBlockedAppsPopup(){const popup=document.getElementById('blockedAppsPopup'),card=document.getElementById('blockedAppsPopupCard');popup.classList.add('opacity-0');card.classList.add('translate-y-6','opacity-0');setTimeout(()=>popup.classList.add('hidden'),250)}
 
-document.addEventListener("DOMContentLoaded",()=>{quickBreak=0;updateQuickRing();updateProtectionSummary()});
+document.addEventListener("DOMContentLoaded",()=>{
+  /* v17.10 strings for the duration dial (I18N is defined by bootstrap.js, loaded later). */
+  if(typeof I18N==='object'&&I18N.en)Object.assign(I18N.en,{'Dauer':'Duration','Dauer in Minuten':'Duration in minutes','Schnellauswahl Dauer':'Duration presets'});
+  quickBreak=0;initQuickDurationDial();updateQuickRing();updateProtectionSummary()});
 
 (function(){
   const previousApply=window.applyAppScreenImmediately;
@@ -82,7 +148,8 @@ document.addEventListener("DOMContentLoaded",()=>{quickBreak=0;updateQuickRing()
     const result=previousApply.apply(this,arguments);
     document.documentElement.classList.toggle('quick-focus-surface',screenName==='quicksetup');
     if(screenName==='timer')syncTimerProtectionBadge();
+    if(screenName==='distractions'){syncDistractionPickerV178(getSelectedDistractions());if(window.lucide)lucide.createIcons()}
     return result;
   };
-  document.title='v17.5.1 Interaction Fixes';
+  document.title='v17.6 Navigation, Insights & League Polish';
 })();

@@ -3,7 +3,7 @@
  */
 
 function renderSession(s){document.getElementById('activeTaskLabel').textContent=s.title;document.getElementById('timerTaskValue').textContent=s.task;document.getElementById('currentFocusModeLabel').textContent=s.ui.modeLabel;syncUcData();window.syncTimerProtectionBadge?.()}
-function clearActiveSession(){if(timerInterval)clearInterval(timerInterval);timerInterval=null;hideUcTask();setActiveSession(null);currentSessionStartedAt=null;currentSessionPlannedMinutes=0;currentSessionActualMinutes=0;document.getElementById('islandIndicator')?.classList.add('hidden');console.info('[SessionCore]',{event:'session_cleared'})}
+function clearActiveSession(){if(timerInterval)clearInterval(timerInterval);timerInterval=null;hideUcTask({immediate:true});setActiveSession(null);currentSessionStartedAt=null;currentSessionPlannedMinutes=0;currentSessionActualMinutes=0;document.getElementById('islandIndicator')?.classList.add('hidden');console.info('[SessionCore]',{event:'session_cleared'})}
 function startSession(session){const check=validateSession(session);if(!check.valid){console.error('[SessionCore]',{event:'session_validation_failed',errors:check.errors});alert('Die Fokus-Sitzung konnte nicht gestartet werden.');return false}if(activeSession?.status==='running'){alert('Beende zuerst deine aktuelle Fokus-Sitzung.');return false}const startedAt=Date.now(),endsAt=startedAt+session.plannedMinutes*60000,running={...cloneSession(session),status:'running',startedAt,endsAt};setActiveSession(running);currentSessionStartedAt=running.startedAt;currentSessionPlannedMinutes=running.plannedMinutes;currentSessionActualMinutes=0;timerDuration=running.plannedMinutes*60;originalDuration=timerDuration;ucEndsAt=endsAt;renderSession(running);setAppScreen('timer');document.getElementById('islandIndicator')?.classList.remove('hidden');updateTimerUI();if(timerInterval)clearInterval(timerInterval);timerInterval=setInterval(()=>{timerDuration=Math.max(0,Math.ceil((ucEndsAt-Date.now())/1000));updateTimerUI();if(timerDuration<=0)finishSession({status:'completed',reason:'timer_finished'})},1000);console.info('[SessionCore]',{event:'session_started',sessionId:running.id,type:running.type});return true}
 
 function startConfiguredQuickFocus(){const task=(document.getElementById('quickTaskInput')?.value||'').trim()||'Konzentriert arbeiten';return startSession(createQuickSession({title:task,task,plannedMinutes:quickDuration}))}
@@ -14,7 +14,119 @@ function completeLearningSession(){return finishSession({status:'completed',reas
 function endSessionByUser(){if(!activeSession||activeSession.status!=='running')return null;return actualSessionMinutes(activeSession)<1?finishSession({status:'cancelled',reason:'ended_too_early'}):finishSession({status:'completed',reason:'user_finished'})}
 function stopFocusSession(){return finishSession({status:'cancelled',reason:'user_cancelled'})}
 
-function showUcTask(){const s=window.activeSession;document.getElementById('ucTaskTitle').textContent=s?.title||'Aktuelle Aufgabe';document.getElementById('ucTaskText').textContent=s?.task||'Konzentriert weiterarbeiten.';document.getElementById('ucTaskPopup').classList.add('open')}
+/* v17.10 Focus task-detail sheet (#ucTaskPopup). One owner for open/close. The real active
+   Session supplies the text; the timer keeps running and is never touched. `.open` marks the
+   layer as present (navigation treats it as a blocking overlay); `.is-shown` drives motion. */
+const UC_REVEAL_GROUPS_MAX=48;
+let ucTaskCloseTimer=null,ucTaskRevealTimer=null,ucTaskRevealedKey='';
+function ucReducedMotion(){return Boolean(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)}
+/* v17.11: Focus overlays (task sheet, Fokus-Schutz dialog) keep the Cosmic scene alive behind
+   them. Each open overlay holds the scene's single overlay mode, which only eases its intensity;
+   releasing the last hold eases it back. The loop is never paused, restarted or rebuilt here,
+   and the timer is independent of the scene. */
+const ucSceneHolds=new Set();
+function syncFocusSceneOverlay(){window.CosmicCore?.setOverlayMode?.(ucSceneHolds.size>0)}
+function holdFocusScene(id){ucSceneHolds.add(id);syncFocusSceneOverlay()}
+function releaseFocusScene(id){if(ucSceneHolds.delete(id))syncFocusSceneOverlay()}
+window.holdFocusScene=holdFocusScene;window.releaseFocusScene=releaseFocusScene;
+/* Builds the readable text once: paragraphs from line breaks, words grouped into a bounded
+   number of spans so long tasks never create hundreds of animated nodes. */
+function buildUcTaskText(host,text){
+  host.textContent='';
+  const paras=String(text||'').split(/\n+/).map(x=>x.trim()).filter(Boolean);
+  const words=paras.reduce((n,p)=>n+p.split(/\s+/).length,0);
+  const size=Math.max(3,Math.ceil(words/UC_REVEAL_GROUPS_MAX));
+  let index=0;
+  paras.forEach(p=>{
+    const el=document.createElement('p'),parts=p.split(/\s+/);
+    for(let k=0;k<parts.length;k+=size){
+      const chunk=document.createElement('span');
+      chunk.className='uc-reveal-chunk';
+      chunk.style.setProperty('--i',String(index++));
+      chunk.textContent=parts.slice(k,k+size).join(' ');
+      el.appendChild(chunk);
+      if(k+size<parts.length)el.appendChild(document.createTextNode(' '));
+    }
+    host.appendChild(el);
+  });
+  return{groups:index,chars:String(text||'').length};
+}
+function completeUcTaskReveal(){
+  if(ucTaskRevealTimer){clearTimeout(ucTaskRevealTimer);ucTaskRevealTimer=null}
+  document.getElementById('ucTaskSheet')?.classList.remove('is-revealing');
+}
+function showUcTask(){
+  const layer=document.getElementById('ucTaskPopup'),sheet=document.getElementById('ucTaskSheet');
+  if(!layer||!sheet||layer.classList.contains('open'))return;
+  const s=window.activeSession,en=document.documentElement.lang==='en';
+  const title=s?.title||(en?'Current task':'Aktuelle Aufgabe'),text=s?.task||(en?'Keep working with focus.':'Konzentriert weiterarbeiten.');
+  document.getElementById('ucTaskTitle').textContent=title;
+  const meta=document.getElementById('ucTaskMeta');
+  if(meta){
+    const minutes=Number(s?.plannedMinutes)||0,cur=Number(s?.ui?.progressCurrent),tot=Number(s?.ui?.progressTotal);
+    const parts=[s?.type==='mission'&&cur>0&&tot>0?(en?'Step ':'Schritt ')+cur+' / '+tot:(s?.ui?.modeLabel||'Quick Focus')];
+    if(minutes)parts.push(minutes+(en?' min':' Min.'));
+    meta.textContent=parts.join(' · ');
+  }
+  const theme=s?.type==='mission'&&typeof getMissionThemeV177==='function'?getMissionThemeV177(s.missionId):'';
+  sheet.className='uc-sheet'+(theme?' has-mission-tone theme-'+theme:'');
+  const info=buildUcTaskText(document.getElementById('ucTaskText'),text);
+  const key=(s?.id||'none')+':'+text.length+':'+title.length;
+  const reveal=!ucReducedMotion()&&key!==ucTaskRevealedKey&&info.groups>1;
+  ucTaskRevealedKey=key;
+  if(reveal){
+    /* ~350–900 ms in total, capped for long text; tap or any key completes it at once. */
+    const total=Math.min(900,Math.max(350,260+info.chars*1.4));
+    sheet.style.setProperty('--uc-reveal-step',Math.max(6,Math.round((total-260)/info.groups))+'ms');
+    sheet.classList.add('is-revealing');
+    ucTaskRevealTimer=setTimeout(completeUcTaskReveal,total+420);
+  }
+  document.getElementById('ucTaskBody').scrollTop=0;
+  if(ucTaskCloseTimer){clearTimeout(ucTaskCloseTimer);ucTaskCloseTimer=null}
+  layer.hidden=false;
+  layer.classList.remove('is-closing');
+  layer.classList.add('open');
+  document.getElementById('ucFocusCard')?.setAttribute('aria-expanded','true');
+  holdFocusScene('task');
+  void sheet.offsetHeight; // commit the start geometry once so the sheet never appears in one frame
+  layer.classList.add('is-shown');
+  sheet.querySelector('.uc-sheet-close')?.focus({preventScroll:true});
+  if(window.lucide)lucide.createIcons();
+}
+function hideUcTask(options){
+  const layer=document.getElementById('ucTaskPopup');
+  if(!layer||!layer.classList.contains('open'))return;
+  const immediate=Boolean(options&&options.immediate)||ucReducedMotion();
+  completeUcTaskReveal();
+  layer.classList.remove('is-shown');
+  layer.classList.add('is-closing');
+  const card=document.getElementById('ucFocusCard');
+  card?.setAttribute('aria-expanded','false');
+  const finish=()=>{
+    if(ucTaskCloseTimer){clearTimeout(ucTaskCloseTimer);ucTaskCloseTimer=null}
+    if(layer.classList.contains('is-shown'))return;
+    layer.classList.remove('open','is-closing');
+    layer.hidden=true;
+    releaseFocusScene('task');
+  };
+  if(immediate){finish();}else{ucTaskCloseTimer=setTimeout(finish,320)}
+  if(card&&!immediate&&!document.getElementById('app-screen-timer')?.classList.contains('hidden'))card.focus({preventScroll:true});
+}
+document.addEventListener('DOMContentLoaded',()=>{if(typeof I18N==='object'&&I18N.en)Object.assign(I18N.en,{'Aktuelle Aufgabe':'Current task','Aktuelle Aufgabe öffnen':'Open current task','Weiter fokussieren':'Keep focusing','Fokus-Schutz':'Focus protection','Verbleibende Zeit':'Time remaining'})});
+(function bindUcTaskSheet(){
+  const layer=document.getElementById('ucTaskPopup');
+  if(!layer||layer.__ucBound)return;
+  layer.__ucBound=true;
+  layer.addEventListener('click',e=>{
+    if(e.target.closest('[data-uc-close="true"]')){hideUcTask();return}
+    if(e.target.closest('.uc-sheet'))completeUcTaskReveal();
+  });
+  layer.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){e.preventDefault();e.stopPropagation();hideUcTask();return}
+    if(document.getElementById('ucTaskSheet')?.classList.contains('is-revealing'))completeUcTaskReveal();
+  });
+  layer.addEventListener('pointerdown',e=>{if(e.target.closest('.uc-sheet-body'))completeUcTaskReveal()},{passive:true});
+})();
 const sessionCoreSelectStatus=selectSessionStatus;selectSessionStatus=function(button,status){sessionCoreSelectStatus(button,status);updateLastSessionOutcome(status)};
 function startRestoredSessionTimer(){
  if(timerInterval)clearInterval(timerInterval);

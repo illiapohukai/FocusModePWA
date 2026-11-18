@@ -1,0 +1,228 @@
+/**
+ * Physical stylesheet: styles/home-pull.css
+ * Version: v17.13 Cosmic Operator Pull, v17.15 Cosmic Operator Pull Refresh
+ *
+ * Hidden scene revealed above Home while the user pulls Home down at its top edge.
+ * Owner: src/features/home-pull/home-pull-operator.js. At rest the scene is [hidden]
+ * (display: none) and nothing here affects Home geometry.
+ *
+ * Geometry: .fm-op is a window whose bottom edge follows the page edge (header top);
+ * .fm-op-space is counter-translated so the space stays anchored to the top of the screen.
+ * The cream .fm-op-edge with rounded corners is the top of the page sliding down.
+ *
+ * Operator: one canvas showing one frame of assets/operator/operator-coffee-pull-sheet.png
+ * (frames of the approved floating-coffee video). The owner picks the frame from the pull
+ * distance and, after a release past the threshold, from time. The frame is 120 CSS px square
+ * and only translated as a whole; the cup, coffee and tether movement are in the frames.
+ */
+
+.fm-op {
+  /* Timing (read by the owner when a pull starts). */
+  --fm-op-cancel: 280ms;
+  --fm-op-to-hold: 220ms;
+  --fm-op-hold-min: 400ms;
+  --fm-op-confirm: 340ms;
+  --fm-op-final-hold: 380ms;
+  --fm-op-settle: 340ms;
+  /* Pull progress (0–1) and armed amount (0–1), written per frame by the owner. */
+  --fm-op-p: 0;
+  --fm-op-a: 0;
+
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 176px;
+  overflow: hidden;
+  pointer-events: none;
+  contain: layout paint style;
+  will-change: transform;
+}
+
+.fm-op[hidden] {
+  display: none !important;
+}
+
+#app-screen-home.fm-op-active {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ---------- Space ---------- */
+.fm-op-space {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: linear-gradient(180deg, #2a1c35 0%, #33253e 100%);
+  /* Soft top edge so the space never meets the safe area or the screen edge as a hard line. */
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 8px);
+  mask-image: linear-gradient(180deg, transparent 0, #000 8px);
+  will-change: transform;
+}
+
+/* Pixel stars: one element per layer, each star a box-shadow square (no images, no loop). */
+.fm-op-stars {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 2px;
+  background: transparent;
+}
+
+.fm-op-stars-far {
+  opacity: calc(min(var(--fm-op-p) * 2.4, 1) * 0.7);
+  box-shadow:
+    22px 18px rgba(246, 230, 192, 0.55),
+    58px 44px rgba(196, 181, 253, 0.5),
+    96px 22px rgba(246, 230, 192, 0.45),
+    134px 64px rgba(196, 181, 253, 0.45),
+    168px 30px rgba(246, 230, 192, 0.5),
+    204px 14px rgba(196, 181, 253, 0.5),
+    246px 40px rgba(246, 230, 192, 0.45),
+    286px 20px rgba(196, 181, 253, 0.5),
+    318px 56px rgba(246, 230, 192, 0.5),
+    352px 26px rgba(196, 181, 253, 0.45),
+    388px 48px rgba(246, 230, 192, 0.45),
+    414px 18px rgba(196, 181, 253, 0.45),
+    40px 92px rgba(246, 230, 192, 0.4),
+    112px 104px rgba(196, 181, 253, 0.4),
+    302px 98px rgba(246, 230, 192, 0.4),
+    372px 112px rgba(196, 181, 253, 0.4);
+}
+
+/* Brighter plus-shaped sparkles. */
+.fm-op-stars-near {
+  opacity: clamp(0, calc((var(--fm-op-p) - 0.25) * 2.6), 1);
+  box-shadow:
+    /* sparkle at 78,30 */
+    78px 30px #f6e6c0, 76px 30px rgba(246, 230, 192, 0.55), 80px 30px rgba(246, 230, 192, 0.55),
+    78px 28px rgba(246, 230, 192, 0.55), 78px 32px rgba(246, 230, 192, 0.55),
+    /* sparkle at 334,76 */
+    334px 76px #ddd6fe, 332px 76px rgba(196, 181, 253, 0.55), 336px 76px rgba(196, 181, 253, 0.55),
+    334px 74px rgba(196, 181, 253, 0.55), 334px 78px rgba(196, 181, 253, 0.55),
+    /* sparkle at 146,40 */
+    146px 40px #ddd6fe, 144px 40px rgba(196, 181, 253, 0.5), 148px 40px rgba(196, 181, 253, 0.5),
+    146px 38px rgba(196, 181, 253, 0.5), 146px 42px rgba(196, 181, 253, 0.5),
+    /* single bright pixels */
+    262px 70px #f6e6c0,
+    190px 86px #ddd6fe,
+    400px 88px #f6e6c0;
+}
+
+/* ---------- Operator (source frames on one canvas, moved as a whole) ---------- */
+.fm-op-actor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 120px;
+  height: 120px;
+}
+
+.fm-op-sprite {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 120px;
+  height: 120px;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+}
+
+/* Restrained local violet light behind the operator; brighter when armed. */
+.fm-op-glow {
+  position: absolute;
+  left: -16px;
+  top: 10px;
+  width: 170px;
+  height: 120px;
+  background: radial-gradient(closest-side, rgba(139, 92, 246, 0.3), rgba(139, 92, 246, 0) 100%);
+  opacity: calc(0.3 + 0.7 * var(--fm-op-a));
+}
+
+/* ---------- Page edge and status ---------- */
+.fm-op-edge {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 20px;
+  border-radius: 20px 20px 0 0;
+  background: var(--app-bg, #f6f1e7);
+}
+
+.fm-op-status {
+  position: absolute;
+  left: 18px;
+  bottom: 28px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  white-space: nowrap;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 14px;
+  letter-spacing: 0.01em;
+  color: rgba(246, 241, 231, 0.84);
+  opacity: clamp(0, calc((var(--fm-op-p) - 0.42) * 4), 1);
+}
+
+.fm-op[data-state="refreshing"] .fm-op-status,
+.fm-op[data-state="settling"] .fm-op-status {
+  opacity: 1;
+}
+
+.fm-op-dot {
+  display: block;
+  width: 6px;
+  height: 6px;
+  background: #8b5cf6;
+}
+
+.fm-op[data-state="armed"] .fm-op-dot,
+.fm-op[data-state="refreshing"] .fm-op-dot {
+  background: #ddd6fe;
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.45);
+}
+
+.fm-op[data-done="true"] .fm-op-dot {
+  background: #4ade80;
+  box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.25);
+}
+
+/* Visually hidden live region for the refresh result. */
+.fm-op-live {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ---------- Reduced motion ---------- */
+/* One still frame; it fades in with the reveal instead of animating. */
+.fm-op[data-reduced] .fm-op-sprite {
+  opacity: clamp(0, calc((var(--fm-op-p) - 0.2) * 2.5), 1);
+}
+
+.fm-op[data-reduced][data-state="refreshing"] .fm-op-sprite,
+.fm-op[data-reduced][data-state="settling"] .fm-op-sprite {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fm-op {
+    --fm-op-cancel: 110ms;
+    --fm-op-to-hold: 90ms;
+    --fm-op-hold-min: 300ms;
+    --fm-op-confirm: 240ms;
+    --fm-op-settle: 120ms;
+  }
+}

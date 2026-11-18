@@ -19,6 +19,13 @@
   --fm-nav-bottom-inset: env(safe-area-inset-bottom, 0px);
   --fm-nav-total-height: calc(var(--fm-nav-height) + var(--fm-nav-bottom-inset));
   --fm-screen-bottom-padding: calc(var(--fm-nav-total-height) + 24px);
+
+  /* v17.11 clean gradient depth, shared by every top-level dark surface (Home Mission cards,
+     Missionen, Verlauf). Directional light, a soft lower vignette and an edge highlight replace
+     the former grid texture; each surface keeps its own gradient colours underneath. */
+  --fm-hero-light: radial-gradient(130% 95% at 0% 0%, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0) 48%);
+  --fm-hero-vignette: radial-gradient(125% 90% at 50% 118%, rgba(0, 0, 0, 0.24), rgba(0, 0, 0, 0) 62%);
+  --fm-hero-edge: inset 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 -1px 0 rgba(0, 0, 0, 0.16);
 }
 
 /* =========================================
@@ -75,9 +82,9 @@ html:not(.pwa-dark-status) body::after {
   margin: 0 auto !important;
   border-radius: 999px !important;
   overflow: visible !important;
-  background: rgba(252, 249, 244, 0.95) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(1.25);
-  backdrop-filter: blur(20px) saturate(1.25);
+  /* v17.12: near-opaque surface without backdrop-filter. Root swipes move page content under the
+     dock every frame; a backdrop blur had to be recomputed per frame for a 5% visual difference. */
+  background: rgba(252, 249, 244, 0.97) !important;
   border: 1px solid rgba(45, 35, 30, 0.11) !important;
   box-shadow: 0 16px 38px rgba(37, 22, 43, 0.14), 0 2px 8px rgba(37, 22, 43, 0.05) !important;
   box-sizing: border-box;
@@ -104,6 +111,7 @@ html:not(.pwa-dark-status) body::after {
 }
 
 .fm-bottom-nav-inner {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 56px minmax(0, 1fr) minmax(0, 1fr);
   gap: 2px;
@@ -116,9 +124,10 @@ html:not(.pwa-dark-status) body::after {
 
 .fm-nav-item {
   position: relative;
+  z-index: 1;
   min-height: 48px;
   min-width: 44px;
-  padding: 4px 2px;
+  padding: 12px 2px 4px;
   border: 1px solid transparent;
   border-radius: 999px;
   background: transparent;
@@ -130,7 +139,6 @@ html:not(.pwa-dark-status) body::after {
   gap: 2px;
   cursor: pointer;
   text-align: center;
-  transition: background-color 0.16s ease, color 0.16s ease, transform 0.12s ease;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -138,23 +146,44 @@ html:not(.pwa-dark-status) body::after {
   color: var(--text-primary);
 }
 
-.fm-nav-item:active {
-  transform: scale(0.95);
-}
-
 .fm-nav-item:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
 
-.fm-nav-indicator {
-  width: 5px;
-  height: 5px;
+/* v17.8: one persistent active indicator ("glider") for the whole dock.
+   Its resting position is derived from nav[data-lit] (pure CSS, no layout reads);
+   src/core/motion-controller.js owns its movement between roots.
+   Column math: 4 equal items of w = (100% - 64px) / 4 around the 56px Plus slot, 2px gaps.
+   translate % is relative to the glider's own width (= w). */
+.fm-nav-glider {
+  position: absolute;
+  z-index: 0;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: calc((100% - 64px) / 4);
   border-radius: 999px;
-  background: transparent;
-  margin-bottom: 1px;
-  transition: width 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+  background: rgba(239, 233, 221, 0.78);
+  pointer-events: none;
+  transform: translate3d(0, 0, 0);
 }
+
+.fm-nav-glider-bar {
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  width: 14px;
+  height: 3.5px;
+  margin-left: -7px;
+  border-radius: 999px;
+  background: var(--primary);
+}
+
+#bottomNavigationV17[data-lit="home"] .fm-nav-glider { transform: translate3d(0, 0, 0); }
+#bottomNavigationV17[data-lit="missions"] .fm-nav-glider { transform: translate3d(calc(100% + 2px), 0, 0); }
+#bottomNavigationV17[data-lit="history"] .fm-nav-glider { transform: translate3d(calc(200% + 62px), 0, 0); }
+#bottomNavigationV17[data-lit="settings"] .fm-nav-glider { transform: translate3d(calc(300% + 64px), 0, 0); }
 
 .fm-nav-icon {
   display: inline-flex;
@@ -168,7 +197,6 @@ html:not(.pwa-dark-status) body::after {
   width: 18px !important;
   height: 18px !important;
   stroke-width: 2.1;
-  transition: transform 0.18s ease, stroke-width 0.18s ease;
 }
 
 .fm-nav-label {
@@ -183,28 +211,28 @@ html:not(.pwa-dark-status) body::after {
   text-overflow: ellipsis;
 }
 
-.fm-nav-item.active,
-.fm-nav-item[aria-current="page"] {
+/* Visual emphasis follows the dock's lit section (data-lit), not .active,
+   so the glider, icon and label always change together. .active / aria-current stay semantic. */
+#bottomNavigationV17[data-lit="home"] #bottomNavHome,
+#bottomNavigationV17[data-lit="missions"] #bottomNavMissions,
+#bottomNavigationV17[data-lit="history"] #bottomNavHistory,
+#bottomNavigationV17[data-lit="settings"] #bottomNavSettings {
   color: var(--text-primary);
-  background: rgba(239, 233, 221, 0.72);
+  --fm-emph: 1;
 }
 
-.fm-nav-item.active .fm-nav-indicator,
-.fm-nav-item[aria-current="page"] .fm-nav-indicator {
-  width: 14px;
-  height: 3.5px;
-  background: var(--primary);
-}
-
-.fm-nav-item.active .fm-nav-icon svg,
-.fm-nav-item[aria-current="page"] .fm-nav-icon svg {
+#bottomNavigationV17[data-lit="home"] #bottomNavHome .fm-nav-icon svg,
+#bottomNavigationV17[data-lit="missions"] #bottomNavMissions .fm-nav-icon svg,
+#bottomNavigationV17[data-lit="history"] #bottomNavHistory .fm-nav-icon svg,
+#bottomNavigationV17[data-lit="settings"] #bottomNavSettings .fm-nav-icon svg {
   stroke-width: 2.45;
   color: var(--primary);
 }
 
-.fm-nav-item.active .fm-nav-label,
-.fm-nav-item[aria-current="page"] .fm-nav-label {
-  color: var(--text-primary);
+#bottomNavigationV17[data-lit="home"] #bottomNavHome .fm-nav-label,
+#bottomNavigationV17[data-lit="missions"] #bottomNavMissions .fm-nav-label,
+#bottomNavigationV17[data-lit="history"] #bottomNavHistory .fm-nav-label,
+#bottomNavigationV17[data-lit="settings"] #bottomNavSettings .fm-nav-label {
   font-weight: 850;
 }
 
@@ -315,6 +343,7 @@ html:not(.pwa-dark-status) body::after {
 
 .home-current-date,
 .home-brand-label {
+  display: block;
   margin: 0;
   font-size: clamp(17px, 4.5vw, 22px);
   font-weight: 600;
@@ -369,12 +398,35 @@ html:not(.pwa-dark-status) body::after {
 }
 
 #homeReadyStatusText,
-.home-status-text {
+.home-status-text,
+.home-status-offline-text {
   font-size: 10px;
   font-weight: 850;
   letter-spacing: 0.11em;
   text-transform: uppercase;
   color: #14161B;
+}
+
+/* v17.12 compact offline state: the readiness pill itself says OFFLINE while the browser is offline
+   and no expanded notice is open. The word names the state (never colour alone); the green ready
+   dot is removed and the pill turns neutral. Text-only keeps it no wider than BEREIT/READY, so the
+   header never reflows. Owner of the state classes: src/core/bootstrap.js (connection state). */
+.home-status-offline-text {
+  display: none;
+}
+
+html.fm-is-offline:not(.fm-offline-notice-open) .home-status-pill {
+  background: var(--surface-muted);
+}
+
+html.fm-is-offline:not(.fm-offline-notice-open) .home-status-dot,
+html.fm-is-offline:not(.fm-offline-notice-open) #homeReadyStatusText {
+  display: none;
+}
+
+html.fm-is-offline:not(.fm-offline-notice-open) .home-status-offline-text {
+  display: inline;
+  color: #3A332D;
 }
 
 .home-profile-btn {
@@ -412,12 +464,20 @@ html:not(.pwa-dark-status) body::after {
     padding: 0 8px;
     gap: 5px;
   }
-  #homeReadyStatusText {
+  #homeReadyStatusText,
+  .home-status-offline-text {
     font-size: 9px;
   }
   .home-profile-btn {
     width: 34px;
     height: 34px;
+  }
+}
+
+/* v17.12: the narrowest phones keep "Focus Mode+" clear of the readiness pill (it ran underneath at 320 px). */
+@media (max-width: 359px) {
+  .home-brand-title {
+    font-size: clamp(25px, 8vw, 30px);
   }
 }
 
@@ -596,6 +656,77 @@ html:not(.pwa-dark-status) body::after {
   margin-top: 4px;
 }
 
+/* 4b. v17.10 Mission calendar (rendered by src/features/missions/mission-calendar.js).
+   Lighter than the Mission card: cream surface, graphite numbers, Mission-colour markers,
+   purple only for today/selection. Shapes carry meaning, not colour alone. */
+.home-calendar-card { padding: 14px 14px 12px; border-radius: 24px; background: var(--surface); border: 1px solid var(--border); box-shadow: 0 8px 22px rgba(37, 22, 43, 0.045); }
+.hc-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 2px; }
+.hc-head-copy { min-width: 0; }
+.hc-month { margin: 0; font-size: 17px; line-height: 1.2; font-weight: 900; letter-spacing: -0.02em; color: var(--text-primary); }
+.hc-next { display: block; margin-top: 2px; font-size: 12px; font-weight: 650; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hc-nav { display: flex; gap: 6px; flex-shrink: 0; }
+.hc-nav-btn { width: 36px; height: 36px; border-radius: 12px; border: 1px solid rgba(45, 35, 30, 0.07); background: var(--surface-muted); color: var(--text-primary); display: grid; place-items: center; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform var(--motion-instant, 90ms) ease, background-color var(--motion-fast, 160ms) ease; }
+.hc-nav-btn svg { width: 17px; height: 17px; }
+.hc-nav-btn:active { transform: scale(0.94); }
+.hc-nav-btn:focus-visible, .hc-day:focus-visible, .hc-event:focus-visible, .hc-jump:focus-visible, .hc-empty-action:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+.hc-weekdays, .hc-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.hc-weekdays { margin-top: 10px; }
+.hc-weekdays span { text-align: center; font-size: 11px; font-weight: 800; color: #A39A90; }
+.hc-grid { margin-top: 4px; row-gap: 1px; touch-action: pan-y; }
+.hc-day { position: relative; height: 37px; padding: 0; border: 0; background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 2px; color: var(--text-primary); cursor: pointer; -webkit-tap-highlight-color: transparent; border-radius: 12px; }
+.hc-num { width: 27px; height: 27px; border-radius: 50%; display: grid; place-items: center; font-size: 13.5px; font-weight: 750; font-variant-numeric: tabular-nums; transition: background-color var(--motion-fast, 160ms) ease, color var(--motion-fast, 160ms) ease, box-shadow var(--motion-fast, 160ms) ease; }
+.hc-day.is-past .hc-num { color: #A39A90; }
+.hc-day.is-outside { cursor: default; }
+.hc-day.is-outside .hc-num { color: rgba(118, 110, 101, 0.28); font-weight: 650; }
+.hc-day.has-deadline .hc-num { color: var(--mt-ink, #5B21B6); font-weight: 900; box-shadow: inset 0 0 0 2px var(--mt-accent-strong, #8B5CF6); }
+.hc-day.is-today .hc-num { color: var(--primary); background: #F1EAFB; font-weight: 900; }
+.hc-day.is-selected .hc-num { color: #FFFFFF; background: var(--primary); box-shadow: 0 4px 10px rgba(109, 40, 217, 0.28); }
+.hc-day.is-selected.has-deadline .hc-num { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--mt-accent-strong, #8B5CF6); }
+.hc-day:not(.is-outside):active .hc-num { transform: scale(0.94); }
+.hc-marks { display: flex; align-items: center; justify-content: center; gap: 2px; height: 5px; margin-top: 2px; }
+.hc-mark { width: 5px; height: 5px; border-radius: 50%; background: var(--mt-accent-strong, #8B5CF6); }
+.hc-mark.is-start { background: transparent; box-shadow: inset 0 0 0 1.5px var(--mt-accent-strong, #8B5CF6); }
+.hc-mark.is-done { background: var(--success); }
+.hc-mark.is-deadline { width: 5px; height: 5px; border-radius: 1px; transform: rotate(45deg) scale(0.9); }
+.hc-mark-more { font-style: normal; font-size: 8px; font-weight: 900; line-height: 1; color: var(--text-secondary); }
+.hc-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; padding: 0 2px; font-size: 11.5px; font-weight: 700; color: var(--text-secondary); }
+.hc-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.hc-key { display: inline-block; flex-shrink: 0; }
+.hc-key.is-deadline { width: 11px; height: 11px; border-radius: 50%; box-shadow: inset 0 0 0 2px #8A8178; }
+.hc-key.is-deadline + .hc-key-diamond { width: 6px; height: 6px; margin-left: -2px; border-radius: 1px; background: #8A8178; transform: rotate(45deg); }
+.hc-key.is-start { width: 7px; height: 7px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px #8A8178; }
+.hc-key.is-focus { width: 7px; height: 7px; border-radius: 50%; background: #8A8178; }
+.hc-detail { margin-top: 10px; padding: 11px 2px 0; border-top: 1px solid var(--border); }
+.hc-detail-title { font-size: 13px; font-weight: 850; color: var(--text-primary); }
+.hc-events { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.hc-event { width: 100%; min-height: 48px; display: flex; align-items: center; gap: 11px; padding: 8px 10px 8px 9px; border-radius: 16px; border: 1px solid rgba(45, 35, 30, 0.07); background: #FFFDF9; text-align: left; color: var(--text-primary); cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform var(--motion-instant, 90ms) ease, background-color var(--motion-fast, 160ms) ease; }
+.hc-event:active { transform: scale(0.99); background: var(--surface-muted); }
+.hc-event > svg { width: 16px; height: 16px; flex-shrink: 0; color: #A39A90; }
+.hc-event-mark { flex: 0 0 4px; width: 4px; height: 32px; border-radius: 4px; background: var(--mt-accent-strong, #8B5CF6); }
+.hc-event.is-done .hc-event-mark { background: var(--success); }
+.hc-event.is-start .hc-event-mark { background: transparent; box-shadow: inset 0 0 0 1.5px var(--mt-accent-strong, #8B5CF6); }
+.hc-event-copy { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; }
+.hc-event-title { font-size: 14px; font-weight: 850; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hc-event-sub { margin-top: 1px; font-size: 12.5px; font-weight: 600; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hc-event-sub b { font-weight: 850; color: var(--mt-ink, #5B21B6); }
+.hc-event.is-done .hc-event-sub b { color: #15803D; }
+.hc-none { margin: 4px 0 0; font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+.hc-jump { display: inline-flex; align-items: center; gap: 7px; max-width: 100%; margin-top: 8px; min-height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid rgba(109, 40, 217, 0.16); background: #F5F0FC; color: var(--primary); font-size: 12.5px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+.hc-jump svg { width: 14px; height: 14px; flex-shrink: 0; }
+.hc-empty { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.hc-empty-icon { flex: 0 0 40px; width: 40px; height: 40px; border-radius: 13px; background: var(--surface-muted); color: var(--primary); display: grid; place-items: center; }
+.hc-empty-icon svg { width: 19px; height: 19px; }
+.hc-empty-copy { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; }
+.hc-empty-copy strong { font-size: 14px; font-weight: 850; color: var(--text-primary); }
+.hc-empty-copy span { margin-top: 2px; font-size: 12.5px; line-height: 1.35; font-weight: 600; color: var(--text-secondary); }
+.hc-empty-action { flex-shrink: 0; margin-left: 52px; min-height: 36px; padding: 0 12px; border-radius: 12px; border: 0; background: var(--primary); color: #FFFFFF; font-size: 12.5px; font-weight: 850; cursor: pointer; box-shadow: 0 6px 14px rgba(109, 40, 217, 0.22); }
+.hc-grid.is-enter-next { animation: hcMonthNext var(--motion-fast, 160ms) var(--ease-standard, ease) both; }
+.hc-grid.is-enter-prev { animation: hcMonthPrev var(--motion-fast, 160ms) var(--ease-standard, ease) both; }
+@keyframes hcMonthNext { from { opacity: 0.35; transform: translateX(12px); } to { opacity: 1; transform: none; } }
+@keyframes hcMonthPrev { from { opacity: 0.35; transform: translateX(-12px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .hc-grid.is-enter-next, .hc-grid.is-enter-prev { animation: none; } .hc-num { transition: none; } }
+@media (max-width: 360px) { .home-calendar-card { padding: 12px 10px 10px; } .hc-day { height: 35px; } .hc-num { width: 26px; height: 26px; font-size: 13px; } }
+
 /* 5. Activity Timeline */
 .home-activity-timeline {
   display: flex;
@@ -710,26 +841,230 @@ html:not(.pwa-dark-status) body::after {
 }
 
 /* =========================================
-   DARK AUBERGINE SUMMARY CARDS (HISTORY / MISSIONS)
+   v17.11 CLEAN GRADIENT HERO SYSTEM (MISSIONEN / VERLAUF / FORTSCHRITT)
+   One surface and one type scale for the top summary of a root screen, in the family of the
+   Settings summary (.st-summary): clean gradient, no grid, bold numbers, readable labels.
+   Screens keep their own content, icon and metrics.
    ========================================= */
-.dark-summary-card,
+.fm-hero,
 .fm-dark-summary-card {
   position: relative;
   overflow: hidden;
-  padding: 16px;
-  border-radius: 22px;
+  isolation: isolate;
+  padding: 18px 18px 16px;
+  border-radius: 26px;
   background-color: #25162B;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    radial-gradient(circle at 88% 12%, rgba(124, 58, 237, 0.28), transparent 38%),
-    linear-gradient(155deg, #25162B 0%, #1B1020 100%);
-  background-size: 22px 22px, 22px 22px, 100% 100%, 100% 100%;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 14px 34px rgba(37, 22, 43, 0.14);
+    var(--fm-hero-light),
+    radial-gradient(circle at 92% 0%, rgba(124, 58, 237, 0.30), transparent 46%),
+    var(--fm-hero-vignette),
+    linear-gradient(152deg, #2A1932 0%, #1E1124 58%, #170D1C 100%);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 18px 36px rgba(37, 22, 43, 0.20), var(--fm-hero-edge);
   color: #FFFFFF;
 }
 
+.fm-hero-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 10px;
+  min-width: 0;
+}
+
+.fm-hero-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 850;
+  color: #C4B5FD;
+  white-space: nowrap;
+}
+
+.fm-hero-kicker svg {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+}
+
+.fm-hero-chip {
+  flex: 0 1 auto;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 28px;
+  padding: 0 11px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  font-size: 12px;
+  font-weight: 800;
+  color: #E9E2F5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fm-hero-dot {
+  flex: 0 0 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #A78BFA;
+}
+
+.fm-hero-chip[data-state="open"] .fm-hero-dot { background: #4ADE80; box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.16); }
+.fm-hero-chip[data-state="full"] .fm-hero-dot { background: #FBBF24; box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.16); }
+
+.fm-hero-main {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 16px;
+  min-width: 0;
+}
+
+.fm-hero-figure { min-width: 0; }
+
+.fm-hero-value {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: clamp(36px, 11vw, 44px);
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: -0.045em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.fm-hero-value small {
+  font-size: 0.5em;
+  font-weight: 850;
+  letter-spacing: -0.02em;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.fm-hero-label {
+  margin: 6px 0 0;
+  font-size: 14px;
+  line-height: 1.3;
+  font-weight: 750;
+  color: #E9E2F5;
+}
+
+.fm-hero-aside {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.fm-hero-aside.hidden { display: none; }
+
+.fm-hero-aside strong {
+  font-size: 26px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.fm-hero-aside span {
+  margin-top: 5px;
+  font-size: 12px;
+  line-height: 1.25;
+  font-weight: 700;
+  color: #B9ADC9;
+}
+
+.fm-hero-sub {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 650;
+  color: #CFC4DD;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fm-hero-sub:empty { display: none; }
+
+.fm-hero-stats {
+  display: grid;
+  /* Columns never drop below their longest label word, so German labels never collide. */
+  grid-template-columns: repeat(3, minmax(min-content, 1fr));
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.fm-hero-stats > div { min-width: 0; padding-right: 6px; }
+.fm-hero-stats > div + div { padding-left: 12px; border-left: 1px solid rgba(255, 255, 255, 0.08); }
+
+.fm-hero-stats strong {
+  display: block;
+  font-size: 21px;
+  line-height: 1.1;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.fm-hero-stats > div > span {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.3;
+  font-weight: 650;
+  color: #B9ADC9;
+  min-width: 0;
+}
+
+/* Outcome tones on the numbers support the written labels; they never replace them. */
+.fm-hero-stats > .is-ok strong { color: #86EFAC; }
+.fm-hero-stats > .is-accent strong { color: #C4B5FD; }
+.fm-hero-stats > .is-warn strong { color: #FCD34D; }
+
+@media (max-width: 360px) {
+  .fm-hero { padding: 16px 15px 14px; }
+  .fm-hero-stats strong { font-size: 18px; }
+  .fm-hero-stats > div > span { font-size: 11px; }
+  .fm-hero-stats > div + div { padding-left: 9px; }
+  .fm-hero-aside strong { font-size: 22px; }
+}
+
+/* Root-screen headers of Missionen and Verlauf use the Settings header scale (.st-header). */
+.fm-root-header { margin-bottom: 16px; }
+.fm-root-header .st-title { font-size: clamp(27px, 8.2vw, 34px); white-space: nowrap; }
+.fm-root-header-btn {
+  flex: 0 0 46px;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--primary);
+  box-shadow: 0 6px 16px rgba(37, 22, 43, 0.07);
+  cursor: pointer;
+}
+.fm-root-header-btn svg { width: 20px; height: 20px; }
+.fm-root-header-btn.is-primary { border-color: transparent; background: var(--primary); color: #FFFFFF; box-shadow: 0 10px 22px rgba(109, 40, 217, 0.28); }
+.fm-root-header-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+#historyOverviewCard,
+#missionOverviewCardV173 { margin-bottom: 14px; }
+
+/* Fortschritt (#app-screen-stats) keeps its own summary layout on the shared surface. */
 .fm-dark-summary-top {
   display: flex;
   align-items: flex-start;
@@ -800,74 +1135,20 @@ html:not(.pwa-dark-status) body::after {
   margin-top: 2px;
 }
 
-.fm-dark-metrics-row {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
-  margin-top: 12px;
-  padding-top: 10px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.fm-dark-metric-pill {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 6px 8px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  min-width: 0;
-}
-
-.fm-dark-metric-pill .dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.fm-dark-metric-pill strong {
-  font-size: 11px;
-  font-weight: 900;
-  color: #FFFFFF;
-}
-
-.fm-dark-metric-pill span:last-child {
-  font-size: 9px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.7);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.dark-summary-stat {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.dark-summary-val {
-  font-size: 16px;
-  font-weight: 900;
-  line-height: 1.1;
-  color: #FFFFFF;
-  font-variant-numeric: tabular-nums;
-}
-
-.dark-summary-lbl {
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: 0.11em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.55);
-  margin-top: 2px;
-}
-
 /* =========================================
    SAFE AREA & ROOT SCREEN PADDING
    ========================================= */
+/* v17.12 single bottom-shell owner: on every dock route the screen itself reaches the physical
+   bottom edge and paints the bottom safe area with its own background. Its bottom padding
+   (--fm-screen-bottom-padding) already includes the dock and the safe-area inset, so content
+   clears the floating dock. #appBody keeps no bottom strip of its own, and the screen box is
+   identical at rest and during transitions (see motion.css layer geometry), so nothing toggles,
+   leaks under the dock or appears a frame later. The shell colour never fades on arrival. */
+#screenWrapper.has-bottom-nav #appBody {
+  padding-bottom: 0 !important;
+  transition: none !important;
+}
+
 .app-screen:not(.hidden):not(.fm-motion-active) {
   animation: none !important;
   filter: none !important;
@@ -875,35 +1156,27 @@ html:not(.pwa-dark-status) body::after {
   opacity: 1 !important;
 }
 
-.settings-premium-banner {
-  padding: 14px 16px;
-  border-radius: 22px;
-  background: var(--dark-card-bg);
-  color: #FFFFFF;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 12px 26px rgba(37, 22, 43, 0.22);
-  cursor: pointer;
-  transition: transform 0.14s ease, box-shadow 0.14s ease;
-}
-
-.settings-premium-banner:active {
-  transform: scale(0.985);
-}
-
 #screenWrapper.has-bottom-nav #app-screen-plan {
   padding-bottom: calc(var(--fm-nav-total-height) + 26px) !important;
   overflow-y: auto !important;
 }
 
+/* v17.11: Missionen scrolls as one page (header, summary, tabs, cards), like Verlauf. */
 #app-screen-missions,
 #screenWrapper.has-bottom-nav #app-screen-missions {
-  padding: 18px 18px 0 !important;
-  overflow: hidden !important;
+  padding: 18px 18px var(--fm-screen-bottom-padding) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  scrollbar-width: none;
 }
+
+#app-screen-missions::-webkit-scrollbar { display: none; }
 
 #missionManagementListV116,
 #screenWrapper.has-bottom-nav #missionManagementListV116 {
-  padding-bottom: var(--fm-screen-bottom-padding) !important;
+  flex: none;
+  overflow: visible;
+  padding-bottom: 0 !important;
 }
 
 #screenWrapper.has-bottom-nav #app-screen-history {
@@ -917,12 +1190,6 @@ html:not(.pwa-dark-status) body::after {
 
 #screenWrapper.has-bottom-nav #app-screen-stats {
   overflow-y: auto !important;
-  padding: 18px 18px var(--fm-screen-bottom-padding) !important;
-}
-
-#screenWrapper.has-bottom-nav #app-screen-settings {
-  overflow-y: auto !important;
-  justify-content: flex-start !important;
   padding: 18px 18px var(--fm-screen-bottom-padding) !important;
 }
 
@@ -1607,121 +1874,99 @@ html:not(.pwa-dark-status) body::after {
 }
 
 /* =========================================
-   SETTINGS SCREEN GROUPS & ROWS (V17.3)
+   SETTINGS (v17.10) — Home-style header, one deep summary surface,
+   grouped rounded cards with readable rows. Handlers stay inline in index.html.
    ========================================= */
-.settings-group-v173 {
-  display: flex;
-  flex-direction: column;
+#app-screen-settings,
+#screenWrapper.has-bottom-nav #app-screen-settings {
+  padding: 16px 18px var(--fm-screen-bottom-padding) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  scrollbar-width: none;
 }
+#app-screen-settings::-webkit-scrollbar { display: none; }
+.st-shell { display: flex; flex-direction: column; gap: 22px; }
 
-.settings-group-label {
-  font-size: 9.5px;
-  font-weight: 850;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: var(--text-secondary);
-  margin-bottom: 6px;
-  padding-left: 4px;
-}
+.st-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 2px; }
+.st-header-copy { min-width: 0; }
+.st-kicker { display: block; font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-secondary); }
+.st-title { margin: 2px 0 0; font-size: clamp(30px, 8.6vw, 36px); line-height: 1.02; font-weight: 950; letter-spacing: -0.045em; color: #14110F; }
+.st-avatar { flex: 0 0 46px; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: var(--surface); border: 1px solid var(--border); color: var(--primary); font-size: 12px; font-weight: 900; box-shadow: 0 6px 16px rgba(37, 22, 43, 0.07); }
 
-.settings-group-card,
-.settings-card-v173 {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 22px;
-  overflow: hidden;
-  box-shadow: 0 6px 18px rgba(37, 22, 43, 0.04);
-}
+/* Deep aubergine summary, same family as the Mission system card. */
+.st-summary { position: relative; overflow: hidden; padding: 18px 18px 16px; border-radius: 26px; color: #FFFFFF;
+  background: radial-gradient(circle at 92% 0%, rgba(124, 58, 237, 0.32), transparent 46%), linear-gradient(150deg, #2A1932 0%, #1E1124 58%, #170D1C 100%);
+  box-shadow: 0 18px 36px rgba(37, 22, 43, 0.22), inset 0 1px rgba(255, 255, 255, 0.06); }
+.st-summary-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.st-summary-kicker { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; font-size: 12px; font-weight: 850; color: #C4B5FD; }
+.st-summary-kicker svg { width: 15px; height: 15px; }
+.st-summary-chip { display: inline-flex; align-items: center; gap: 7px; height: 28px; padding: 0 11px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.10); font-size: 12px; font-weight: 800; color: #E9E2F5; white-space: nowrap; }
+.st-live-dot { width: 7px; height: 7px; border-radius: 50%; background: #4ADE80; box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.16); }
+.st-summary[data-storage="limited"] .st-live-dot { background: #FBBF24; box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.16); }
+.st-summary-title { margin: 12px 0 0; font-size: 22px; line-height: 1.15; font-weight: 900; letter-spacing: -0.025em; }
+.st-summary-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.10); }
+.st-summary-stats > div { min-width: 0; padding-right: 8px; }
+.st-summary-stats > div + div { padding-left: 12px; border-left: 1px solid rgba(255, 255, 255, 0.08); }
+.st-summary-stats strong { display: block; font-size: 21px; line-height: 1.1; font-weight: 900; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.st-summary-stats > div > span { display: block; margin-top: 3px; font-size: 12px; line-height: 1.3; font-weight: 650; color: #B9ADC9; }
 
-.settings-card-v173 > .settings-nav-row + .settings-nav-row {
-  border-top: 1px solid var(--border);
-}
+.settings-group-v173 { display: flex; flex-direction: column; gap: 9px; }
+.settings-group-label { margin: 0; padding-left: 4px; font-size: 12px; font-weight: 850; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-secondary); }
+.settings-card-v173 { background: var(--surface); border: 1px solid var(--border); border-radius: 24px; overflow: hidden; box-shadow: 0 10px 26px rgba(37, 22, 43, 0.06), inset 0 1px #FFFFFF; }
+.settings-card-v173 > .settings-nav-row + .settings-nav-row { border-top: 1px solid var(--border); }
+.settings-nav-row { width: 100%; min-height: 68px; padding: 13px 16px 13px 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; text-align: left; color: var(--text-primary); background: transparent; border: 0; -webkit-tap-highlight-color: transparent; transition: background-color var(--motion-fast, 160ms) ease; }
+button.settings-nav-row { cursor: pointer; }
+div.settings-nav-row { cursor: default; }
+@media (hover: hover) { button.settings-nav-row:hover { background: rgba(239, 233, 221, 0.5); } }
+button.settings-nav-row:active { background: var(--surface-muted); }
+button.settings-nav-row:focus-visible { outline: 2px solid var(--primary); outline-offset: -3px; border-radius: 22px; }
+.st-row-main { display: flex; align-items: center; gap: 13px; min-width: 0; flex: 1 1 auto; }
+.st-row-copy { display: flex; flex-direction: column; min-width: 0; }
+.settings-row-title { font-size: 15.5px; font-weight: 850; line-height: 1.25; color: var(--text-primary); }
+.settings-row-sub { margin-top: 2px; font-size: 13px; font-weight: 600; line-height: 1.35; color: var(--text-secondary); }
+.settings-row-icon { flex: 0 0 42px; width: 42px; height: 42px; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; }
+.settings-row-icon svg { width: 20px; height: 20px; }
+.st-tone-violet { background: #EEE7FB; color: #6D28D9; }
+.st-tone-rose { background: #FCE8EC; color: #D8395F; }
+.st-tone-amber { background: #FBF0DA; color: #B4690E; }
+.st-tone-green { background: #E3F4EA; color: #15803D; }
+.st-tone-neutral { background: var(--surface-muted); color: #5C544D; }
+.st-chev { flex: 0 0 auto; width: 18px; height: 18px; color: #A39A90; }
+.st-value-chip { flex: 0 0 auto; height: 32px; padding: 0 13px; display: inline-flex; align-items: center; border-radius: 999px; background: #F3EEFC; border: 1px solid rgba(109, 40, 217, 0.18); color: #5B21B6; font-size: 13px; font-weight: 850; }
+.st-version { flex: 0 1 auto; max-width: 46%; padding: 6px 10px; border-radius: 12px; background: var(--surface-muted); color: #5C544D; font-size: 11.5px; line-height: 1.3; font-weight: 750; text-align: right; }
 
-.settings-row-divider {
-  height: 1px;
-  background: var(--border);
-  margin: 0 14px;
-}
+/* Segmented language control: one sliding selected surface, no geometry jump. */
+.settings-lang-pills { position: relative; flex: 0 0 auto; display: inline-grid; grid-template-columns: 1fr 1fr; padding: 4px; border-radius: 14px; background: var(--surface-muted); border: 1px solid rgba(45, 35, 30, 0.06); }
+#app-screen-settings .settings-lang-pill { position: relative; z-index: 1; min-width: 46px; height: 34px; padding: 0 10px; border: 0; border-radius: 10px; background: transparent; color: var(--text-secondary); font-size: 13px !important; font-weight: 850; cursor: pointer; }
+#app-screen-settings .settings-lang-pill.active { background: #FFFDF9 !important; color: var(--primary) !important; box-shadow: 0 4px 10px rgba(37, 22, 43, 0.09), 0 1px 2px rgba(37, 22, 43, 0.06); }
+#app-screen-settings .settings-lang-pill:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
 
-.settings-nav-row,
-.settings-row-item {
-  width: 100%;
-  min-height: 58px;
-  padding: 12px 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  text-align: left;
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-}
+.st-backup-line { display: flex; align-items: center; gap: 8px; margin: 0 14px; padding: 11px 2px 13px; border-top: 1px solid var(--border); font-size: 13px; font-weight: 650; color: var(--text-secondary); }
+.st-backup-line svg { flex: 0 0 auto; width: 15px; height: 15px; }
+.st-backup-line span { flex: 1 1 auto; }
+.st-backup-line b { flex: 0 1 auto; min-width: 0; font-weight: 800; color: var(--text-primary); text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-.settings-row-title {
-  font-size: 13px;
-  font-weight: 850;
-  color: var(--text-primary);
-  line-height: 1.25;
-}
+.settings-premium-banner { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 16px 16px 16px 18px; border-radius: 24px; color: #FFFFFF; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  background: radial-gradient(circle at 100% 0%, rgba(251, 191, 36, 0.16), transparent 40%), linear-gradient(150deg, #2A1932 0%, #1E1124 100%);
+  border: 1px solid rgba(255, 255, 255, 0.06); box-shadow: 0 14px 28px rgba(37, 22, 43, 0.20); transition: transform var(--motion-instant, 90ms) ease; }
+.settings-premium-banner:active { transform: scale(0.985); }
+.settings-premium-banner:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+.st-premium-copy { display: flex; flex-direction: column; min-width: 0; }
+.st-premium-kicker { font-size: 12px; font-weight: 850; color: #C4B5FD; }
+.st-premium-copy strong { margin-top: 2px; font-size: 17px; font-weight: 900; }
+.st-premium-sub { margin-top: 2px; font-size: 13px; line-height: 1.35; color: #CFC4DD; }
+.st-premium-icon { flex: 0 0 44px; width: 44px; height: 44px; border-radius: 15px; display: grid; place-items: center; background: rgba(251, 191, 36, 0.12); color: #FBBF24; }
+.st-premium-icon svg { width: 21px; height: 21px; }
 
-.settings-row-sub {
-  font-size: 10.5px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  line-height: 1.3;
-  margin-top: 2px;
-}
-
-button.settings-row-item:hover,
-.settings-nav-row:hover {
-  background: rgba(239, 233, 221, 0.45);
-}
-
-button.settings-row-item:active,
-.settings-nav-row:active {
-  background: var(--surface-muted);
-}
-
-.settings-row-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.settings-lang-pills {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px;
-  border-radius: 11px;
-  background: var(--surface-muted);
-  border: 1px solid var(--border);
-}
-
-#app-screen-settings .settings-lang-pill {
-  min-width: 36px;
-  min-height: 28px;
-  padding: 0 9px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--text-secondary);
-  font-size: 10px !important;
-  font-weight: 800;
-  cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease;
-}
-
-#app-screen-settings .settings-lang-pill.active {
-  background: var(--surface) !important;
-  color: var(--primary) !important;
-  box-shadow: 0 2px 6px rgba(37, 22, 43, 0.08);
+@media (max-width: 360px) {
+  #app-screen-settings, #screenWrapper.has-bottom-nav #app-screen-settings { padding-left: 14px !important; padding-right: 14px !important; }
+  .st-summary-stats strong { font-size: 18px; }
+  .st-summary-stats > div > span { font-size: 11px; }
+  .settings-nav-row { padding-left: 12px; padding-right: 12px; gap: 10px; }
+  .st-row-main { gap: 11px; }
+  .settings-row-title { font-size: 15px; }
+  .settings-row-sub { font-size: 12.5px; }
+  #app-screen-settings .settings-lang-pill { min-width: 40px; }
 }
 
 /* =========================================

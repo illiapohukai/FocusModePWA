@@ -1,4 +1,4 @@
-const CACHE = "focus-mode-v17-5-1-interaction-fixes";
+const CACHE = "focus-mode-v17-15-cosmic-operator-pull-refresh";
 const CACHE_PREFIX = "focus-mode";
 
 const CORE = [
@@ -17,6 +17,13 @@ const CORE = [
   "./styles/quick-focus.css",
   "./styles/data-management.css",
   "./styles/motion.css",
+  "./styles/insights.css",
+  "./styles/home-pull.css",
+  "./assets/operator/operator-coffee-pull.json",
+  "./assets/operator/operator-coffee-pull-sheet.png",
+  "./assets/operator/mission-operator.json",
+  "./assets/operator/mission-operator-work.png",
+  "./assets/operator/mission-operator-success.png",
   "./src/core/architecture-shell.js",
   "./src/core/runtime-ownership.js",
   "./src/services/storage-service.js",
@@ -36,6 +43,8 @@ const CORE = [
   "./src/features/missions/mission-renderer.js",
   "./src/features/quick-focus/quick-focus.js",
   "./src/features/history/session-history.js",
+  "./src/features/history/focus-insights.js",
+  "./src/features/league/league.js",
   "./src/features/recovery/recovery-controller.js",
   "./src/features/focus-session/session-runtime.js",
   "./src/features/focus-session/session-finalization.js",
@@ -44,9 +53,13 @@ const CORE = [
   "./src/features/optional-adaptation/optional-adaptation.js",
   "./src/features/missions/mission-management.js",
   "./src/features/missions/multi-mission-ui.js",
+  "./src/features/missions/mission-calendar.js",
   "./src/core/navigation.js",
   "./src/core/bootstrap.js",
-  "./src/core/motion-controller.js"
+  "./src/core/cosmic-core.js",
+  "./src/core/motion-controller.js",
+  "./src/features/home-pull/home-pull-operator.js",
+  "./src/features/missions/mission-operator.js"
 ];
 
 const EXTERNAL_CDN_URLS = [

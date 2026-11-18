@@ -62,22 +62,58 @@ function updateMissionPlanButton(){
   btn.classList.toggle('opacity-40',!ready);
   btn.classList.toggle('cursor-not-allowed',!ready);
 }
-function selectConfidenceRating(btn,value){
-  selectedConfidenceRating=value;
-  document.querySelectorAll('#confidenceRatingButtons .flow-chip').forEach(x=>x.classList.remove('active'));
-  btn.classList.add('active');
-  const label=document.getElementById('confidenceRatingLabel');
-  const states={
-    1:{text:'Gar nichts verstanden',classes:['text-rose-600']},
-    2:{text:'Sehr wenig verstanden',classes:['text-rose-500']},
-    3:{text:'Mittel verstanden',classes:['text-amber-600']},
-    4:{text:'Ziemlich gut verstanden',classes:['text-emerald-600']},
-    5:{text:'Vollständig verstanden',classes:['text-indigo-600']}
-  };
-  const state=states[value];
-  label.textContent=state.text;
-  label.className='text-[10px] font-bold '+state.classes.join(' ');
+/* v17.7 continuous confidence line. Stored value stays the existing 1–5 integer (selectedConfidenceRating). */
+const CONFIDENCE_RATING_STATES={1:'Gar nichts verstanden',2:'Sehr wenig verstanden',3:'Mittel verstanden',4:'Ziemlich gut verstanden',5:'Vollständig verstanden'};
+function syncConfidenceRatingUI(value=selectedConfidenceRating,preview=null){
+  const v=Math.max(1,Math.min(5,Math.round(Number(value)||3)));
+  const scale=document.getElementById('confidenceRatingButtons'),slider=document.getElementById('confidenceRatingSlider'),label=document.getElementById('confidenceRatingLabel');
+  if(scale){
+    scale.dataset.value=String(v);
+    scale.style.setProperty('--sr-t',String(preview==null?(v-1)/4:Math.max(0,Math.min(1,preview))));
+    scale.querySelectorAll('.sr-stop').forEach(x=>{const n=Number(x.dataset.rating);x.classList.toggle('active',n===v);x.classList.toggle('is-filled',n<=v)});
+  }
+  if(label){label.textContent=CONFIDENCE_RATING_STATES[v];label.dataset.level=String(v)}
+  if(slider){slider.setAttribute('aria-valuenow',String(v));slider.setAttribute('aria-valuetext',v+' von 5 · '+CONFIDENCE_RATING_STATES[v])}
 }
+window.syncConfidenceRatingUI=syncConfidenceRatingUI;
+function selectConfidenceRating(btn,value){
+  const v=Math.max(1,Math.min(5,Math.round(Number(value)||3)));
+  selectedConfidenceRating=v;
+  syncConfidenceRatingUI(v);
+}
+(function bindConfidenceRatingLineV177(){
+  function bind(){
+    const slider=document.getElementById('confidenceRatingSlider'),scale=document.getElementById('confidenceRatingButtons');
+    if(!slider||!scale||slider.dataset.bound==='1')return;
+    slider.dataset.bound='1';
+    let dragging=false,pointerId=null;
+    const ratioAt=x=>{const track=slider.querySelector('.sr-track')||slider,r=track.getBoundingClientRect();return r.width?Math.max(0,Math.min(1,(x-r.left)/r.width)):0};
+    const toValue=t=>1+Math.round(t*4);
+    slider.addEventListener('pointerdown',e=>{
+      if(slider.closest('.optional-adaptation-locked'))return;
+      dragging=true;pointerId=e.pointerId;slider.setPointerCapture?.(e.pointerId);scale.classList.add('is-dragging');
+      const t=ratioAt(e.clientX);syncConfidenceRatingUI(toValue(t),t);e.preventDefault();
+    });
+    slider.addEventListener('pointermove',e=>{if(!dragging||e.pointerId!==pointerId)return;const t=ratioAt(e.clientX);syncConfidenceRatingUI(toValue(t),t)});
+    const end=e=>{
+      if(!dragging||(e&&e.pointerId!==pointerId))return;
+      dragging=false;scale.classList.remove('is-dragging');
+      try{slider.releasePointerCapture?.(pointerId)}catch{}
+      selectConfidenceRating(null,toValue(ratioAt(e.clientX)));
+    };
+    slider.addEventListener('pointerup',end);
+    slider.addEventListener('pointercancel',()=>{if(!dragging)return;dragging=false;scale.classList.remove('is-dragging');syncConfidenceRatingUI(selectedConfidenceRating)});
+    slider.addEventListener('keydown',e=>{
+      if(slider.closest('.optional-adaptation-locked'))return;
+      const map={ArrowRight:1,ArrowUp:1,ArrowLeft:-1,ArrowDown:-1};
+      let v=null;
+      if(e.key in map)v=selectedConfidenceRating+map[e.key];else if(e.key==='Home')v=1;else if(e.key==='End')v=5;
+      if(v==null)return;e.preventDefault();selectConfidenceRating(null,v);
+    });
+    syncConfidenceRatingUI(selectedConfidenceRating);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
+})();
 
 function confirmAIPlan(){if(!pendingAIPlan)return;activeAIPlan=pendingAIPlan;renderAIPlan(activeAIPlan);revealCreatedMission();window.FocusModeApp.services.storage.setJSON('focus-mode-active-mission',activeAIPlan);setAppScreen('plan');}
 function formatMinutes(total){const m=Math.max(0,Math.round(Number(total)||0)),h=Math.floor(m/60),r=m%60;return h?(h+'h'+(r?' '+r+'m':'')):(r+' Min.')}
@@ -91,7 +127,7 @@ function renderAIPlan(plan){
   document.getElementById('aiPlanExplanation').innerHTML='<strong>Warum so?</strong> '+escapeHTML(plan.estimate.explanation);
   document.getElementById('aiPlanSteps').innerHTML=plan.sessions.map((s,i)=>'<div class="flow-step-line flex gap-3 '+(i<plan.sessions.length-1?'pb-3':'')+'"><div class="w-7 h-7 rounded-full '+(i===0?'bg-indigo-600 text-white':'bg-white border border-slate-200 text-slate-500')+' flex items-center justify-center text-[9px] font-black shrink-0">'+(i+1)+'</div><div class="flex-1 pt-0.5"><div class="flex justify-between gap-2"><div class="text-[10px] font-bold text-slate-800">'+escapeHTML(s.title)+'</div><span class="text-[9px] font-bold '+(i===0?'text-indigo-600':'text-slate-400')+'">'+s.durationMinutes+' Min.</span></div><div class="text-[9px] text-slate-400 mt-1">'+escapeHTML(s.task||s.reason)+'</div></div></div>').join('');
   const homeTitle=document.querySelector('#activeMissionCard h3');if(homeTitle)homeTitle.textContent=plan.goal.title;
-  const homeMeta=document.querySelector('#activeMissionCard h3 + p');if(homeMeta)homeMeta.textContent=plan.goal.subject+' · '+(plan.goal.deadlineText||'ohne Frist');
+  const homeMeta=document.querySelector('#activeMissionCard h3 + p');if(homeMeta)homeMeta.textContent=plan.goal.subject+' · '+missionDeadlineV1712(plan.goal.deadlineText).label;
   document.getElementById('homeMissionNextStep').textContent=plan.sessions[0].title;
   document.getElementById('homeMissionMeta').textContent=plan.sessions[0].task+' · ca. '+plan.sessions[0].durationMinutes+' Min.';
   lucide.createIcons();
@@ -156,7 +192,7 @@ function renderAIPlan(plan){
     return '<div class="flow-step-line flex gap-3 '+(i<plan.sessions.length-1?'pb-3 ':'')+(done?'mission-step-complete ':active?'mission-step-active ':'')+'"><div class="step-bubble w-7 h-7 rounded-full bg-white border border-slate-200 text-slate-500 flex items-center justify-center text-[9px] font-black shrink-0">'+bubble+'</div><div class="flex-1 pt-0.5"><div class="flex justify-between gap-2"><div class="text-[10px] font-bold '+(done?'text-slate-500 line-through':'text-slate-800')+'">'+escapeHTML(s.title)+'</div><span class="text-[9px] font-bold '+(active?'text-indigo-600':'text-slate-400')+'">'+s.durationMinutes+' Min.</span></div><div class="text-[9px] text-slate-400 mt-1">'+escapeHTML(s.task||s.reason)+'</div></div></div>';
   }).join('');
   const homeTitle=document.querySelector('#activeMissionCard h3');if(homeTitle)homeTitle.textContent=plan.goal.title;
-  const homeMeta=document.querySelector('#activeMissionCard h3 + p');if(homeMeta)homeMeta.textContent=plan.goal.subject+' · '+(plan.goal.deadlineText||'ohne Frist');
+  const homeMeta=document.querySelector('#activeMissionCard h3 + p');if(homeMeta)homeMeta.textContent=plan.goal.subject+' · '+missionDeadlineV1712(plan.goal.deadlineText).label;
   const startButton=document.getElementById('missionStartButton');
   if(startButton){const current=getCurrentMissionSession();startButton.disabled=!current;startButton.innerHTML=current?'<i class="w-4 h-4" data-lucide="play"></i> Schritt '+(missionProgress.currentSessionIndex+1)+' starten':'<i class="w-4 h-4" data-lucide="check"></i> Mission abgeschlossen';}
   updateMissionHome();lucide.createIcons();
@@ -212,19 +248,91 @@ function finishLearningFlow(){learningFlowActive=false;renderAIPlan(activeAIPlan
 // Restore v7 progress after the v6 restoration handler has run.
 document.addEventListener('DOMContentLoaded',()=>{setTimeout(()=>{loadMissionProgress();if(activeAIPlan){if(!missionProgress.initialSessionCount)missionProgress.initialSessionCount=activeAIPlan.sessions.length;renderAIPlan(activeAIPlan);revealCreatedMission();saveMissionState()}},0)});
 
-let expandedFutureStepV81=null;
-function toggleFutureStepV81(index){expandedFutureStepV81=expandedFutureStepV81===index?null:index;if(activeAIPlan)renderAIPlan(activeAIPlan)}
+let expandedFutureStepV81=null,expandedFutureMissionV178=null;
+function toggleFutureStepV81(index){
+ const owner=activeAIPlan?.id||null;
+ const same=expandedFutureStepV81===index&&expandedFutureMissionV178===owner;
+ expandedFutureStepV81=same?null:index;expandedFutureMissionV178=same?null:owner;
+ const hadFocus=document.activeElement?.closest?.('#aiPlanSteps .mission-step-future');
+ if(activeAIPlan)renderAIPlan(activeAIPlan);
+ if(hadFocus){const card=document.querySelectorAll('#aiPlanSteps .flow-step-line')[index];card?.focus?.({preventScroll:true})}
+}
+function toggleMissionWhyV178(button){
+ const card=button?.closest('.mp-why-card');if(!card)return;
+ const open=!card.classList.contains('is-open');
+ card.classList.toggle('is-open',open);button.setAttribute('aria-expanded',open?'true':'false');
+}
+/* v17.12 single deadline authority. A Mission has a deadline only when its stored deadlineText holds
+   a real value; empty text and placeholder wording ("Nicht angegeben", "ohne Frist", "keine Deadline",
+   "–", ...) all mean "no deadline" and get one stable label. ISO dates are shown as localized dates;
+   other real texts are shown as stored. Nothing is estimated or invented. */
+const GERMAN_SHORT_MONTHS_V1712=Object.freeze(['Jan.','Feb.','März','Apr.','Mai','Juni','Juli','Aug.','Sept.','Okt.','Nov.','Dez.']);
+const NO_DEADLINE_LABEL_V1712='Ohne Deadline';
+const NO_DEADLINE_PATTERN_V1712=/^(?:[-–—]+|n\/a|none|no deadline|not specified|unknown|tbd|offen|flexibel|unbekannt|nicht angegeben|nicht festgelegt|keine angaben?|ohne (?:frist|deadline|termin|datum|enddatum)|kein(?:e|en)? (?:feste[nrs]? )?(?:frist|deadline|termin|datum|abgabetermin|enddatum)(?: (?:angegeben|festgelegt|gesetzt|bekannt|vorhanden))?)\.?$/i;
+function missionDeadlineV1712(text){
+ const t=String(text||'').trim();
+ if(!t||NO_DEADLINE_PATTERN_V1712.test(t))return{hasDeadline:false,label:NO_DEADLINE_LABEL_V1712,short:NO_DEADLINE_LABEL_V1712,iso:''};
+ const iso=/^(\d{4})-(\d{2})-(\d{2})$/.exec(t);
+ if(iso){
+   const y=+iso[1],m=+iso[2]-1,d=+iso[3];
+   const date=new Date(y,m,d,12);
+   if(date.getFullYear()===y&&date.getMonth()===m&&date.getDate()===d){
+     const dayMonth=d+'. '+GERMAN_SHORT_MONTHS_V1712[m];
+     const full=dayMonth+' '+y;
+     return{hasDeadline:true,label:full,short:y===new Date().getFullYear()?dayMonth:full,iso:t};
+   }
+ }
+ return{hasDeadline:true,label:t,short:t,iso:''};
+}
+/* v17.8 Mission Plan: execution view in the Mission's identity tone. Only real values are shown. */
+function missionPlanDeadlineV178(text){
+ const deadline=missionDeadlineV1712(text);
+ return deadline.hasDeadline?deadline.label:'';
+}
 function renderAIPlan(plan){
- document.getElementById('aiPlanEyebrow').textContent=plan.goal.subject+' · '+missionTypeLabel(plan.goal.type);
- document.getElementById('aiPlanTitle').textContent=plan.goal.title;
- document.getElementById('aiPlanDeadline').textContent=plan.goal.deadlineText||'Nicht angegeben';
- const remaining=plan.sessions.slice(missionProgress.currentSessionIndex),minutes=remaining.reduce((a,s)=>a+(Number(s.durationMinutes)||0),0);
- document.getElementById('aiPlanTotal').textContent=formatMinutes(minutes);document.getElementById('aiPlanSessionCount').textContent=remaining.length+' offen';
- document.getElementById('aiPlanExplanation').innerHTML='<strong>Warum so?</strong> '+escapeHTML(plan.estimate?.explanation||'Der Plan wird nach jeder Sitzung angepasst.');
- document.getElementById('aiPlanSteps').innerHTML=plan.sessions.map((s,i)=>{const done=i<missionProgress.currentSessionIndex,active=i===missionProgress.currentSessionIndex,future=i>missionProgress.currentSessionIndex,expanded=future&&expandedFutureStepV81===i;const state=done?'mission-step-complete':active?'mission-step-active':'mission-step-future'+(expanded?' expanded':'');const click=future?' onclick="toggleFutureStepV81('+i+')"':'';const bubble=done?'<i data-lucide="check" class="w-3.5 h-3.5"></i>':String(i+1);return '<div class="flow-step-line '+state+' flex"'+click+'><div class="step-bubble rounded-full bg-white border border-slate-200 text-slate-500 flex items-center justify-center font-black shrink-0">'+bubble+'</div><div class="step-content flex-1 min-w-0"><div class="step-head flex justify-between gap-3"><div class="step-title font-bold">'+escapeHTML(s.title)+'</div><span class="step-time font-bold">'+s.durationMinutes+' Min.</span></div><div class="step-task" style="-webkit-line-clamp:'+(expanded?'unset':'2')+'">'+escapeHTML(s.task||s.reason)+'</div></div></div>'}).join('');
- const homeTitle=document.querySelector('#activeMissionCard h3');if(homeTitle)homeTitle.textContent=plan.goal.title;const homeMeta=document.querySelector('#activeMissionCard h3 + p');if(homeMeta)homeMeta.textContent=plan.goal.subject+' · '+(plan.goal.deadlineText||'ohne Frist');
- const current=getCurrentMissionSession();document.getElementById('homeMissionNextStep').textContent=current?.title||'Mission abgeschlossen';document.getElementById('homeMissionMeta').textContent=current?((current.task||current.reason)+' · ca. '+current.durationMinutes+' Min.'):'Alle Schritte bearbeitet';
- const start=document.getElementById('missionStartButton');if(start){start.disabled=!current;start.innerHTML=current?'<i class="w-4 h-4" data-lucide="play"></i> Schritt '+(missionProgress.currentSessionIndex+1)+' starten':'<i class="w-4 h-4" data-lucide="check"></i> Mission abgeschlossen'}
+ const sessions=Array.isArray(plan?.sessions)?plan.sessions:[];
+ const idx=missionProgress.currentSessionIndex,total=sessions.length;
+ const done=Math.min(idx,total),current=getCurrentMissionSession();
+ const remaining=sessions.slice(idx),minutes=remaining.reduce((a,s)=>a+(Number(s.durationMinutes)||0),0);
+ const percent=total?Math.round(done/total*100):0;
+ const setText=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v};
+ setText('aiPlanEyebrow',plan.goal.subject+' · '+missionTypeLabel(plan.goal.type));
+ setText('aiPlanTitle',plan.goal.title);
+ const deadline=missionPlanDeadlineV178(plan.goal.deadlineText);
+ setText('aiPlanDeadline',deadline);
+ document.getElementById('aiPlanDeadlineBadge')?.classList.toggle('hidden',!deadline);
+ const emblem=document.getElementById('aiPlanEmblem');
+ if(emblem)emblem.innerHTML='<i data-lucide="'+(({exam:'graduation-cap',assignment:'clipboard-list',project:'layers-3'})[plan.goal.type]||'target')+'"></i>';
+ setText('aiPlanPercent',String(percent));
+ setText('aiPlanStatus',!current?(total?'Mission abgeschlossen':'Noch keine Schritte'):(done===0?'Bereit für Schritt 1':'Schritt '+(idx+1)+' ist dran'));
+ setText('aiPlanProgressText',done+' von '+total+' '+(total===1?'Schritt':'Schritten')+' erledigt');
+ setText('aiPlanSessionCount',remaining.length+' '+(remaining.length===1?'Schritt':'Schritte'));
+ setText('aiPlanTotal',remaining.length?formatMinutes(minutes):'–');
+ setText('aiPlanNextFocus',current?(current.durationMinutes+' Min.'):'–');
+ setText('aiPlanStepsMeta',total?(total+' '+(total===1?'Schritt':'Schritte')):'');
+ const route=document.getElementById('aiPlanRoute');
+ if(route)route.innerHTML=sessions.map((s,i)=>'<li class="'+(i<idx?'is-done':i===idx?'is-current':'')+'"></li>').join('');
+ setText('aiPlanExplanation',plan.estimate?.explanation||'Der Plan wird nach jeder Sitzung angepasst.');
+ const expandedIndex=expandedFutureMissionV178===(plan.id||null)?expandedFutureStepV81:null;
+ document.getElementById('aiPlanSteps').innerHTML=sessions.map((s,i)=>{
+  const title=escapeHTML(s.title),task=escapeHTML(s.task||s.reason||''),mins=(Number(s.durationMinutes)||0)+' Min.';
+  const reason=String(s.reason||'').trim(),showReason=reason&&reason!==String(s.task||'').trim();
+  if(i<idx)return '<div class="flow-step-line mission-step-complete mp-step"><span class="step-bubble" aria-hidden="true"><i data-lucide="check"></i></span><div class="step-content"><div class="step-head"><span class="step-title">'+title+'</span><span class="step-time">'+mins+'</span></div><span class="mp-step-state"><span class="fm-sr-only">Schritt '+(i+1)+': </span>Erledigt</span></div></div>';
+  if(i===idx){
+   const tools=(Array.isArray(s.requiredTools)?s.requiredTools:[]).map(t=>String(t).trim()).filter(Boolean);
+   return '<article class="flow-step-line mission-step-active mp-step" aria-current="step"><div class="mp-active-top"><span class="mp-active-chip"><span class="mp-live-dot" aria-hidden="true"></span>Aktueller Schritt</span><span class="step-time"><i data-lucide="clock-3"></i>'+mins+'</span></div>'
+    +'<div class="mp-active-main"><span class="step-bubble" aria-hidden="true">'+(i+1)+'</span><div class="step-content"><span class="step-kicker">Schritt '+(i+1)+' von '+total+'</span><h5 class="step-title">'+title+'</h5></div></div>'
+    +(task?'<p class="step-task">'+task+'</p>':'')
+    +(tools.length?'<div class="mp-tools"><span class="mp-tools-label">Du brauchst</span>'+tools.map(t=>'<span class="mp-tool">'+escapeHTML(t)+'</span>').join('')+'</div>':'')
+    +(showReason?'<details class="mp-step-why"><summary><i data-lucide="sparkles"></i><span>Warum dieser Schritt?</span><i class="mp-step-why-chevron" data-lucide="chevron-down"></i></summary><p>'+escapeHTML(reason)+'</p></details>':'')
+    +'</article>';
+  }
+  const expanded=expandedIndex===i;
+  return '<div class="flow-step-line mission-step-future mp-step'+(expanded?' expanded':'')+'" role="button" tabindex="0" aria-expanded="'+(expanded?'true':'false')+'" onclick="toggleFutureStepV81('+i+')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();toggleFutureStepV81('+i+')}"><span class="step-bubble" aria-hidden="true">'+(i+1)+'</span><div class="step-content"><div class="step-head"><span class="step-title"><span class="fm-sr-only">Schritt '+(i+1)+': </span>'+title+'</span><span class="step-time">'+mins+'</span></div>'+(task?'<p class="step-task">'+task+'</p>':'')+(expanded&&showReason?'<p class="mp-step-reason">'+escapeHTML(reason)+'</p>':'')+'</div></div>';
+ }).join('');
+ const homeTitle=document.querySelector('#activeMissionCard h3');if(homeTitle)homeTitle.textContent=plan.goal.title;const homeMeta=document.querySelector('#activeMissionCard h3 + p');if(homeMeta)homeMeta.textContent=plan.goal.subject+' · '+missionDeadlineV1712(plan.goal.deadlineText).label;
+ document.getElementById('homeMissionNextStep').textContent=current?.title||'Mission abgeschlossen';document.getElementById('homeMissionMeta').textContent=current?((current.task||current.reason)+' · ca. '+current.durationMinutes+' Min.'):'Alle Schritte bearbeitet';
+ const start=document.getElementById('missionStartButton');if(start){start.disabled=!current;start.innerHTML=current?'<i data-lucide="play"></i> Schritt '+(idx+1)+' starten':'<i data-lucide="check"></i> Mission abgeschlossen'}
  updateMissionHome();lucide.createIcons();
 }
 // Real week card only. Rank and Plan-Serie stay intact.
@@ -241,7 +349,7 @@ function syncHomeHeroV103(){
   if(!has){lucide.createIcons();return}
   const title=document.getElementById('homeMissionTitle')||document.querySelector('#activeMissionCard h3'),meta=document.getElementById('homeMissionSubtitle')||document.querySelector('#activeMissionCard h3+p'),next=document.getElementById('homeMissionNextStep'),task=document.getElementById('homeMissionMeta'),durVal=document.getElementById('homeMissionDurationValue');
   if(title){title.textContent=activeAIPlan.goal?.title||'Focus Mission'}
-  if(meta)meta.textContent=(activeAIPlan.goal?.subject||'Allgemein')+' · '+(activeAIPlan.goal?.deadlineText||'ohne Frist');
+  if(meta)meta.textContent=(activeAIPlan.goal?.subject||'Allgemein')+' · '+missionDeadlineV1712(activeAIPlan.goal?.deadlineText).label;
   if(next)next.textContent=current.title||'Nächster Schritt';
   if(task)task.textContent=current.task||current.reason||'Nächsten Schritt bearbeiten';
   if(durVal)durVal.textContent=String(current.durationMinutes||25);
@@ -278,16 +386,9 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
   function registerScheduleI18N() {
     if (typeof I18N !== 'undefined' && I18N.en) {
       Object.assign(I18N.en, {
-        'ZEITPLAN': 'SCHEDULE',
-        'OPTIONAL': 'OPTIONAL',
-        'Optional': 'Optional',
-        'Plane, wann du beginnen möchtest und bis wann dein Ziel erreicht sein soll.': 'Plan when you want to start and when your goal should be reached.',
-        'ZIELTERMIN': 'DEADLINE',
         'Wann ist deine Prüfung oder Abgabe?': 'When is your exam or deadline?',
-        'Wähle ein Datum, um deinen Vorbereitungszeitraum sichtbar zu planen.': 'Choose a date to visualize your preparation window.',
         'Zurücksetzen': 'Reset',
         'Auswählen': 'Select',
-        'Ändern': 'Change',
         'PRÜFUNG / ABGABE': 'EXAM / DEADLINE',
         'Datum auswählen': 'Select date',
         'START DER VORBEREITUNG': 'PREPARATION START',
@@ -299,14 +400,31 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
         'Wähle zuerst einen Prüfungstermin oder eine Abgabe.': 'Select an exam date or deadline first.',
         'START': 'START',
         'ZIEL': 'GOAL',
-        'PRÜFUNG': 'DEADLINE',
+        'Wann startest du?': 'When do you start?',
+        'Zeitplan': 'Schedule',
+        /* v17.8 Mission Plan and Fokus-Schutz */
+        'Deine Missionsschritte': 'Your mission steps',
+        'Offen': 'Open',
+        'Restzeit': 'Time left',
+        'Nächster Fokus': 'Next focus',
+        'Aktueller Schritt': 'Current step',
+        'Warum so?': 'Why this plan?',
+        'So ist deine Mission aufgebaut': 'How your mission is structured',
+        'Warum dieser Schritt?': 'Why this step?',
+        'Du brauchst': 'You need',
+        'Erledigt': 'Done',
+        'Mission bearbeiten': 'Edit mission',
+        'Mission auswählen': 'Select mission',
+        'Wähle die Apps, die während deiner Fokus-Sitzung tabu sind.': 'Choose the apps that are off-limits during your focus session.',
+        'Alle abwählen': 'Deselect all',
+        'Alle auswählen': 'Select all',
+        'Auswahl übernehmen': 'Apply selection',
+        'Apps für Fokus-Schutz': 'Apps for focus protection',
+        'Diese Web-Version sperrt Apps nicht technisch. Deine Auswahl gilt für die Sitzung und wird im Timer als Fokus-Schutz angezeigt. In der iPhone-App öffnet sich hier die Auswahl von Bildschirmzeit.': 'This web version does not technically block apps. Your selection applies to the session and is shown as focus protection in the timer. In the iPhone app, the Screen Time picker opens here.',
         'Lernrhythmus anpassen': 'Adjust study rhythm',
-        'WANN KANNST DU LERNEN?': 'WHEN CAN YOU STUDY?',
-        'Keine Auswahl bedeutet, dass dein Plan flexibel verteilt werden kann.': 'No selection means your plan can be distributed flexibly.',
         'Unter der Woche': 'Weekdays',
         'Wochenende': 'Weekend',
         'Flexibel': 'Flexible',
-        'BEVORZUGTE SITZUNGSDAUER': 'PREFERRED SESSION LENGTH',
         '20 Min.': '20 min',
         '30 Min.': '30 min',
         '45 Min.': '45 min',
@@ -319,7 +437,14 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
         'Abbrechen': 'Cancel',
         'Erneut versuchen': 'Try Again',
         'Schließen': 'Dismiss',
-        'Foto entfernen': 'Remove photo'
+        'Foto entfernen': 'Remove photo',
+        'Zeitplan': 'Schedule',
+        'optional': 'optional',
+        'Mit einem Datum plant die AI deine Vorbereitung bis dahin.': 'With a date, the AI plans your preparation up to it.',
+        'Wann startest du?': 'When do you start?',
+        'An welchen Tagen kannst du lernen?': 'Which days can you study?',
+        'Wie lang soll eine Sitzung sein?': 'How long should a session be?',
+        'Passend zum Plan': 'Fits the plan'
       });
     }
   }
@@ -416,7 +541,7 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
     const locale = getActiveLang() === 'en' ? 'en-US' : 'de-DE';
     try {
       return new Intl.DateTimeFormat(locale, {
-        weekday: 'long',
+        weekday: 'short',
         day: 'numeric',
         month: 'long',
         year: 'numeric'
@@ -495,6 +620,19 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
         missionScheduleState.preparationStartDate = diffCalendarDays(todayISO, fallback) >= 0 ? fallback : todayISO;
       }
     }
+  }
+
+  /* Display-only preview of the start date each option would produce (mirrors recomputePreparationStartDate). */
+  function previewStartDateForMode(mode) {
+    const deadlineISO = missionScheduleState.deadlineDate;
+    if (!deadlineISO) return null;
+    const todayISO = getTodayISO();
+    if (mode === 'immediate') return todayISO;
+    if (mode === 'one_week_before' || mode === 'two_weeks_before') {
+      const candidate = addDaysISO(deadlineISO, mode === 'one_week_before' ? -7 : -14);
+      return diffCalendarDays(todayISO, candidate) < 0 ? todayISO : candidate;
+    }
+    return missionScheduleState.startMode === 'custom' ? missionScheduleState.preparationStartDate : null;
   }
 
   function hasMatchingWeekdayInRange(startISO, endISO, weekdays) {
@@ -592,46 +730,6 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
     return wk.map(d => names[d - 1]).join(', ');
   }
 
-  function renderScheduleTrajectoryNodes(startISO, endISO, isEn) {
-    const container = document.getElementById('mgTrajectoryNodes');
-    if (!container) return;
-    const span = diffCalendarDays(startISO, endISO);
-    if (span < 0) {
-      container.replaceChildren();
-      return;
-    }
-    const maxNodes = 7;
-    const count = Math.min(maxNodes, Math.max(2, span + 1));
-    const sampledISOs = [];
-    for (let i = 0; i < count; i++) {
-      const offset = count === 1 ? 0 : Math.round((i * span) / (count - 1));
-      sampledISOs.push(addDaysISO(startISO, offset));
-    }
-    const dayLabels = isEn ? ['M', 'T', 'W', 'T', 'F', 'S', 'S'] : ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
-    const prefSet = new Set(missionScheduleState.preferredWeekdays.map(Number));
-
-    container.replaceChildren();
-    sampledISOs.forEach((iso, idx) => {
-      const wd = getISOWeekday(iso);
-      const isEndpoint = idx === 0;
-      const isDeadline = idx === sampledISOs.length - 1;
-      const isAvailable = prefSet.size === 0 || prefSet.has(wd);
-      const step = document.createElement('span');
-      step.className = 'mg-traj-step'
-        + (isAvailable ? ' is-available' : '')
-        + (isEndpoint ? ' is-endpoint' : '')
-        + (isDeadline ? ' is-deadline' : '');
-      const dot = document.createElement('span');
-      dot.className = 'mg-traj-dot';
-      const lbl = document.createElement('span');
-      lbl.className = 'mg-traj-lbl';
-      lbl.textContent = dayLabels[wd - 1] || '';
-      step.appendChild(dot);
-      step.appendChild(lbl);
-      container.appendChild(step);
-    });
-  }
-
   function updatePrefsAccordionUI() {
     const toggleBtn = document.getElementById('mgPrefsToggleBtn');
     const panel = document.getElementById('mgPrefsPanel');
@@ -656,10 +754,8 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
     const board = document.getElementById('mgScheduleBoard');
     const deadlineTrigger = document.getElementById('mgDeadlineTrigger');
     const deadlineVal = document.getElementById('mgDeadlineValue');
-    const ctaTag = document.getElementById('mgDeadlineCtaTag');
     const clearBtn = document.getElementById('mgDeadlineClearBtn');
     const prepBlock = document.getElementById('mgPrepStartBlock');
-    const recBadge = document.getElementById('mgStartRecBadge');
     const timelineEmpty = document.getElementById('mgTimelineEmpty');
     const timelineActive = document.getElementById('mgTimelineActive');
     const startLabel = document.getElementById('mgTimelineStartLabel');
@@ -677,6 +773,9 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
     }
     if (deadlineTrigger) {
       deadlineTrigger.classList.toggle('has-value', hasDeadline);
+      deadlineTrigger.setAttribute('aria-label', hasDeadline
+        ? (isEn ? 'Change exam or deadline date' : 'Prüfungs- oder Abgabedatum ändern')
+        : (isEn ? 'Select exam or deadline date' : 'Prüfung oder Abgabe auswählen'));
     }
     if (deadlineVal) {
       if (hasDeadline) {
@@ -686,9 +785,6 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
         deadlineVal.textContent = isEn ? 'Select date' : 'Datum auswählen';
         deadlineVal.classList.add('is-placeholder');
       }
-    }
-    if (ctaTag) {
-      ctaTag.textContent = hasDeadline ? (isEn ? 'Change' : 'Ändern') : (isEn ? 'Select' : 'Auswählen');
     }
     if (clearBtn) {
       clearBtn.classList.toggle('hidden', !hasDeadline);
@@ -701,9 +797,6 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
     }
 
     const recommendedMode = getRecommendedStartMode(missionScheduleState.deadlineDate);
-    if (recBadge && hasDeadline) {
-      recBadge.textContent = (isEn ? 'Recommended: ' : 'Empfohlen: ') + getModeLabel(recommendedMode);
-    }
 
     document.querySelectorAll('#mgStartModeChips .mg-start-chip').forEach(btn => {
       const mode = btn.getAttribute('data-start-mode');
@@ -712,13 +805,14 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
       btn.classList.toggle('active', isSelected);
       btn.classList.toggle('is-recommended', isRec);
       btn.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
-      const labelEl = btn.querySelector('.mg-start-chip-label') || btn.querySelector('span');
-      if (labelEl && mode === 'custom') {
-        if (missionScheduleState.startMode === 'custom' && missionScheduleState.preparationStartDate) {
-          labelEl.textContent = (isEn ? 'Custom · ' : 'Eigene Wahl · ') + formatShortDate(missionScheduleState.preparationStartDate, false);
-        } else {
-          labelEl.textContent = isEn ? 'Custom date' : 'Eigene Wahl';
-        }
+      const labelEl = btn.querySelector('.mg-start-chip-label');
+      if (labelEl) labelEl.textContent = getModeLabel(mode);
+      const dateEl = btn.querySelector('.mg-start-chip-date');
+      if (dateEl) {
+        const startISO = hasDeadline ? previewStartDateForMode(mode) : null;
+        dateEl.textContent = startISO
+          ? (startISO === getTodayISO() ? (isEn ? 'from today' : 'ab heute') : (isEn ? 'from ' : 'ab ') + formatShortDate(startISO, false))
+          : (mode === 'custom' ? (isEn ? 'Pick a date' : 'Datum wählen') : '');
       }
       const recMark = btn.querySelector('.mg-start-rec-mark');
       if (recMark) {
@@ -749,17 +843,17 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
       const rawDiff = diffCalendarDays(startISO, endISO);
       const prepDays = Math.max(0, rawDiff);
       if (daysBadge) {
+        daysBadge.classList.toggle('is-invalid', rawDiff < 0);
         if (rawDiff < 0) {
-          daysBadge.textContent = isEn ? 'INVALID PERIOD' : 'UNGÜLTIGER ZEITRAUM';
+          daysBadge.textContent = isEn ? 'Invalid period' : 'Ungültiger Zeitraum';
         } else if (prepDays === 0) {
-          daysBadge.textContent = isEn ? 'TODAY · 1 DAY PREP' : 'HEUTE · 1 TAG VORBEREITUNG';
+          daysBadge.textContent = isEn ? 'Today · 1 day' : 'Heute · 1 Tag Vorbereitung';
         } else if (prepDays === 1) {
-          daysBadge.textContent = isEn ? '1 DAY PREPARATION' : '1 TAG VORBEREITUNG';
+          daysBadge.textContent = isEn ? '1 day of preparation' : '1 Tag Vorbereitung';
         } else {
-          daysBadge.textContent = prepDays + (isEn ? ' DAYS PREPARATION' : ' TAGE VORBEREITUNG');
+          daysBadge.textContent = prepDays + (isEn ? ' days of preparation' : ' Tage Vorbereitung');
         }
       }
-      renderScheduleTrajectoryNodes(startISO, endISO, isEn);
       if (liveSummary) {
         liveSummary.textContent = rhythmTxt + ' · ' + (missionScheduleState.preferredSessionMinutes
           ? (missionScheduleState.preferredSessionMinutes + (isEn ? ' min sessions' : ' Min.-Blöcke'))
@@ -1330,13 +1424,13 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
       parts.push(snap.preferredSessionMinutes + (isEn ? ' min' : ' Min.'));
     }
     const warningHtml = (typeof activeAIPlan === 'object' && activeAIPlan?.scheduleWarning)
-      ? '<div class="text-[10px] font-semibold text-amber-700 mt-0.5">' + escapeHTML(activeAIPlan.scheduleWarning) + '</div>'
+      ? '<span class="mp-schedule-warning">' + escapeHTML(activeAIPlan.scheduleWarning) + '</span>'
       : '';
     banner.innerHTML =
       '<span class="ai-plan-schedule-preview-icon"><i data-lucide="calendar-check"></i></span>' +
       '<div class="min-w-0 flex-1">' +
-        '<div class="text-[9px] font-black uppercase tracking-[0.11em] text-[#6D28D9]">' + (isEn ? 'SCHEDULE PREVIEW' : 'ZEITPLAN-VORSCHAU') + '</div>' +
-        '<div class="text-[11.5px] font-extrabold text-[#1D1A17] truncate">' + escapeHTML(parts.join(' · ')) + '</div>' +
+        '<span class="mp-schedule-label">' + (isEn ? 'Schedule' : 'Zeitplan') + '</span>' +
+        '<span class="mp-schedule-value">' + escapeHTML(parts.join(' · ')) + '</span>' +
         warningHtml +
       '</div>';
     if (typeof window.lucide?.createIcons === 'function') {

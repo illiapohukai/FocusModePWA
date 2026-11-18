@@ -62,7 +62,10 @@ function renderSessionHistory(filter=activeHistoryFilter){
  const list=document.getElementById('sessionHistoryList');if(!list)return;
  list.replaceChildren();
  const label=document.getElementById('historySectionLabel');
- if(label)label.textContent=filter==='today'?'Heute':filter==='week'?'Diese Woche':'Alle Sitzungen';
+ const periodText=filter==='today'?'Heute':filter==='week'?'Diese Woche':'Alle Sitzungen';
+ if(label)label.textContent=periodText;
+ const periodEl=document.getElementById('historyOverviewPeriod');
+ if(periodEl)periodEl.textContent=periodText;
  const counted=items.filter(countedFocus);
  const minutes=counted.reduce((n,x)=>n+Number(x.actualMinutes||0),0);
  const summaryEl=document.getElementById('historySummary');
@@ -90,6 +93,8 @@ function renderSessionHistory(filter=activeHistoryFilter){
  if(compCountEl)compCountEl.textContent=String(cDone);
  if(partCountEl)partCountEl.textContent=String(cPart);
  if(abortCountEl)abortCountEl.textContent=String(cAbort);
+ const historyChartHost=document.getElementById('historyFocusChart');
+ if(historyChartHost&&window.FocusInsights)window.FocusInsights.renderChart(historyChartHost);
 
  if(!items.length)list.append(createHistoryEmpty(filter,all.length));
  else items.forEach(x=>list.append(createHistoryCard(x)));
@@ -136,6 +141,30 @@ function renderHomeActivityTimelineV173(){
    host.append(row);
  });
 }
+/* v17.12 compact localized Home date. The month is always abbreviated (German forms normalized by
+   GERMAN_SHORT_MONTHS_V1712 from mission-renderer.js: Jan., Feb., März, ... Sept., Okt., Nov., Dez.);
+   the full weekday is kept whenever it fits and only falls back to the short weekday when the line
+   would otherwise clip. */
+const homeDateStateV1712={key:'',long:'',short:'',iso:'',useShort:false,fittedWidth:0,observer:null};
+function formatHomeDateV1712(date,lang,weekday){
+ const locale=lang==='en'?'en-US':'de-DE';
+ const parts=new Intl.DateTimeFormat(locale,{weekday,day:'numeric',month:'short'}).formatToParts(date);
+ const months=lang==='de'&&typeof GERMAN_SHORT_MONTHS_V1712!=='undefined'?GERMAN_SHORT_MONTHS_V1712:null;
+ return parts.map(p=>p.type==='month'&&months?months[date.getMonth()]:p.value).join('').replace(/\.{2,}/g,'.').toLocaleUpperCase(locale);
+}
+function writeHomeDateTextV1712(dateEl,text){
+ if(dateEl.textContent!==text)dateEl.textContent=text;
+ if(dateEl.firstChild)dateEl.firstChild.__deOriginal=text;
+}
+/* Measures only when the element is laid out and its width changed; hidden Home is fitted later by the observer. */
+function fitHomeDateV1712(dateEl,width){
+ const st=homeDateStateV1712;
+ if(!width||!st.long||width===st.fittedWidth)return;
+ st.fittedWidth=width;
+ writeHomeDateTextV1712(dateEl,st.long);
+ st.useShort=dateEl.scrollWidth>dateEl.clientWidth+1;
+ if(st.useShort)writeHomeDateTextV1712(dateEl,st.short);
+}
 function updateHomeDateHeaderV173(){
  const brandEl=document.getElementById('homeBrandTitle');
  if(brandEl){
@@ -145,13 +174,26 @@ function updateHomeDateHeaderV173(){
  const dateEl=document.getElementById('homeCurrentDate');
  if(!dateEl)return;
  const rawLang=(window.FocusModeApp?.services?.storage?.getText('focus-mode-language','de')||document.documentElement.lang||'de').toLowerCase();
- const locale=rawLang==='en'?'en-US':rawLang==='ru'?'ru-RU':'de-DE';
- try{
-   const formatted=new Intl.DateTimeFormat(locale,{weekday:'long',day:'numeric',month:'long'}).format(new Date()).toUpperCase();
-   dateEl.textContent=formatted;
-   if(dateEl.firstChild)dateEl.firstChild.__deOriginal=formatted;
- }catch{
-   dateEl.textContent='';
+ const lang=rawLang==='en'?'en':'de';
+ const st=homeDateStateV1712;
+ const now=new Date();
+ const iso=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+ const key=lang+'|'+iso;
+ if(key!==st.key){
+   try{
+     st.long=formatHomeDateV1712(now,lang,'long');
+     st.short=formatHomeDateV1712(now,lang,'short');
+   }catch{
+     st.long=st.short='';
+   }
+   st.key=key;st.iso=iso;st.useShort=false;st.fittedWidth=0;
+   if(dateEl.getAttribute('datetime')!==iso)dateEl.setAttribute('datetime',iso);
+ }
+ writeHomeDateTextV1712(dateEl,st.useShort?st.short:st.long);
+ if(!st.fittedWidth&&dateEl.offsetParent!==null)fitHomeDateV1712(dateEl,dateEl.clientWidth);
+ if(!st.observer&&typeof ResizeObserver==='function'){
+   st.observer=new ResizeObserver(entries=>{const w=Math.round(entries[entries.length-1].contentRect.width);if(w)fitHomeDateV1712(dateEl,w)});
+   st.observer.observe(dateEl);
  }
 }
 window.updateHomeDateHeaderV173=updateHomeDateHeaderV173;
@@ -177,18 +219,60 @@ function refreshHomeStats(){
  lucide.createIcons();
  historyLog('home_stats_refreshed',{todayMinutes:todayM,weekMinutes:weekM,weekSessions:week.length});
 }
-function getWeekDailyMinutes(){
- const monday=startOfHistoryWeek(),days=Array(7).fill(0);
- sessionRepository.getThisWeek().filter(countedFocus).forEach(s=>{const d=new Date(s.finishedAt);d.setHours(0,0,0,0);const index=Math.floor((d.getTime()-monday)/86400000);if(index>=0&&index<7)days[index]+=Number(s.actualMinutes)||0});
- return days;
-}
 function refreshStatsScreen(){
- const completed=sessionRepository.getCompleted().filter(countedFocus),today=sessionRepository.getToday().filter(countedFocus),todayMinutes=today.reduce((n,s)=>n+Number(s.actualMinutes||0),0),totalMinutes=completed.reduce((n,s)=>n+Number(s.actualMinutes||0),0),missionCount=completed.filter(s=>s.type==='mission').length;
- const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value};
- set('statsTodayFocus',formatHistoryDuration(todayMinutes));set('statsMissionSteps',missionCount+' abgeschlossen');set('statsTotalFocus',formatHistoryDuration(totalMinutes));set('statsCompletedSessions',completed.length+' abgeschlossen');
- const days=getWeekDailyMinutes(),max=Math.max(1,...days),todayIndex=(new Date().getDay()+6)%7;
- document.querySelectorAll('#statsWeekChart [data-history-day]').forEach((day,index)=>{const minutes=days[index]||0,bar=day.querySelector('div:nth-last-child(2)'),label=day.querySelector('span:last-child');let tip=day.querySelector('.focus-tooltip');if(!tip){tip=document.createElement('div');tip.className='focus-tooltip';day.prepend(tip)}tip.textContent=minutes+' Min.';if(bar){bar.style.height=(minutes?Math.max(8,Math.round(minutes/max*100)):2)+'%';bar.className='w-full rounded-t-lg '+(index===todayIndex?'bg-[#6D28D9]':minutes?'bg-purple-300':'bg-stone-200')}if(label){label.classList.toggle('text-[#6D28D9]',index===todayIndex);label.classList.toggle('font-semibold',index===todayIndex)}});
- historyLog('stats_refreshed',{todayMinutes,totalMinutes,completedSessions:completed.length});
+ const insightsApi=window.FocusInsights;
+ if(!insightsApi)return;
+ const ins=insightsApi.computeInsights();
+ const fmt=insightsApi.formatDuration;
+ const set=(id,value)=>{const el=document.getElementById(id);if(el&&el.textContent!==value)el.textContent=value};
+ const hasData=ins.countedCount>0;
+ set('statsTotalFocus',fmt(ins.totalMinutes));
+ set('statsHeroSub',hasData?(ins.activeDays28+(ins.activeDays28===1?' aktiver Tag':' aktive Tage')+' in den letzten 4 Wochen'):'Noch keine gezählte Fokuszeit');
+ set('statsCompletedSessions',String(ins.countedCount));
+ set('statsCompletedSessionsLabel',ins.countedCount===1?'SITZUNG':'SITZUNGEN');
+ set('statsAverageSession',hasData?fmt(ins.averageMinutes):'–');
+ set('statsCompletionRate',ins.completionRate===null?'–':ins.completionRate+' %');
+ set('statsTodayFocus',fmt(ins.todayMinutes));
+ ['statsConsistencyCard','statsBestCard','statsTypesCard'].forEach(id=>document.getElementById(id)?.classList.toggle('hidden',!hasData));
+ document.getElementById('statsEmptyCard')?.classList.toggle('hidden',hasData);
+ const streak=ins.streak;
+ set('statsStreakValue',String(streak.current));
+ set('statsStreakUnit',streak.current===1?'Tag in Folge':'Tage in Folge');
+ set('statsStreakCopy',streak.current===0?'Starte heute eine neue Serie':streak.todayActive?'Heute bereits fokussiert':'Fokussiere heute, um die Serie zu halten');
+ set('statsActiveDays',ins.activeDays28+' von 28 Tagen aktiv');
+ set('statsBestStreak','Beste Serie: '+streak.best+(streak.best===1?' Tag':' Tage'));
+ const grid=document.getElementById('statsConsistencyGrid');
+ if(grid){
+   const maxDay=Math.max(1,...ins.recentDays.map(d=>d.minutes));
+   const sig=ins.recentDays.map(d=>d.minutes).join(',');
+   if(grid.dataset.sig!==sig){
+     grid.dataset.sig=sig;
+     grid.replaceChildren(...ins.recentDays.map(d=>{
+       const cell=document.createElement('span');
+       const level=d.minutes<=0?0:d.minutes>=maxDay*0.66?3:d.minutes>=maxDay*0.33?2:1;
+       cell.className='fm-consistency-cell level-'+level+(d.isToday?' is-today':'');
+       cell.title=insightsApi.formatDayShort(d.start)+': '+fmt(d.minutes);
+       return cell;
+     }));
+   }
+   grid.setAttribute('aria-label',ins.activeDays28+' aktive Tage in den letzten 28 Tagen');
+ }
+ set('statsBestDay',ins.bestDay?insightsApi.formatDayShort(ins.bestDay.start)+' · '+fmt(ins.bestDay.minutes):'–');
+ set('statsBestWeek',ins.bestWeek?insightsApi.formatWeekRange(ins.bestWeek.start).split(' · ')[0]+' · '+fmt(ins.bestWeek.minutes):'–');
+ set('statsLongestSession',ins.longestSession?fmt(ins.longestSession.minutes)+' · '+(ins.longestSession.type==='mission'?'Mission':'Quick'):'–');
+ const missionCount=ins.mission.count;
+ set('statsMissionSteps',missionCount+(missionCount===1?' Schritt':' Schritte')+' · '+fmt(ins.mission.minutes));
+ set('statsQuickSessions',ins.quick.count+(ins.quick.count===1?' Sitzung':' Sitzungen')+' · '+fmt(ins.quick.minutes));
+ const split=document.getElementById('statsTypeSplit');
+ if(split){
+   const total=Math.max(1,ins.mission.minutes+ins.quick.minutes);
+   const mi=split.querySelector('.is-mission'),qi=split.querySelector('.is-quick');
+   if(mi)mi.style.flexGrow=String(ins.mission.minutes/total);
+   if(qi)qi.style.flexGrow=String(ins.quick.minutes/total);
+ }
+ const chartHost=document.getElementById('statsFocusChart');
+ if(chartHost)insightsApi.renderChart(chartHost);
+ historyLog('stats_refreshed',{todayMinutes:ins.todayMinutes,totalMinutes:ins.totalMinutes,completedSessions:ins.countedCount});
 }
 const historyApplyScreen=applyAppScreenImmediately;applyAppScreenImmediately=function(screen){const result=historyApplyScreen.apply(this,arguments);if(screen==='history')renderSessionHistory(activeHistoryFilter);if(screen==='home')refreshHomeStats();if(screen==='stats')refreshStatsScreen();return result};
 document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{loadHistoryStore();refreshHomeStats();refreshStatsScreen();renderSessionHistory(activeHistoryFilter)},60));

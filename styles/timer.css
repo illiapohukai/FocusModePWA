@@ -5,17 +5,21 @@
 #activeTaskLabel{max-width:100%!important;font-size:clamp(18px,5.1vw,22px)!important;line-height:1.22!important}
 html.pwa-timer-active,html.pwa-timer-active body,html.pwa-timer-active #screenWrapper,html.pwa-timer-active #appBody{background:#050714!important}
 html.pwa-timer-active body:after{background:linear-gradient(170deg,#040613 0%,#080b1f 55%,#120f2d 100%)!important}
-.uc-scene{position:relative;min-height:300px;margin:0 -7px;overflow:hidden;border-radius:30px;background:radial-gradient(circle at 50% 46%,rgba(124,58,237,.22) 0%,rgba(88,28,135,.12) 34%,transparent 66%),radial-gradient(ellipse at 64% 34%,rgba(139,92,246,.16),transparent 36%)}
-.uc-main-ring{opacity:.42;filter:drop-shadow(0 0 8px rgba(168,85,247,.28))}
-.uc-far-orbit{opacity:.38;filter:drop-shadow(0 0 6px rgba(167,139,250,.22))}
-.uc-planet{position:absolute;z-index:4;left:50%;top:48%;width:min(56vw,225px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;overflow:hidden;background:radial-gradient(circle at 51% 24%,rgba(255,255,255,.92) 0%,rgba(233,213,255,.55) 2.6%,rgba(168,85,247,.18) 8%,transparent 16%),radial-gradient(circle at 36% 28%,rgba(167,139,250,.52) 0%,rgba(124,58,237,.34) 24%,rgba(67,26,131,.16) 46%,transparent 65%),radial-gradient(circle at 68% 74%,rgba(2,4,14,.94) 0%,rgba(5,7,20,.72) 38%,transparent 70%),radial-gradient(circle at 48% 46%,#241b4b 0%,#161336 38%,#0a0c22 68%,#030511 100%);border:1px solid rgba(221,214,254,.24);box-shadow:inset -44px -40px 72px rgba(1,2,10,.86),inset 18px 16px 38px rgba(192,132,252,.22),inset 0 0 22px rgba(168,85,247,.18),0 0 36px rgba(139,92,246,.34),0 0 74px rgba(109,40,217,.22),0 30px 68px rgba(0,0,0,.68);animation:ucBreathe 11s ease-in-out infinite}
-.uc-violet-cloud{position:absolute;left:12%;top:14%;width:68%;height:36%;border-radius:50%;background:radial-gradient(ellipse,rgba(168,85,247,.52),rgba(124,58,237,.18) 48%,transparent 72%);filter:blur(13px);mix-blend-mode:screen;animation:ucCloud 24s ease-in-out infinite}
-.uc-violet-cloud.second{left:30%;top:36%;width:58%;height:28%;background:radial-gradient(ellipse,rgba(192,132,252,.36),transparent 70%);opacity:.52;animation-delay:-11s}
-.uc-atmosphere{position:absolute;inset:-1px;border-radius:50%;background:radial-gradient(circle at 30% 20%,rgba(233,213,255,.22),transparent 34%),radial-gradient(circle at 50% 96%,rgba(168,85,247,.16),transparent 32%);box-shadow:inset 10px 10px 22px rgba(216,180,254,.20),inset -22px -26px 44px rgba(1,3,12,.68),inset 0 0 12px rgba(233,213,255,.14)}
-.uc-highlight{position:absolute;left:16%;top:6%;width:64%;height:28%;border-radius:50%;background:linear-gradient(180deg,rgba(250,245,255,.22),rgba(196,181,253,.06) 55%,transparent);filter:blur(7px);transform:rotate(-16deg)}
-.uc-readout{z-index:9;top:47.5%}
-.uc-readout #timerDigits{color:#fff!important;text-shadow:0 4px 24px rgba(3,5,18,.92),0 0 18px rgba(168,85,247,.22)!important}
-.uc-readout #timerCaption{color:#d8d0ea!important;text-shadow:0 2px 12px rgba(3,5,18,.88)}
+.uc-scene{--uc-core-y:48%;position:relative;min-height:300px;margin:0 -7px;overflow:hidden;border-radius:30px;background:radial-gradient(circle at 50% 46%,rgba(109,40,217,.15) 0%,rgba(76,29,149,.07) 34%,transparent 60%)}
+/* v17.9 Cosmic Core: both canvases are painted by src/core/cosmic-core.js. #ucCore is an invisible
+   geometry anchor; its box is the size and position of the rendered core. */
+.uc-cosmic-layer{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#ucCosmicBackdrop{z-index:1}
+#ucCosmicCanvas{z-index:2}
+.uc-core{position:absolute;z-index:3;left:50%;top:var(--uc-core-y);width:min(56vw,225px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;visibility:hidden;pointer-events:none}
+/* v17.11: the readout shares the core anchor's centre (--uc-core-y), so the digits sit in the true
+   centre of the planet at every size. With line-height 1 the Inter digit glyphs are centred
+   vertically in their box. Horizontally the -.055em letter-spacing trails the last digit, so the
+   block is widened by that amount on the left, which re-centres the glyphs. The caption stays as
+   screen-reader text only. */
+.uc-readout{z-index:9;top:var(--uc-core-y)}
+.uc-readout #timerDigits{margin-left:-.055em;color:#fff!important;text-shadow:0 4px 24px rgba(3,5,18,.92),0 0 18px rgba(168,85,247,.22)!important}
+.uc-readout #timerCaption{position:absolute!important;width:1px;height:1px;margin:-1px!important;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 .uc-protect{z-index:10;cursor:pointer;transition:transform .18s ease,border-color .22s ease,background-color .22s ease,box-shadow .22s ease;border:1px solid rgba(52,211,153,.32);background:rgba(8,47,54,.46);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .uc-protect.is-active{color:#5eead4;border-color:rgba(52,211,153,.36);background:rgba(8,47,54,.52)}
 .uc-protect.is-active span{background:#34d399!important;box-shadow:0 0 13px #34d399!important}
@@ -27,3 +31,108 @@ html.pwa-timer-active body:after{background:linear-gradient(170deg,#040613 0%,#0
 .uc-focus-card>*{position:relative;z-index:1}.uc-focus-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}.uc-focus-label,.uc-focus-progress>span{display:flex;align-items:center;gap:7px;color:#9ba3b8;font-size:10px;font-weight:900;letter-spacing:.105em;text-transform:uppercase;white-space:nowrap}.uc-focus-label svg,.uc-focus-progress svg{width:17px;height:17px;stroke-width:2}.uc-focus-progress{width:min(43%,145px);flex:0 0 auto}.uc-focus-progress>span{justify-content:flex-end}.uc-focus-progress b{color:#eef2ff;font-size:13px;letter-spacing:0}.uc-focus-card .uc-progress{height:6px;margin-top:8px;background:rgba(255,255,255,.10)}.uc-focus-card .uc-progress i{background:linear-gradient(90deg,#8b5cf6,#c084fc 58%,#67e8f9)}.uc-focus-title{display:block;max-width:100%;margin-top:18px;font-size:clamp(22px,6.6vw,29px);line-height:1.12;letter-spacing:-.035em;font-weight:850;overflow-wrap:anywhere}.uc-focus-description{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;margin:11px 0 0;color:#aeb5c8;font-size:14px;line-height:1.48}.uc-focus-card.is-quick .uc-focus-progress{display:none}.uc-focus-card.is-quick .uc-focus-card-head{justify-content:flex-start}.uc-focus-card.is-quick .uc-focus-title{margin-top:15px}.uc-focus-card.is-quick .uc-focus-description{display:none}
 @media(max-height:760px){.uc-shell{grid-template-rows:auto minmax(235px,1fr) auto auto!important;gap:8px!important}.uc-focus-card{min-height:132px;padding:13px 15px 14px;border-radius:23px}.uc-focus-title{margin-top:11px;font-size:20px}.uc-focus-description{margin-top:7px;font-size:12px;line-height:1.38;-webkit-line-clamp:2}.uc-focus-card .uc-progress{margin-top:6px}.uc-focus-label,.uc-focus-progress>span{font-size:9px}.uc-actions button{min-height:48px}}
 @media(max-width:380px){.uc-focus-card{padding-left:14px;padding-right:14px}.uc-focus-progress{width:44%}.uc-focus-title{font-size:20px}.uc-focus-description{font-size:12.5px}}
+
+/* ==========================================================================
+   v17.10 Focus task-detail sheet (#ucTaskPopup, owned by session-runtime.js)
+   A reading layer over the living Cosmic Timer: a plain dim (no blur over the animated
+   canvas; the scene itself recedes through CosmicCore.setOverlayMode), deep aubergine sheet,
+   Mission tone on the border and glow only. Transform/opacity motion only.
+   ========================================================================== */
+.uc-focus-card{transition:transform var(--motion-instant,90ms) var(--ease-standard,ease)}
+.uc-focus-card:active{transform:scale(.985)}
+.uc-focus-card:focus-visible{outline:2px solid #A78BFA;outline-offset:3px}
+.uc-layer{position:absolute;inset:0;z-index:95;display:flex;align-items:flex-end;padding:12px 12px calc(12px + env(safe-area-inset-bottom))}
+.uc-layer[hidden]{display:none}
+.uc-layer-dim{position:absolute;inset:0;background:rgba(3,4,14,.66);opacity:0;transition:opacity var(--motion-normal,350ms) var(--ease-standard,ease)}
+.uc-sheet,.uc-barrier-card{--mt-accent-strong:#8B5CF6;position:relative;z-index:1;width:100%;max-height:min(80%,660px);display:flex;flex-direction:column;padding:10px 20px 16px;border-radius:30px;color:#F4F0FA;
+  background:radial-gradient(circle at 0% 0%,color-mix(in srgb,var(--mt-accent-strong) 22%,transparent),transparent 42%),linear-gradient(165deg,#24173A 0%,#160F25 58%,#0F0A1B 100%);
+  border:1px solid color-mix(in srgb,var(--mt-accent-strong) 42%,rgba(255,255,255,.06));
+  box-shadow:0 -12px 44px rgba(0,0,0,.45),0 0 34px color-mix(in srgb,var(--mt-accent-strong) 16%,transparent),inset 0 1px rgba(255,255,255,.06);
+  opacity:0;transform:translate3d(0,28px,0) scale(.985);transform-origin:50% 100%;
+  transition:transform var(--motion-emphasized,390ms) var(--ease-emphasized,ease),opacity var(--motion-normal,350ms) var(--ease-standard,ease)}
+.uc-layer.is-shown .uc-layer-dim,.uc-barrier.is-shown .uc-layer-dim{opacity:1}
+.uc-layer.is-shown .uc-sheet,.uc-barrier.is-shown .uc-barrier-card{opacity:1;transform:none}
+.uc-layer.is-closing .uc-sheet,.uc-barrier.is-closing .uc-barrier-card{transition:transform var(--motion-normal,350ms) var(--ease-exit,ease),opacity var(--motion-fast,160ms) var(--ease-exit,ease) 60ms;transform:translate3d(0,22px,0) scale(.99)}
+.uc-sheet-grip{align-self:center;width:40px;height:4px;border-radius:4px;background:rgba(255,255,255,.18)}
+.uc-sheet-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px}
+.uc-sheet-kicker{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:850;color:color-mix(in srgb,var(--mt-accent-strong) 55%,#EDE7FA)}
+.uc-sheet-kicker svg{width:16px;height:16px}
+.uc-sheet-close{flex:0 0 42px;width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.07);color:#E6E0F0;display:grid;place-items:center;cursor:pointer;transition:transform var(--motion-instant,90ms) ease,background-color var(--motion-fast,160ms) ease}
+.uc-sheet-close svg{width:19px;height:19px}
+.uc-sheet-close:active{transform:scale(.94);background:rgba(255,255,255,.12)}
+.uc-sheet-close:focus-visible,.uc-sheet-primary:focus-visible{outline:2px solid #C4B5FD;outline-offset:3px}
+.uc-sheet-title{margin:12px 0 0;font-size:clamp(21px,6.2vw,26px);line-height:1.18;font-weight:850;letter-spacing:-.025em;color:#FFFFFF;overflow-wrap:anywhere}
+.uc-sheet-meta{margin-top:6px;font-size:13px;font-weight:700;color:#A9A0BE}
+.uc-sheet-meta:empty{display:none}
+.uc-sheet-body{flex:1 1 auto;min-height:0;margin-top:14px;padding:14px 2px 4px;border-top:1px solid rgba(255,255,255,.08);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.18) transparent}
+.uc-sheet-text{max-width:62ch;font-size:16px;line-height:1.62;color:#E6E0F0;overflow-wrap:anywhere;hyphens:auto;-webkit-user-select:text;user-select:text}
+.uc-sheet-text p{margin:0}
+.uc-sheet-text p+p{margin-top:.75em}
+/* Progressive reveal by word groups: one CSS animation per bounded group, no per-character timers. */
+.uc-sheet.is-revealing .uc-reveal-chunk{opacity:0;animation:ucRevealChunk 280ms var(--ease-standard,ease) forwards;animation-delay:calc(var(--i) * var(--uc-reveal-step,18ms) + 140ms)}
+@keyframes ucRevealChunk{to{opacity:1}}
+.uc-sheet-foot{flex:0 0 auto;margin-top:14px}
+.uc-sheet-primary{width:100%;height:54px;border:0;border-radius:18px;display:flex;align-items:center;justify-content:center;gap:9px;color:#FFFFFF;font-size:16px;font-weight:900;cursor:pointer;background:linear-gradient(105deg,#7C3AED 0%,#6D28D9 60%,#5B21B6 100%);box-shadow:0 12px 26px rgba(109,40,217,.32),inset 0 1px rgba(255,255,255,.18);transition:transform var(--motion-instant,90ms) ease}
+.uc-sheet-primary svg{width:17px;height:17px;fill:#fff}
+.uc-sheet-primary:active{transform:scale(.985)}
+@media (max-height:700px){.uc-sheet{max-height:86%}.uc-sheet-title{font-size:21px}}
+@media (prefers-reduced-motion:reduce){
+  /* No render loop here: the overlay mode dims the still canvas through a short CSS fade. */
+  #ucCosmicCanvas{transition:opacity var(--motion-fast,160ms) linear}
+  .uc-sheet,.uc-barrier-card{transform:none}
+  .uc-barrier-stage.is-entering{animation:none}
+  .uc-layer.is-closing .uc-sheet,.uc-barrier.is-closing .uc-barrier-card{transform:none}
+  .uc-sheet.is-revealing .uc-reveal-chunk{animation:none;opacity:1}
+}
+
+/* ==========================================================================
+   v17.10 Fokus-Schutz dialog: "Blockierung testen" + leave barrier
+   (#screen-popup-ablenkung, owned by triggerAppAblenkung in navigation.js)
+   ========================================================================== */
+.uc-barrier{position:absolute;inset:0;z-index:96;display:flex;align-items:flex-end;padding:12px 12px calc(12px + env(safe-area-inset-bottom))}
+.uc-barrier-card{max-height:min(88%,680px);padding:16px 18px 16px}
+.uc-barrier-head{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:32px}
+.uc-barrier-time{padding:6px 11px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);color:#E6E0F0;font-size:13px;font-weight:850;font-variant-numeric:tabular-nums}
+.uc-barrier-time:empty{display:none}
+.uc-barrier-stage{flex:1 1 auto;min-height:0;margin-top:14px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:none}
+.uc-barrier-stage::-webkit-scrollbar{display:none}
+.uc-barrier-stage.is-entering{animation:ucStageIn var(--motion-normal,350ms) var(--ease-standard,ease) both}
+@keyframes ucStageIn{from{opacity:0;transform:translate3d(0,6px,0)}to{opacity:1;transform:none}}
+.uc-barrier-stage h3{margin:0;font-size:clamp(21px,6vw,25px);line-height:1.18;font-weight:850;letter-spacing:-.025em;color:#FFFFFF;overflow-wrap:anywhere}
+.uc-barrier-stage p{margin:8px 0 0;font-size:15px;line-height:1.5;color:#CFC6DE}
+.uc-barrier-hero{display:flex;flex-direction:column;align-items:center;text-align:center;padding:6px 6px 2px}
+.uc-barrier-hero h3{margin-top:14px}
+.uc-barrier-shield{width:64px;height:64px;border-radius:22px;display:grid;place-items:center;color:#DDD3FB;background:radial-gradient(circle at 30% 20%,rgba(167,139,250,.38),rgba(109,40,217,.18) 70%);border:1px solid rgba(167,139,250,.32);box-shadow:0 10px 28px rgba(76,29,149,.35)}
+.uc-barrier-shield svg{width:28px;height:28px}
+.uc-barrier-shield.is-muted{color:#B9B1C9;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.10);box-shadow:none}
+.uc-barrier-app{position:relative;display:inline-block}
+.uc-barrier-app .app-dot{width:64px;height:64px;border-radius:20px;display:grid;place-items:center;color:#fff;font-size:24px;font-weight:900;box-shadow:0 10px 26px rgba(0,0,0,.35);filter:saturate(.7) brightness(.82)}
+.uc-barrier-app .app-dot svg{width:28px;height:28px}
+.uc-barrier-lock{position:absolute;right:-7px;bottom:-7px;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#1A1129;border:2px solid #2A1C3F;color:#C4B5FD}
+.uc-barrier-lock svg{width:15px;height:15px}
+.uc-barrier-warning{text-align:center;font-size:13px!important;color:#A9A0BE!important;margin-top:16px!important}
+.uc-barrier-intro p{margin-top:6px}
+.uc-barrier-status{display:flex;align-items:center;gap:9px;margin-top:16px;padding:12px 14px;border-radius:16px;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.22)}
+.uc-barrier-status .uc-protect-dot{flex:0 0 8px;width:8px;height:8px;border-radius:50%;background:#34D399;box-shadow:0 0 10px rgba(52,211,153,.7)}
+.uc-barrier-status strong{flex:1 1 auto;font-size:14.5px;font-weight:850;color:#A7F3D0}
+.uc-barrier-status span:last-child{font-size:13px;font-weight:800;color:#CFC6DE}
+.uc-barrier-apps{display:flex;flex-direction:column;gap:7px;margin-top:10px}
+.uc-barrier-row{display:flex;align-items:center;gap:12px;width:100%;min-height:58px;padding:9px 12px 9px 10px;border-radius:17px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.045);color:#F4F0FA;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform var(--motion-instant,90ms) ease,background-color var(--motion-fast,160ms) ease,border-color var(--motion-fast,160ms) ease}
+.uc-barrier-row:active{transform:scale(.985);background:rgba(255,255,255,.08)}
+.uc-barrier-row:focus-visible,.uc-barrier-btn:focus-visible{outline:2px solid #C4B5FD;outline-offset:2px}
+.uc-barrier-row .app-dot{flex:0 0 38px;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;color:#fff;font-size:15px;font-weight:900}
+.uc-barrier-row .app-dot svg{width:18px;height:18px}
+.uc-barrier-row-name{flex:1 1 auto;min-width:0;font-size:15.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.uc-barrier-chip{flex:0 0 auto;padding:6px 11px;border-radius:999px;border:1px solid rgba(167,139,250,.32);color:#C4B5FD;font-size:12.5px;font-weight:850}
+.uc-barrier-checks{list-style:none;margin:18px 0 0;padding:12px 14px;border-radius:16px;background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.18);display:flex;flex-direction:column;gap:8px}
+.uc-barrier-checks li{display:flex;align-items:flex-start;gap:9px;font-size:14px;line-height:1.4;font-weight:700;color:#E6E0F0}
+.uc-barrier-checks svg{flex:0 0 16px;width:16px;height:16px;margin-top:2px;color:#4ADE80;stroke-width:3}
+.uc-barrier-note{display:flex;gap:9px;margin-top:12px!important;font-size:12.5px!important;line-height:1.45!important;color:#A9A0BE!important}
+.uc-barrier-note svg{flex:0 0 15px;width:15px;height:15px;margin-top:2px}
+.uc-barrier-actions{flex:0 0 auto;display:grid;gap:8px;margin-top:16px}
+.uc-barrier-btn{width:100%;height:52px;border-radius:18px;display:flex;align-items:center;justify-content:center;gap:9px;font-size:16px;font-weight:900;cursor:pointer;transition:transform var(--motion-instant,90ms) ease,background-color var(--motion-fast,160ms) ease}
+.uc-barrier-btn svg{width:17px;height:17px}
+.uc-barrier-btn.is-primary{border:0;color:#FFFFFF;background:linear-gradient(105deg,#7C3AED 0%,#6D28D9 60%,#5B21B6 100%);box-shadow:0 12px 26px rgba(109,40,217,.32),inset 0 1px rgba(255,255,255,.18)}
+.uc-barrier-btn.is-primary svg[data-lucide="play"],.uc-barrier-btn.is-primary .lucide-play{fill:#fff}
+.uc-barrier-btn.is-quiet{height:48px;border:1px solid rgba(255,255,255,.12);background:transparent;color:#E6E0F0;font-size:15px;font-weight:800}
+.uc-barrier-btn:active{transform:scale(.985)}
