@@ -22,7 +22,6 @@ let activeAIPlan = null;
 let aiRequestController = null;
 let aiRequestCancelledByUser = false;
 let isMissionAnalyzeInFlight = false;
-let analysisRowTimers = [];
 
 function isEnglishLanguage() {
   try {
@@ -33,12 +32,6 @@ function isEnglishLanguage() {
     return saved === 'en';
   } catch (_) {
     return false;
-  }
-}
-
-function clearAnalysisRowTimers() {
-  while (analysisRowTimers.length) {
-    clearTimeout(analysisRowTimers.pop());
   }
 }
 
@@ -382,25 +375,6 @@ function confidenceForAPI() {
   return 'partial';
 }
 
-function resetAnalysisRows() {
-  document.querySelectorAll('#analysisRows .analysis-row').forEach(row => {
-    row.classList.add('opacity-40');
-    row.classList.remove('done');
-    const icon = row.querySelector('.analysis-icon');
-    if (icon) icon.innerHTML = '<span class="flow-loader-dot w-1.5 h-1.5 bg-indigo-300 rounded-full"></span>';
-  });
-}
-
-function completeAnalysisRow(index) {
-  const row = document.querySelectorAll('#analysisRows .analysis-row')[index];
-  if (!row) return;
-  row.classList.remove('opacity-40');
-  row.classList.add('done');
-  const icon = row.querySelector('.analysis-icon');
-  if (icon) icon.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i>';
-  if (typeof lucide?.createIcons === 'function') lucide.createIcons();
-}
-
 function getLocalTodayISO() {
   const now = new Date();
   const y = now.getFullYear();
@@ -584,12 +558,12 @@ function parseMissionErrorResponse(status, body, fallbackError) {
 }
 
 function cancelMissionAnalysis() {
+  window.MissionOperator?.cancel();
   if (!isMissionAnalyzeInFlight && !aiRequestController) {
     setAppScreen('goal', { immediate: true });
     return;
   }
   aiRequestCancelledByUser = true;
-  clearAnalysisRowTimers();
   try { aiRequestController?.abort(); } catch (_) {}
   aiRequestController = null;
   isMissionAnalyzeInFlight = false;
@@ -611,7 +585,6 @@ async function analyzeGoal() {
     return false;
   }
   if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-    clearAnalysisRowTimers();
     showMissionOfflineError();
     return false;
   }
@@ -631,8 +604,6 @@ async function analyzeGoal() {
   if (!selectedMissionConfidenceValue) selectedMissionConfidenceValue = en ? '50/50' : 'Teilsicher';
 
   clearMissionError();
-  clearAnalysisRowTimers();
-  resetAnalysisRows();
 
   isMissionAnalyzeInFlight = true;
   aiRequestCancelledByUser = false;
@@ -644,8 +615,9 @@ async function analyzeGoal() {
     button.setAttribute('aria-busy', 'true');
   }
 
+  // v17.14: the operator animation only observes this request (src/features/missions/mission-operator.js).
+  const operatorRun = window.MissionOperator ? window.MissionOperator.begin() : 0;
   setAppScreen('analyzing');
-  [450, 950].forEach((t, i) => analysisRowTimers.push(setTimeout(() => completeAnalysisRow(i), t)));
 
   if (aiRequestController) {
     try { aiRequestController.abort(); } catch (_) {}
@@ -691,18 +663,19 @@ async function analyzeGoal() {
     }
 
     pendingAIPlan = normalizeAIPlan(data.plan, schedulePayload);
-    completeAnalysisRow(2);
     renderAIConfirmation(pendingAIPlan);
     window.FocusModeApp?.services?.storage?.setJSON?.('focus-mode-last-ai-plan', pendingAIPlan);
-    setTimeout(() => {
-      if (!aiRequestCancelledByUser) setAppScreen('confirm');
-    }, 420);
+    // The planet segment plays only now: response received, parsed, validated and rendered.
+    const revealed = window.MissionOperator ? window.MissionOperator.succeed(operatorRun) : Promise.resolve(true);
+    revealed.then((shown) => {
+      if (shown !== false && !aiRequestCancelledByUser) setAppScreen('confirm');
+    });
     return true;
   } catch (error) {
-    clearAnalysisRowTimers();
     if (aiRequestCancelledByUser) {
       return false;
     }
+    window.MissionOperator?.fail(operatorRun, error?.name === 'AbortError' ? 'timeout' : 'error');
     console.error('Focus AI request failed', {
       name: error?.name,
       code: error?.code,

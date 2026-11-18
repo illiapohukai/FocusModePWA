@@ -498,17 +498,24 @@
 </button>
 </div>
 </div>
-<!-- LEARNING FLOW: Analyse -->
-<div class="app-screen p-5 flex flex-col items-center justify-center flex-1 hidden bg-slate-950 text-white" id="app-screen-analyzing">
-<div class="w-16 h-16 rounded-3xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center shadow-[0_18px_45px_rgba(99,102,241,.38)] mb-6"><i class="w-7 h-7" data-lucide="sparkles"></i></div>
-<h3 class="text-xl font-black tracking-tight">Deine Mission wird geplant</h3>
-<p class="text-[10px] text-slate-400 text-center leading-relaxed mt-2 mb-7 max-w-[230px]">Focus Mode+ verbindet Ziel, Aufwand und deine bisherigen Fokus-Sitzungen.</p>
-<div class="w-full space-y-2.5" id="analysisRows">
-<div class="analysis-row opacity-40 p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-3"><span class="analysis-icon w-6 h-6 rounded-full bg-white/10 flex items-center justify-center"><span class="flow-loader-dot w-1.5 h-1.5 bg-indigo-300 rounded-full"></span></span><span class="text-[10px] text-slate-300">Ziel und Frist erkennen</span></div>
-<div class="analysis-row opacity-40 p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-3"><span class="analysis-icon w-6 h-6 rounded-full bg-white/10 flex items-center justify-center"><span class="flow-loader-dot w-1.5 h-1.5 bg-indigo-300 rounded-full"></span></span><span class="text-[10px] text-slate-300">Ziel in Missionsschritte teilen</span></div>
-<div class="analysis-row opacity-40 p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-3"><span class="analysis-icon w-6 h-6 rounded-full bg-white/10 flex items-center justify-center"><span class="flow-loader-dot w-1.5 h-1.5 bg-indigo-300 rounded-full"></span></span><span class="text-[10px] text-slate-300">Dauer und Lernumgebung anpassen</span></div>
-</div>
-<button type="button" id="cancelAnalysisBtn" onclick="cancelMissionAnalysis()" class="mt-6 px-4 py-2 rounded-full border border-white/15 bg-white/5 text-[11px] font-bold text-slate-300 hover:bg-white/10 transition">Abbrechen</button>
+<!-- LEARNING FLOW: Analyse (v17.14 Mission Generation Operator; owner: src/features/missions/mission-operator.js) -->
+<div class="app-screen flow-screen hidden mgen-screen" id="app-screen-analyzing" data-mgen-state="idle">
+  <div class="mgen-shell">
+    <div class="mg-topbar mgen-topbar">
+      <div></div><span class="mg-badge mg-top-badge"><i data-lucide="sparkles"></i> Focus Mission</span><div></div>
+    </div>
+    <div class="mgen-body">
+      <div class="mgen-stage" aria-hidden="true">
+        <canvas class="mgen-operator" id="missionOperatorCanvas" width="266" height="358"></canvas>
+        <canvas class="mgen-operator mgen-operator-final" id="missionOperatorFinal" width="266" height="358"></canvas>
+      </div>
+      <h3 class="mgen-title" id="missionGenTitle">Deine Mission entsteht</h3>
+      <p class="mgen-copy" id="missionGenCopy">Wir strukturieren dein Ziel und bereiten die nächsten Schritte vor.</p>
+      <div class="mgen-route" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      <p class="mgen-status" id="missionGenStatus" role="status" aria-live="polite">Mission wird erstellt …</p>
+      <button type="button" id="cancelAnalysisBtn" onclick="cancelMissionAnalysis()" class="mgen-cancel">Abbrechen</button>
+    </div>
+  </div>
 </div>
 <!-- REAL AI: Mission-Briefing (v17.7) -->
 <div class="app-screen flow-screen hidden" id="app-screen-confirm">
@@ -1906,6 +1913,7 @@ END V13.2.5 ARCHITECTURE STABILIZATION MANIFEST -->
 <script id="cosmicCoreV179" src="./src/core/cosmic-core.js"></script>
 <script id="motionControllerV1732" src="./src/core/motion-controller.js"></script>
 <script id="homePullOperatorV1713" src="./src/features/home-pull/home-pull-operator.js"></script>
+<script id="missionOperatorV1714" src="./src/features/missions/mission-operator.js"></script>
 
 <!-- Restored from v13.3.2 without replacing newer runtime features. -->
 

@@ -101,7 +101,8 @@ let currentSlide = 1;
      const homeBar = document.getElementById('homeBar');
      const screenWrapper = document.getElementById('screenWrapper');
 
-     const aiImmersiveScreens = ['analyzing','feedbackprocessing','update'];
+     // v17.14: the Mission-generation screen (analyzing) uses the warm cream app chrome.
+     const aiImmersiveScreens = ['feedbackprocessing','update'];
      if (screenWrapper) screenWrapper.classList.toggle('ai-immersive', aiImmersiveScreens.includes(screenName));
 
      if (screenName === 'premium') {
@@ -614,7 +615,7 @@ document.addEventListener('wheel',keepPhoneScrollInside,{passive:true});document
 
 (function(){
 const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
-const darkScreens=new Set(['premium','analyzing','feedbackprocessing','update']);
+const darkScreens=new Set(['premium','feedbackprocessing','update']);
 /* v17.7 single status-theme owner. The route decides the mode: only the full-screen Focus timer
    is 'focus'; dark flow screens are 'dark'; everything else restores the warm app theme.
    theme-color is updated dynamically (honoured by Safari tabs and Android Chrome/PWA); html/body paint

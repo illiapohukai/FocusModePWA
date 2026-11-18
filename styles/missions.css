@@ -1808,3 +1808,164 @@ body.mg-cal-scroll-locked {
   #aiPlanSteps .mp-step{transition:opacity 120ms ease,filter 120ms ease}
   .mp-step-why p,.mp-why-card.is-open .mp-why-text{animation:none}
 }
+
+/* =========================================================================
+   v17.14 MISSION GENERATION OPERATOR (#app-screen-analyzing)
+   Owner: src/features/missions/mission-operator.js (state in [data-mgen-state]).
+   Warm cream waiting screen in the Mission Creation language: compact badge header, a small
+   pixel-art operator (canvas, nearest-neighbour scaling), a clear title, one truthful status
+   line, an indeterminate route (no percentage) and the existing cancel action.
+   ========================================================================= */
+#app-screen-analyzing.mgen-screen{
+  --mgen-art-w:clamp(112px,34vw,136px);
+  position:absolute!important;
+  inset:0!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  background:radial-gradient(circle at 50% 34%,rgba(196,181,253,.20),transparent 46%),#F6F1E7!important;
+  color:#1D1A17!important;
+}
+.mgen-shell{
+  min-height:100%;
+  display:flex;
+  flex-direction:column;
+  padding:calc(18px + env(safe-area-inset-top,0px)) 20px calc(22px + env(safe-area-inset-bottom,0px));
+}
+.mgen-topbar{min-height:46px}
+.mgen-body{
+  flex:1 1 auto;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:14px 4px 7vh;
+  text-align:center;
+}
+.mgen-stage{
+  position:relative;
+  width:var(--mgen-art-w);
+  aspect-ratio:266/358;
+  margin:0 auto 20px;
+}
+.mgen-stage::before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:54%;
+  width:150%;
+  aspect-ratio:1;
+  border-radius:50%;
+  transform:translate(-50%,-50%);
+  background:radial-gradient(closest-side,rgba(124,58,237,.12),rgba(124,58,237,.05) 58%,rgba(124,58,237,0) 100%);
+  pointer-events:none;
+}
+.mgen-operator{
+  position:absolute;
+  inset:0;
+  display:block;
+  width:100%;
+  height:100%;
+  image-rendering:pixelated;
+  opacity:0;
+  transition:opacity var(--motion-fast,160ms) var(--ease-standard,ease);
+}
+.mgen-screen.mgen-has-art .mgen-operator:not(.mgen-operator-final){opacity:1}
+.mgen-operator-final{transition-duration:var(--motion-normal,350ms)}
+.mgen-operator-final.is-visible{opacity:1}
+.mgen-title{
+  margin:0;
+  max-width:320px;
+  color:#1D1A17;
+  font-size:clamp(24px,6.6vw,28px);
+  line-height:1.12;
+  font-weight:900;
+  letter-spacing:-.035em;
+}
+.mgen-copy{
+  margin:9px auto 0;
+  max-width:292px;
+  color:#766E65;
+  font-size:14px;
+  line-height:1.45;
+}
+.mgen-route{
+  position:relative;
+  width:74px;
+  height:8px;
+  margin:20px auto 0;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.mgen-route::before{
+  content:"";
+  position:absolute;
+  left:4px;
+  right:4px;
+  top:50%;
+  height:2px;
+  margin-top:-1px;
+  border-radius:2px;
+  background:rgba(109,40,217,.16);
+}
+.mgen-route i{
+  position:relative;
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#7C3AED;
+  opacity:.22;
+  animation:mgenRoute 1.6s var(--ease-standard,ease) infinite;
+}
+.mgen-route i:nth-child(2){animation-delay:.2s}
+.mgen-route i:nth-child(3){animation-delay:.4s}
+.mgen-route i:nth-child(4){animation-delay:.6s}
+@keyframes mgenRoute{0%,62%,100%{opacity:.22}24%{opacity:1}}
+.mgen-status{
+  min-height:18px;
+  margin:12px auto 0;
+  max-width:300px;
+  color:#6D28D9;
+  font-size:12px;
+  line-height:1.45;
+  font-weight:750;
+}
+.mgen-cancel{
+  align-self:center;
+  min-width:132px;
+  height:44px;
+  margin-top:26px;
+  padding:0 22px;
+  border:1px solid rgba(45,35,30,.12);
+  border-radius:999px;
+  background:rgba(255,255,255,.66);
+  color:#5C544D;
+  font-size:13px;
+  font-weight:800;
+  box-shadow:0 6px 16px rgba(37,22,43,.06);
+  transition:opacity var(--motion-fast,160ms) var(--ease-standard,ease),visibility 0s linear 0s;
+}
+.mgen-cancel:active{background:#EFE9DD}
+/* Success: the Mission exists, so the screen only reports it; cancel steps aside. */
+.mgen-screen:is([data-mgen-state="success-transition"],[data-mgen-state="completed"]) .mgen-route::before{background:rgba(21,128,61,.22)}
+.mgen-screen:is([data-mgen-state="success-transition"],[data-mgen-state="completed"]) .mgen-route i{animation:none;opacity:1;background:#15803D}
+.mgen-screen:is([data-mgen-state="success-transition"],[data-mgen-state="completed"]) .mgen-status{color:#15803D}
+.mgen-screen:is([data-mgen-state="success-transition"],[data-mgen-state="completed"]) .mgen-cancel{
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transition:opacity var(--motion-fast,160ms) var(--ease-standard,ease),visibility 0s linear var(--motion-fast,160ms);
+}
+@media (max-height:680px){
+  #app-screen-analyzing.mgen-screen{--mgen-art-w:clamp(100px,28vw,116px)}
+  .mgen-stage{margin-bottom:14px}
+  .mgen-title{font-size:23px}
+  .mgen-copy{font-size:13px}
+  .mgen-route{margin-top:14px}
+  .mgen-body{padding-bottom:3vh}
+  .mgen-cancel{margin-top:18px}
+}
+@media (prefers-reduced-motion: reduce){
+  .mgen-route i{animation:mgenRouteCalm 2.4s ease-in-out infinite;animation-delay:0s!important}
+}
+@keyframes mgenRouteCalm{0%,100%{opacity:.3}50%{opacity:.7}}

@@ -145,7 +145,6 @@ html,body{width:100%;max-width:100%;overflow-x:clip!important;overscroll-behavio
 #screenWrapper.ai-immersive #statusBar .border-slate-800{border-color:white!important}
 #screenWrapper.ai-immersive #statusBar .bg-slate-800{background:white!important}
 #screenWrapper.ai-immersive #homeBar>div{background:rgba(255,255,255,.72)!important}
-#screenWrapper.ai-immersive #app-screen-analyzing,
 #screenWrapper.ai-immersive #app-screen-feedbackprocessing,
 #screenWrapper.ai-immersive #app-screen-update{
   background:transparent!important;
@@ -302,7 +301,7 @@ html.pwa-dark-status,html.pwa-dark-status body{background:#0f1328!important}html
 /* timer: larger planet and orbit */
 #app-screen-timer{display:flex!important;flex-direction:column!important;padding:15px 18px calc(12px + env(safe-area-inset-bottom))!important;gap:11px!important;overflow:hidden!important}#app-screen-timer.hidden{display:none!important}#app-screen-timer>div:first-child{flex:0 0 45px!important}#app-screen-timer .orbit-card{flex:1 1 auto!important;min-height:405px!important;max-height:none!important;display:flex!important;border-radius:30px!important}#app-screen-timer .orbit-card>.relative{width:100%;justify-content:space-between!important;padding-top:18px!important}#app-screen-timer .focus-orbit-stage{width:270px!important;height:238px!important;transform:scale(1.15)!important;transform-origin:center center;margin:8px 0 12px!important}#app-screen-timer .main-orbit-svg,#app-screen-timer .front-orbit-svg{left:15px!important;top:28px!important}#app-screen-timer .orbit-sphere{width:150px!important;height:150px!important}#timerDigits{font-size:34px!important}#timerCaption{font-size:8px!important}#app-screen-timer>div:nth-last-child(2){flex:0 0 64px!important;min-height:64px!important;padding:11px 13px!important}#app-screen-timer>.grid:last-child{flex:0 0 54px!important;margin:0!important;gap:9px!important}#app-screen-timer>.grid:last-child button{height:54px!important;min-height:54px!important;font-size:11px!important;border-radius:16px!important}
 /* keep the deliberately large processing screen */
-#app-screen-analyzing,#app-screen-feedbackprocessing{justify-content:center!important;padding:26px 22px 8vh!important}#app-screen-analyzing>div:first-child,#app-screen-feedbackprocessing>div:first-child{width:78px!important;height:78px!important;margin-bottom:24px!important}#app-screen-analyzing h3,#app-screen-feedbackprocessing h3{font-size:25px!important;max-width:350px;text-align:center}#app-screen-analyzing>p,#app-screen-feedbackprocessing>p{font-size:13px!important;max-width:320px!important;margin-top:12px!important;margin-bottom:26px!important}#analysisRows,#feedbackRows{width:100%;gap:13px!important}#analysisRows .analysis-row,#feedbackRows .feedback-row{min-height:66px!important;padding:15px!important;border-radius:20px!important}#analysisRows .analysis-row>span:last-child,#feedbackRows .feedback-row>span:last-child{font-size:12px!important}
+#app-screen-feedbackprocessing{justify-content:center!important;padding:26px 22px 8vh!important}#app-screen-feedbackprocessing>div:first-child{width:78px!important;height:78px!important;margin-bottom:24px!important}#app-screen-feedbackprocessing h3{font-size:25px!important;max-width:350px;text-align:center}#app-screen-feedbackprocessing>p{font-size:13px!important;max-width:320px!important;margin-top:12px!important;margin-bottom:26px!important}#analysisRows,#feedbackRows{width:100%;gap:13px!important}#analysisRows .analysis-row,#feedbackRows .feedback-row{min-height:66px!important;padding:15px!important;border-radius:20px!important}#analysisRows .analysis-row>span:last-child,#feedbackRows .feedback-row>span:last-child{font-size:12px!important}
 /* filled stats */
 #app-screen-stats{padding:18px!important;display:flex!important;flex-direction:column!important;overflow:hidden!important}#app-screen-stats.hidden{display:none!important}#app-screen-stats>.space-y-3{flex:1 1 auto!important;min-height:0!important;display:flex!important;flex-direction:column!important;gap:12px!important}#app-screen-stats>.space-y-3>div:first-child{flex:0 0 58px!important}#app-screen-stats>.space-y-3>div:nth-child(2){flex:1 1 auto!important;min-height:220px!important;padding:16px!important;display:flex;flex-direction:column}#app-screen-stats>.space-y-3>div:nth-child(2)>.h-24{height:auto!important;flex:1 1 auto!important;min-height:150px!important}#app-screen-stats>.space-y-3>div:nth-child(3),#app-screen-stats>.space-y-3>div:nth-child(4){flex:0 0 auto!important}#app-screen-stats .mt-auto{flex:0 0 auto!important;padding-top:7px!important}#app-screen-stats button{min-height:48px!important}
 .flow-screen>button.mt-auto,#app-screen-plan>button,#app-screen-result>button,#app-screen-update>button{min-height:54px}#app-screen-score,#app-screen-premium,#app-screen-chat,.flow-screen{overscroll-behavior:contain}
@@ -328,7 +327,7 @@ html.pwa-dark-status,html.pwa-dark-status body{background:#0f1328!important}html
 html.pwa-dark-status,html.pwa-dark-status body{background:#0f1328!important}
 html.pwa-dark-status body:after{background:linear-gradient(160deg,#0f172a 0%,#17143a 58%,#312e81 100%)!important}
 html.pwa-dark-status #screenWrapper,html.pwa-dark-status #appBody{background:#0f1328!important}
-#app-screen-analyzing,#app-screen-feedbackprocessing,#app-screen-update{padding-top:calc(24px + env(safe-area-inset-top))!important}
+#app-screen-feedbackprocessing,#app-screen-update{padding-top:calc(24px + env(safe-area-inset-top))!important}
 
 /* PLAN: readable hierarchy. Sticky CTA belongs to the scroll container, not viewport middle. */
 
@@ -344,10 +343,10 @@ html.pwa-dark-status #screenWrapper,html.pwa-dark-status #appBody{background:#0f
 #app-screen-home .home-start-wrap>button{height:64px!important;min-height:64px!important;font-size:18px!important}
 
 /* AI loading screens: bigger cards/text instead of miniature prototype UI. */
-#app-screen-analyzing,#app-screen-feedbackprocessing{justify-content:center!important;padding-left:22px!important;padding-right:22px!important;padding-bottom:8vh!important}
-#app-screen-analyzing>div:first-child,#app-screen-feedbackprocessing>div:first-child{width:84px!important;height:84px!important;border-radius:28px!important;margin-bottom:25px!important}
-#app-screen-analyzing h3,#app-screen-feedbackprocessing h3{font-size:27px!important;line-height:1.18!important;max-width:340px;text-align:center}
-#app-screen-analyzing>p,#app-screen-feedbackprocessing>p{font-size:15px!important;line-height:1.52!important;max-width:330px!important;margin-top:13px!important;margin-bottom:27px!important}
+#app-screen-feedbackprocessing{justify-content:center!important;padding-left:22px!important;padding-right:22px!important;padding-bottom:8vh!important}
+#app-screen-feedbackprocessing>div:first-child{width:84px!important;height:84px!important;border-radius:28px!important;margin-bottom:25px!important}
+#app-screen-feedbackprocessing h3{font-size:27px!important;line-height:1.18!important;max-width:340px;text-align:center}
+#app-screen-feedbackprocessing>p{font-size:15px!important;line-height:1.52!important;max-width:330px!important;margin-top:13px!important;margin-bottom:27px!important}
 #analysisRows,#feedbackRows{width:100%!important;gap:12px!important}
 #analysisRows .analysis-row,#feedbackRows .feedback-row{min-height:70px!important;padding:16px!important;border-radius:20px!important}
 #analysisRows .analysis-icon,#feedbackRows .feedback-icon{width:31px!important;height:31px!important}
