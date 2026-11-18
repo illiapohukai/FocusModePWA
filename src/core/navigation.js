@@ -872,13 +872,18 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!document
       global.closeMissionCalendarSheet({ immediate: true, skipFocusRestore: true });
     }
 
+    // A root swipe prepares its destination once at gesture lock (rootOptions.prepared);
+    // its commit does not render the page a second time.
+    const alreadyPrepared = Boolean(rootOptions && rootOptions.prepared);
     if (section === 'missions') {
       if (typeof global.ensureMissionManagementScreenV116 === 'function') {
         global.ensureMissionManagementScreenV116();
       }
-      if (typeof global.renderMissionManagementV116 === 'function') {
+      if (!alreadyPrepared && typeof global.renderMissionManagementV116 === 'function') {
         global.renderMissionManagementV116();
       }
+    } else if (alreadyPrepared) {
+      // Prepared by the gesture owner.
     } else if (section === 'history') {
       if (typeof global.renderSessionHistory === 'function') {
         global.renderSessionHistory();

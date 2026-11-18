@@ -1,4 +1,4 @@
-const CACHE = "focus-mode-v17-11-visual-system-overlay-polish";
+const CACHE = "focus-mode-v17-12-home-navigation-compactness";
 const CACHE_PREFIX = "focus-mode";
 
 const CORE = [

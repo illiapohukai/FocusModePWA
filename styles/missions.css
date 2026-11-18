@@ -769,46 +769,55 @@ body.mission-carousel-active #emptyMissionCard{
 .mission-tab-v116{min-height:40px;border:0;border-radius:11px;background:transparent;color:#766E65;font-size:13px;font-weight:850;cursor:pointer;transition:.16s ease}
 .mission-tab-v116.active{background:#FCF9F4;color:#6D28D9;box-shadow:0 3px 10px rgba(37,22,43,.07)}
 #missionManagementListV116{min-height:0}
-.mmc-list{display:flex;flex-direction:column;gap:14px;min-height:0}
+.mmc-list{display:flex;flex-direction:column;gap:12px;min-height:0}
 /* v17.11 "Deine Missionen" card: a compact Mission-tone identity band over a calm cream body.
    Primary: title, progress route, next step. Secondary: subject, deadline, counts.
-   Management lives in the existing three-dot sheet. State is always named in text. */
+   Management lives in the existing three-dot sheet. State is always named in text.
+   v17.12 compactness: one summary row (progress · steps · deadline), tighter band and body rhythm,
+   a slimmer next-step row. Heights stay content-driven; nothing is clipped or fixed. */
 .mmc-card{position:relative;isolation:isolate;overflow:hidden;border-radius:26px;background:#FCF9F4;border:1px solid rgba(45,35,30,.09);box-shadow:0 12px 28px rgba(var(--mt-shadow),.10),0 1px 2px rgba(37,22,43,.05)}
-.mmc-band{position:relative;display:grid;grid-template-columns:44px minmax(0,1fr) 40px;align-items:center;column-gap:12px;row-gap:12px;padding:16px 14px 16px 16px;color:#FFFFFF;
+.mmc-band{position:relative;display:grid;grid-template-columns:40px minmax(0,1fr) 40px;align-items:center;column-gap:12px;row-gap:10px;padding:13px 12px 13px 14px;color:#FFFFFF;
   background-color:var(--mt-base);
   background-image:var(--fm-hero-light),radial-gradient(circle at 92% 0%,var(--mt-glow),transparent 54%),var(--fm-hero-vignette),linear-gradient(150deg,var(--mt-base) 0%,var(--mt-mid) 62%,var(--mt-deep) 100%);
   box-shadow:var(--fm-hero-edge)}
-.mmc-emblem{width:44px;height:44px;border-radius:15px;display:grid;place-items:center;color:var(--mt-accent);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.11)}
-.mmc-emblem svg{width:21px;height:21px}
+.mmc-emblem{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;color:var(--mt-accent);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.11)}
+.mmc-emblem svg{width:20px;height:20px}
 .mmc-headline{min-width:0;display:flex;flex-direction:column;align-items:flex-start;padding:0;border:0;background:none;color:inherit;text-align:left;cursor:pointer}
 .mmc-headline:focus-visible{outline:2px solid #C4B5FD;outline-offset:4px;border-radius:8px}
-.mmc-subject{max-width:100%;font-size:12.5px;line-height:1.25;font-weight:800;color:var(--mt-accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mmc-title{margin-top:3px;font-size:19px;line-height:1.18;font-weight:900;letter-spacing:-.025em;color:#FFFFFF;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere}
+.mmc-subject{max-width:100%;font-size:12px;line-height:1.25;font-weight:800;color:var(--mt-accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mmc-title{margin-top:2px;font-size:18px;line-height:1.18;font-weight:900;letter-spacing:-.025em;color:#FFFFFF;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere}
 .mmc-menu{align-self:start;width:40px;height:40px;border-radius:14px;display:grid;place-items:center;flex-shrink:0;cursor:pointer;color:#FFFFFF;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.11)}
 .mmc-menu svg{width:19px;height:19px}
 .mmc-menu:focus-visible{outline:2px solid #C4B5FD;outline-offset:2px}
-.mmc-chip{grid-column:2/-1;justify-self:start;max-width:100%;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 11px;border-radius:999px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.12);font-size:12.5px;font-weight:800;color:#FFFFFF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mmc-chip{grid-column:2/-1;justify-self:start;max-width:100%;display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.12);font-size:12px;font-weight:800;color:#FFFFFF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mmc-chip svg{flex:0 0 14px;width:14px;height:14px;color:var(--mt-accent)}
-.mmc-body{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;padding:16px}
-.mmc-progress-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 9px;min-width:0}
-.mmc-progress-head strong{font-size:22px;line-height:1;font-weight:900;letter-spacing:-.03em;color:#1D1A17;font-variant-numeric:tabular-nums}
-.mmc-progress-head span{min-width:0;max-width:100%;font-size:13px;font-weight:700;color:#766E65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mmc-progress-head .mmc-deadline{margin-left:auto;flex:0 1 auto;display:inline-flex;align-items:center;gap:5px;color:#5E564E}
-.mmc-deadline svg{flex:0 0 14px;width:14px;height:14px;color:var(--mt-ink)}
+.mmc-body{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;padding:13px 14px 14px}
+/* Summary row: one baseline-aligned group; the deadline sits at the row end and wraps below rather
+   than clipping when space runs out (long free-text deadlines, 320 px). */
+.mmc-summary{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;min-width:0;min-height:24px}
+.mmc-pct{font-size:20px;line-height:1;font-weight:900;letter-spacing:-.03em;color:#1D1A17;font-variant-numeric:tabular-nums}
+.mmc-steps{min-width:0;font-size:13px;line-height:1.2;font-weight:700;color:#766E65;white-space:nowrap}
+.mmc-steps b{font-weight:850;color:#3A332D;font-variant-numeric:tabular-nums}
+.mmc-deadline{margin-left:auto;min-width:0;max-width:100%;display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px 0 7px;border-radius:999px;background:var(--mt-tint);font-size:12.5px;line-height:1;font-weight:800;color:#3A332D;white-space:nowrap}
+.mmc-deadline>span,.mmc-deadline>time{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.mmc-deadline svg{flex:0 0 13px;width:13px;height:13px;color:var(--mt-ink)}
+.mmc-deadline .mmc-sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.mmc-deadline.is-none{background:#EFE9DD;color:#766E65;font-weight:750}
+.mmc-deadline.is-none svg{color:#8E857B}
 /* Route: completed steps restrained green, the current step in the Mission tone, the rest a warm track. */
-.mmc-route{display:flex;gap:4px;height:8px}
+.mmc-route{display:flex;gap:4px;height:7px}
 .mmc-route i{flex:1 1 0;min-width:0;border-radius:999px;background:#E8E0D3}
 .mmc-route i.is-done{background:#2F9E68}
 .mmc-route i.is-current{background:var(--mt-accent-strong);box-shadow:0 0 0 3px color-mix(in srgb,var(--mt-accent-strong) 18%,transparent)}
 .mmc-route.is-bar{border-radius:999px;background:#E8E0D3;overflow:hidden}
 .mmc-route.is-bar b{display:block;height:100%;border-radius:inherit;background:#2F9E68}
-.mmc-next{display:flex;align-items:center;gap:12px;min-width:0;padding:11px 14px 11px 11px;border-radius:18px;background:var(--mt-tint);border:1px solid color-mix(in srgb,var(--mt-accent-strong) 16%,transparent)}
-.mmc-next-index{flex:0 0 40px;width:40px;height:40px;border-radius:13px;display:grid;place-items:center;background:#FFFFFF;color:var(--mt-ink);font-size:14px;font-weight:900;font-variant-numeric:tabular-nums;box-shadow:0 2px 6px rgba(37,22,43,.06)}
+.mmc-next{display:flex;align-items:center;gap:11px;min-width:0;padding:8px 12px 8px 8px;border-radius:16px;background:var(--mt-tint);border:1px solid color-mix(in srgb,var(--mt-accent-strong) 16%,transparent)}
+.mmc-next-index{flex:0 0 36px;width:36px;height:36px;border-radius:12px;display:grid;place-items:center;background:#FFFFFF;color:var(--mt-ink);font-size:13.5px;font-weight:900;font-variant-numeric:tabular-nums;box-shadow:0 2px 6px rgba(37,22,43,.06)}
 .mmc-next-copy{flex:1 1 auto;min-width:0;display:flex;flex-direction:column}
-.mmc-next-copy small{font-size:12px;line-height:1.2;font-weight:800;color:var(--mt-ink)}
-.mmc-next-copy strong{margin-top:2px;font-size:15px;line-height:1.25;font-weight:850;color:#1D1A17;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:break-word;hyphens:auto}
-.mmc-actions{display:flex;flex-wrap:wrap;gap:10px}
-.mmc-btn{flex:1 1 auto;min-height:48px;padding:0 14px;border:0;border-radius:16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14.5px;font-weight:850;white-space:nowrap;cursor:pointer}
+.mmc-next-copy small{font-size:11.5px;line-height:1.2;font-weight:800;color:var(--mt-ink)}
+.mmc-next-copy strong{margin-top:1px;font-size:14.5px;line-height:1.25;font-weight:850;color:#1D1A17;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:break-word;hyphens:auto}
+.mmc-actions{display:flex;flex-wrap:wrap;gap:8px}
+.mmc-btn{flex:1 1 auto;min-height:46px;padding:0 14px;border:0;border-radius:15px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14.5px;font-weight:850;white-space:nowrap;cursor:pointer}
 .mmc-btn svg{flex:0 0 16px;width:16px;height:16px}
 .mmc-btn:focus-visible{outline:2px solid #6D28D9;outline-offset:2px}
 .mmc-btn.is-primary{flex-grow:1.4;background:#6D28D9;color:#FFFFFF;box-shadow:0 10px 22px rgba(109,40,217,.24),inset 0 1px rgba(255,255,255,.16)}
@@ -832,11 +841,15 @@ body.mission-carousel-active #emptyMissionCard{
 .mmc-card.is-archived .mmc-route i.is-done,.mmc-card.is-archived .mmc-route.is-bar b{background:#B9AE9F}
 .mmc-card.is-archived .mmc-headline:focus-visible{outline-color:#6D28D9}
 @media(max-width:360px){
-  .mmc-band{grid-template-columns:40px minmax(0,1fr) 38px;column-gap:10px;padding:14px 12px 14px 14px}
-  .mmc-emblem{width:40px;height:40px;border-radius:14px}
+  .mmc-band{grid-template-columns:36px minmax(0,1fr) 38px;column-gap:10px;padding:12px 10px 12px 12px}
+  .mmc-emblem{width:36px;height:36px;border-radius:13px}
   .mmc-menu{width:38px;height:38px}
-  .mmc-title{font-size:18px}
-  .mmc-body{padding:14px}
+  .mmc-title{font-size:17px}
+  .mmc-body{padding:12px 12px 13px}
+  .mmc-summary{column-gap:8px}
+  .mmc-pct{font-size:19px}
+  .mmc-steps{font-size:12.5px}
+  .mmc-deadline{font-size:12px;padding:0 8px 0 6px}
 }
 .missions-empty-v116{min-height:240px;padding:24px;border-radius:22px;background:#FCF9F4;border:1px solid rgba(45,35,30,.10);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#766E65}
 .missions-empty-v116 i,.missions-empty-v116 svg{width:48px;height:48px;padding:12px;border-radius:16px;background:#F3E8FF;color:#6D28D9;margin-bottom:12px}

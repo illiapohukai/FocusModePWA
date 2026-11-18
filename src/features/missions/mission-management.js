@@ -5,7 +5,7 @@
 function openMission(id,source){const m=missionRepository.getById(id);if(!m)return false;const cur=document.querySelector('.app-screen:not(.hidden)')?.id?.replace('app-screen-','')||'';if(typeof window.setMissionPlanSource==='function'){if(source==='home'||source==='missions')window.setMissionPlanSource(source);else if(cur==='home'||cur==='missions')window.setMissionPlanSource(cur);else if(cur!=='plan')window.setMissionPlanSource(null)}missionRepository.setSelected(id);bindMissionCompatibilityV115(m);renderAIPlan(activeAIPlan);renderMultiMissionUIV115();setAppScreen('plan',{immediate:true});return true}window.openMission=openMission;
 /* v17.8: switching between two Mission plans keeps the authoritative openMission path and adds one short crossfade. */
 function switchMissionPlanV178(id){if(!id||id===missionRepository.getSelectedId())return false;const ok=openMission(id);if(ok)window.MotionController?.animateMissionPlanSwitch?.();return ok}window.switchMissionPlanV178=switchMissionPlanV178;
-function renderMultiMissionUIV115(){const active=missionRepository.getActive(),primary=missionRepository.getPrimary(),selected=missionRepository.getSelected()||primary;const home=primary||active[0]||null;if(home){document.getElementById('emptyMissionCard')?.classList.add('hidden');document.getElementById('activeMissionCard')?.classList.remove('hidden');const hs=home.steps.find(x=>x.id===home.currentStepId);const ht=document.querySelector('#activeMissionCard h3'),hm=document.querySelector('#activeMissionCard h3+p');if(ht)ht.textContent=home.title;if(hm)hm.textContent=home.subject+' · '+(home.deadlineText||'ohne Frist');const hn=document.getElementById('homeMissionNextStep'),hmeta=document.getElementById('homeMissionMeta');if(hn)hn.textContent=hs?.title||'Mission abgeschlossen';if(hmeta)hmeta.textContent=hs?((hs.task||hs.reason)+' · ca. '+hs.durationMinutes+' Min.'):'Alle Schritte bearbeitet';const pct=home.steps.length?Math.round(home.progress.completedStepIds.length/home.steps.length*100):0;document.getElementById('homeMissionPercent').textContent=pct+'%';document.getElementById('homeMissionProgressBar').style.width=pct+'%'}else{bindMissionCompatibilityV115(null);document.getElementById('emptyMissionCard')?.classList.remove('hidden');document.getElementById('activeMissionCard')?.classList.add('hidden')}const card=document.getElementById('activeMissionCard');if(card&&home)card.onclick=e=>{if(!e.target.closest('button')||e.target.closest('.active-mission-step'))openMission(home.id)};let second=document.getElementById('secondaryMissionCard');if(!second){second=document.createElement('button');second.id='secondaryMissionCard';second.type='button';card?.insertAdjacentElement('afterend',second)}const other=active.find(x=>x.id!==home?.id);if(other){const step=other.steps.find(x=>x.id===other.currentStepId),done=other.progress.completedStepIds.length;second.classList.remove('hidden');second.innerHTML='<div class="mm-row"><span class="mm-icon"><i data-lucide="layers-3"></i></span><span class="mm-copy"><span class="mm-label">Weitere Mission</span><span class="mm-title">'+escapeHTML(other.title)+'</span><span class="mm-meta">'+escapeHTML(other.subject)+' · Schritt '+Math.min(done+1,other.steps.length)+' von '+other.steps.length+'</span></span><i data-lucide="chevron-right"></i></div>';second.onclick=()=>openMission(other.id)}else second?.classList.add('hidden');const plan=document.getElementById('app-screen-plan'),anchor=plan?.children[1];let switcher=document.getElementById('missionSwitcherV115');if(active.length>1&&anchor){if(!switcher){switcher=document.createElement('div');switcher.id='missionSwitcherV115';anchor.insertAdjacentElement('afterend',switcher)}switcher.innerHTML=active.map(m=>'<button class="'+(m.id===selected?.id?'active':'')+'" onclick="openMission(\''+m.id+'\')">'+escapeHTML(m.title)+'</button>').join('')}else switcher?.remove();lucide.createIcons()}
+function renderMultiMissionUIV115(){const active=missionRepository.getActive(),primary=missionRepository.getPrimary(),selected=missionRepository.getSelected()||primary;const home=primary||active[0]||null;if(home){document.getElementById('emptyMissionCard')?.classList.add('hidden');document.getElementById('activeMissionCard')?.classList.remove('hidden');const hs=home.steps.find(x=>x.id===home.currentStepId);const ht=document.querySelector('#activeMissionCard h3'),hm=document.querySelector('#activeMissionCard h3+p');if(ht)ht.textContent=home.title;if(hm)hm.textContent=home.subject+' · '+missionDeadlineV1712(home.deadlineText).label;const hn=document.getElementById('homeMissionNextStep'),hmeta=document.getElementById('homeMissionMeta');if(hn)hn.textContent=hs?.title||'Mission abgeschlossen';if(hmeta)hmeta.textContent=hs?((hs.task||hs.reason)+' · ca. '+hs.durationMinutes+' Min.'):'Alle Schritte bearbeitet';const pct=home.steps.length?Math.round(home.progress.completedStepIds.length/home.steps.length*100):0;document.getElementById('homeMissionPercent').textContent=pct+'%';document.getElementById('homeMissionProgressBar').style.width=pct+'%'}else{bindMissionCompatibilityV115(null);document.getElementById('emptyMissionCard')?.classList.remove('hidden');document.getElementById('activeMissionCard')?.classList.add('hidden')}const card=document.getElementById('activeMissionCard');if(card&&home)card.onclick=e=>{if(!e.target.closest('button')||e.target.closest('.active-mission-step'))openMission(home.id)};let second=document.getElementById('secondaryMissionCard');if(!second){second=document.createElement('button');second.id='secondaryMissionCard';second.type='button';card?.insertAdjacentElement('afterend',second)}const other=active.find(x=>x.id!==home?.id);if(other){const step=other.steps.find(x=>x.id===other.currentStepId),done=other.progress.completedStepIds.length;second.classList.remove('hidden');second.innerHTML='<div class="mm-row"><span class="mm-icon"><i data-lucide="layers-3"></i></span><span class="mm-copy"><span class="mm-label">Weitere Mission</span><span class="mm-title">'+escapeHTML(other.title)+'</span><span class="mm-meta">'+escapeHTML(other.subject)+' · Schritt '+Math.min(done+1,other.steps.length)+' von '+other.steps.length+'</span></span><i data-lucide="chevron-right"></i></div>';second.onclick=()=>openMission(other.id)}else second?.classList.add('hidden');const plan=document.getElementById('app-screen-plan'),anchor=plan?.children[1];let switcher=document.getElementById('missionSwitcherV115');if(active.length>1&&anchor){if(!switcher){switcher=document.createElement('div');switcher.id='missionSwitcherV115';anchor.insertAdjacentElement('afterend',switcher)}switcher.innerHTML=active.map(m=>'<button class="'+(m.id===selected?.id?'active':'')+'" onclick="openMission(\''+m.id+'\')">'+escapeHTML(m.title)+'</button>').join('')}else switcher?.remove();lucide.createIcons()}
 const legacyRenderPlanV115=renderAIPlan;renderAIPlan=function(plan){const selected=missionRepository.getSelected();if(selected&&(!plan||plan.id!==selected.id)){bindMissionCompatibilityV115(selected);plan=activeAIPlan}return legacyRenderPlanV115.call(this,plan)};
 confirmAIPlan=function(){if(!pendingAIPlan)return;const result=missionRepository.create({title:pendingAIPlan.goal.title,subject:pendingAIPlan.goal.subject,type:pendingAIPlan.goal.type,deadlineText:pendingAIPlan.goal.deadlineText,estimate:pendingAIPlan.estimate,sourceAnalysis:pendingAIPlan.sourceAnalysis,steps:pendingAIPlan.sessions});if(!result.ok){showMissionError('Du kannst momentan bis zu zwei aktive Focus Missions haben. Schließe eine Mission ab oder archiviere sie, bevor du eine neue erstellst.');return}openMission(result.mission.id)};
 const oldOpenGoalV115=openGoalIntake;openGoalIntake=function(){if(missionRepository.getActive().length>=2){alert('Du kannst momentan bis zu zwei aktive Focus Missions haben. Schließe eine Mission ab oder archiviere sie, bevor du eine neue erstellst.');renderMultiMissionUIV115();return}return oldOpenGoalV115.apply(this,arguments)};
@@ -137,7 +137,7 @@ function missionViewModelV116(m){
    id:m.id,
    title:m.title,
    subject:m.subject||'Allgemein',
-   deadlineText:m.deadlineText||'ohne Frist',
+   deadlineText:missionDeadlineV1712(m.deadlineText).label,
    status:m.status,
    currentStepId:step?.id||m.currentStepId||null,
    currentStepIndex,
@@ -464,18 +464,27 @@ function renderMissionManagementV116(){
    const statusLabel=isActive?'Aktive Mission':isDone?'Abgeschlossen':'Archiviert';
    /* State is named in text, never by colour alone. */
    card.setAttribute('aria-label',v.title+' · '+statusLabel);
-   /* Same deadline rule as the Mission Plan: placeholders such as "Nicht angegeben" are dropped. */
-   const deadline=typeof missionPlanDeadlineV178==='function'?missionPlanDeadlineV178(m.deadlineText):'';
    const dateStr=isDone?formatMissionShortDateV173(v.completedAt||v.updatedAt):isArchived?formatMissionShortDateV173(v.archivedAt||v.updatedAt):'';
    /* Identity band: Mission tone, subject and title; finished states are named there in text. */
    const chip=isActive?'':'<span class="mmc-chip"><i data-lucide="'+(isDone?'check':'archive')+'" aria-hidden="true"></i>'+statusLabel+(dateStr?' · '+escapeHTML(dateStr):'')+'</span>';
-   /* Only a deadline the Mission really stores is shown; no placeholder when there is none. */
-   const deadlineHTML=isActive&&deadline?'<span class="mmc-deadline"><i data-lucide="calendar-days" aria-hidden="true"></i>'+escapeHTML(deadline)+'</span>':'';
+   /* v17.12 one compact summary row: progress, step count and (active only) the real deadline or
+      the stable "Ohne Deadline" label from the single deadline helper. */
+   const deadline=isActive?missionDeadlineV1712(m.deadlineText):null;
+   const deadlineHTML=deadline
+     ?'<span class="mmc-deadline'+(deadline.hasDeadline?'':' is-none')+'">'
+       +'<i data-lucide="'+(deadline.hasDeadline?'calendar-days':'calendar-off')+'" aria-hidden="true"></i>'
+       +(deadline.hasDeadline?'<span class="mmc-sr">Deadline:</span> ':'')
+       +(deadline.iso?'<time datetime="'+deadline.iso+'">'+escapeHTML(deadline.short)+'</time>':'<span>'+escapeHTML(deadline.short)+'</span>')
+     +'</span>'
+     :'';
    /* Step route: one segment per step (completed, current, upcoming); a plain bar for long plans. */
    const route=v.totalSteps&&v.totalSteps<=14
      ?v.steps.map(x=>'<i class="'+(x.isCompleted?'is-done':(isActive&&x.isCurrent?'is-current':''))+'"></i>').join('')
      :'<b style="width:'+v.progressPercent+'%"></b>';
    const progressCopy=isDone?'Alle '+v.totalSteps+' Schritte erledigt':v.completedSteps+' von '+v.totalSteps+' Schritten';
+   const stepsHTML=isDone
+     ?'<span class="mmc-steps">'+escapeHTML(progressCopy)+'</span>'
+     :'<span class="mmc-steps"><b>'+v.completedSteps+'/'+v.totalSteps+'</b> Schritte</span>';
    const next=isActive&&v.currentStepId
      ?'<div class="mmc-next">'
        +'<span class="mmc-next-index" aria-hidden="true">'+String(v.currentStepIndex).padStart(2,'0')+'</span>'
@@ -497,8 +506,8 @@ function renderMissionManagementV116(){
        +chip
      +'</div>'
      +'<div class="mmc-body">'
-       +'<div class="mmc-progress-head"><strong>'+v.progressPercent+'%</strong><span>'+progressCopy+'</span>'+deadlineHTML+'</div>'
-       +'<div class="mmc-route'+(v.totalSteps&&v.totalSteps<=14?'':' is-bar')+'" role="progressbar" aria-label="Fortschritt" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+v.progressPercent+'" aria-valuetext="'+escapeHTML(progressCopy)+'">'+route+'</div>'
+       +'<div class="mmc-summary"><strong class="mmc-pct">'+v.progressPercent+'%</strong>'+stepsHTML+deadlineHTML+'</div>'
+       +'<div class="mmc-route'+(v.totalSteps&&v.totalSteps<=14?'':' is-bar')+'" role="progressbar" aria-label="Fortschritt" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+v.progressPercent+'" aria-valuetext="'+escapeHTML(v.progressPercent+'% · '+progressCopy)+'">'+route+'</div>'
        +next
        +'<div class="mmc-actions">'
          +primary

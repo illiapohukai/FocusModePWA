@@ -82,9 +82,9 @@ html:not(.pwa-dark-status) body::after {
   margin: 0 auto !important;
   border-radius: 999px !important;
   overflow: visible !important;
-  background: rgba(252, 249, 244, 0.95) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(1.25);
-  backdrop-filter: blur(20px) saturate(1.25);
+  /* v17.12: near-opaque surface without backdrop-filter. Root swipes move page content under the
+     dock every frame; a backdrop blur had to be recomputed per frame for a 5% visual difference. */
+  background: rgba(252, 249, 244, 0.97) !important;
   border: 1px solid rgba(45, 35, 30, 0.11) !important;
   box-shadow: 0 16px 38px rgba(37, 22, 43, 0.14), 0 2px 8px rgba(37, 22, 43, 0.05) !important;
   box-sizing: border-box;
@@ -343,6 +343,7 @@ html:not(.pwa-dark-status) body::after {
 
 .home-current-date,
 .home-brand-label {
+  display: block;
   margin: 0;
   font-size: clamp(17px, 4.5vw, 22px);
   font-weight: 600;
@@ -397,12 +398,35 @@ html:not(.pwa-dark-status) body::after {
 }
 
 #homeReadyStatusText,
-.home-status-text {
+.home-status-text,
+.home-status-offline-text {
   font-size: 10px;
   font-weight: 850;
   letter-spacing: 0.11em;
   text-transform: uppercase;
   color: #14161B;
+}
+
+/* v17.12 compact offline state: the readiness pill itself says OFFLINE while the browser is offline
+   and no expanded notice is open. The word names the state (never colour alone); the green ready
+   dot is removed and the pill turns neutral. Text-only keeps it no wider than BEREIT/READY, so the
+   header never reflows. Owner of the state classes: src/core/bootstrap.js (connection state). */
+.home-status-offline-text {
+  display: none;
+}
+
+html.fm-is-offline:not(.fm-offline-notice-open) .home-status-pill {
+  background: var(--surface-muted);
+}
+
+html.fm-is-offline:not(.fm-offline-notice-open) .home-status-dot,
+html.fm-is-offline:not(.fm-offline-notice-open) #homeReadyStatusText {
+  display: none;
+}
+
+html.fm-is-offline:not(.fm-offline-notice-open) .home-status-offline-text {
+  display: inline;
+  color: #3A332D;
 }
 
 .home-profile-btn {
@@ -440,12 +464,20 @@ html:not(.pwa-dark-status) body::after {
     padding: 0 8px;
     gap: 5px;
   }
-  #homeReadyStatusText {
+  #homeReadyStatusText,
+  .home-status-offline-text {
     font-size: 9px;
   }
   .home-profile-btn {
     width: 34px;
     height: 34px;
+  }
+}
+
+/* v17.12: the narrowest phones keep "Focus Mode+" clear of the readiness pill (it ran underneath at 320 px). */
+@media (max-width: 359px) {
+  .home-brand-title {
+    font-size: clamp(25px, 8vw, 30px);
   }
 }
 
@@ -1106,6 +1138,17 @@ html:not(.pwa-dark-status) body::after {
 /* =========================================
    SAFE AREA & ROOT SCREEN PADDING
    ========================================= */
+/* v17.12 single bottom-shell owner: on every dock route the screen itself reaches the physical
+   bottom edge and paints the bottom safe area with its own background. Its bottom padding
+   (--fm-screen-bottom-padding) already includes the dock and the safe-area inset, so content
+   clears the floating dock. #appBody keeps no bottom strip of its own, and the screen box is
+   identical at rest and during transitions (see motion.css layer geometry), so nothing toggles,
+   leaks under the dock or appears a frame later. The shell colour never fades on arrival. */
+#screenWrapper.has-bottom-nav #appBody {
+  padding-bottom: 0 !important;
+  transition: none !important;
+}
+
 .app-screen:not(.hidden):not(.fm-motion-active) {
   animation: none !important;
   filter: none !important;

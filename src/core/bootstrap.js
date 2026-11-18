@@ -154,6 +154,10 @@ Object.assign(I18N.en,{"Lücke": "Product Gap", "Modi": "Modes", "Mission": "Mis
   'rotate-ccw':'<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path>',
   'trash-2':'<path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" x2="10" y1="11" y2="17"></line><line x1="14" x2="14" y1="11" y2="17"></line>',
   'x':'<path d="M18 6 6 18"></path><path d="m6 6 12 12"></path>',
+  'wifi-off':'<path d="M12 20h.01"></path><path d="M8.5 16.429a5 5 0 0 1 7 0"></path><path d="M5 12.859a10 10 0 0 1 5.17-2.69"></path><path d="M19 12.859a10 10 0 0 0-2.007-1.523"></path><path d="M2 8.82a15 15 0 0 1 4.177-2.643"></path><path d="M22 8.82a15 15 0 0 0-11.288-3.764"></path><path d="m2 2 20 20"></path>',
+  'wifi':'<path d="M12 20h.01"></path><path d="M2 8.82a15 15 0 0 1 20 0"></path><path d="M5 12.859a10 10 0 0 1 14 0"></path><path d="M8.5 16.429a5 5 0 0 1 7 0"></path>',
+  'calendar-days':'<path d="M8 2v3"></path><path d="M16 2v3"></path><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M3 9h18"></path><path d="M8 13h.01"></path><path d="M12 13h.01"></path><path d="M16 13h.01"></path><path d="M8 17h.01"></path><path d="M12 17h.01"></path><path d="M16 17h.01"></path>',
+  'calendar-off':'<path d="M16 2v3"></path><path d="m2 2 20 20"></path><path d="M21 9h-5.5"></path><path d="M3 9h6"></path><path d="M3.586 3.586A2 2 0 0 0 3 5v14a2 2 0 0 0 2 2h14a2 2 0 0 0 1.414-.586"></path><path d="M8.656 3H19a2 2 0 0 1 2 2v10.344"></path>',
   'check':'<path d="M20 6 9 17l-5-5"></path>',
   'chevron-right':'<path d="m9 18 6-6-6-6"></path>',
   'chevron-left':'<path d="m15 18-6-6 6-6"></path>',
@@ -210,23 +214,122 @@ Object.assign(I18N.en,{"Lücke": "Product Gap", "Modi": "Modes", "Mission": "Mis
  function isEnLang(){
   return (typeof currentLanguage==='string'&&currentLanguage==='en')||document.documentElement.lang==='en';
  }
+ /* v17.12 connection state — the single owner of online/offline communication.
+    Browser connectivity events only (no polling). States of the notice card:
+    'offline' (expanded; dismissible, collapses by itself after a while), 'online' (short reconnect
+    confirmation) and 'hidden'. One timer at most, for the visible card only.
+    The compact offline state is the Home readiness pill (html.fm-is-offline without an open notice).
+    Dismissing affects the current message only; the next real offline transition shows it again. */
+ const CONNECTION_COPY=Object.freeze({
+  de:{offlineTitle:'Du bist offline',offlineSub:'Gespeicherte Inhalte bleiben verfügbar. AI-Funktionen benötigen eine Verbindung.',onlineTitle:'Wieder online',close:'Hinweis schließen'},
+  en:{offlineTitle:'You are offline',offlineSub:'Saved content stays available. AI features need a connection.',onlineTitle:'Back online',close:'Dismiss notice'}
+ });
+ if(typeof I18N==='object'&&I18N.en){
+  Object.assign(I18N.en,{
+   [CONNECTION_COPY.de.offlineTitle]:CONNECTION_COPY.en.offlineTitle,
+   [CONNECTION_COPY.de.offlineSub]:CONNECTION_COPY.en.offlineSub,
+   [CONNECTION_COPY.de.onlineTitle]:CONNECTION_COPY.en.onlineTitle,
+   [CONNECTION_COPY.de.close]:CONNECTION_COPY.en.close,
+   'Ohne Deadline':'No deadline',
+   'Schritte':'steps'
+  });
+ }
+ const RECONNECT_VISIBLE_MS=2600;
+ // The expanded offline card collapses to the compact state on its own after a while, so it never
+ // keeps covering a screen's top controls; the offline state itself stays until 'online'.
+ const OFFLINE_EXPANDED_MS=8000;
+ const connection={initialized:false,offline:false,notice:'hidden',noticeTimer:null};
+ function connectionCopy(){return CONNECTION_COPY[isEnLang()?'en':'de']}
+ function setConnectionText(el,text){
+  if(!el)return;
+  if(el.textContent!==text)el.textContent=text;
+  if(el.firstChild)el.firstChild.__deOriginal=CONNECTION_COPY.de[el.dataset.copyKey]||text;
+ }
+ function renderConnectionNotice(){
+  const host=document.getElementById('offlineStatusBanner');
+  if(!host)return;
+  const copy=connectionCopy();
+  const title=document.getElementById('offlineBannerTitle');
+  const sub=document.getElementById('offlineBannerSub');
+  const close=document.getElementById('connectionNoticeClose');
+  // A hiding card keeps its last copy while it fades out.
+  if(connection.notice!=='hidden'&&title)title.dataset.copyKey=connection.notice==='online'?'onlineTitle':'offlineTitle';
+  if(sub)sub.dataset.copyKey='offlineSub';
+  if(title)setConnectionText(title,copy[title.dataset.copyKey||'offlineTitle']);
+  setConnectionText(sub,copy.offlineSub);
+  if(close){
+   if(close.getAttribute('aria-label')!==copy.close)close.setAttribute('aria-label',copy.close);
+   close.title=copy.close;close.dataset.deTitle=CONNECTION_COPY.de.close;
+  }
+  if(host.dataset.state!==connection.notice)host.dataset.state=connection.notice;
+  host.setAttribute('aria-hidden',connection.notice==='hidden'?'true':'false');
+  if(connection.notice==='hidden')host.setAttribute('inert','');else host.removeAttribute('inert');
+  document.documentElement.classList.toggle('fm-is-offline',connection.offline);
+  document.documentElement.classList.toggle('fm-offline-notice-open',connection.notice==='offline');
+ }
+ function announceConnection(text){
+  const live=document.getElementById('connectionAnnouncer');
+  if(!live)return;
+  live.textContent='';
+  requestAnimationFrame(()=>{live.textContent=text});
+ }
+ function clearNoticeTimer(){
+  if(connection.noticeTimer){clearTimeout(connection.noticeTimer);connection.noticeTimer=null}
+ }
+ function setConnectionNotice(next){
+  clearNoticeTimer();
+  connection.notice=next;
+  renderConnectionNotice();
+  if(next==='hidden'&&!connection.offline){
+   const live=document.getElementById('connectionAnnouncer');
+   if(live)live.textContent='';
+  }
+  if(next!=='hidden'){
+   connection.noticeTimer=setTimeout(()=>{connection.noticeTimer=null;if(connection.notice===next)setConnectionNotice('hidden')},next==='online'?RECONNECT_VISIBLE_MS:OFFLINE_EXPANDED_MS);
+  }
+ }
+ function dismissConnectionNotice(){
+  if(connection.notice==='hidden')return;
+  setConnectionNotice('hidden');
+ }
  function syncOfflineStatusBanner(){
-  const banner=document.getElementById('offlineStatusBanner');
   const offline=(typeof navigator!=='undefined'&&navigator.onLine===false);
-  document.documentElement.classList.toggle('fm-is-offline',offline);
-  if(!banner)return;
-  const en=isEnLang();
-  const titleEl=document.getElementById('offlineBannerTitle');
-  const subEl=document.getElementById('offlineBannerSub');
-  if(titleEl){
-   if(titleEl.firstChild)titleEl.firstChild.__deOriginal='Offline-Modus';
-   titleEl.textContent=en?'Offline Mode':'Offline-Modus';
+  if(!connection.initialized){
+   connection.initialized=true;
+   connection.offline=offline;
+   setConnectionNotice(offline?'offline':'hidden');
+   if(offline)announceConnection(connectionCopy().offlineTitle+'. '+connectionCopy().offlineSub);
+   return;
   }
-  if(subEl){
-   if(subEl.firstChild)subEl.firstChild.__deOriginal='Lokale Funktionen bleiben verfügbar. AI-Funktionen benötigen eine Internetverbindung.';
-   subEl.textContent=en?'Local features remain available. AI features require an internet connection.':'Lokale Funktionen bleiben verfügbar. AI-Funktionen benötigen eine Internetverbindung.';
+  if(offline===connection.offline){
+   // Same state (language change, repeated event): refresh copy only, never re-open a dismissed notice.
+   renderConnectionNotice();
+   return;
   }
-  banner.classList.toggle('hidden',!offline);
+  connection.offline=offline;
+  if(offline){
+   setConnectionNotice('offline');
+   announceConnection(connectionCopy().offlineTitle+'. '+connectionCopy().offlineSub);
+  }else{
+   setConnectionNotice('online');
+   announceConnection(connectionCopy().onlineTitle);
+  }
+ }
+ g.FocusConnection=Object.freeze({
+  isOffline:()=>connection.offline,
+  getNoticeState:()=>connection.notice,
+  dismiss:dismissConnectionNotice
+ });
+ /* The goal screen's own offline message (AI service error owner) replaces the expanded notice,
+    so one offline message is shown at a time; the compact Home state stays. */
+ if(typeof g.showMissionOfflineError==='function'&&!g.showMissionOfflineError.__fmConnectionAware){
+  const showMissionOfflineErrorBase=g.showMissionOfflineError;
+  const showMissionOfflineErrorAware=function(){
+   if(connection.notice==='offline')dismissConnectionNotice();
+   return showMissionOfflineErrorBase.apply(this,arguments);
+  };
+  showMissionOfflineErrorAware.__fmConnectionAware=true;
+  g.showMissionOfflineError=showMissionOfflineErrorAware;
  }
  g.syncOfflineStatusBanner=syncOfflineStatusBanner;
  if(typeof g.setLanguage==='function'&&!g.__fmSetLangWrappedV172){
@@ -246,6 +349,9 @@ Object.assign(I18N.en,{"Lücke": "Product Gap", "Modi": "Modes", "Mission": "Mis
   g.__fmOfflineEventsBoundV172=true;
   g.addEventListener('online',syncOfflineStatusBanner);
   g.addEventListener('offline',syncOfflineStatusBanner);
+  document.addEventListener('click',ev=>{
+   if(ev.target instanceof Element&&ev.target.closest('#connectionNoticeClose'))dismissConnectionNotice();
+  });
  }
  if(A){
   A.version='v17.6 Navigation, Insights & League Polish';

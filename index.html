@@ -125,7 +125,7 @@
 </div>
 </div>
 </div>
-<div aria-atomic="true" aria-live="polite" class="fm-offline-banner hidden" id="offlineStatusBanner" role="status"><span aria-hidden="true" class="fm-offline-banner-dot"></span><div class="fm-offline-banner-copy"><strong id="offlineBannerTitle">Offline-Modus</strong><span id="offlineBannerSub">Lokale Funktionen bleiben verfügbar. AI-Funktionen benötigen eine Internetverbindung.</span></div></div>
+<!-- v17.12 connection notice: one owner (src/core/bootstrap.js). Expanded offline / reconnect card; the compact offline state lives in the Home readiness pill. --><div class="fm-connection" id="offlineStatusBanner" data-state="hidden" data-block-swipe-back="true"><div class="fm-connection-card" id="connectionNoticeCard"><span aria-hidden="true" class="fm-connection-icon"><i class="fm-connection-icon-off" data-lucide="wifi-off"></i><i class="fm-connection-icon-on" data-lucide="wifi"></i></span><div class="fm-connection-copy"><strong id="offlineBannerTitle">Du bist offline</strong><span id="offlineBannerSub">Gespeicherte Inhalte bleiben verfügbar. AI-Funktionen benötigen eine Verbindung.</span></div><button aria-label="Hinweis schließen" class="fm-connection-close" id="connectionNoticeClose" title="Hinweis schließen" type="button"><i data-lucide="x"></i></button></div><span aria-atomic="true" aria-live="polite" class="sr-only" id="connectionAnnouncer" role="status"></span></div>
 <!-- ЭКРАНЫ ПРИЛОЖЕНИЯ -->
 <div class="flex-1 relative flex flex-col bg-slate-50 text-slate-900 transition-colors duration-300 hide-scrollbar" id="appBody">
 <!-- ЭКРАН 1: Startbildschirm (Home — v17.3 Home System) -->
@@ -134,13 +134,14 @@
     <!-- 1. Compact Header -->
     <header class="home-header-v173">
       <div class="home-header-left">
-        <div class="home-current-date" id="homeCurrentDate" data-i18n-skip="true">MITTWOCH, 11. NOVEMBER</div>
+        <time class="home-current-date" id="homeCurrentDate" data-i18n-skip="true">MITTWOCH, 11. NOV.</time>
         <h2 class="home-brand-title" id="homeBrandTitle" data-i18n-skip="true">Focus Mode+</h2>
       </div>
       <div class="home-header-right">
         <span class="home-status-pill" id="homeReadyStatus">
           <span class="home-status-dot" aria-hidden="true"></span>
           <span id="homeReadyStatusText">BEREIT</span>
+          <span class="home-status-offline-text" data-i18n-skip="true">OFFLINE</span>
         </span>
         <button class="home-profile-btn" type="button" onclick="navigateToRoot('settings')" aria-label="Einstellungen &amp; Profil" title="Einstellungen">
           <i class="w-4 h-4" data-lucide="user"></i>

@@ -141,6 +141,30 @@ function renderHomeActivityTimelineV173(){
    host.append(row);
  });
 }
+/* v17.12 compact localized Home date. The month is always abbreviated (German forms normalized by
+   GERMAN_SHORT_MONTHS_V1712 from mission-renderer.js: Jan., Feb., März, ... Sept., Okt., Nov., Dez.);
+   the full weekday is kept whenever it fits and only falls back to the short weekday when the line
+   would otherwise clip. */
+const homeDateStateV1712={key:'',long:'',short:'',iso:'',useShort:false,fittedWidth:0,observer:null};
+function formatHomeDateV1712(date,lang,weekday){
+ const locale=lang==='en'?'en-US':'de-DE';
+ const parts=new Intl.DateTimeFormat(locale,{weekday,day:'numeric',month:'short'}).formatToParts(date);
+ const months=lang==='de'&&typeof GERMAN_SHORT_MONTHS_V1712!=='undefined'?GERMAN_SHORT_MONTHS_V1712:null;
+ return parts.map(p=>p.type==='month'&&months?months[date.getMonth()]:p.value).join('').replace(/\.{2,}/g,'.').toLocaleUpperCase(locale);
+}
+function writeHomeDateTextV1712(dateEl,text){
+ if(dateEl.textContent!==text)dateEl.textContent=text;
+ if(dateEl.firstChild)dateEl.firstChild.__deOriginal=text;
+}
+/* Measures only when the element is laid out and its width changed; hidden Home is fitted later by the observer. */
+function fitHomeDateV1712(dateEl,width){
+ const st=homeDateStateV1712;
+ if(!width||!st.long||width===st.fittedWidth)return;
+ st.fittedWidth=width;
+ writeHomeDateTextV1712(dateEl,st.long);
+ st.useShort=dateEl.scrollWidth>dateEl.clientWidth+1;
+ if(st.useShort)writeHomeDateTextV1712(dateEl,st.short);
+}
 function updateHomeDateHeaderV173(){
  const brandEl=document.getElementById('homeBrandTitle');
  if(brandEl){
@@ -150,13 +174,26 @@ function updateHomeDateHeaderV173(){
  const dateEl=document.getElementById('homeCurrentDate');
  if(!dateEl)return;
  const rawLang=(window.FocusModeApp?.services?.storage?.getText('focus-mode-language','de')||document.documentElement.lang||'de').toLowerCase();
- const locale=rawLang==='en'?'en-US':rawLang==='ru'?'ru-RU':'de-DE';
- try{
-   const formatted=new Intl.DateTimeFormat(locale,{weekday:'long',day:'numeric',month:'long'}).format(new Date()).toUpperCase();
-   dateEl.textContent=formatted;
-   if(dateEl.firstChild)dateEl.firstChild.__deOriginal=formatted;
- }catch{
-   dateEl.textContent='';
+ const lang=rawLang==='en'?'en':'de';
+ const st=homeDateStateV1712;
+ const now=new Date();
+ const iso=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+ const key=lang+'|'+iso;
+ if(key!==st.key){
+   try{
+     st.long=formatHomeDateV1712(now,lang,'long');
+     st.short=formatHomeDateV1712(now,lang,'short');
+   }catch{
+     st.long=st.short='';
+   }
+   st.key=key;st.iso=iso;st.useShort=false;st.fittedWidth=0;
+   if(dateEl.getAttribute('datetime')!==iso)dateEl.setAttribute('datetime',iso);
+ }
+ writeHomeDateTextV1712(dateEl,st.useShort?st.short:st.long);
+ if(!st.fittedWidth&&dateEl.offsetParent!==null)fitHomeDateV1712(dateEl,dateEl.clientWidth);
+ if(!st.observer&&typeof ResizeObserver==='function'){
+   st.observer=new ResizeObserver(entries=>{const w=Math.round(entries[entries.length-1].contentRect.width);if(w)fitHomeDateV1712(dateEl,w)});
+   st.observer.observe(dateEl);
  }
 }
 window.updateHomeDateHeaderV173=updateHomeDateHeaderV173;

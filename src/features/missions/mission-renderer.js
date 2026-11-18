@@ -127,7 +127,7 @@ function renderAIPlan(plan){
   document.getElementById('aiPlanExplanation').innerHTML='<strong>Warum so?</strong> '+escapeHTML(plan.estimate.explanation);
   document.getElementById('aiPlanSteps').innerHTML=plan.sessions.map((s,i)=>'<div class="flow-step-line flex gap-3 '+(i<plan.sessions.length-1?'pb-3':'')+'"><div class="w-7 h-7 rounded-full '+(i===0?'bg-indigo-600 text-white':'bg-white border border-slate-200 text-slate-500')+' flex items-center justify-center text-[9px] font-black shrink-0">'+(i+1)+'</div><div class="flex-1 pt-0.5"><div class="flex justify-between gap-2"><div class="text-[10px] font-bold text-slate-800">'+escapeHTML(s.title)+'</div><span class="text-[9px] font-bold '+(i===0?'text-indigo-600':'text-slate-400')+'">'+s.durationMinutes+' Min.</span></div><div class="text-[9px] text-slate-400 mt-1">'+escapeHTML(s.task||s.reason)+'</div></div></div>').join('');
   const homeTitle=document.querySelector('#activeMissionCard h3');if(homeTitle)homeTitle.textContent=plan.goal.title;
-  const homeMeta=document.querySelector('#activeMissionCard h3 + p');if(homeMeta)homeMeta.textContent=plan.goal.subject+' · '+(plan.goal.deadlineText||'ohne Frist');
+  const homeMeta=document.querySelector('#activeMissionCard h3 + p');if(homeMeta)homeMeta.textContent=plan.goal.subject+' · '+missionDeadlineV1712(plan.goal.deadlineText).label;
   document.getElementById('homeMissionNextStep').textContent=plan.sessions[0].title;
   document.getElementById('homeMissionMeta').textContent=plan.sessions[0].task+' · ca. '+plan.sessions[0].durationMinutes+' Min.';
   lucide.createIcons();
@@ -192,7 +192,7 @@ function renderAIPlan(plan){
     return '<div class="flow-step-line flex gap-3 '+(i<plan.sessions.length-1?'pb-3 ':'')+(done?'mission-step-complete ':active?'mission-step-active ':'')+'"><div class="step-bubble w-7 h-7 rounded-full bg-white border border-slate-200 text-slate-500 flex items-center justify-center text-[9px] font-black shrink-0">'+bubble+'</div><div class="flex-1 pt-0.5"><div class="flex justify-between gap-2"><div class="text-[10px] font-bold '+(done?'text-slate-500 line-through':'text-slate-800')+'">'+escapeHTML(s.title)+'</div><span class="text-[9px] font-bold '+(active?'text-indigo-600':'text-slate-400')+'">'+s.durationMinutes+' Min.</span></div><div class="text-[9px] text-slate-400 mt-1">'+escapeHTML(s.task||s.reason)+'</div></div></div>';
   }).join('');
   const homeTitle=document.querySelector('#activeMissionCard h3');if(homeTitle)homeTitle.textContent=plan.goal.title;
-  const homeMeta=document.querySelector('#activeMissionCard h3 + p');if(homeMeta)homeMeta.textContent=plan.goal.subject+' · '+(plan.goal.deadlineText||'ohne Frist');
+  const homeMeta=document.querySelector('#activeMissionCard h3 + p');if(homeMeta)homeMeta.textContent=plan.goal.subject+' · '+missionDeadlineV1712(plan.goal.deadlineText).label;
   const startButton=document.getElementById('missionStartButton');
   if(startButton){const current=getCurrentMissionSession();startButton.disabled=!current;startButton.innerHTML=current?'<i class="w-4 h-4" data-lucide="play"></i> Schritt '+(missionProgress.currentSessionIndex+1)+' starten':'<i class="w-4 h-4" data-lucide="check"></i> Mission abgeschlossen';}
   updateMissionHome();lucide.createIcons();
@@ -262,13 +262,32 @@ function toggleMissionWhyV178(button){
  const open=!card.classList.contains('is-open');
  card.classList.toggle('is-open',open);button.setAttribute('aria-expanded',open?'true':'false');
 }
+/* v17.12 single deadline authority. A Mission has a deadline only when its stored deadlineText holds
+   a real value; empty text and placeholder wording ("Nicht angegeben", "ohne Frist", "keine Deadline",
+   "–", ...) all mean "no deadline" and get one stable label. ISO dates are shown as localized dates;
+   other real texts are shown as stored. Nothing is estimated or invented. */
+const GERMAN_SHORT_MONTHS_V1712=Object.freeze(['Jan.','Feb.','März','Apr.','Mai','Juni','Juli','Aug.','Sept.','Okt.','Nov.','Dez.']);
+const NO_DEADLINE_LABEL_V1712='Ohne Deadline';
+const NO_DEADLINE_PATTERN_V1712=/^(?:[-–—]+|n\/a|none|no deadline|not specified|unknown|tbd|offen|flexibel|unbekannt|nicht angegeben|nicht festgelegt|keine angaben?|ohne (?:frist|deadline|termin|datum|enddatum)|kein(?:e|en)? (?:feste[nrs]? )?(?:frist|deadline|termin|datum|abgabetermin|enddatum)(?: (?:angegeben|festgelegt|gesetzt|bekannt|vorhanden))?)\.?$/i;
+function missionDeadlineV1712(text){
+ const t=String(text||'').trim();
+ if(!t||NO_DEADLINE_PATTERN_V1712.test(t))return{hasDeadline:false,label:NO_DEADLINE_LABEL_V1712,short:NO_DEADLINE_LABEL_V1712,iso:''};
+ const iso=/^(\d{4})-(\d{2})-(\d{2})$/.exec(t);
+ if(iso){
+   const y=+iso[1],m=+iso[2]-1,d=+iso[3];
+   const date=new Date(y,m,d,12);
+   if(date.getFullYear()===y&&date.getMonth()===m&&date.getDate()===d){
+     const dayMonth=d+'. '+GERMAN_SHORT_MONTHS_V1712[m];
+     const full=dayMonth+' '+y;
+     return{hasDeadline:true,label:full,short:y===new Date().getFullYear()?dayMonth:full,iso:t};
+   }
+ }
+ return{hasDeadline:true,label:t,short:t,iso:''};
+}
 /* v17.8 Mission Plan: execution view in the Mission's identity tone. Only real values are shown. */
 function missionPlanDeadlineV178(text){
- const t=String(text||'').trim();
- if(!t||t==='Nicht angegeben'||t==='ohne Frist')return '';
- const iso=/^(\d{4})-(\d{2})-(\d{2})$/.exec(t);
- if(iso){try{return new Date(+iso[1],+iso[2]-1,+iso[3]).toLocaleDateString('de-DE',{day:'numeric',month:'short',year:'numeric'})}catch{return t}}
- return t;
+ const deadline=missionDeadlineV1712(text);
+ return deadline.hasDeadline?deadline.label:'';
 }
 function renderAIPlan(plan){
  const sessions=Array.isArray(plan?.sessions)?plan.sessions:[];
@@ -280,7 +299,7 @@ function renderAIPlan(plan){
  setText('aiPlanEyebrow',plan.goal.subject+' · '+missionTypeLabel(plan.goal.type));
  setText('aiPlanTitle',plan.goal.title);
  const deadline=missionPlanDeadlineV178(plan.goal.deadlineText);
- setText('aiPlanDeadline',deadline||'Nicht angegeben');
+ setText('aiPlanDeadline',deadline);
  document.getElementById('aiPlanDeadlineBadge')?.classList.toggle('hidden',!deadline);
  const emblem=document.getElementById('aiPlanEmblem');
  if(emblem)emblem.innerHTML='<i data-lucide="'+(({exam:'graduation-cap',assignment:'clipboard-list',project:'layers-3'})[plan.goal.type]||'target')+'"></i>';
@@ -311,7 +330,7 @@ function renderAIPlan(plan){
   const expanded=expandedIndex===i;
   return '<div class="flow-step-line mission-step-future mp-step'+(expanded?' expanded':'')+'" role="button" tabindex="0" aria-expanded="'+(expanded?'true':'false')+'" onclick="toggleFutureStepV81('+i+')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();toggleFutureStepV81('+i+')}"><span class="step-bubble" aria-hidden="true">'+(i+1)+'</span><div class="step-content"><div class="step-head"><span class="step-title"><span class="fm-sr-only">Schritt '+(i+1)+': </span>'+title+'</span><span class="step-time">'+mins+'</span></div>'+(task?'<p class="step-task">'+task+'</p>':'')+(expanded&&showReason?'<p class="mp-step-reason">'+escapeHTML(reason)+'</p>':'')+'</div></div>';
  }).join('');
- const homeTitle=document.querySelector('#activeMissionCard h3');if(homeTitle)homeTitle.textContent=plan.goal.title;const homeMeta=document.querySelector('#activeMissionCard h3 + p');if(homeMeta)homeMeta.textContent=plan.goal.subject+' · '+(plan.goal.deadlineText||'ohne Frist');
+ const homeTitle=document.querySelector('#activeMissionCard h3');if(homeTitle)homeTitle.textContent=plan.goal.title;const homeMeta=document.querySelector('#activeMissionCard h3 + p');if(homeMeta)homeMeta.textContent=plan.goal.subject+' · '+missionDeadlineV1712(plan.goal.deadlineText).label;
  document.getElementById('homeMissionNextStep').textContent=current?.title||'Mission abgeschlossen';document.getElementById('homeMissionMeta').textContent=current?((current.task||current.reason)+' · ca. '+current.durationMinutes+' Min.'):'Alle Schritte bearbeitet';
  const start=document.getElementById('missionStartButton');if(start){start.disabled=!current;start.innerHTML=current?'<i data-lucide="play"></i> Schritt '+(idx+1)+' starten':'<i data-lucide="check"></i> Mission abgeschlossen'}
  updateMissionHome();lucide.createIcons();
@@ -330,7 +349,7 @@ function syncHomeHeroV103(){
   if(!has){lucide.createIcons();return}
   const title=document.getElementById('homeMissionTitle')||document.querySelector('#activeMissionCard h3'),meta=document.getElementById('homeMissionSubtitle')||document.querySelector('#activeMissionCard h3+p'),next=document.getElementById('homeMissionNextStep'),task=document.getElementById('homeMissionMeta'),durVal=document.getElementById('homeMissionDurationValue');
   if(title){title.textContent=activeAIPlan.goal?.title||'Focus Mission'}
-  if(meta)meta.textContent=(activeAIPlan.goal?.subject||'Allgemein')+' · '+(activeAIPlan.goal?.deadlineText||'ohne Frist');
+  if(meta)meta.textContent=(activeAIPlan.goal?.subject||'Allgemein')+' · '+missionDeadlineV1712(activeAIPlan.goal?.deadlineText).label;
   if(next)next.textContent=current.title||'Nächster Schritt';
   if(task)task.textContent=current.task||current.reason||'Nächsten Schritt bearbeiten';
   if(durVal)durVal.textContent=String(current.durationMinutes||25);

@@ -985,6 +985,7 @@
     const opts = options && typeof options === 'object' ? options : {};
     const nav = parts.nav;
     if (dockState.tracking) clearDockTracking(parts);
+    scheduleAdjacentRootPrewarm(section);
     const from = nav.dataset.lit;
     if (from === section) return;
 
@@ -1899,7 +1900,9 @@
     underlayOffsetPct: -6,
     rootPeekPct: 16,
     edgeResistance: 0.2,
-    edgeResistMaxPx: 44
+    edgeResistMaxPx: 44,
+    settleMinMs: 180,
+    settleMaxMs: 340
   });
 
   function resolveCurrentSwipeScreen() {
@@ -1993,7 +1996,37 @@
     return true;
   }
 
+  /* v17.12: a root page is prepared (rendered) at most once per data state. The signature covers
+     everything the root renderers read from storage plus language and day, so a prepared page
+     is never stale. Preparation happens on idle after a root route settles; the drag itself then
+     only moves already-rendered layers, and the route commit does not render the page again. */
+  const preparedRootSignatures = Object.create(null);
+  let rootPrewarmHandle = null;
+  let rootPrewarmIsIdle = false;
+
+  function rootContentSignature() {
+    try {
+      const app = root.FocusModeApp;
+      const storage = app && app.services && app.services.storage;
+      if (!storage || typeof storage.getText !== 'function') return null;
+      const sessionKeys = (app.repositories && app.repositories.sessions && app.repositories.sessions.keys) || {};
+      const missionsKey = root.missionRepository && root.missionRepository.storeKey;
+      const now = new Date();
+      return [
+        document.documentElement.lang || '',
+        now.getFullYear() + '-' + now.getMonth() + '-' + now.getDate(),
+        missionsKey ? storage.getText(missionsKey, '') : '',
+        storage.getText(sessionKeys.history || 'focusmode-session-history-v11-1', ''),
+        storage.getText(sessionKeys.active || 'focusmode-active-session-v11', '')
+      ].join('\u0001');
+    } catch (_) {
+      return null;
+    }
+  }
+
   function prepareRootGestureTarget(section) {
+    const signature = rootContentSignature();
+    if (signature !== null && preparedRootSignatures[section] === signature) return;
     try {
       if (section === 'missions') {
         if (typeof root.ensureMissionManagementScreenV116 === 'function') root.ensureMissionManagementScreenV116();
@@ -2003,7 +2036,39 @@
       } else if (section === 'home') {
         if (typeof root.refreshHomeStats === 'function') root.refreshHomeStats();
       }
+      if (signature !== null) preparedRootSignatures[section] = signature;
     } catch (_) {}
+  }
+
+  /* After a root route settles, prepare its adjacent root pages while the main thread is idle,
+     so a later swipe locks without a render. One pending request at a time; nothing animates. */
+  function scheduleAdjacentRootPrewarm(section) {
+    const idx = getRootTabIndex(section);
+    if (idx === -1 || typeof root.setTimeout !== 'function') return;
+    if (rootPrewarmHandle !== null) {
+      if (rootPrewarmIsIdle) root.cancelIdleCallback(rootPrewarmHandle);
+      else root.clearTimeout(rootPrewarmHandle);
+      rootPrewarmHandle = null;
+    }
+    let attempts = 0;
+    const run = function () {
+      rootPrewarmHandle = null;
+      if (resolveCurrentSwipeScreen() !== section) return;
+      const appBody = document.getElementById('appBody');
+      if (stateMachine.isLocked() || (appBody && appBody.classList.contains('fm-dual-transition'))) {
+        // A transition or drag is in progress: retry shortly instead of rendering during motion.
+        if (++attempts <= 4) {
+          rootPrewarmIsIdle = false;
+          rootPrewarmHandle = root.setTimeout(run, 260);
+        }
+        return;
+      }
+      [ROOT_TAB_ORDER[idx - 1], ROOT_TAB_ORDER[idx + 1]].forEach(function (neighbour) {
+        if (neighbour) prepareRootGestureTarget(neighbour);
+      });
+    };
+    rootPrewarmIsIdle = typeof root.requestIdleCallback === 'function' && typeof root.cancelIdleCallback === 'function';
+    rootPrewarmHandle = rootPrewarmIsIdle ? root.requestIdleCallback(run, { timeout: 1200 }) : root.setTimeout(run, 400);
   }
 
   function installNavigationGestures() {
@@ -2029,7 +2094,9 @@
       const d = g.x - g.originX;
       if (g.mode === 'back') return Math.max(0, Math.min(g.width, d));
       if (g.resist) {
-        const pull = Math.min(C.edgeResistMaxPx, Math.abs(d) * C.edgeResistance);
+        // Restrained rubber band: starts at edgeResistance and eases toward edgeResistMaxPx,
+        // instead of a linear pull that stops dead at the cap.
+        const pull = C.edgeResistMaxPx * (1 - Math.exp((-Math.abs(d) * C.edgeResistance) / C.edgeResistMaxPx));
         return d < 0 ? -pull : pull;
       }
       return g.dir > 0 ? Math.max(-g.width, Math.min(0, d)) : Math.max(0, Math.min(g.width, d));
@@ -2076,7 +2143,10 @@
 
     function syncDockToRoute() {
       const screen = resolveCurrentSwipeScreen();
-      if (getRootTabIndex(screen) !== -1) syncDockIndicator(screen, { durationMs: 200 });
+      if (getRootTabIndex(screen) !== -1) {
+        syncDockIndicator(screen, { durationMs: 200 });
+        scheduleAdjacentRootPrewarm(screen);
+      }
     }
 
     function cleanupGestureDOM(g) {
@@ -2248,7 +2318,8 @@
         return;
       }
       if (typeof root.navigateToRoot === 'function') {
-        root.navigateToRoot(g.targetScreen, { skipMotion: true });
+        // The destination was prepared at lock; the commit only switches the route.
+        root.navigateToRoot(g.targetScreen, { skipMotion: true, prepared: true });
         if (typeof root.restoreScreenScrollPosition === 'function') {
           try {
             root.restoreScreenScrollPosition(g.targetScreen);
@@ -2296,15 +2367,23 @@
       }
 
       const exitX = g.mode === 'back' ? g.width : -g.dir * g.width;
-      const remaining = shouldComplete ? Math.abs(exitX - d) : Math.abs(d);
+      const targetX = shouldComplete ? exitX : 0;
+      const remaining = Math.abs(targetX - d);
       const fraction = Math.min(1, remaining / g.width);
-      const speed = Math.abs(velocity);
-      let durationMs = shouldComplete ? 130 + 210 * fraction : 150 + 170 * fraction;
-      if (shouldComplete && speed > 0.3) {
-        durationMs = Math.min(durationMs, Math.max(110, (remaining / speed) * 1.7));
+      // Release speed toward the settle target (px/ms); motion away from it does not shorten the settle.
+      const towardTarget = targetX - d === 0 ? 0 : Math.max(0, velocity * Math.sign(targetX - d));
+      // Distance-based duration, shortened by a real fling, kept within settleMin..settleMax.
+      let durationMs = C.settleMinMs + (C.settleMaxMs - C.settleMinMs) * Math.sqrt(fraction);
+      if (towardTarget > 0.2 && remaining > 0) {
+        durationMs = Math.min(durationMs, (remaining / towardTarget) * 2.2);
       }
-      durationMs = Math.round(Math.max(110, Math.min(340, durationMs)));
-      const easing = 'cubic-bezier(0.2, 0.75, 0.25, 1)';
+      durationMs = Math.round(Math.max(C.settleMinMs, Math.min(C.settleMaxMs, durationMs)));
+      // Velocity-matched ease-out: the curve's initial slope equals the finger's release speed, so the
+      // page neither stalls nor jumps forward at release; a still finger gets a soft start. No overshoot.
+      const initialSlope = remaining > 0 ? (towardTarget * durationMs) / remaining : 0;
+      const x1 = 0.24;
+      const y1 = Math.max(0.1, Math.min(0.92, x1 * initialSlope));
+      const easing = 'cubic-bezier(' + x1 + ', ' + y1.toFixed(3) + ', 0.24, 1)';
       if (g.dockTracked) {
         g.dockTracked = false;
         endDockTracking(shouldComplete, durationMs, easing);

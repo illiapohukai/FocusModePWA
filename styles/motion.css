@@ -130,6 +130,18 @@ html body #screenWrapper #appBody.fm-root-swipe-active.fm-root-swipe-backward > 
   box-shadow: 14px 0 34px rgba(24, 16, 40, 0.13);
 }
 
+/* v17.12 shell geometry: in-flow screens (every dock route) keep their resting box while they
+   are layered for a transition or a swipe: below the top safe-area padding of #appBody and down
+   to the physical bottom edge. The generic inset:0 layer box used to lift them by the top inset
+   and extend them into the bottom safe area, so content leaked below the dock mid-transition and
+   a bare strip reappeared at cleanup. Absolute flow screens (goal, timer, ...) already rest at
+   inset:0 and keep the generic box. */
+html body #screenWrapper #appBody.fm-dual-transition > :is(#app-screen-home, #app-screen-missions, #app-screen-plan, #app-screen-history, #app-screen-stats, #app-screen-score, #app-screen-settings, #app-screen-data).app-screen.fm-motion-active:is(.fm-layer-outgoing, .fm-layer-incoming) {
+  top: env(safe-area-inset-top, 0px) !important;
+  bottom: 0 !important;
+  height: auto !important;
+}
+
 /* Horizontal pans belong to the navigation gesture owner; the browser keeps vertical scrolling.
    Nested horizontal scrollers (carousels) keep their own native panning. */
 #screenWrapper #appBody > .app-screen {

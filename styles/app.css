@@ -498,12 +498,48 @@ body{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-s
 .grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
 .grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
 .grid-cols-5{grid-template-columns:repeat(5,minmax(0,1fr))}
-.fm-offline-banner{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));left:12px;right:12px;z-index:66;pointer-events:none;display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:14px;background:rgba(15,23,42,.92);color:#f8fafc;border:1px solid rgba(251,191,36,.35);box-shadow:0 10px 24px rgba(15,23,42,.22);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
-.fm-offline-banner.hidden{display:none!important}
-.fm-offline-banner-dot{width:8px;height:8px;border-radius:50%;background:#f59e0b;box-shadow:0 0 8px #f59e0b;flex-shrink:0}
-.fm-offline-banner-copy{display:flex;flex-direction:column;min-width:0}
-.fm-offline-banner-copy strong{font-size:10px;font-weight:900;letter-spacing:.03em;color:#fde68a;line-height:1.2}
-.fm-offline-banner-copy span{font-size:9px;font-weight:600;color:#e2e8f0;line-height:1.3;margin-top:1px}
+/* v17.12 connection notice (owner: src/core/bootstrap.js). A floating rounded card in the app's
+   cream surface language; dark contexts get a graphite card; the Focus timer gets a small pill
+   that never reaches the Cosmic Core. Overlay only: it never moves screen content. */
+.fm-connection{position:absolute;z-index:150;top:calc(10px + env(safe-area-inset-top,0px));left:12px;right:12px;display:flex;justify-content:center;pointer-events:none}
+.fm-connection-card{position:relative;width:100%;max-width:420px;display:flex;align-items:center;gap:11px;padding:10px 8px 10px 10px;border-radius:20px;background:#FCF9F4;color:#1D1A17;border:1px solid rgba(45,35,30,.10);box-shadow:0 14px 32px rgba(37,22,43,.14),0 2px 6px rgba(37,22,43,.06);opacity:0;visibility:hidden;transform:translate3d(0,-10px,0) scale(.98);transition:opacity var(--motion-fast,160ms) var(--ease-exit,ease),transform var(--motion-fast,160ms) var(--ease-exit,ease),visibility 0s linear var(--motion-fast,160ms)}
+.fm-connection:not([data-state="hidden"]) .fm-connection-card{opacity:1;visibility:visible;transform:none;pointer-events:auto;transition:opacity 220ms var(--ease-standard,ease),transform 260ms var(--ease-standard,ease),visibility 0s}
+.fm-connection-icon{flex:0 0 36px;width:36px;height:36px;border-radius:12px;display:grid;place-items:center;background:#F1EAFB;color:#6D28D9;border:1px solid rgba(109,40,217,.12)}
+.fm-connection-icon svg,.fm-connection-icon i{width:18px;height:18px}
+.fm-connection-icon .fm-connection-icon-on{display:none}
+.fm-connection[data-state="online"] .fm-connection-icon{background:#E7F5EC;color:#15803D;border-color:rgba(22,163,74,.16)}
+.fm-connection[data-state="online"] .fm-connection-icon .fm-connection-icon-off{display:none}
+.fm-connection[data-state="online"] .fm-connection-icon .fm-connection-icon-on{display:block}
+.fm-connection-copy{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px}
+.fm-connection-copy strong{font-size:14px;line-height:1.2;font-weight:850;letter-spacing:-.01em;color:#1D1A17}
+.fm-connection-copy span{font-size:12px;line-height:1.35;font-weight:600;color:#766E65}
+.fm-connection[data-state="online"] .fm-connection-copy span{display:none}
+.fm-connection[data-state="online"] .fm-connection-card{width:auto;padding-right:6px}
+.fm-connection-close{flex:0 0 40px;width:40px;height:40px;margin:-2px 0;border:0;border-radius:14px;display:grid;place-items:center;background:transparent;color:#766E65;cursor:pointer;transition:background-color var(--motion-fast,160ms) var(--ease-standard,ease)}
+.fm-connection-close svg,.fm-connection-close i{width:18px;height:18px}
+.fm-connection-close:active{background:#EFE9DD}
+.fm-connection-close:focus-visible{outline:2px solid #6D28D9;outline-offset:1px}
+#connectionAnnouncer{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+/* Dark flow screens: graphite card with cream text. */
+html.pwa-dark-status .fm-connection-card{background:rgba(29,26,23,.94);color:#F6F1E7;border-color:rgba(255,255,255,.10);box-shadow:0 14px 32px rgba(0,0,0,.32)}
+html.pwa-dark-status .fm-connection-copy strong{color:#F6F1E7}
+html.pwa-dark-status .fm-connection-copy span,html.pwa-dark-status .fm-connection-close{color:rgba(246,241,231,.72)}
+html.pwa-dark-status .fm-connection-icon{background:rgba(167,139,250,.14);color:#C4B5FD;border-color:rgba(196,181,253,.18)}
+html.pwa-dark-status .fm-connection[data-state="online"] .fm-connection-icon{background:rgba(74,222,128,.12);color:#86EFAC;border-color:rgba(134,239,172,.2)}
+html.pwa-dark-status .fm-connection-close:active{background:rgba(255,255,255,.08)}
+/* Active Focus: a small single-line pill in the empty top-right of the session kicker row, above the
+   title and far from the Cosmic Core; the session and the cosmic layout never move. */
+html.pwa-timer-active .fm-connection{top:calc(4px + env(safe-area-inset-top,0px));justify-content:flex-end}
+html.pwa-timer-active .fm-connection-card{width:auto;max-width:220px;gap:6px;padding:2px 2px 2px 3px;border-radius:999px}
+html.pwa-timer-active .fm-connection-icon{flex-basis:22px;width:22px;height:22px;border-radius:999px}
+html.pwa-timer-active .fm-connection-icon svg,html.pwa-timer-active .fm-connection-icon i{width:13px;height:13px}
+html.pwa-timer-active .fm-connection-copy strong{font-size:12px;white-space:nowrap}
+html.pwa-timer-active .fm-connection-copy span{display:none}
+html.pwa-timer-active .fm-connection-close{flex-basis:26px;width:26px;height:26px;margin:0;border-radius:999px}
+html.pwa-timer-active .fm-connection-close svg,html.pwa-timer-active .fm-connection-close i{width:14px;height:14px}
+@media (prefers-reduced-motion:reduce){
+  .fm-connection-card,.fm-connection:not([data-state="hidden"]) .fm-connection-card{transform:none;transition-duration:90ms}
+}
 .mg-offline-state{display:flex;flex-direction:column;gap:5px}
 .mg-offline-title{font-size:12px;font-weight:900;color:#9f1239;line-height:1.25}
 .mg-offline-copy{font-size:10.5px;font-weight:600;color:#881337;line-height:1.38}
