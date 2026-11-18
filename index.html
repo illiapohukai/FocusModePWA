@@ -150,7 +150,6 @@
 
     <!-- 2. Primary Mission Carousel / Cards -->
     <section class="home-hero-card relative overflow-hidden text-white" id="emptyMissionCard">
-      <div class="home-hero-grid" aria-hidden="true"></div>
       <div class="home-hero-content">
         <div class="mh-top-row">
           <span class="mh-kicker"><i></i><span>FOCUS MISSION</span></span>
@@ -666,42 +665,28 @@
 
 <!-- V11.1 / v17.3: Lokaler Sitzungsverlauf -->
 <div class="app-screen hidden flex flex-col flex-1 min-h-0" id="app-screen-history">
-  <div class="flex items-center justify-between mb-3 shrink-0">
-    <div>
-      <div class="text-[9px] font-black uppercase tracking-[.16em] text-violet-700">Sitzungsverlauf</div>
-      <h3 class="text-[20px] font-black text-slate-950 mt-0.5">Deine Fokuszeit</h3>
+  <header class="st-header fm-root-header shrink-0">
+    <div class="st-header-copy"><span class="st-kicker">Sitzungsverlauf</span><h2 class="st-title">Deine Fokuszeit</h2></div>
+    <button class="fm-root-header-btn" onclick="navigateForward('stats',{parent:'history',rootSection:'history'})" aria-label="Statistik" title="Statistik" type="button"><i data-lucide="chart-no-axes-column-increasing"></i></button>
+  </header>
+  <!-- v17.11 Fokus-Bilanz on the shared clean hero surface; values come from renderSessionHistory() -->
+  <section class="fm-hero shrink-0" id="historyOverviewCard" aria-labelledby="historyOverviewKicker">
+    <div class="fm-hero-head">
+      <span class="fm-hero-kicker" id="historyOverviewKicker"><i data-lucide="activity" aria-hidden="true"></i>Fokus-Bilanz</span>
+      <span class="fm-hero-chip" id="historyOverviewPeriod">Heute</span>
     </div>
-    <button class="w-11 h-11 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-700 hover:bg-slate-50 transition" onclick="navigateForward('stats',{parent:'history',rootSection:'history'})" aria-label="Statistik" title="Statistik" type="button"><i class="w-4 h-4" data-lucide="chart-no-axes-column-increasing"></i></button>
-  </div>
-  <!-- Compact Dark Summary Block -->
-  <section class="fm-dark-summary-card shrink-0 mb-3" id="historyOverviewCard">
-    <div class="fm-dark-summary-top">
-      <div>
-        <span class="fm-dark-kicker"><i></i><span>FOKUS-BILANZ</span></span>
-        <div class="fm-dark-main-val" id="historyTotalFocusTime">0 Min.</div>
-        <div class="fm-dark-sub-copy" id="historyWeekSummaryText">Diese Woche: 0 Min. · 0 von 4 Sitzungen</div>
+    <div class="fm-hero-main">
+      <div class="fm-hero-figure">
+        <p class="fm-hero-value" id="historyTotalFocusTime">0 Min.</p>
+        <p class="fm-hero-label">gezählte Fokuszeit</p>
       </div>
-      <div class="fm-dark-badge">
-        <strong id="historyTotalSessionsCount">0</strong>
-        <span>SITZUNGEN</span>
-      </div>
+      <div class="fm-hero-aside"><strong id="historyTotalSessionsCount">0</strong><span>Sitzungen</span></div>
     </div>
-    <div class="fm-dark-metrics-row">
-      <div class="fm-dark-metric-pill">
-        <span class="dot bg-emerald-400"></span>
-        <strong id="historyCompletedCount">0</strong>
-        <span>Abgeschlossen</span>
-      </div>
-      <div class="fm-dark-metric-pill">
-        <span class="dot bg-violet-400"></span>
-        <strong id="historyPartialCount">0</strong>
-        <span>Teilweise</span>
-      </div>
-      <div class="fm-dark-metric-pill">
-        <span class="dot bg-amber-400"></span>
-        <strong id="historyAbortedCount">0</strong>
-        <span>Abgebrochen</span>
-      </div>
+    <p class="fm-hero-sub" id="historyWeekSummaryText">Diese Woche: 0 Min.</p>
+    <div class="fm-hero-stats">
+      <div class="is-ok"><strong id="historyCompletedCount">0</strong><span>Abgeschlossen</span></div>
+      <div class="is-accent"><strong id="historyPartialCount">0</strong><span>Teilweise</span></div>
+      <div class="is-warn"><strong id="historyAbortedCount">0</strong><span>Abgebrochen</span></div>
     </div>
   </section>
   <section class="fm-focus-chart-card shrink-0 mb-3" id="historyFocusChart" data-chart-kicker="FOKUS-RHYTHMUS" aria-label="Fokuszeit im Zeitverlauf"></section>

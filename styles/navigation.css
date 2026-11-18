@@ -19,6 +19,13 @@
   --fm-nav-bottom-inset: env(safe-area-inset-bottom, 0px);
   --fm-nav-total-height: calc(var(--fm-nav-height) + var(--fm-nav-bottom-inset));
   --fm-screen-bottom-padding: calc(var(--fm-nav-total-height) + 24px);
+
+  /* v17.11 clean gradient depth, shared by every top-level dark surface (Home Mission cards,
+     Missionen, Verlauf). Directional light, a soft lower vignette and an edge highlight replace
+     the former grid texture; each surface keeps its own gradient colours underneath. */
+  --fm-hero-light: radial-gradient(130% 95% at 0% 0%, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0) 48%);
+  --fm-hero-vignette: radial-gradient(125% 90% at 50% 118%, rgba(0, 0, 0, 0.24), rgba(0, 0, 0, 0) 62%);
+  --fm-hero-edge: inset 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 -1px 0 rgba(0, 0, 0, 0.16);
 }
 
 /* =========================================
@@ -802,26 +809,230 @@ html:not(.pwa-dark-status) body::after {
 }
 
 /* =========================================
-   DARK AUBERGINE SUMMARY CARDS (HISTORY / MISSIONS)
+   v17.11 CLEAN GRADIENT HERO SYSTEM (MISSIONEN / VERLAUF / FORTSCHRITT)
+   One surface and one type scale for the top summary of a root screen, in the family of the
+   Settings summary (.st-summary): clean gradient, no grid, bold numbers, readable labels.
+   Screens keep their own content, icon and metrics.
    ========================================= */
-.dark-summary-card,
+.fm-hero,
 .fm-dark-summary-card {
   position: relative;
   overflow: hidden;
-  padding: 16px;
-  border-radius: 22px;
+  isolation: isolate;
+  padding: 18px 18px 16px;
+  border-radius: 26px;
   background-color: #25162B;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    radial-gradient(circle at 88% 12%, rgba(124, 58, 237, 0.28), transparent 38%),
-    linear-gradient(155deg, #25162B 0%, #1B1020 100%);
-  background-size: 22px 22px, 22px 22px, 100% 100%, 100% 100%;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 14px 34px rgba(37, 22, 43, 0.14);
+    var(--fm-hero-light),
+    radial-gradient(circle at 92% 0%, rgba(124, 58, 237, 0.30), transparent 46%),
+    var(--fm-hero-vignette),
+    linear-gradient(152deg, #2A1932 0%, #1E1124 58%, #170D1C 100%);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 18px 36px rgba(37, 22, 43, 0.20), var(--fm-hero-edge);
   color: #FFFFFF;
 }
 
+.fm-hero-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 10px;
+  min-width: 0;
+}
+
+.fm-hero-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 850;
+  color: #C4B5FD;
+  white-space: nowrap;
+}
+
+.fm-hero-kicker svg {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+}
+
+.fm-hero-chip {
+  flex: 0 1 auto;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 28px;
+  padding: 0 11px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  font-size: 12px;
+  font-weight: 800;
+  color: #E9E2F5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fm-hero-dot {
+  flex: 0 0 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #A78BFA;
+}
+
+.fm-hero-chip[data-state="open"] .fm-hero-dot { background: #4ADE80; box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.16); }
+.fm-hero-chip[data-state="full"] .fm-hero-dot { background: #FBBF24; box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.16); }
+
+.fm-hero-main {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 16px;
+  min-width: 0;
+}
+
+.fm-hero-figure { min-width: 0; }
+
+.fm-hero-value {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: clamp(36px, 11vw, 44px);
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: -0.045em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.fm-hero-value small {
+  font-size: 0.5em;
+  font-weight: 850;
+  letter-spacing: -0.02em;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.fm-hero-label {
+  margin: 6px 0 0;
+  font-size: 14px;
+  line-height: 1.3;
+  font-weight: 750;
+  color: #E9E2F5;
+}
+
+.fm-hero-aside {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.fm-hero-aside.hidden { display: none; }
+
+.fm-hero-aside strong {
+  font-size: 26px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.fm-hero-aside span {
+  margin-top: 5px;
+  font-size: 12px;
+  line-height: 1.25;
+  font-weight: 700;
+  color: #B9ADC9;
+}
+
+.fm-hero-sub {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 650;
+  color: #CFC4DD;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fm-hero-sub:empty { display: none; }
+
+.fm-hero-stats {
+  display: grid;
+  /* Columns never drop below their longest label word, so German labels never collide. */
+  grid-template-columns: repeat(3, minmax(min-content, 1fr));
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.fm-hero-stats > div { min-width: 0; padding-right: 6px; }
+.fm-hero-stats > div + div { padding-left: 12px; border-left: 1px solid rgba(255, 255, 255, 0.08); }
+
+.fm-hero-stats strong {
+  display: block;
+  font-size: 21px;
+  line-height: 1.1;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.fm-hero-stats > div > span {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.3;
+  font-weight: 650;
+  color: #B9ADC9;
+  min-width: 0;
+}
+
+/* Outcome tones on the numbers support the written labels; they never replace them. */
+.fm-hero-stats > .is-ok strong { color: #86EFAC; }
+.fm-hero-stats > .is-accent strong { color: #C4B5FD; }
+.fm-hero-stats > .is-warn strong { color: #FCD34D; }
+
+@media (max-width: 360px) {
+  .fm-hero { padding: 16px 15px 14px; }
+  .fm-hero-stats strong { font-size: 18px; }
+  .fm-hero-stats > div > span { font-size: 11px; }
+  .fm-hero-stats > div + div { padding-left: 9px; }
+  .fm-hero-aside strong { font-size: 22px; }
+}
+
+/* Root-screen headers of Missionen and Verlauf use the Settings header scale (.st-header). */
+.fm-root-header { margin-bottom: 16px; }
+.fm-root-header .st-title { font-size: clamp(27px, 8.2vw, 34px); white-space: nowrap; }
+.fm-root-header-btn {
+  flex: 0 0 46px;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--primary);
+  box-shadow: 0 6px 16px rgba(37, 22, 43, 0.07);
+  cursor: pointer;
+}
+.fm-root-header-btn svg { width: 20px; height: 20px; }
+.fm-root-header-btn.is-primary { border-color: transparent; background: var(--primary); color: #FFFFFF; box-shadow: 0 10px 22px rgba(109, 40, 217, 0.28); }
+.fm-root-header-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+#historyOverviewCard,
+#missionOverviewCardV173 { margin-bottom: 14px; }
+
+/* Fortschritt (#app-screen-stats) keeps its own summary layout on the shared surface. */
 .fm-dark-summary-top {
   display: flex;
   align-items: flex-start;
@@ -892,71 +1103,6 @@ html:not(.pwa-dark-status) body::after {
   margin-top: 2px;
 }
 
-.fm-dark-metrics-row {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
-  margin-top: 12px;
-  padding-top: 10px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.fm-dark-metric-pill {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 6px 8px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  min-width: 0;
-}
-
-.fm-dark-metric-pill .dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.fm-dark-metric-pill strong {
-  font-size: 11px;
-  font-weight: 900;
-  color: #FFFFFF;
-}
-
-.fm-dark-metric-pill span:last-child {
-  font-size: 9px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.7);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.dark-summary-stat {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.dark-summary-val {
-  font-size: 16px;
-  font-weight: 900;
-  line-height: 1.1;
-  color: #FFFFFF;
-  font-variant-numeric: tabular-nums;
-}
-
-.dark-summary-lbl {
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: 0.11em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.55);
-  margin-top: 2px;
-}
-
 /* =========================================
    SAFE AREA & ROOT SCREEN PADDING
    ========================================= */
@@ -972,15 +1118,22 @@ html:not(.pwa-dark-status) body::after {
   overflow-y: auto !important;
 }
 
+/* v17.11: Missionen scrolls as one page (header, summary, tabs, cards), like Verlauf. */
 #app-screen-missions,
 #screenWrapper.has-bottom-nav #app-screen-missions {
-  padding: 18px 18px 0 !important;
-  overflow: hidden !important;
+  padding: 18px 18px var(--fm-screen-bottom-padding) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  scrollbar-width: none;
 }
+
+#app-screen-missions::-webkit-scrollbar { display: none; }
 
 #missionManagementListV116,
 #screenWrapper.has-bottom-nav #missionManagementListV116 {
-  padding-bottom: var(--fm-screen-bottom-padding) !important;
+  flex: none;
+  overflow: visible;
+  padding-bottom: 0 !important;
 }
 
 #screenWrapper.has-bottom-nav #app-screen-history {

@@ -320,33 +320,33 @@ function ensureMissionManagementScreenV116(){
  const screen=document.createElement('div');
  screen.id='app-screen-missions';
  screen.className='app-screen hidden flex flex-col flex-1 min-h-0';
- screen.innerHTML='<div class="flex items-center justify-between mb-3.5 shrink-0">'
-   +'<div><div class="text-[9px] font-extrabold uppercase tracking-[.16em] text-[#6D28D9]">Focus Missions</div><h3 class="text-[22px] font-black tracking-tight text-[#1D1A17] mt-0.5">Deine Missionen</h3></div>'
-   +'<button class="w-10 h-10 rounded-full bg-[#6D28D9] text-white flex items-center justify-center shadow-md shrink-0" type="button" aria-label="Neue Focus Mission" onclick="newMissionFromManagerV116()"><i class="w-4 h-4" data-lucide="plus"></i></button>'
-   +'</div>'
-   +'<div id="missionOverviewCardV173" class="dark-summary-card rounded-[22px] p-4 mb-3.5 shrink-0">'
-     +'<div class="flex items-center justify-between gap-3 mb-3">'
-       +'<div>'
-         +'<div class="text-[9px] font-extrabold uppercase tracking-[0.14em] text-white/60">MISSIONSSYSTEM</div>'
-         +'<div class="text-[22px] font-black tracking-tight text-white leading-none mt-1" id="missionOverviewActiveSlot">0 / 2 aktiv</div>'
-       +'</div>'
-       +'<div class="text-right">'
-         +'<div class="text-[10px] font-bold text-emerald-400" id="missionOverviewCapacityText">Slot frei</div>'
-         +'<div class="text-[9px] font-medium text-white/55 mt-0.5">Max. 2 parallel</div>'
-       +'</div>'
+ screen.innerHTML='<header class="st-header fm-root-header shrink-0">'
+   +'<div class="st-header-copy"><span class="st-kicker">Focus Missions</span><h2 class="st-title">Deine Missionen</h2></div>'
+   +'<button class="fm-root-header-btn is-primary" type="button" aria-label="Neue Focus Mission" title="Neue Focus Mission" onclick="newMissionFromManagerV116()"><i data-lucide="plus"></i></button>'
+   +'</header>'
+   /* v17.11 Missions summary on the shared clean hero surface; filled from real data below. */
+   +'<section id="missionOverviewCardV173" class="fm-hero shrink-0" aria-labelledby="missionOverviewKicker">'
+     +'<div class="fm-hero-head">'
+       +'<span class="fm-hero-kicker" id="missionOverviewKicker"><i data-lucide="target" aria-hidden="true"></i>Missionssystem</span>'
+       +'<span class="fm-hero-chip" id="missionOverviewCapacity" data-state="open"><span class="fm-hero-dot" aria-hidden="true"></span><span id="missionOverviewCapacityText">2 Plätze frei</span></span>'
      +'</div>'
-     +'<div class="grid grid-cols-3 gap-2 pt-2.5 border-t border-white/10">'
-       +'<div class="dark-summary-stat"><span class="dark-summary-val" id="missionOverviewActiveCount">0</span><span class="dark-summary-lbl">AKTIV</span></div>'
-       +'<div class="dark-summary-stat"><span class="dark-summary-val text-emerald-400" id="missionOverviewCompletedCount">0</span><span class="dark-summary-lbl">FERTIG</span></div>'
-       +'<div class="dark-summary-stat"><span class="dark-summary-val text-purple-300" id="missionOverviewStepsDoneCount">0</span><span class="dark-summary-lbl">SCHRITTE</span></div>'
+     +'<div class="fm-hero-main">'
+       +'<div class="fm-hero-figure"><p class="fm-hero-value"><span id="missionOverviewActiveSlot">0</span><small>/ 2</small></p><p class="fm-hero-label">aktive Missionen</p></div>'
+       +'<div class="fm-hero-aside hidden" id="missionOverviewPrep"><strong id="missionOverviewPrepValue">0%</strong><span>vorbereitet</span></div>'
      +'</div>'
-   +'</div>'
+     +'<p class="fm-hero-sub" id="missionOverviewNext"></p>'
+     +'<div class="fm-hero-stats">'
+       +'<div><strong id="missionOverviewStepsDoneCount">0</strong><span>Schritte erledigt</span></div>'
+       +'<div class="is-ok"><strong id="missionOverviewCompletedCount">0</strong><span>Abgeschlossen</span></div>'
+       +'<div><strong id="missionOverviewArchivedCount">0</strong><span>Im Archiv</span></div>'
+     +'</div>'
+   +'</section>'
    +'<div class="mission-tabs-v116 mb-3.5 shrink-0">'
      +'<button class="mission-tab-v116 active" type="button" data-filter="active" onclick="setMissionFilterV116(\'active\',this)">Aktiv</button>'
      +'<button class="mission-tab-v116" type="button" data-filter="completed" onclick="setMissionFilterV116(\'completed\',this)">Abgeschlossen</button>'
      +'<button class="mission-tab-v116" type="button" data-filter="archived" onclick="setMissionFilterV116(\'archived\',this)">Archiv</button>'
    +'</div>'
-   +'<div id="missionManagementListV116" class="flex-1 space-y-2.5 pb-6 overflow-y-auto"></div>';
+   +'<div id="missionManagementListV116" class="mmc-list"></div>';
  document.getElementById('appBody').appendChild(screen);ensureMissionSheetV116();lucide.createIcons();
 }
 let lastMissionSheetTriggerV175=null;
@@ -419,19 +419,26 @@ function renderMissionManagementV116(){
  const completedList=all.filter(x=>x.status==='completed');
  const archivedList=all.filter(x=>x.status==='archived');
  const totalStepsDone=all.reduce((acc,m)=>acc+(m.progress?.completedStepIds?.length||0),0);
- const slotEl=document.getElementById('missionOverviewActiveSlot');
- const capEl=document.getElementById('missionOverviewCapacityText');
- const actCountEl=document.getElementById('missionOverviewActiveCount');
- const compCountEl=document.getElementById('missionOverviewCompletedCount');
- const stepsDoneEl=document.getElementById('missionOverviewStepsDoneCount');
- if(slotEl)slotEl.textContent=activeList.length+' / 2 aktiv';
- if(capEl){
-   capEl.textContent=activeList.length>=2?'Beide Plätze belegt':(2-activeList.length)+' Platz frei';
-   capEl.className='text-[10px] font-bold '+(activeList.length>=2?'text-amber-300':'text-emerald-400');
- }
- if(actCountEl)actCountEl.textContent=String(activeList.length);
- if(compCountEl)compCountEl.textContent=String(completedList.length);
- if(stepsDoneEl)stepsDoneEl.textContent=String(totalStepsDone);
+ const setText=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v};
+ setText('missionOverviewActiveSlot',String(activeList.length));
+ const capacity=document.getElementById('missionOverviewCapacity');
+ if(capacity)capacity.dataset.state=activeList.length>=2?'full':'open';
+ setText('missionOverviewCapacityText',activeList.length>=2?'Beide Plätze belegt':(2-activeList.length)===1?'1 Platz frei':'2 Plätze frei');
+ setText('missionOverviewCompletedCount',String(completedList.length));
+ setText('missionOverviewArchivedCount',String(archivedList.length));
+ setText('missionOverviewStepsDoneCount',String(totalStepsDone));
+ /* Share of the active Missions' steps that are done (same counts the cards show). */
+ const activeTotals=activeList.reduce((acc,m)=>{const v=missionViewModelV116(m);acc.done+=v.completedSteps;acc.total+=v.totalSteps;return acc},{done:0,total:0});
+ const prep=document.getElementById('missionOverviewPrep');
+ if(prep)prep.classList.toggle('hidden',!activeTotals.total);
+ setText('missionOverviewPrepValue',activeTotals.total?Math.min(100,Math.round(activeTotals.done/activeTotals.total*100))+'%':'');
+ /* Nearest real deadline: only stored deadline texts that hold an explicit calendar date. */
+ const parse=window.MissionCalendar?.parseDeadlineText;
+ const today=new Date();const todayKey=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+ const next=typeof parse==='function'?activeList.map(m=>({m,key:parse(m.deadlineText)})).filter(x=>x.key&&x.key>=todayKey).sort((a,b)=>a.key.localeCompare(b.key))[0]:null;
+ let nextText=activeList.length?'':'Bis zu zwei Missionen gleichzeitig';
+ if(next){const[y,mo,d]=next.key.split('-').map(Number);let when='';try{when=new Intl.DateTimeFormat('de-DE',{day:'numeric',month:'short'}).format(new Date(y,mo-1,d,12))}catch{when=next.key}nextText='Nächste Frist: '+when+' · '+next.m.title}
+ setText('missionOverviewNext',nextText);
 
  const items=all.filter(x=>x.status===missionManagementFilterV116);
  list.replaceChildren();
@@ -451,35 +458,54 @@ function renderMissionManagementV116(){
  items.sort((a,b)=>a.id===missionRepository.getPrimaryId()?-1:b.id===missionRepository.getPrimaryId()?1:(b.updatedAt||0)-(a.updatedAt||0)).forEach(m=>{
    const v=missionViewModelV116(m);
    const card=document.createElement('article');
-   card.className='mission-manage-card-v116';
-   const dateStr=v.status==='completed'?('Abgeschlossen · '+formatMissionShortDateV173(v.completedAt||v.updatedAt)):v.status==='archived'?('Archiviert · '+formatMissionShortDateV173(v.archivedAt||v.updatedAt)):(v.deadlineText||'ohne Frist');
-   const badgeHTML=v.status==='active'
-     ?(v.isPrimary?'<span class="mmc-primary">Hauptmission</span>':'<span class="mmc-badge-secondary">Aktive Mission</span>')
-     :(v.status==='completed'?'<span class="mmc-badge-completed">Abgeschlossen</span>':'<span class="mmc-badge-archived">Archiviert</span>');
-   const stepInfo=v.status==='active'
-     ?('Nächster Schritt: '+escapeHTML(v.currentStepTitle)+(v.currentStepMinutes?(' · '+v.currentStepMinutes+' Min.'):''))
-     :('Alle '+v.completedSteps+' von '+v.totalSteps+' Schritten gespeichert');
-   const quickBtn=v.status==='active'&&v.currentStepId
-     ?'<button type="button" class="mmc-action-btn primary" onclick="event.stopPropagation();prepareLearningSession(\''+m.id+'\',\''+v.currentStepId+'\')"><i data-lucide="play" class="w-3 h-3 fill-current"></i><span>Schritt starten</span></button>'
-     :v.status==='archived'
-       ?'<button type="button" class="mmc-action-btn" onclick="event.stopPropagation();restoreMissionActionV116(\''+m.id+'\')"><i data-lucide="rotate-ccw" class="w-3 h-3"></i><span>Wiederherstellen</span></button>'
+   const isActive=v.status==='active',isDone=v.status==='completed',isArchived=v.status==='archived';
+   card.className='mmc-card theme-'+v.theme+' is-'+(isActive?'active':isDone?'completed':'archived');
+   card.dataset.missionId=m.id;
+   const statusLabel=isActive?'Aktive Mission':isDone?'Abgeschlossen':'Archiviert';
+   /* State is named in text, never by colour alone. */
+   card.setAttribute('aria-label',v.title+' · '+statusLabel);
+   /* Same deadline rule as the Mission Plan: placeholders such as "Nicht angegeben" are dropped. */
+   const deadline=typeof missionPlanDeadlineV178==='function'?missionPlanDeadlineV178(m.deadlineText):'';
+   const dateStr=isDone?formatMissionShortDateV173(v.completedAt||v.updatedAt):isArchived?formatMissionShortDateV173(v.archivedAt||v.updatedAt):'';
+   /* Identity band: Mission tone, subject and title; finished states are named there in text. */
+   const chip=isActive?'':'<span class="mmc-chip"><i data-lucide="'+(isDone?'check':'archive')+'" aria-hidden="true"></i>'+statusLabel+(dateStr?' · '+escapeHTML(dateStr):'')+'</span>';
+   /* Only a deadline the Mission really stores is shown; no placeholder when there is none. */
+   const deadlineHTML=isActive&&deadline?'<span class="mmc-deadline"><i data-lucide="calendar-days" aria-hidden="true"></i>'+escapeHTML(deadline)+'</span>':'';
+   /* Step route: one segment per step (completed, current, upcoming); a plain bar for long plans. */
+   const route=v.totalSteps&&v.totalSteps<=14
+     ?v.steps.map(x=>'<i class="'+(x.isCompleted?'is-done':(isActive&&x.isCurrent?'is-current':''))+'"></i>').join('')
+     :'<b style="width:'+v.progressPercent+'%"></b>';
+   const progressCopy=isDone?'Alle '+v.totalSteps+' Schritte erledigt':v.completedSteps+' von '+v.totalSteps+' Schritten';
+   const next=isActive&&v.currentStepId
+     ?'<div class="mmc-next">'
+       +'<span class="mmc-next-index" aria-hidden="true">'+String(v.currentStepIndex).padStart(2,'0')+'</span>'
+       +'<span class="mmc-next-copy"><small>Nächster Schritt'+(v.currentStepMinutes?' · '+v.currentStepMinutes+' Min.':'')+'</small><strong>'+escapeHTML(v.currentStepTitle)+'</strong></span>'
+     +'</div>'
+     :'';
+   const primary=isActive&&v.currentStepId
+     ?'<button type="button" class="mmc-btn is-primary" onclick="event.stopPropagation();prepareLearningSession(\''+m.id+'\',\''+v.currentStepId+'\')"><i data-lucide="play" aria-hidden="true"></i><span>Schritt starten</span></button>'
+     :isArchived
+       ?'<button type="button" class="mmc-btn is-primary is-neutral" onclick="event.stopPropagation();restoreMissionActionV116(\''+m.id+'\')"><i data-lucide="rotate-ccw" aria-hidden="true"></i><span>Wiederherstellen</span></button>'
        :'';
-   card.innerHTML='<div class="mmc-top">'
-     +'<span class="mmc-icon"><i data-lucide="'+(v.status==='completed'?'check-circle-2':v.status==='archived'?'archive':'target')+'"></i></span>'
-     +'<span class="mmc-copy">'
-       +'<span class="mmc-badges-row">'+badgeHTML+'<span class="mmc-subject-pill">'+escapeHTML(v.subject)+'</span></span>'
-       +'<span class="mmc-title">'+escapeHTML(v.title)+'</span>'
-       +'<span class="mmc-meta">'+escapeHTML(dateStr)+' · '+v.completedSteps+' von '+v.totalSteps+' Schritten</span>'
-     +'</span>'
-     +'<button class="mmc-menu" type="button" aria-label="Mission verwalten"><i data-lucide="more-horizontal"></i></button>'
-   +'</div>'
-   +'<div class="mmc-track"><i style="width:'+v.progressPercent+'%"></i></div>'
-   +'<div class="mmc-foot"><span class="truncate">'+stepInfo+'</span><span class="font-extrabold text-[#1D1A17] shrink-0">'+v.progressPercent+'%</span></div>'
-   +'<div class="mmc-actions-row">'
-     +'<button type="button" class="mmc-action-btn outline" onclick="event.stopPropagation();openMission(\''+m.id+'\',\'missions\')">Mission öffnen</button>'
-     +quickBtn
-   +'</div>';
-   card.querySelector('.mmc-copy').onclick=()=>openMission(m.id,'missions');
+   card.innerHTML='<div class="mmc-band">'
+       +'<span class="mmc-emblem" aria-hidden="true"><i data-lucide="'+(isDone?'check':isArchived?'archive':'target')+'"></i></span>'
+       +'<button type="button" class="mmc-headline" aria-label="Plan von '+escapeHTML(v.title)+' öffnen">'
+         +'<span class="mmc-subject">'+escapeHTML(v.subject)+'</span>'
+         +'<span class="mmc-title">'+escapeHTML(v.title)+'</span>'
+       +'</button>'
+       +'<button class="mmc-menu" type="button" aria-label="Mission verwalten"><i data-lucide="more-horizontal"></i></button>'
+       +chip
+     +'</div>'
+     +'<div class="mmc-body">'
+       +'<div class="mmc-progress-head"><strong>'+v.progressPercent+'%</strong><span>'+progressCopy+'</span>'+deadlineHTML+'</div>'
+       +'<div class="mmc-route'+(v.totalSteps&&v.totalSteps<=14?'':' is-bar')+'" role="progressbar" aria-label="Fortschritt" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+v.progressPercent+'" aria-valuetext="'+escapeHTML(progressCopy)+'">'+route+'</div>'
+       +next
+       +'<div class="mmc-actions">'
+         +primary
+         +'<button type="button" class="mmc-btn is-quiet" onclick="event.stopPropagation();openMission(\''+m.id+'\',\'missions\')"><span>Plan ansehen</span><i data-lucide="arrow-right" aria-hidden="true"></i></button>'
+       +'</div>'
+     +'</div>';
+   card.querySelector('.mmc-headline').onclick=()=>openMission(m.id,'missions');
    const menuBtn=card.querySelector('.mmc-menu');
    menuBtn.onclick=e=>{e.stopPropagation();openMissionActionsV116(m.id,menuBtn)};
    list.append(card);

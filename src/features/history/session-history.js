@@ -62,7 +62,10 @@ function renderSessionHistory(filter=activeHistoryFilter){
  const list=document.getElementById('sessionHistoryList');if(!list)return;
  list.replaceChildren();
  const label=document.getElementById('historySectionLabel');
- if(label)label.textContent=filter==='today'?'Heute':filter==='week'?'Diese Woche':'Alle Sitzungen';
+ const periodText=filter==='today'?'Heute':filter==='week'?'Diese Woche':'Alle Sitzungen';
+ if(label)label.textContent=periodText;
+ const periodEl=document.getElementById('historyOverviewPeriod');
+ if(periodEl)periodEl.textContent=periodText;
  const counted=items.filter(countedFocus);
  const minutes=counted.reduce((n,x)=>n+Number(x.actualMinutes||0),0);
  const summaryEl=document.getElementById('historySummary');

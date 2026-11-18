@@ -483,7 +483,6 @@ html body #screenWrapper #appBody.fm-root-swipe-active.fm-root-swipe-backward > 
 }
 
 /* Mission Progress Bars & Step Nodes */
-.mmc-track i,
 #homeMissionProgressBar,
 #ucProgressBar,
 #recoveryProgressBar {
@@ -521,7 +520,8 @@ html body #screenWrapper #appBody.fm-root-swipe-active.fm-root-swipe-backward > 
 .fm-top-back-btn,
 .mg-back,
 .mmc-menu,
-.mmc-action-btn,
+.mmc-btn,
+.fm-root-header-btn,
 .settings-nav-row,
 .data-action-btn,
 .qb-bottom button,
@@ -545,7 +545,8 @@ html body #screenWrapper #appBody.fm-root-swipe-active.fm-root-swipe-backward > 
 .fm-top-back-btn:active,
 .mg-back:active,
 .mmc-menu:active,
-.mmc-action-btn:active,
+.mmc-btn:active,
+.fm-root-header-btn:active,
 .settings-nav-row:active,
 .data-action-btn:active,
 .qb-bottom button:active,

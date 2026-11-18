@@ -5,16 +5,21 @@
 #activeTaskLabel{max-width:100%!important;font-size:clamp(18px,5.1vw,22px)!important;line-height:1.22!important}
 html.pwa-timer-active,html.pwa-timer-active body,html.pwa-timer-active #screenWrapper,html.pwa-timer-active #appBody{background:#050714!important}
 html.pwa-timer-active body:after{background:linear-gradient(170deg,#040613 0%,#080b1f 55%,#120f2d 100%)!important}
-.uc-scene{position:relative;min-height:300px;margin:0 -7px;overflow:hidden;border-radius:30px;background:radial-gradient(circle at 50% 46%,rgba(109,40,217,.15) 0%,rgba(76,29,149,.07) 34%,transparent 60%)}
+.uc-scene{--uc-core-y:48%;position:relative;min-height:300px;margin:0 -7px;overflow:hidden;border-radius:30px;background:radial-gradient(circle at 50% 46%,rgba(109,40,217,.15) 0%,rgba(76,29,149,.07) 34%,transparent 60%)}
 /* v17.9 Cosmic Core: both canvases are painted by src/core/cosmic-core.js. #ucCore is an invisible
    geometry anchor; its box is the size and position of the rendered core. */
 .uc-cosmic-layer{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 #ucCosmicBackdrop{z-index:1}
 #ucCosmicCanvas{z-index:2}
-.uc-core{position:absolute;z-index:3;left:50%;top:48%;width:min(56vw,225px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;visibility:hidden;pointer-events:none}
-.uc-readout{z-index:9;top:47.5%}
-.uc-readout #timerDigits{color:#fff!important;text-shadow:0 4px 24px rgba(3,5,18,.92),0 0 18px rgba(168,85,247,.22)!important}
-.uc-readout #timerCaption{color:#d8d0ea!important;text-shadow:0 2px 12px rgba(3,5,18,.88)}
+.uc-core{position:absolute;z-index:3;left:50%;top:var(--uc-core-y);width:min(56vw,225px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;visibility:hidden;pointer-events:none}
+/* v17.11: the readout shares the core anchor's centre (--uc-core-y), so the digits sit in the true
+   centre of the planet at every size. With line-height 1 the Inter digit glyphs are centred
+   vertically in their box. Horizontally the -.055em letter-spacing trails the last digit, so the
+   block is widened by that amount on the left, which re-centres the glyphs. The caption stays as
+   screen-reader text only. */
+.uc-readout{z-index:9;top:var(--uc-core-y)}
+.uc-readout #timerDigits{margin-left:-.055em;color:#fff!important;text-shadow:0 4px 24px rgba(3,5,18,.92),0 0 18px rgba(168,85,247,.22)!important}
+.uc-readout #timerCaption{position:absolute!important;width:1px;height:1px;margin:-1px!important;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 .uc-protect{z-index:10;cursor:pointer;transition:transform .18s ease,border-color .22s ease,background-color .22s ease,box-shadow .22s ease;border:1px solid rgba(52,211,153,.32);background:rgba(8,47,54,.46);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .uc-protect.is-active{color:#5eead4;border-color:rgba(52,211,153,.36);background:rgba(8,47,54,.52)}
 .uc-protect.is-active span{background:#34d399!important;box-shadow:0 0 13px #34d399!important}
@@ -29,7 +34,8 @@ html.pwa-timer-active body:after{background:linear-gradient(170deg,#040613 0%,#0
 
 /* ==========================================================================
    v17.10 Focus task-detail sheet (#ucTaskPopup, owned by session-runtime.js)
-   A reading layer over the Cosmic Timer: dim + light blur, deep aubergine sheet,
+   A reading layer over the living Cosmic Timer: a plain dim (no blur over the animated
+   canvas; the scene itself recedes through CosmicCore.setOverlayMode), deep aubergine sheet,
    Mission tone on the border and glow only. Transform/opacity motion only.
    ========================================================================== */
 .uc-focus-card{transition:transform var(--motion-instant,90ms) var(--ease-standard,ease)}
@@ -37,7 +43,7 @@ html.pwa-timer-active body:after{background:linear-gradient(170deg,#040613 0%,#0
 .uc-focus-card:focus-visible{outline:2px solid #A78BFA;outline-offset:3px}
 .uc-layer{position:absolute;inset:0;z-index:95;display:flex;align-items:flex-end;padding:12px 12px calc(12px + env(safe-area-inset-bottom))}
 .uc-layer[hidden]{display:none}
-.uc-layer-dim{position:absolute;inset:0;background:rgba(3,4,14,.62);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0;transition:opacity var(--motion-normal,350ms) var(--ease-standard,ease)}
+.uc-layer-dim{position:absolute;inset:0;background:rgba(3,4,14,.66);opacity:0;transition:opacity var(--motion-normal,350ms) var(--ease-standard,ease)}
 .uc-sheet,.uc-barrier-card{--mt-accent-strong:#8B5CF6;position:relative;z-index:1;width:100%;max-height:min(80%,660px);display:flex;flex-direction:column;padding:10px 20px 16px;border-radius:30px;color:#F4F0FA;
   background:radial-gradient(circle at 0% 0%,color-mix(in srgb,var(--mt-accent-strong) 22%,transparent),transparent 42%),linear-gradient(165deg,#24173A 0%,#160F25 58%,#0F0A1B 100%);
   border:1px solid color-mix(in srgb,var(--mt-accent-strong) 42%,rgba(255,255,255,.06));
@@ -71,6 +77,8 @@ html.pwa-timer-active body:after{background:linear-gradient(170deg,#040613 0%,#0
 .uc-sheet-primary:active{transform:scale(.985)}
 @media (max-height:700px){.uc-sheet{max-height:86%}.uc-sheet-title{font-size:21px}}
 @media (prefers-reduced-motion:reduce){
+  /* No render loop here: the overlay mode dims the still canvas through a short CSS fade. */
+  #ucCosmicCanvas{transition:opacity var(--motion-fast,160ms) linear}
   .uc-sheet,.uc-barrier-card{transform:none}
   .uc-barrier-stage.is-entering{animation:none}
   .uc-layer.is-closing .uc-sheet,.uc-barrier.is-closing .uc-barrier-card{transform:none}

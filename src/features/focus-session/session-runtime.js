@@ -20,12 +20,14 @@ function stopFocusSession(){return finishSession({status:'cancelled',reason:'use
 const UC_REVEAL_GROUPS_MAX=48;
 let ucTaskCloseTimer=null,ucTaskRevealTimer=null,ucTaskRevealedKey='';
 function ucReducedMotion(){return Boolean(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)}
-/* Focus overlays hold the Cosmic scene still while they cover it (less background work);
-   the timer is independent of the scene. Releasing the last hold resumes the same scene,
-   it never restarts it. */
+/* v17.11: Focus overlays (task sheet, Fokus-Schutz dialog) keep the Cosmic scene alive behind
+   them. Each open overlay holds the scene's single overlay mode, which only eases its intensity;
+   releasing the last hold eases it back. The loop is never paused, restarted or rebuilt here,
+   and the timer is independent of the scene. */
 const ucSceneHolds=new Set();
-function holdFocusScene(id){ucSceneHolds.add(id);const c=window.CosmicCore;if(c?.getState?.().running)c.pause()}
-function releaseFocusScene(id){if(!ucSceneHolds.delete(id)||ucSceneHolds.size)return;if(document.getElementById('app-screen-timer')?.classList.contains('hidden'))return;window.CosmicCore?.resume?.()}
+function syncFocusSceneOverlay(){window.CosmicCore?.setOverlayMode?.(ucSceneHolds.size>0)}
+function holdFocusScene(id){ucSceneHolds.add(id);syncFocusSceneOverlay()}
+function releaseFocusScene(id){if(ucSceneHolds.delete(id))syncFocusSceneOverlay()}
 window.holdFocusScene=holdFocusScene;window.releaseFocusScene=releaseFocusScene;
 /* Builds the readable text once: paragraphs from line breaks, words grouped into a bounded
    number of spans so long tasks never create hundreds of animated nodes. */

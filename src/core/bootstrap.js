@@ -120,7 +120,25 @@ Object.assign(I18N.en,{"Lücke": "Product Gap", "Modi": "Modes", "Mission": "Mis
    'Abbrechen':'Cancel',
    'Speichern':'Save',
    'Fokusschutz aktiv':'Focus protection active',
-   'Fokusschutz aus':'Focus protection off'
+   'Fokusschutz aus':'Focus protection off',
+   /* v17.11 Missionen and Verlauf summaries, Mission cards */
+   'Focus Missions':'Focus Missions',
+   'Missionssystem':'Mission system',
+   'aktive Missionen':'active missions',
+   'vorbereitet':'prepared',
+   'Schritte erledigt':'Steps done',
+   'Im Archiv':'Archived',
+   'Beide Plätze belegt':'Both slots in use',
+   '2 Plätze frei':'2 slots free',
+   'Bis zu zwei Missionen gleichzeitig':'Up to two missions at a time',
+   'Aktive Mission':'Active mission',
+   'Archiviert':'Archived',
+   'Plan ansehen':'View plan',
+   'Fokus-Bilanz':'Focus balance',
+   'gezählte Fokuszeit':'counted focus time',
+   'Sitzungen':'Sessions',
+   'Teilweise':'Partial',
+   'Abgebrochen':'Cancelled'
   });
  }
  const ICON_SVG_PATHS=Object.freeze({

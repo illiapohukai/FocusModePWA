@@ -10,6 +10,9 @@
  *   is a timeline inside this loop. MotionController keeps owning the screen crossfade.
  * - The timer, Fokus-Schutz and every other control stay real DOM above the canvas and are never
  *   touched here. Their text boxes are only measured to keep a readability zone clear.
+ * - v17.11: a local Focus overlay (task sheet, Fokus-Schutz dialog) never pauses the scene. It sets
+ *   one overlay mode (setOverlayMode) that eases the moving layer's opacity, tempo and particle
+ *   density down and back up inside this same loop. Only a hidden document pauses the loop.
  *
  * Scene model
  * - #ucCore is an invisible geometry anchor: CSS decides where the core sits and how large it is.
@@ -37,6 +40,11 @@
   const REENTRY_MS = 950;
   const STATIC_CLOCK = 7.4; // Frozen moment shown with reduced motion.
   const RELEASE_DELAY_MS = 1200;
+  // Overlay mode: how far the moving layer recedes while a Focus overlay covers the scene.
+  const VEIL_EASE_S = 0.32; // Time constant of the opacity/tempo easing.
+  const VEIL_OPACITY = 0.45; // Opacity lost at full overlay.
+  const VEIL_TEMPO = 0.35; // Share of ambient tempo lost at full overlay (after the entrance).
+  const VEIL_DENSITY = 0.6; // Particle density cap at full overlay (eased, never rebuilt).
   const SEED = 0x17c09e;
 
   // Warm white, cool white, pale violet, lavender, restrained purple, accent.
@@ -211,10 +219,10 @@
   }
 
   function measureZone(scene, rect, cx, cy, R) {
+    // v17.11: only the visible digits are protected; the caption is screen-reader text now.
     const digits = scene.querySelector('#timerDigits');
-    const caption = scene.querySelector('#timerCaption');
     let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-    [digits, caption].forEach(function (el) {
+    [digits].forEach(function (el) {
       if (!el) return;
       const box = textBox(el);
       if (!(box.width > 0)) return;
@@ -1296,8 +1304,11 @@
         if (!applyLayout(state) && !state.layout) { rafId = global.requestAnimationFrame(frame); return; }
       }
     }
-    state.clock += Math.min(0.1, Math.max(0, elapsed) / 1000);
-    const target = state.tier.density;
+    const dt = Math.min(0.1, Math.max(0, elapsed) / 1000);
+    easeVeil(state, dt);
+    // The scene is a closed-form function of the clock, so a smoothly changing tempo never jumps.
+    state.clock += dt * (state.entranceDone ? 1 - VEIL_TEMPO * state.veil : 1);
+    const target = Math.min(state.tier.density, 1 - (1 - VEIL_DENSITY) * state.veil);
     if (state.density !== target) {
       const step = Math.min(0.1, elapsed / 1000) * 0.45;
       state.density = Math.abs(target - state.density) <= step ? target : state.density + (target > state.density ? step : -step);
@@ -1305,6 +1316,25 @@
     render(state);
     watchPerformance(state, elapsed);
     rafId = global.requestAnimationFrame(frame);
+  }
+
+  // Eases the overlay veil toward its target and mirrors it on the moving canvas only
+  // (a compositor opacity change; the static backdrop and the core geometry are untouched).
+  function easeVeil(state, dt) {
+    const goal = state.veilTarget;
+    if (state.veil !== goal) {
+      const k = dt > 0 ? 1 - Math.exp(-dt / VEIL_EASE_S) : 0;
+      state.veil += (goal - state.veil) * k;
+      if (Math.abs(goal - state.veil) < 0.004) state.veil = goal;
+    }
+    applyVeil(state);
+  }
+  function applyVeil(state) {
+    const opacity = state.veil > 0 ? (1 - VEIL_OPACITY * state.veil).toFixed(3) : '';
+    if (opacity !== state.veilShown) {
+      state.veilShown = opacity;
+      state.canvas.style.opacity = opacity;
+    }
   }
 
   function renderStill(state) {
@@ -1351,12 +1381,13 @@
       entrance: reduced ? 'none' : (opts.entrance === 'birth' ? 'birth' : 'reentry'), entranceDone: false,
       clock: reduced ? STATIC_CLOCK : 0, last: 0, checkedAt: 0, running: false, layoutDirty: false,
       layout: null, sprites: null, orbits: [], stars: [], drift: [], sparks: [], inner: [],
-      sparksLive: false, emitRadius: 0, deepShown: -1,
+      sparksLive: false, emitRadius: 0, deepShown: -1, veil: 0, veilTarget: 0, veilShown: '',
       fx: { g: 1, core: 1, detail: 1, bloom: 1, seed: 0, lens: 0, deep: 1, field: 1, crest: 1, forming: false, orbit: new Float32Array(ORBITS.length), line: new Float32Array(ORBITS.length) },
       perf: { frames: 0, sum: 0, count: 0, strikes: 0, average: 0 },
       observer: null
     };
     const state = st;
+    canvas.style.opacity = '';
     if (typeof global.ResizeObserver === 'function') {
       state.observer = new global.ResizeObserver(onResize);
       state.observer.observe(scene);
@@ -1413,7 +1444,21 @@
       releaseCanvas(canvas);
       releaseCanvas(backdrop);
       backdrop.style.opacity = '';
+      canvas.style.opacity = '';
     }, RELEASE_DELAY_MS);
+  }
+
+  /* One overlay-background mode for every local Focus overlay. The loop keeps running; only the
+     intensity eases. Reduced motion has no loop, so the still is dimmed at once. */
+  function setOverlayMode(on) {
+    const state = st;
+    if (!state) return false;
+    state.veilTarget = on ? 1 : 0;
+    if (!state.running) {
+      state.veil = state.veilTarget;
+      applyVeil(state);
+    }
+    return true;
   }
 
   function getState() {
@@ -1428,6 +1473,8 @@
       entrance: state.entrance,
       entranceDone: state.entranceDone,
       reduced: state.reduced,
+      overlay: state.veilTarget > 0,
+      veil: Math.round(state.veil * 1000) / 1000,
       tier: state.tier.name,
       density: state.density,
       clockMs: Math.round(state.clock * 1000),
@@ -1438,5 +1485,5 @@
     };
   }
 
-  global.CosmicCore = Object.freeze({ start: start, stop: stop, pause: pause, resume: resume, getState: getState });
+  global.CosmicCore = Object.freeze({ start: start, stop: stop, pause: pause, resume: resume, setOverlayMode: setOverlayMode, getState: getState });
 })(window);

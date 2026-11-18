@@ -1072,9 +1072,9 @@
     if (typeof document === 'undefined') return;
     const reduced = prefersReducedMotion();
     const screenEl = document.getElementById('app-screen-' + section);
-    const scrollContainer =
-      (section === 'missions' && document.getElementById('missionManagementListV116')) ||
-      screenEl;
+    // v17.11: Missionen scrolls as one page; the inner list is kept as a fallback container.
+    const innerList = section === 'missions' ? document.getElementById('missionManagementListV116') : null;
+    const scrollContainer = innerList && innerList.scrollTop > 4 ? innerList : screenEl;
 
     if (scrollContainer && scrollContainer.scrollTop > 4) {
       try {
