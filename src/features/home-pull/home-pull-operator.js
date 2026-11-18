@@ -1,12 +1,20 @@
-/* v17.13 Cosmic Operator Pull (experimental).
+/* v17.13 Cosmic Operator Pull, v17.15 Cosmic Operator Pull Refresh.
    Single owner of the hidden pull interaction above Home: pulling Home down at its top edge
    reveals a small cosmic operator scene; releasing past the threshold refreshes Home through
    the existing Home renderers (no reload, no network, no data writes).
 
+   v17.15: the operator is the approved floating-coffee animation, cut frame by frame into one
+   sprite sheet (assets/operator/operator-coffee-pull-sheet.png, metadata in
+   operator-coffee-pull.json). Pull distance selects frames of the reveal and reach ranges and
+   holds the last frame before the cup is touched; only a release past the threshold plays the
+   cup push and settle range, once, on the source timeline. The terminal operator of Mission
+   generation (mission-operator.js, mission-operator-*) has its own assets and state; nothing
+   is shared.
+
    Footprint on Home: one hidden scene and one visually hidden live region appended to
    #app-screen-home at start-up, the state class `fm-op-active` and a transform on
    .home-scroll-content while a pull is active. Removing this file, styles/home-pull.css and
-   assets/operator/ removes the feature.
+   the operator-coffee-pull assets removes the feature.
 
    Gesture ownership: starts only on Home at scroll top, while idle, with no overlay, no
    navigation transition and no running Focus Session. Form controls, horizontally scrollable
@@ -15,22 +23,23 @@
    a horizontal root swipe can never both lock on one touch.
 
    Idle cost: no animation frames, timers, observers or window listeners; the scene is
-   display:none and the sprite image is only decoded once, on idle. */
+   display:none and the sprite sheet is only loaded and decoded once, on idle. */
 (function (global) {
   'use strict';
   const doc = global.document;
   if (!doc || global.HomePullOperator) return;
 
-  /* The approved sprite is one locked image (astronaut, tether, cup and coffee), shown at a fixed
-     width and only moved as a whole (translation, slight rotation, opacity). Values are CSS px of
-     the displayed image. Replacing the art means updating this block and the sprite-relative
-     positions documented in styles/home-pull.css; the gesture logic does not change. */
-  const SPRITE = Object.freeze({
-    src: './assets/operator/operator-floating-coffee.png',
-    width: 90,
-    astronautTop: 49,
-    astronautLeft: 7,
-    groupRight: 87
+  /* The operator frames come from the approved source video and are never redrawn; this owner
+     only chooses which frame is shown and where the 120 px frame sits. Values are CSS px. */
+  const SCENE = Object.freeze({
+    meta: './assets/operator/operator-coffee-pull.json',
+    base: './assets/operator/',
+    size: 120,         // displayed frame; 180 px sheet cells, 2 device px per cell px at DPR 3
+    clearLeft: 33,     // transparent frame margin at the height of the status line
+    pullTop: -16,      // frame top at the threshold (the tether runs off the top of Home)
+    pullFollow: 0.12,  // frame drift per px of pull below the threshold
+    overFollow: 0.3,   // and beyond it
+    holdTop: 2         // frame top while the cup floats away (cup stays inside the pocket)
   });
 
   const PULL = Object.freeze({
@@ -38,13 +47,20 @@
     dominance: 1.2,
     knee: 60,
     linear: 0.8,
-    max: 136,
-    threshold: 96,
-    disarm: 90,
-    hold: 94,
+    max: 140,
+    threshold: 104,
+    disarm: 98,
+    hold: 122,
     sceneHeight: 176,
     clickGuardMs: 350
   });
+
+  /* A pull never starts on a control or on an element that owns its own gestures: buttons and
+     links, form and slider controls, anything marked data-block-swipe-back (Home calendar,
+     Mission carousel) and the Mission block. The header and the gaps between cards stay free. */
+  const GESTURE_OWNERS =
+    'input, textarea, select, button, a[href], label, [role="button"], [role="slider"], ' +
+    '[contenteditable="true"], [data-block-swipe-back="true"], .multi-mission, #homeMissionCalendar';
 
   const COPY = Object.freeze({
     de: Object.freeze({ pull: 'Zum Aktualisieren ziehen', armed: 'Loslassen', refreshing: 'Wird aktualisiert', done: 'Aktualisiert' }),
@@ -66,8 +82,11 @@
   let g = null; // the current interaction, from touch-down until it has settled
   let frameId = null;
   let routeObserver = null;
+  let animId = null; // release playback or cancel return; never runs while idle
   let clickGuardUntil = 0;
   let spriteRequested = false;
+  let sprite = null; // { meta, img, cells } once the sheet is decoded
+  let shown = -1;    // sheet cell currently drawn
   const timers = new Set();
 
   /* ---------- helpers ---------- */
@@ -86,6 +105,10 @@
   function clearTimers() {
     timers.forEach(function (id) { global.clearTimeout(id); });
     timers.clear();
+  }
+
+  function easeOut(t) {
+    return 1 - Math.pow(1 - t, 4);
   }
 
   function smooth(edge0, edge1, x) {
@@ -169,11 +192,7 @@
         '<i class="fm-op-stars fm-op-stars-near"></i>' +
         '<div class="fm-op-actor">' +
           '<i class="fm-op-glow"></i>' +
-          '<i class="fm-op-pulse"></i>' +
-          '<div class="fm-op-float"><img class="fm-op-sprite" alt="" draggable="false" decoding="async"></div>' +
-          '<div class="fm-op-drops"><i></i><i></i><i></i><i></i></div>' +
-          '<div class="fm-op-sparks"><i></i><i></i><i></i></div>' +
-          '<i class="fm-op-check"></i>' +
+          '<canvas class="fm-op-sprite" width="' + SCENE.size + '" height="' + SCENE.size + '"></canvas>' +
         '</div>' +
       '</div>' +
       '<div class="fm-op-edge"></div>' +
@@ -186,13 +205,15 @@
     live.setAttribute('aria-atomic', 'true');
 
     home.append(scene, live);
+    const canvas = scene.querySelector('.fm-op-sprite');
     ui = {
       home: home,
       content: content,
       scene: scene,
       space: scene.querySelector('.fm-op-space'),
       actor: scene.querySelector('.fm-op-actor'),
-      sprite: scene.querySelector('.fm-op-sprite'),
+      canvas: canvas,
+      ctx: canvas.getContext ? canvas.getContext('2d') : null,
       status: scene.querySelector('.fm-op-status'),
       label: scene.querySelector('.fm-op-label'),
       live: live
@@ -200,11 +221,126 @@
     return true;
   }
 
+  /* ---------- operator frames (one sheet, one canvas) ---------- */
+  function validMeta(meta) {
+    return Boolean(
+      meta && typeof meta.image === 'string' && Array.isArray(meta.frames) && meta.frames.length > 0 &&
+      meta.frameWidth > 0 && meta.frameHeight > 0 && meta.columns > 0 && meta.fps > 0 &&
+      meta.frames.length <= meta.columns * meta.rows &&
+      meta.pull && Array.isArray(meta.pull.map) && meta.pull.map.length >= 2 &&
+      meta.release && meta.release.to > meta.release.from &&
+      meta.release.to === meta.frames[meta.frames.length - 1]
+    );
+  }
+
+  /* Source frame number -> sheet cell: the last stored frame at or before it (the settle range
+     keeps every second source frame). */
+  function cellTable(frames) {
+    const table = [];
+    let cell = 0;
+    for (let n = 0; n <= frames[frames.length - 1]; n += 1) {
+      while (cell + 1 < frames.length && frames[cell + 1] <= n) cell += 1;
+      table.push(cell);
+    }
+    return table;
+  }
+
+  function loadSheet(meta) {
+    return new Promise(function (resolve, reject) {
+      const img = new global.Image();
+      img.decoding = 'async';
+      img.onload = function () {
+        const done = function () { resolve({ meta: meta, img: img, cells: cellTable(meta.frames) }); };
+        if (typeof img.decode === 'function') img.decode().then(done, done);
+        else done();
+      };
+      img.onerror = function () { reject(new Error('sheet')); };
+      img.src = SCENE.base + meta.image;
+    });
+  }
+
+  /* Loaded once; a failure is retried on the next pull. The pull and the refresh work without it. */
   function requestSprite() {
-    if (spriteRequested || !ui) return;
+    if (spriteRequested || sprite || !ui || !ui.ctx || typeof global.fetch !== 'function') return;
     spriteRequested = true;
-    ui.sprite.src = SPRITE.src;
-    if (typeof ui.sprite.decode === 'function') ui.sprite.decode().catch(function () {});
+    global.fetch(SCENE.meta)
+      .then(function (res) {
+        if (!res.ok) throw new Error('meta');
+        return res.json();
+      })
+      .then(function (meta) {
+        if (!validMeta(meta)) throw new Error('meta');
+        return loadSheet(meta);
+      })
+      .then(function (loaded) {
+        sprite = loaded;
+        // A pull that is already open shows its frame as soon as the sheet is ready.
+        if (g && g.locked && (state === STATES.PULLING || state === STATES.ARMED)) render(g.d);
+      })
+      .catch(function () {
+        spriteRequested = false;
+      });
+  }
+
+  function sizeCanvas(dpr) {
+    const px = Math.round(SCENE.size * dpr);
+    if (ui.canvas.width !== px || ui.canvas.height !== px) {
+      ui.canvas.width = px;
+      ui.canvas.height = px;
+      shown = -1;
+    }
+    ui.ctx.imageSmoothingEnabled = false;
+  }
+
+  function clearFrame() {
+    if (ui && ui.ctx && shown !== -1) ui.ctx.clearRect(0, 0, ui.canvas.width, ui.canvas.height);
+    shown = -1;
+  }
+
+  /* Draws source frame `n` (clamped to the clip); redraws only when the sheet cell changes. */
+  function showFrame(n) {
+    if (!sprite) return;
+    const m = sprite.meta;
+    const cells = sprite.cells;
+    const cell = cells[Math.max(0, Math.min(cells.length - 1, Math.floor(n + 1e-6)))];
+    if (cell === shown) return;
+    shown = cell;
+    const w = ui.canvas.width;
+    ui.ctx.clearRect(0, 0, w, w);
+    ui.ctx.drawImage(
+      sprite.img,
+      (cell % m.columns) * m.frameWidth,
+      Math.floor(cell / m.columns) * m.frameHeight,
+      m.frameWidth,
+      m.frameHeight,
+      0,
+      0,
+      w,
+      w
+    );
+  }
+
+  /* Pull progress (0 at lock, 1 at the threshold) to a source frame of the reveal and reach
+     ranges. Piecewise linear and stateless, so pulling back walks the same frames in reverse;
+     past the threshold it stays on the last frame before the glove touches the cup. */
+  function pullFrame(p) {
+    const map = sprite.meta.pull.map;
+    if (p <= map[0][0]) return map[0][1];
+    for (let i = 1; i < map.length; i += 1) {
+      if (p <= map[i][0]) {
+        const a = map[i - 1];
+        const b = map[i];
+        return a[1] + (b[1] - a[1]) * ((p - a[0]) / (b[0] - a[0]));
+      }
+    }
+    return map[map.length - 1][1];
+  }
+
+  function frameForPull(d) {
+    const m = sprite.meta;
+    if (g.m.reduced) return m.reducedMotionFrame;
+    if (state === STATES.ARMED) return m.pull.armedFrame;
+    return Math.min(m.pull.armedFrame, pullFrame(d / PULL.threshold));
   }
 
   function setStatus(key) {
@@ -238,7 +374,7 @@
 
   function ownedByOtherGesture(target) {
     if (!target || typeof target.closest !== 'function') return true;
-    if (target.closest('input, textarea, select, [contenteditable="true"], .multi-mission, #homeMissionCalendar')) return true;
+    if (target.closest(GESTURE_OWNERS)) return true;
     for (let el = target; el && el !== ui.home; el = el.parentElement) {
       if (el.scrollWidth > el.clientWidth + 2) {
         const overflowX = global.getComputedStyle(el).overflowX;
@@ -263,7 +399,10 @@
   /* ---------- interaction ---------- */
   function begin(x, y, input, pointerId) {
     requestSprite();
-    g = { input: input, pointerId: pointerId, startX: x, startY: y, raw: 0, d: 0, locked: false, captured: false, ok: false, m: null };
+    g = {
+      input: input, pointerId: pointerId, startX: x, startY: y, raw: 0, d: 0,
+      locked: false, captured: false, refreshed: false, played: false, ok: false, m: null
+    };
     setState(STATES.TRACKING);
     if (input === 'pointer') setPointerListeners(true);
   }
@@ -311,18 +450,21 @@
       setStatus(key);
       labelWidth = Math.max(labelWidth, ui.status.offsetWidth);
     });
-    const minLeft = ui.status.offsetLeft + labelWidth + 10 - SPRITE.astronautLeft;
-    const maxLeft = width - SPRITE.groupRight - 12;
-    const preferred = width * 0.58 - SPRITE.width / 2;
+    const minLeft = ui.status.offsetLeft + labelWidth + 8 - SCENE.clearLeft;
+    const maxLeft = width - SCENE.size - 12;
+    const preferred = width * 0.58 - SCENE.size / 2;
+    const reduced = reducedMotion();
+    ui.scene.toggleAttribute('data-reduced', reduced);
     return {
       dpr: Math.max(1, Math.min(4, global.devicePixelRatio || 1)),
       edge: ui.content.offsetTop,
       left: Math.max(0, Math.min(maxLeft, Math.max(preferred, minLeft))),
-      reduced: reducedMotion(),
+      reduced: reduced,
       cancel: msVar(styles, '--fm-op-cancel', 280),
       toHold: msVar(styles, '--fm-op-to-hold', 220),
       holdMin: msVar(styles, '--fm-op-hold-min', 400),
       confirm: msVar(styles, '--fm-op-confirm', 340),
+      finalHold: msVar(styles, '--fm-op-final-hold', 380),
       settle: msVar(styles, '--fm-op-settle', 340)
     };
   }
@@ -340,6 +482,7 @@
     ui.home.classList.add('fm-op-active');
     ui.scene.hidden = false;
     g.m = measure();
+    if (ui.ctx) sizeCanvas(g.m.dpr);
     setStatus('pull');
     ui.content.style.setProperty('will-change', 'transform');
     watchLifecycle(true);
@@ -380,29 +523,26 @@
     return D;
   }
 
-  /* The operator drifts down slightly with the pull and tilts its helmet toward the cup near the
-     threshold; with reduced motion it stays still. */
-  function placeOperator(d, upright) {
-    const m = g.m;
-    const p = Math.min(1, d / PULL.threshold);
-    let top = 12;
-    let x = m.left;
-    let rot = 0;
-    if (!m.reduced) {
-      top = 8 + 0.08 * d + 0.3 * Math.max(0, d - PULL.threshold);
-      x = m.left + 3 * p;
-      rot = upright ? 0 : -2 + 6 * smooth(0.2, 1, p);
-    }
-    ui.actor.style.transform =
-      'translate3d(' + snap(x) + 'px,' + snap(top - SPRITE.astronautTop) + 'px,0) rotate(' + rot.toFixed(2) + 'deg)';
+  /* Frame top for a pull: the frame hangs in the pocket and drifts down a little with the pull,
+     so the operator is uncovered from the tether down; with reduced motion it stays still. */
+  function pullTop(d) {
+    if (g.m.reduced) return SCENE.pullTop;
+    const over = d - PULL.threshold;
+    return SCENE.pullTop + over * (over < 0 ? SCENE.pullFollow : SCENE.overFollow);
+  }
+
+  /* The frame is only translated as a whole, on whole device pixels; never scaled or rotated. */
+  function placeOperator(top) {
+    ui.actor.style.transform = 'translate3d(' + snap(g.m.left) + 'px,' + snap(top) + 'px,0)';
   }
 
   function render(d) {
     g.d = placePage(d);
-    placeOperator(g.d, false);
+    placeOperator(pullTop(g.d));
     const p = Math.min(1, g.d / PULL.threshold);
     ui.scene.style.setProperty('--fm-op-p', p.toFixed(3));
     ui.scene.style.setProperty('--fm-op-a', smooth(0.82, 1, p).toFixed(3));
+    if (sprite) showFrame(frameForPull(g.d));
   }
 
   function setTransition(ms, withActor) {
@@ -411,6 +551,13 @@
     ui.scene.style.transition = value;
     ui.space.style.transition = value;
     ui.actor.style.transition = withActor ? value : 'none';
+  }
+
+  function stopAnim() {
+    if (animId !== null) {
+      global.cancelAnimationFrame(animId);
+      animId = null;
+    }
   }
 
   function release(canceled) {
@@ -443,35 +590,75 @@
     else cancelPull();
   }
 
-  /* Below the threshold: no refresh; the page covers the scene again. */
+  /* Below the threshold: no refresh and no cup push. One short return in which the page, the
+     frame position and the reach frames all follow the same eased distance back to rest, so
+     the operator lowers its arm while the page covers the scene again. */
   function cancelPull() {
     setState(STATES.CANCELED);
-    setTransition(g.m.cancel, false);
-    placePage(0);
-    later(g.m.cancel + 40, finish);
+    setTransition(0, false);
+    const from = g.d;
+    const duration = g.m.cancel;
+    const started = now();
+    const step = function () {
+      animId = null;
+      if (state !== STATES.CANCELED || !g) return;
+      const t = duration > 0 ? Math.min(1, (now() - started) / duration) : 1;
+      render(from * (1 - easeOut(t)));
+      if (t >= 1) finish();
+      else animId = global.requestAnimationFrame(step);
+    };
+    animId = global.requestAnimationFrame(step);
   }
 
+  /* Past the threshold: the page holds the pocket open, the remaining frames (cup push, then the
+     settle) play once on the source timeline, starting with the frame after the armed one, and
+     Home is refreshed exactly once while they play. */
   function refresh() {
     const m = g.m;
     const started = now();
+    const animate = Boolean(sprite) && !m.reduced;
     setState(STATES.REFRESHING);
     setStatus('refreshing');
     ui.live.textContent = '';
     setTransition(m.toHold, true);
-    placePage(PULL.hold);
-    placeOperator(PULL.hold, true);
+    placePage(animate ? PULL.hold : PULL.threshold);
+    placeOperator(animate ? SCENE.holdTop : pullTop(PULL.threshold));
     ui.scene.style.setProperty('--fm-op-p', '1');
     ui.scene.style.setProperty('--fm-op-a', '1');
+    if (animate) playRelease();
+    else g.played = true;
     // Run the Home renderers once the hold movement is under way on the compositor.
     later(34, function () {
-      if (state !== STATES.REFRESHING || !g) return;
+      if (state !== STATES.REFRESHING || !g || g.refreshed) return;
+      g.refreshed = true;
       g.ok = refreshHome();
-      later(m.holdMin - (now() - started), confirmRefresh);
+      later(animate ? 0 : m.holdMin - (now() - started), confirmRefresh);
     });
   }
 
+  function playRelease() {
+    const rel = sprite.meta.release;
+    const fps = sprite.meta.fps;
+    const started = now();
+    const step = function () {
+      animId = null;
+      if (state !== STATES.REFRESHING || !g) return;
+      const n = Math.min(rel.to, rel.from + ((now() - started) / 1000) * fps);
+      showFrame(n);
+      if (n >= rel.to) {
+        g.played = true;
+        confirmRefresh();
+        return;
+      }
+      animId = global.requestAnimationFrame(step);
+    };
+    showFrame(rel.from);
+    animId = global.requestAnimationFrame(step);
+  }
+
+  /* Runs once the refresh has executed and the release frames have reached the final pose. */
   function confirmRefresh() {
-    if (state !== STATES.REFRESHING || !g) return;
+    if (state !== STATES.REFRESHING || !g || !g.refreshed || !g.played) return;
     setState(STATES.SETTLING);
     let wait = 0;
     if (g.ok) {
@@ -480,6 +667,7 @@
       announce(copy('done'));
       wait = g.m.confirm;
     }
+    if (sprite && !g.m.reduced) wait = Math.max(wait, g.m.finalHold);
     later(wait, function () {
       if (state !== STATES.SETTLING || !g) return;
       setTransition(g.m.settle, false);
@@ -496,6 +684,7 @@
       global.cancelAnimationFrame(frameId);
       frameId = null;
     }
+    stopAnim();
     setPointerListeners(false);
     watchLifecycle(false);
     if (g && g.captured) {
@@ -519,6 +708,7 @@
       delete ui.scene.dataset.done;
       ui.scene.hidden = true;
       ui.home.classList.remove('fm-op-active');
+      clearFrame();
     }
     g = null;
     setState(STATES.IDLE);
@@ -676,13 +866,13 @@
     home.addEventListener('click', onClickCapture, true);
     home.addEventListener('selectstart', onSelectStart);
     registerStrings();
-    // Decode the sprite once, off the critical path, so the first pull is ready.
+    // Load and decode the frames once, off the critical path, so the first pull is ready.
     if (typeof global.requestIdleCallback === 'function') global.requestIdleCallback(requestSprite, { timeout: 4000 });
     else global.setTimeout(requestSprite, 1500);
   }
 
   const HomePullOperator = Object.freeze({
-    version: 'v17.13 Cosmic Operator Pull',
+    version: 'v17.15 Cosmic Operator Pull Refresh',
     STATES: STATES,
     getState: function () { return state; },
     refreshHome: refreshHome,

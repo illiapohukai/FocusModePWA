@@ -1,4 +1,4 @@
-const CACHE = "focus-mode-v17-14-mission-operator";
+const CACHE = "focus-mode-v17-15-cosmic-operator-pull-refresh";
 const CACHE_PREFIX = "focus-mode";
 
 const CORE = [
@@ -19,7 +19,8 @@ const CORE = [
   "./styles/motion.css",
   "./styles/insights.css",
   "./styles/home-pull.css",
-  "./assets/operator/operator-floating-coffee.png",
+  "./assets/operator/operator-coffee-pull.json",
+  "./assets/operator/operator-coffee-pull-sheet.png",
   "./assets/operator/mission-operator.json",
   "./assets/operator/mission-operator-work.png",
   "./assets/operator/mission-operator-success.png",

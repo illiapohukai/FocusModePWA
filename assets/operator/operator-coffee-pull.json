@@ -1,0 +1,48 @@
+{
+  "name": "operator-coffee-pull",
+  "assetVersion": "v17.15-1",
+  "description": "Floating operator reaching for a coffee cup (Home pull to refresh). Frames are cut, chroma-keyed and downscaled from the approved floating-coffee source video without redrawing. Separate from mission-operator.json (terminal operator, Mission generation).",
+  "source": {
+    "width": 720,
+    "height": 1280,
+    "fps": 24,
+    "frameCount": 76,
+    "note": "Frame numbers count the 76 frames of the trimmed clip (QuickTime edit list starts 1.391 s into the media).",
+    "crop": {
+      "x": 0,
+      "y": 228,
+      "width": 720,
+      "height": 720
+    },
+    "scale": 0.25,
+    "chromaKey": "background #A5DE30 sampled from the border; alpha from chroma projection (0.25-0.60), area-averaged, 1-bit at 50%; 96-colour shared palette"
+  },
+  "image": "operator-coffee-pull-sheet.png",
+  "frameWidth": 180,
+  "frameHeight": 180,
+  "columns": 10,
+  "rows": 7,
+  "fps": 24,
+  "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 50, 52, 54, 56, 58, 60, 62, 64, 66, 68, 70, 72, 74, 75],
+  "phases": {
+    "reveal": [0, 9],
+    "reach": [10, 33],
+    "push": [34, 47],
+    "settle": [48, 75]
+  },
+  "pull": {
+    "map": [
+      [0, 0],
+      [0.15, 0],
+      [0.35, 9],
+      [0.7, 22],
+      [1, 33]
+    ],
+    "armedFrame": 33
+  },
+  "release": {
+    "from": 34,
+    "to": 75
+  },
+  "reducedMotionFrame": 9
+}
