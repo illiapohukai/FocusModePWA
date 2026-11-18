@@ -1,0 +1,354 @@
+/**
+ * Physical stylesheet: styles/home-pull.css
+ * Version: v17.13 Cosmic Operator Pull (experimental)
+ *
+ * Hidden scene revealed above Home while the user pulls Home down at its top edge.
+ * Owner: src/features/home-pull/home-pull-operator.js. At rest the scene is [hidden]
+ * (display: none) and nothing here affects Home geometry.
+ *
+ * Geometry: .fm-op is a window whose bottom edge follows the page edge (header top);
+ * .fm-op-space is counter-translated so the space stays anchored to the top of the screen.
+ * The cream .fm-op-edge with rounded corners is the top of the page sliding down.
+ *
+ * Sprite: assets/operator/operator-floating-coffee.png is one locked image (astronaut,
+ * tether, cup, coffee). It is shown at 90 CSS px wide and only moved as a whole. Positions
+ * below that refer to the sprite (drops, sparks, check, pulse, glow) are in CSS px of that
+ * displayed image (astronaut ≈ x 7–67, y 49–122; cup ≈ x 70–86, y 80–94).
+ */
+
+.fm-op {
+  /* Timing (read by the owner when a pull starts). */
+  --fm-op-cancel: 280ms;
+  --fm-op-to-hold: 220ms;
+  --fm-op-hold-min: 400ms;
+  --fm-op-confirm: 340ms;
+  --fm-op-settle: 340ms;
+  /* Pull progress (0–1) and armed amount (0–1), written per frame by the owner. */
+  --fm-op-p: 0;
+  --fm-op-a: 0;
+
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 176px;
+  overflow: hidden;
+  pointer-events: none;
+  contain: layout paint style;
+  will-change: transform;
+}
+
+.fm-op[hidden] {
+  display: none !important;
+}
+
+#app-screen-home.fm-op-active {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ---------- Space ---------- */
+.fm-op-space {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: linear-gradient(180deg, #2a1c35 0%, #33253e 100%);
+  /* Soft top edge so the space never meets the safe area or the screen edge as a hard line. */
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 8px);
+  mask-image: linear-gradient(180deg, transparent 0, #000 8px);
+  will-change: transform;
+}
+
+/* Pixel stars: one element per layer, each star a box-shadow square (no images, no loop). */
+.fm-op-stars {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 2px;
+  background: transparent;
+}
+
+.fm-op-stars-far {
+  opacity: calc(min(var(--fm-op-p) * 2.4, 1) * 0.7);
+  box-shadow:
+    22px 18px rgba(246, 230, 192, 0.55),
+    58px 44px rgba(196, 181, 253, 0.5),
+    96px 22px rgba(246, 230, 192, 0.45),
+    134px 64px rgba(196, 181, 253, 0.45),
+    168px 30px rgba(246, 230, 192, 0.5),
+    204px 14px rgba(196, 181, 253, 0.5),
+    246px 40px rgba(246, 230, 192, 0.45),
+    286px 20px rgba(196, 181, 253, 0.5),
+    318px 56px rgba(246, 230, 192, 0.5),
+    352px 26px rgba(196, 181, 253, 0.45),
+    388px 48px rgba(246, 230, 192, 0.45),
+    414px 18px rgba(196, 181, 253, 0.45),
+    40px 92px rgba(246, 230, 192, 0.4),
+    112px 104px rgba(196, 181, 253, 0.4),
+    302px 98px rgba(246, 230, 192, 0.4),
+    372px 112px rgba(196, 181, 253, 0.4);
+}
+
+/* Brighter plus-shaped sparkles. */
+.fm-op-stars-near {
+  opacity: clamp(0, calc((var(--fm-op-p) - 0.25) * 2.6), 1);
+  box-shadow:
+    /* sparkle at 78,30 */
+    78px 30px #f6e6c0, 76px 30px rgba(246, 230, 192, 0.55), 80px 30px rgba(246, 230, 192, 0.55),
+    78px 28px rgba(246, 230, 192, 0.55), 78px 32px rgba(246, 230, 192, 0.55),
+    /* sparkle at 334,76 */
+    334px 76px #ddd6fe, 332px 76px rgba(196, 181, 253, 0.55), 336px 76px rgba(196, 181, 253, 0.55),
+    334px 74px rgba(196, 181, 253, 0.55), 334px 78px rgba(196, 181, 253, 0.55),
+    /* sparkle at 146,40 */
+    146px 40px #ddd6fe, 144px 40px rgba(196, 181, 253, 0.5), 148px 40px rgba(196, 181, 253, 0.5),
+    146px 38px rgba(196, 181, 253, 0.5), 146px 42px rgba(196, 181, 253, 0.5),
+    /* single bright pixels */
+    262px 70px #f6e6c0,
+    190px 86px #ddd6fe,
+    400px 88px #f6e6c0;
+}
+
+/* ---------- Operator (locked sprite, moved as a whole) ---------- */
+.fm-op-actor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 90px;
+  height: 161.25px;
+  transform-origin: 37px 85px;
+}
+
+.fm-op-float {
+  position: absolute;
+  inset: 0;
+}
+
+.fm-op-sprite {
+  display: block;
+  width: 90px;
+  height: auto;
+  max-width: none;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+  -webkit-user-drag: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Restrained local violet light behind the operator; brighter when armed. */
+.fm-op-glow {
+  position: absolute;
+  left: -40px;
+  top: 22px;
+  width: 170px;
+  height: 120px;
+  background: radial-gradient(closest-side, rgba(139, 92, 246, 0.3), rgba(139, 92, 246, 0) 100%);
+  opacity: calc(0.3 + 0.7 * var(--fm-op-a));
+}
+
+/* Extra coffee pixels drifting from the cup (the cup itself is part of the sprite). */
+.fm-op-drops,
+.fm-op-sparks {
+  position: absolute;
+  inset: 0;
+}
+
+.fm-op-drops > i {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 3px;
+  height: 3px;
+  background: #4a2714;
+  box-shadow: 1px 1px 0 #2a150a;
+  opacity: clamp(0, calc((var(--fm-op-p) - 0.35) * 3), 1);
+  transform: translate(
+    calc(var(--x) + var(--dx) * var(--fm-op-p)),
+    calc(var(--y) + var(--dy) * var(--fm-op-p))
+  );
+}
+
+.fm-op-drops > i:nth-child(1) { --x: 88px; --y: 74px; --dx: 5px; --dy: -6px; }
+.fm-op-drops > i:nth-child(2) { --x: 84px; --y: 62px; --dx: 3px; --dy: -9px; width: 2px; height: 2px; }
+.fm-op-drops > i:nth-child(3) { --x: 92px; --y: 84px; --dx: 7px; --dy: -2px; width: 2px; height: 2px; background: #6b3f22; }
+.fm-op-drops > i:nth-child(4) { --x: 70px; --y: 70px; --dx: -2px; --dy: -8px; }
+
+/* Readiness: three violet pixels gather around the helmet as the pull arms. */
+.fm-op-sparks > i {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2px;
+  height: 2px;
+  background: #c4b5fd;
+  opacity: var(--fm-op-a);
+  transform: translate(
+    calc(var(--x0) + (var(--x1) - var(--x0)) * var(--fm-op-a)),
+    calc(var(--y0) + (var(--y1) - var(--y0)) * var(--fm-op-a))
+  );
+}
+
+.fm-op-sparks > i:nth-child(1) { --x0: 2px; --y0: 34px; --x1: 8px; --y1: 42px; }
+.fm-op-sparks > i:nth-child(2) { --x0: 66px; --y0: 30px; --x1: 60px; --y1: 40px; background: #ddd6fe; }
+.fm-op-sparks > i:nth-child(3) { --x0: 22px; --y0: 28px; --x1: 30px; --y1: 36px; background: #8b5cf6; width: 3px; height: 3px; }
+
+/* Completion: brief orbit pulse and a small pixel check beside the helmet. */
+.fm-op-pulse {
+  position: absolute;
+  left: -11px;
+  top: 37px;
+  width: 96px;
+  height: 96px;
+  border: 2px solid rgba(196, 181, 253, 0.6);
+  border-radius: 50%;
+  opacity: 0;
+  transform: scale(0.6);
+}
+
+.fm-op-check {
+  position: absolute;
+  left: 58px;
+  top: 40px;
+  width: 2px;
+  height: 2px;
+  opacity: 0;
+  background: transparent;
+  box-shadow:
+    0 4px #4ade80, 2px 6px #4ade80, 4px 8px #4ade80, 6px 6px #4ade80,
+    8px 4px #4ade80, 10px 2px #4ade80, 12px 0 #4ade80,
+    0 6px #15803d, 2px 8px #15803d, 4px 10px #15803d, 6px 8px #15803d,
+    8px 6px #15803d, 10px 4px #15803d, 12px 2px #15803d;
+}
+
+.fm-op[data-state="refreshing"] .fm-op-float {
+  animation: fm-op-bob 560ms steps(2, jump-none) infinite alternate;
+}
+
+.fm-op[data-done="true"] .fm-op-float {
+  animation: fm-op-hop 300ms steps(3, jump-none) 1;
+}
+
+.fm-op[data-done="true"] .fm-op-pulse {
+  animation: fm-op-pulse 420ms var(--ease-standard, cubic-bezier(0.22, 1, 0.36, 1)) 1 both;
+}
+
+.fm-op[data-done="true"] .fm-op-check {
+  animation: fm-op-check 240ms steps(2, jump-none) 1 both;
+}
+
+@keyframes fm-op-bob {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(0, -2px, 0); }
+}
+
+@keyframes fm-op-hop {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -3px, 0); }
+}
+
+@keyframes fm-op-pulse {
+  from { opacity: 0.85; transform: scale(0.6); }
+  to { opacity: 0; transform: scale(1.18); }
+}
+
+@keyframes fm-op-check {
+  from { opacity: 0; transform: translate3d(0, 2px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+/* ---------- Page edge and status ---------- */
+.fm-op-edge {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 20px;
+  border-radius: 20px 20px 0 0;
+  background: var(--app-bg, #f6f1e7);
+}
+
+.fm-op-status {
+  position: absolute;
+  left: 18px;
+  bottom: 28px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  white-space: nowrap;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 14px;
+  letter-spacing: 0.01em;
+  color: rgba(246, 241, 231, 0.84);
+  opacity: clamp(0, calc((var(--fm-op-p) - 0.42) * 4), 1);
+}
+
+.fm-op[data-state="refreshing"] .fm-op-status,
+.fm-op[data-state="settling"] .fm-op-status {
+  opacity: 1;
+}
+
+.fm-op-dot {
+  display: block;
+  width: 6px;
+  height: 6px;
+  background: #8b5cf6;
+}
+
+.fm-op[data-state="armed"] .fm-op-dot,
+.fm-op[data-state="refreshing"] .fm-op-dot {
+  background: #ddd6fe;
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.45);
+}
+
+.fm-op[data-done="true"] .fm-op-dot {
+  background: #4ade80;
+  box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.25);
+}
+
+/* Visually hidden live region for the refresh result. */
+.fm-op-live {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .fm-op {
+    --fm-op-cancel: 110ms;
+    --fm-op-to-hold: 90ms;
+    --fm-op-hold-min: 300ms;
+    --fm-op-confirm: 240ms;
+    --fm-op-settle: 120ms;
+  }
+
+  .fm-op-drops > i {
+    transform: translate(var(--x), var(--y));
+  }
+
+  .fm-op-sparks > i {
+    transform: translate(var(--x1), var(--y1));
+  }
+
+  .fm-op[data-state="refreshing"] .fm-op-float,
+  .fm-op[data-done="true"] .fm-op-float,
+  .fm-op[data-done="true"] .fm-op-pulse {
+    animation: none;
+  }
+
+  .fm-op[data-done="true"] .fm-op-check {
+    animation: none;
+    opacity: 1;
+  }
+}

@@ -2572,6 +2572,7 @@
     dismissStartupSplash,
     canSwipeBackFromCurrentScreen,
     canRootSwipeFromCurrentScreen,
+    isGestureBlockingOverlayOpen,
     init: function () {
       installGlobalTriggerTracking();
       installLifecycleSafetyHandlers();

@@ -1,4 +1,4 @@
-const CACHE = "focus-mode-v17-12-home-navigation-compactness";
+const CACHE = "focus-mode-v17-13-cosmic-operator-pull";
 const CACHE_PREFIX = "focus-mode";
 
 const CORE = [
@@ -18,6 +18,8 @@ const CORE = [
   "./styles/data-management.css",
   "./styles/motion.css",
   "./styles/insights.css",
+  "./styles/home-pull.css",
+  "./assets/operator/operator-floating-coffee.png",
   "./src/core/architecture-shell.js",
   "./src/core/runtime-ownership.js",
   "./src/services/storage-service.js",
@@ -51,7 +53,8 @@ const CORE = [
   "./src/core/navigation.js",
   "./src/core/bootstrap.js",
   "./src/core/cosmic-core.js",
-  "./src/core/motion-controller.js"
+  "./src/core/motion-controller.js",
+  "./src/features/home-pull/home-pull-operator.js"
 ];
 
 const EXTERNAL_CDN_URLS = [
