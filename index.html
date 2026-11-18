@@ -256,6 +256,15 @@
       <div class="hidden"><div id="homeWeekProgress" style="width:0%"></div></div>
     </section>
 
+    <!-- 4b. v17.10 Mission calendar (src/features/missions/mission-calendar.js) -->
+    <section class="home-section-block home-calendar-section" aria-labelledby="homeCalendarHeading">
+      <div class="home-section-head">
+        <span class="home-section-label" id="homeCalendarHeading">MISSIONSKALENDER</span>
+        <button class="home-section-link hidden" id="homeCalendarTodayBtn" type="button">Zum heutigen Tag</button>
+      </div>
+      <div class="home-calendar-card" id="homeMissionCalendar" data-block-swipe-back="true"></div>
+    </section>
+
     <!-- 5. Activity Timeline -->
     <section class="home-section-block home-activity-section" aria-labelledby="homeActivityHeading">
       <div class="home-section-head">
@@ -277,7 +286,7 @@
 </div>
 <!-- FOCUS CHOICE: Schnell oder adaptiv -->
 <!-- LEARNING FLOW: Zieleingabe -->
-<div class="app-screen flow-screen qb hidden" id="app-screen-quicksetup"><div class="qb-main"><div class="qb-top"><button onclick="navigateBack()" aria-label="Zurück" title="Zurück" type="button"><i data-lucide="arrow-left"></i></button><b>Quick Focus</b><span></span></div><header><h3>Richte deine Sitzung ein.</h3><p>Wähle Dauer und Ablenkungen. Alle anderen Apps bleiben verfügbar.</p></header><section><h4>Woran arbeitest du?</h4><label class="qb-task"><span>🎯</span><input id="quickTaskInput" value="" placeholder="Hier eingeben…" autocomplete="off"><i data-lucide="pencil"></i></label></section><section class="qb-duration"><h4>Dauer</h4><div class="qb-time"><div class="qb-ring"><svg viewBox="0 0 180 180"><defs><linearGradient id="qbg"><stop stop-color="#38bdf8"/><stop offset=".52" stop-color="#c084fc"/><stop offset="1" stop-color="#4f46e5"/></linearGradient></defs><circle class="track" cx="90" cy="90" r="69"/><circle id="quickRingProgress" class="progress" cx="90" cy="90" r="69"/></svg><div><strong id="quickMinuteValue">25</strong><span>Min.</span></div></div><aside><button onclick="adjustQuickDuration(5)">+</button><button onclick="adjustQuickDuration(-5)">−</button></aside></div><div class="qb-presets" id="quickDurationButtons"><button class="quick-option" onclick="selectQuickDuration(this,15)">15 Min.</button><button class="quick-option active" onclick="selectQuickDuration(this,25)">25 Min.</button><button class="quick-option" onclick="selectQuickDuration(this,35)">35 Min.</button><button class="quick-option" onclick="selectQuickDuration(this,50)">50 Min.</button></div></section><button class="qb-app" onclick="openDistractionPicker('quicksetup')"><span class="qb-visual"><span class="qb-icons" id="quickSelectedAppIcons"></span><span class="qb-shield"><i data-lucide="shield-off"></i></span></span><span class="qb-copy"><small>Ablenkungen</small><strong><span class="blockedCount">7</span> Apps blockiert</strong><em class="blockedSummary">TikTok · Instagram · YouTube +4</em></span><i data-lucide="chevron-right"></i></button><div class="qb-info"><span><i data-lucide="smartphone"></i></span><p><strong>Dein Smartphone bleibt nutzbar.</strong><br>Nur die ausgewählten Ablenkungen werden blockiert.</p></div></div><div class="qb-bottom"><button onclick="startConfiguredQuickFocus()"><i data-lucide="play"></i> Fokus starten</button></div></div><div class="app-screen flow-screen hidden fs-screen" id="app-screen-distractions">
+<div class="app-screen flow-screen qb hidden" id="app-screen-quicksetup"><div class="qb-main"><div class="qb-top"><button onclick="navigateBack()" aria-label="Zurück" title="Zurück" type="button"><i data-lucide="arrow-left"></i></button><b><i data-lucide="zap" aria-hidden="true"></i>Quick Focus</b><span></span></div><header><h3>Richte deine Sitzung ein.</h3><p>Wähle Dauer und Ablenkungen. Alle anderen Apps bleiben verfügbar.</p></header><section class="qb-task-section"><h4>Woran arbeitest du?</h4><label class="qb-task"><span>🎯</span><input id="quickTaskInput" value="" placeholder="Hier eingeben…" autocomplete="off"><i data-lucide="pencil"></i></label></section><section class="qb-duration" aria-labelledby="quickDurationHeading"><h4 id="quickDurationHeading">Dauer</h4><div class="qb-dial" id="quickDial" data-block-swipe-back="true" data-intensity="2"><div class="qb-dial-orbit" aria-hidden="true"><span class="qb-orbit-line"></span><span class="qb-orbit qb-orbit-a"><i></i><i></i></span><span class="qb-orbit qb-orbit-b"><i></i><i></i></span><span class="qb-orbit qb-orbit-c"><i></i><i></i></span></div><div class="qb-dial-face" id="quickDialFace"><svg viewBox="0 0 240 240" aria-hidden="true" focusable="false"><defs><linearGradient id="qbTrackGrad" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#DCD2C2"/><stop offset="1" stop-color="#F1EBE0"/></linearGradient><linearGradient id="qbArcGrad" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#B69CFB"/><stop offset=".5" stop-color="#7C3AED"/><stop offset="1" stop-color="#5B21B6"/></linearGradient></defs><g class="qb-ticks"><circle class="qb-tick is-major" cx="120.0" cy="8.5" r="2.2"/><circle class="qb-tick" cx="175.8" cy="23.4" r="1.5"/><circle class="qb-tick" cx="216.6" cy="64.2" r="1.5"/><circle class="qb-tick is-major" cx="231.5" cy="120.0" r="2.2"/><circle class="qb-tick" cx="216.6" cy="175.7" r="1.5"/><circle class="qb-tick" cx="175.8" cy="216.6" r="1.5"/><circle class="qb-tick is-major" cx="120.0" cy="231.5" r="2.2"/><circle class="qb-tick" cx="64.2" cy="216.6" r="1.5"/><circle class="qb-tick" cx="23.4" cy="175.8" r="1.5"/><circle class="qb-tick is-major" cx="8.5" cy="120.0" r="2.2"/><circle class="qb-tick" cx="23.4" cy="64.2" r="1.5"/><circle class="qb-tick" cx="64.2" cy="23.4" r="1.5"/></g><circle class="qb-dial-track" cx="120" cy="120" r="96"/><circle class="qb-dial-track-shade" cx="120" cy="120" r="88"/><circle id="quickRingProgress" class="qb-dial-arc" cx="120" cy="120" r="96" pathLength="60" transform="rotate(-90 120 120)" style="stroke-dashoffset:35"/><g id="quickDialThumb" class="qb-dial-thumb" style="transform:rotate(150deg)"><circle class="qb-thumb-halo" cx="120" cy="24" r="16"/><circle class="qb-thumb-knob" cx="120" cy="24" r="10.5"/><circle class="qb-thumb-core" cx="120" cy="24" r="3.2"/></g></svg><div class="qb-dial-readout" aria-hidden="true"><strong id="quickMinuteValue">25</strong><span>Minuten</span></div></div><input class="qb-dial-input" id="quickDurationInput" type="range" min="5" max="60" step="5" value="25" aria-label="Dauer in Minuten" aria-valuetext="25 Minuten"></div><div class="qb-presets" id="quickDurationButtons" role="group" aria-label="Schnellauswahl Dauer"><button class="quick-option" type="button" data-minutes="15" aria-pressed="false" onclick="selectQuickDuration(this,15)">15 Min.</button><button class="quick-option active" type="button" data-minutes="25" aria-pressed="true" onclick="selectQuickDuration(this,25)">25 Min.</button><button class="quick-option" type="button" data-minutes="35" aria-pressed="false" onclick="selectQuickDuration(this,35)">35 Min.</button><button class="quick-option" type="button" data-minutes="50" aria-pressed="false" onclick="selectQuickDuration(this,50)">50 Min.</button></div></section><button class="qb-app" onclick="openDistractionPicker('quicksetup')"><span class="qb-visual"><span class="qb-icons" id="quickSelectedAppIcons"></span><span class="qb-shield"><i data-lucide="shield-off"></i></span></span><span class="qb-copy"><small>Ablenkungen</small><strong><span class="blockedCount">7</span> Apps blockiert</strong><em class="blockedSummary">TikTok · Instagram · YouTube +4</em></span><i data-lucide="chevron-right"></i></button><div class="qb-info"><span><i data-lucide="smartphone"></i></span><p><strong>Dein Smartphone bleibt nutzbar.</strong><br>Nur die ausgewählten Ablenkungen werden blockiert.</p></div></div><div class="qb-bottom"><button onclick="startConfiguredQuickFocus()"><i data-lucide="play"></i> Fokus starten</button></div></div><div class="app-screen flow-screen hidden fs-screen" id="app-screen-distractions">
 <div class="fs-main">
 <div class="fs-topbar"><button class="fm-top-back-btn" onclick="returnFromDistractionPicker()" aria-label="Zurück" title="Zurück" type="button"><i data-lucide="arrow-left"></i></button><span class="fs-topbar-label">Fokus-Schutz</span><span aria-hidden="true"></span></div>
 <header class="fs-header"><h3>Was lenkt dich ab?</h3><p>Wähle die Apps, die während deiner Fokus-Sitzung tabu sind.</p></header>
@@ -640,7 +649,7 @@
   <div class="uc-readout"><div id="timerDigits">25:00</div><div id="timerCaption">Minuten verbleibend</div></div>
   <button class="uc-protect" type="button" title="Tippen zum Anpassen" onclick="openDistractionPicker('timer')"><span></span>Fokusschutz aktiv<i data-lucide="chevron-right"></i></button>
 </section>
-<section class="uc-focus-card" id="ucFocusCard" onclick="showUcTask()" role="button" tabindex="0" aria-label="Aktuelle Aufgabe öffnen">
+<section class="uc-focus-card" id="ucFocusCard" onclick="showUcTask()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showUcTask()}" role="button" tabindex="0" aria-haspopup="dialog" aria-label="Aktuelle Aufgabe öffnen">
   <div class="uc-focus-card-head">
     <span class="uc-focus-label"><i data-lucide="target"></i>Aufgabe</span>
     <div class="uc-focus-progress" id="ucFocusProgress">
@@ -651,7 +660,7 @@
   <strong class="uc-focus-title" id="ucTaskCardTitle">Aktuelle Aufgabe</strong>
   <p class="uc-focus-description" id="timerTaskValue">Konzentriert weiterarbeiten.</p>
 </section>
-<footer class="uc-actions"><button onclick="triggerAppAblenkung()"><i data-lucide="shield-alert"></i>Blockierung testen</button><button onclick="endSessionByUser()"><i data-lucide="square"></i>Sitzung beenden</button></footer>
+<footer class="uc-actions"><button type="button" onclick="triggerAppAblenkung('test')" aria-haspopup="dialog"><i data-lucide="shield-alert"></i>Blockierung testen</button><button onclick="endSessionByUser()"><i data-lucide="square"></i>Sitzung beenden</button></footer>
 </div>
 </div>
 
@@ -816,139 +825,71 @@
 </div>
 </div>
 <!-- ЭКРАН 5: Einstellungen (v17.3 Home System) -->
-<div class="app-screen p-5 flex flex-col justify-start flex-1 space-y-4 hidden" id="app-screen-settings">
-  <div class="settings-shell-v173 space-y-4">
-    <div class="flex items-center justify-between">
-      <div>
-        <span class="text-[9px] text-violet-700 font-black uppercase tracking-[.16em]">Konfiguration &amp; Profil</span>
-        <h3 class="text-[20px] font-black text-slate-950 mt-0.5">Einstellungen</h3>
-      </div>
-      <div class="w-10 h-10 rounded-full bg-violet-100 border border-violet-200 text-violet-800 flex items-center justify-center font-black text-xs">FM+</div>
-    </div>
+<div class="app-screen flex flex-col flex-1 hidden" id="app-screen-settings">
+  <div class="settings-shell-v173 st-shell">
+    <header class="st-header">
+      <div class="st-header-copy"><span class="st-kicker">Konfiguration &amp; Profil</span><h2 class="st-title">Einstellungen</h2></div>
+      <span class="st-avatar" aria-hidden="true">FM+</span>
+    </header>
 
-    <!-- Gruppe 1: Fokus -->
-    <div class="settings-group-v173">
-      <div class="settings-group-label">Fokus &amp; Missionen</div>
-      <div class="settings-card-v173">
-        <button class="settings-nav-row" id="openMissionsFromSettingsBtn" onclick="openMissionManagementFromSettings()" type="button">
-          <div class="flex items-center gap-3 min-w-0">
-            <div class="settings-row-icon bg-violet-100 text-violet-700"><i class="w-4 h-4" data-lucide="target"></i></div>
-            <div class="min-w-0">
-              <div class="settings-row-title">Missionen verwalten</div>
-              <div class="settings-row-sub">Aktive, abgeschlossene und archivierte Missionen</div>
-            </div>
-          </div>
-          <i class="w-4 h-4 text-slate-400 shrink-0" data-lucide="chevron-right"></i>
-        </button>
-        <button class="settings-nav-row" onclick="openDistractionPicker('settings')" type="button">
-          <div class="flex items-center gap-3 min-w-0">
-            <div class="settings-row-icon bg-rose-100 text-rose-700"><i class="w-4 h-4" data-lucide="shield-off"></i></div>
-            <div class="min-w-0">
-              <div class="settings-row-title">Fokus-Schutz &amp; Apps</div>
-              <div class="settings-row-sub"><span class="blockedCount">7</span> Apps während Sitzungen blockiert</div>
-            </div>
-          </div>
-          <i class="w-4 h-4 text-slate-400 shrink-0" data-lucide="chevron-right"></i>
-        </button>
-        <div class="settings-nav-row cursor-default">
-          <div class="flex items-center gap-3 min-w-0">
-            <div class="settings-row-icon bg-amber-100 text-amber-700"><i class="w-4 h-4" data-lucide="sliders"></i></div>
-            <div class="min-w-0">
-              <div class="settings-row-title">Fokus-Intensität</div>
-              <div class="settings-row-sub">Bewusste Barriere bei App-Wechsel</div>
-            </div>
-          </div>
-          <span class="text-[11px] text-violet-800 font-bold bg-violet-50 border border-violet-200 px-2.5 py-1 rounded-full shrink-0">Mittel</span>
-        </div>
+    <!-- v17.10: real local summary, filled by refreshDataManagementUI() -->
+    <section class="st-summary" aria-labelledby="settingsSummaryTitle">
+      <div class="st-summary-head"><span class="st-summary-kicker"><i data-lucide="sparkles" aria-hidden="true"></i>Focus Mode+</span><span class="st-summary-chip"><span class="st-live-dot" aria-hidden="true"></span><span id="settingsStorageState">Lokal gespeichert</span></span></div>
+      <h3 class="st-summary-title" id="settingsSummaryTitle">Dein Fokus-System</h3>
+      <div class="st-summary-stats">
+        <div><strong id="settingsActiveMissions">0 / 2</strong><span>Aktive Missionen</span></div>
+        <div><strong id="settingsSavedSessions">0</strong><span>Sitzungen gespeichert</span></div>
+        <div><strong><span class="blockedCount">7</span></strong><span>Apps im Fokus-Schutz</span></div>
       </div>
-    </div>
+    </section>
 
-    <!-- Gruppe 2: Darstellung & Sprache -->
-    <div class="settings-group-v173">
-      <div class="settings-group-label">Darstellung &amp; Sprache</div>
+    <section class="settings-group-v173" aria-labelledby="settingsGroupFocus">
+      <h3 class="settings-group-label" id="settingsGroupFocus">Fokus &amp; Missionen</h3>
       <div class="settings-card-v173">
-        <div class="settings-nav-row cursor-default">
-          <div class="flex items-center gap-3 min-w-0">
-            <div class="settings-row-icon bg-violet-100 text-violet-700"><i class="w-4 h-4" data-lucide="languages"></i></div>
-            <div class="min-w-0">
-              <div class="settings-row-title">Sprache</div>
-              <div class="settings-row-sub">Oberflächensprache wählen</div>
-            </div>
-          </div>
-          <div class="settings-lang-pills" role="group" aria-label="Sprache">
-            <button class="settings-lang-pill lang-option active" data-lang="de" onclick="setLanguage('de')" type="button">DE</button>
-            <button class="settings-lang-pill lang-option" data-lang="en" onclick="setLanguage('en')" type="button">EN</button>
-          </div>
-        </div>
+        <button class="settings-nav-row" id="openMissionsFromSettingsBtn" onclick="openMissionManagementFromSettings()" type="button"><span class="st-row-main"><span class="settings-row-icon st-tone-violet" aria-hidden="true"><i data-lucide="target"></i></span><span class="st-row-copy"><span class="settings-row-title">Missionen verwalten</span><span class="settings-row-sub">Aktive, abgeschlossene und archivierte Missionen</span></span></span><i class="st-chev" data-lucide="chevron-right" aria-hidden="true"></i></button>
+        <button class="settings-nav-row" onclick="openDistractionPicker('settings')" type="button"><span class="st-row-main"><span class="settings-row-icon st-tone-rose" aria-hidden="true"><i data-lucide="shield-off"></i></span><span class="st-row-copy"><span class="settings-row-title">Fokus-Schutz &amp; Apps</span><span class="settings-row-sub"><span class="blockedCount">7</span> Apps während Sitzungen blockiert</span></span></span><i class="st-chev" data-lucide="chevron-right" aria-hidden="true"></i></button>
+        <div class="settings-nav-row" role="group" aria-label="Fokus-Intensität"><span class="st-row-main"><span class="settings-row-icon st-tone-amber" aria-hidden="true"><i data-lucide="sliders"></i></span><span class="st-row-copy"><span class="settings-row-title">Fokus-Intensität</span><span class="settings-row-sub">Bewusste Barriere bei App-Wechsel</span></span></span><span class="st-value-chip">Mittel</span></div>
       </div>
-    </div>
+    </section>
 
-    <!-- Gruppe 3: Daten & Backup -->
-    <div class="settings-group-v173">
-      <div class="settings-group-label">Daten &amp; Backup</div>
+    <section class="settings-group-v173" aria-labelledby="settingsGroupLook">
+      <h3 class="settings-group-label" id="settingsGroupLook">Darstellung &amp; Sprache</h3>
       <div class="settings-card-v173">
-        <button class="settings-nav-row" id="openDataScreenBtn" onclick="openDataManagementScreen()" type="button">
-          <div class="flex items-center gap-3 min-w-0">
-            <div class="settings-row-icon bg-emerald-100 text-emerald-700"><i class="w-4 h-4" data-lucide="database"></i></div>
-            <div class="min-w-0">
-              <div class="settings-row-title">Daten &amp; Backup</div>
-              <div class="settings-row-sub">Lokale Daten sichern, importieren oder zurücksetzen</div>
-            </div>
-          </div>
-          <i class="w-4 h-4 text-slate-400 shrink-0" data-lucide="chevron-right"></i>
-        </button>
+        <div class="settings-nav-row" role="group" aria-label="Sprache"><span class="st-row-main"><span class="settings-row-icon st-tone-violet" aria-hidden="true"><i data-lucide="languages"></i></span><span class="st-row-copy"><span class="settings-row-title">Sprache</span><span class="settings-row-sub">Oberflächensprache wählen</span></span></span><span class="settings-lang-pills" role="group" aria-label="Sprache"><button class="settings-lang-pill lang-option active" data-lang="de" onclick="setLanguage('de')" type="button">DE</button><button class="settings-lang-pill lang-option" data-lang="en" onclick="setLanguage('en')" type="button">EN</button></span></div>
       </div>
-    </div>
+    </section>
 
-    <!-- Gruppe 4: Konto & Premium -->
-    <div class="settings-group-v173">
-      <div class="settings-group-label">Konto &amp; Coaching</div>
+    <section class="settings-group-v173" aria-labelledby="settingsGroupData">
+      <h3 class="settings-group-label" id="settingsGroupData">Daten &amp; Backup</h3>
       <div class="settings-card-v173">
-        <button class="settings-nav-row" onclick="setAppScreen('chat')" type="button">
-          <div class="flex items-center gap-3 min-w-0">
-            <div class="settings-row-icon bg-violet-100 text-violet-700"><i class="w-4 h-4" data-lucide="message-square"></i></div>
-            <div class="min-w-0">
-              <div class="settings-row-title">AI Coach</div>
-              <div class="settings-row-sub">Langfristige Fokus-Muster &amp; Empfehlungen</div>
-            </div>
-          </div>
-          <i class="w-4 h-4 text-slate-400 shrink-0" data-lucide="chevron-right"></i>
-        </button>
+        <button class="settings-nav-row" id="openDataScreenBtn" onclick="openDataManagementScreen()" type="button"><span class="st-row-main"><span class="settings-row-icon st-tone-green" aria-hidden="true"><i data-lucide="database"></i></span><span class="st-row-copy"><span class="settings-row-title">Daten &amp; Backup</span><span class="settings-row-sub">Lokale Daten sichern, importieren oder zurücksetzen</span></span></span><i class="st-chev" data-lucide="chevron-right" aria-hidden="true"></i></button>
+        <div class="st-backup-line"><i data-lucide="history" aria-hidden="true"></i><span>Letztes Backup</span><b id="settingsLastBackup">Kein Backup</b></div>
       </div>
-      <div class="settings-premium-banner mt-2.5" onclick="navigateForward('premium',{parent:'settings',rootSection:'settings'})" role="button" tabindex="0">
-        <div class="flex items-center justify-between gap-3">
-          <div>
-            <div class="text-[9px] font-black uppercase tracking-[.14em] text-violet-200">Focus Mode+ Pro</div>
-            <h4 class="font-black text-sm text-white mt-0.5">Premium aktivieren</h4>
-            <p class="text-[10px] text-violet-200/80 mt-0.5">Schalte alle Pro-Features &amp; AI-Analysen frei.</p>
-          </div>
-          <span class="w-9 h-9 rounded-2xl bg-white/10 text-amber-300 flex items-center justify-center shrink-0"><i class="w-4 h-4" data-lucide="crown"></i></span>
-        </div>
-      </div>
-    </div>
+    </section>
 
-    <!-- Gruppe 5: Über die App -->
-    <div class="settings-group-v173">
-      <div class="settings-group-label">Über die App</div>
+    <section class="settings-group-v173" aria-labelledby="settingsGroupAccount">
+      <h3 class="settings-group-label" id="settingsGroupAccount">Konto &amp; Coaching</h3>
       <div class="settings-card-v173">
-        <div class="settings-nav-row cursor-default">
-          <div class="flex items-center gap-3 min-w-0">
-            <div class="settings-row-icon bg-slate-100 text-slate-700"><i class="w-4 h-4" data-lucide="sparkles"></i></div>
-            <div class="min-w-0">
-              <div class="settings-row-title">Focus Mode+</div>
-              <div class="settings-row-sub">Offline-fähig · Lokale Speicherung</div>
-            </div>
-          </div>
-          <span class="text-[10px] font-bold text-slate-600">v17.6 Navigation, Insights &amp; League Polish</span>
-        </div>
+        <button class="settings-nav-row" onclick="setAppScreen('chat')" type="button"><span class="st-row-main"><span class="settings-row-icon st-tone-violet" aria-hidden="true"><i data-lucide="message-square"></i></span><span class="st-row-copy"><span class="settings-row-title">AI Coach</span><span class="settings-row-sub">Langfristige Fokus-Muster &amp; Empfehlungen</span></span></span><i class="st-chev" data-lucide="chevron-right" aria-hidden="true"></i></button>
       </div>
-    </div>
+      <div class="settings-premium-banner" onclick="navigateForward('premium',{parent:'settings',rootSection:'settings'})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" role="button" tabindex="0">
+        <span class="st-premium-copy"><span class="st-premium-kicker">Focus Mode+ Pro</span><strong>Premium aktivieren</strong><span class="st-premium-sub">Schalte alle Pro-Features &amp; AI-Analysen frei.</span></span>
+        <span class="st-premium-icon" aria-hidden="true"><i data-lucide="crown"></i></span>
+      </div>
+    </section>
+
+    <section class="settings-group-v173" aria-labelledby="settingsGroupAbout">
+      <h3 class="settings-group-label" id="settingsGroupAbout">Über die App</h3>
+      <div class="settings-card-v173">
+        <div class="settings-nav-row"><span class="st-row-main"><span class="settings-row-icon st-tone-neutral" aria-hidden="true"><i data-lucide="sparkles"></i></span><span class="st-row-copy"><span class="settings-row-title">Focus Mode+</span><span class="settings-row-sub">Offline-fähig · Lokale Speicherung</span></span></span><span class="st-version">v17.6 Navigation, Insights &amp; League Polish</span></div>
+      </div>
+    </section>
   </div>
 </div>
 <!-- ЭКРАН 5B: Daten & Backup (v16 Data Stability) -->
 <div class="app-screen p-4 flex flex-col flex-1 hidden overflow-y-auto hide-scrollbar bg-slate-50" id="app-screen-data">
 <div class="data-screen-shell">
-<div class="flex items-center justify-between gap-2">
+<div class="data-screen-head flex items-center justify-between gap-2">
 <button class="fm-top-back-btn w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition shrink-0" onclick="navigateBack()" aria-label="Zurück" title="Zurück" type="button">
 <i class="w-4 h-4" data-lucide="arrow-left"></i>
 </button>
@@ -1275,7 +1216,7 @@
   </div>
 </div>
 </div>
-<div id="ucTaskPopup" onclick="if(event.target===this)hideUcTask()"><div><small>Aktuelle Aufgabe</small><h3 id="ucTaskTitle">Missionsschritt</h3><p id="ucTaskText">Aufgabe</p><button onclick="hideUcTask()">Weiter fokussieren</button></div></div>
+<div id="ucTaskPopup" class="uc-layer" hidden><div class="uc-layer-dim" data-uc-close="true" aria-hidden="true"></div><section class="uc-sheet" id="ucTaskSheet" role="dialog" aria-modal="true" aria-labelledby="ucTaskTitle" aria-describedby="ucTaskText"><span class="uc-sheet-grip" aria-hidden="true"></span><header class="uc-sheet-head"><span class="uc-sheet-kicker"><i data-lucide="target" aria-hidden="true"></i>Aktuelle Aufgabe</span><button class="uc-sheet-close" type="button" data-uc-close="true" aria-label="Schließen" title="Schließen"><i data-lucide="x"></i></button></header><h3 class="uc-sheet-title" id="ucTaskTitle">Missionsschritt</h3><div class="uc-sheet-meta" id="ucTaskMeta"></div><div class="uc-sheet-body" id="ucTaskBody"><div class="uc-sheet-text" id="ucTaskText">Aufgabe</div></div><footer class="uc-sheet-foot"><button class="uc-sheet-primary" type="button" data-uc-close="true"><i data-lucide="play" aria-hidden="true"></i>Weiter fokussieren</button></footer></section></div>
 <!-- POPUP: Успешная покупка (Apple Pay style) -->
 <div class="absolute inset-0 bg-slate-950/40 dark:bg-black/60 backdrop-blur-xl z-[80] flex items-center justify-center p-5 hidden transition-all duration-300 ease-out opacity-0" id="screen-popup-success">
 <div class="bg-white/90 dark:bg-neutral-800/90 backdrop-blur-md rounded-[32px] p-8 w-48 text-center flex flex-col items-center justify-center shadow-2xl transform transition-all duration-300 ease-out scale-90 opacity-0 border border-slate-100 dark:border-white/10" id="popupContentSuccess">
@@ -1285,22 +1226,8 @@
 <span class="text-slate-900 dark:text-white font-bold text-sm tracking-wide">Aktiviert</span>
 </div>
 </div>
-<!-- POPUP: Ablenkung -->
-<div class="absolute inset-0 bg-slate-950/40 dark:bg-black/60 backdrop-blur-xl z-50 flex items-center justify-center p-5 hidden transition-all duration-300 ease-out opacity-0" id="screen-popup-ablenkung">
-<div class="bg-white rounded-3xl p-6 w-full text-center space-y-5 shadow-2xl transform transition-all duration-300 ease-out scale-95 opacity-0" id="popupContentAblenkung">
-<div class="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-50 mx-auto animate-bounce">
-<i class="w-8 h-8 text-amber-500" data-lucide="alert-triangle"></i>
-</div>
-<div class="space-y-2">
-<h3 class="text-xl font-bold text-slate-900">Instagram ist blockiert</h3>
-<p class="text-xs text-slate-500 leading-relaxed">Du hast Instagram für diese Fokus-Sitzung als Ablenkung ausgewählt.</p>
-</div>
-<div class="space-y-2">
-<button class="w-full py-3 bg-indigo-600 text-white rounded-xl text-xs font-semibold hover:bg-indigo-700 transition" onclick="closePopup('ablenkung', true)">Zurück zum Fokus</button>
-<button class="w-full py-3 bg-slate-100 text-slate-600 rounded-xl text-xs font-semibold hover:bg-slate-200 transition" onclick="closePopup('ablenkung', false)">Trotzdem verlassen</button>
-</div>
-</div>
-</div>
+<!-- POPUP: Ablenkung / v17.10 Fokus-Schutz dialog (owner: triggerAppAblenkung in src/core/navigation.js) -->
+<div class="uc-barrier hidden" id="screen-popup-ablenkung" role="dialog" aria-modal="true" aria-labelledby="ucBarrierTitle"><div class="uc-layer-dim" aria-hidden="true"></div><section class="uc-barrier-card" id="popupContentAblenkung" data-state="ready"><header class="uc-barrier-head"><span class="uc-sheet-kicker"><i data-lucide="shield-check" aria-hidden="true"></i><span id="ucBarrierKicker">Fokus-Schutz</span></span><span class="uc-barrier-time" id="ucBarrierTime" aria-label="Verbleibende Zeit"></span></header><div class="uc-barrier-stage" id="ucBarrierStage" aria-live="polite"><h3 id="ucBarrierTitle">Fokus-Schutz</h3></div><div class="uc-barrier-actions" id="ucBarrierActions"></div></section></div>
 <!-- POPUP: Achievement -->
 <div class="absolute inset-0 bg-slate-950/60 dark:bg-black/80 backdrop-blur-xl z-[70] flex items-center justify-center p-5 hidden transition-all duration-300 ease-out opacity-0" id="screen-popup-achievement">
 <div class="bg-gradient-to-b from-amber-50 to-white dark:from-neutral-800 dark:to-neutral-900 rounded-3xl p-6 w-full text-center space-y-5 shadow-[0_0_50px_rgba(245,158,11,0.3)] transform transition-all duration-500 ease-out scale-90 opacity-0 border border-amber-200/50 dark:border-amber-500/20" id="popupContentAchievement">
@@ -1371,6 +1298,7 @@
 <script src="./src/repositories/mission-repository.js"></script>
 <script id="multiMissionCoreV115" src="./src/features/missions/mission-management.js"></script>
 <script id="multiMissionUXV116" src="./src/features/missions/multi-mission-ui.js"></script>
+<script id="missionCalendarV1710" src="./src/features/missions/mission-calendar.js"></script>
 
 
 

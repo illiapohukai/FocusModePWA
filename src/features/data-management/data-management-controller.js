@@ -42,6 +42,27 @@
     return lang === 'en' ? 'en' : 'de';
   }
 
+  /* v17.10 Settings static copy (translated by the shared text-node i18n). */
+  if (typeof I18N === 'object' && I18N.en) {
+    Object.assign(I18N.en, {
+      'Konfiguration & Profil': 'Configuration & Profile',
+      'Dein Fokus-System': 'Your focus system',
+      'Lokal gespeichert': 'Stored locally',
+      'Sitzungen gespeichert': 'Sessions saved',
+      'Apps im Fokus-Schutz': 'Apps in focus protection',
+      'Fokus & Missionen': 'Focus & Missions',
+      'Aktive, abgeschlossene und archivierte Missionen': 'Active, completed and archived missions',
+      'Fokus-Schutz & Apps': 'Focus protection & apps',
+      'Apps während Sitzungen blockiert': 'apps blocked during sessions',
+      'Bewusste Barriere bei App-Wechsel': 'A conscious barrier when switching apps',
+      'Darstellung & Sprache': 'Appearance & Language',
+      'Konto & Coaching': 'Account & Coaching',
+      'Langfristige Fokus-Muster & Empfehlungen': 'Long-term focus patterns & recommendations',
+      'Über die App': 'About the app',
+      'Offline-fähig · Lokale Speicherung': 'Works offline · Local storage'
+    });
+  }
+
   function t(deText, enText) {
     return currentLang() === 'en' ? enText : deText;
   }
@@ -149,6 +170,8 @@
         : t('Eingeschränkt', 'Restricted');
     }
 
+    syncSettingsSummary(summary);
+
     if (summary.lastBackup.available) {
       if (lastBackupEl) {
         lastBackupEl.textContent =
@@ -172,6 +195,20 @@
     if (global.lucide?.createIcons) {
       global.lucide.createIcons();
     }
+  }
+
+  /* v17.10: the Settings summary and backup line show the same real local summary as the Data screen. */
+  function syncSettingsSummary(summary) {
+    const doc = global.document;
+    const set = (id, value) => { const el = doc.getElementById(id); if (el && el.textContent !== value) el.textContent = value; };
+    set('settingsActiveMissions', summary.activeMissionCount + ' / 2');
+    set('settingsSavedSessions', String(summary.sessionCount));
+    set('settingsStorageState', summary.storageAvailable ? t('Lokal gespeichert', 'Stored locally') : t('Speicher eingeschränkt', 'Storage restricted'));
+    const card = doc.querySelector('#app-screen-settings .st-summary');
+    if (card) card.dataset.storage = summary.storageAvailable ? 'ok' : 'limited';
+    set('settingsLastBackup', summary.lastBackup.available
+      ? formatTimestamp(summary.lastBackup.exportedAt || summary.lastBackup.timestamp)
+      : t('Kein Backup', 'No backup'));
   }
 
   function openDataManagementScreen() {

@@ -1,4 +1,4 @@
-const CACHE = "focus-mode-v17-9-cosmic-core";
+const CACHE = "focus-mode-v17-10-planning-quick-focus-utilities";
 const CACHE_PREFIX = "focus-mode";
 
 const CORE = [
@@ -47,6 +47,7 @@ const CORE = [
   "./src/features/optional-adaptation/optional-adaptation.js",
   "./src/features/missions/mission-management.js",
   "./src/features/missions/multi-mission-ui.js",
+  "./src/features/missions/mission-calendar.js",
   "./src/core/navigation.js",
   "./src/core/bootstrap.js",
   "./src/core/cosmic-core.js",

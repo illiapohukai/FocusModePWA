@@ -1,66 +1,148 @@
-/* === quickFocusRoutingFixV1337 === */
-/* Smooth only the Quick Focus progress arc. Existing geometry and routing stay untouched. */
-#quickRingProgress{
-  transition:stroke-dashoffset .42s cubic-bezier(.22,1,.36,1);
-  will-change:stroke-dashoffset;
-}
-.qb-task input::placeholder{
-  color:#9ca3af;
-  opacity:1;
-  font-weight:700;
-}
-@media(prefers-reduced-motion:reduce){
-  #quickRingProgress{transition-duration:.01ms}
-}
-
-/* === cleanQuickFocusV13313 === */
-/* v13.3.13: clean card surfaces and let Quick Focus paint through the full app viewport. */
-#app-screen-quicksetup{
-  position:absolute!important;
-  inset:0!important;
-  width:100%!important;
-  height:100%!important;
-  min-height:100%!important;
-  display:flex!important;
-  flex-direction:column!important;
-  overflow:hidden!important;
-  background:radial-gradient(circle at 85% 18%,rgba(196,181,253,.18),transparent 28%),#F6F1E7!important;
-  padding-bottom:0!important;
-}
+/* ==========================================================================
+   v17.10 QUICK FOCUS SETUP (#app-screen-quicksetup)
+   Same content width and rhythm as Mission Creation: one 20px page margin,
+   no nested side padding. The scroll area scrolls on short viewports while the
+   Start action stays pinned. Duration state is owned by quick-focus.js.
+   ========================================================================== */
+#app-screen-quicksetup{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:100%!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;padding:0!important;background:radial-gradient(circle at 86% 14%,rgba(196,181,253,.20),transparent 30%),#F6F1E7!important;color:#1D1A17}
 #app-screen-quicksetup.hidden{display:none!important}
-#app-screen-quicksetup .qb-main{
-  flex:1 1 auto!important;
-  min-height:0!important;
+.qb-main{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;padding:calc(18px + env(safe-area-inset-top)) 20px 18px}
+.qb-main::-webkit-scrollbar{display:none}
+.qb-top{display:grid;grid-template-columns:46px minmax(0,1fr) 46px;align-items:center}
+.qb-top button{width:46px;height:46px;border-radius:17px;border:1px solid rgba(45,35,30,.12);background:rgba(252,249,244,.9);color:#1D1A17;display:grid;place-items:center;box-shadow:0 2px 8px rgba(37,22,43,.05),inset 0 1px #fff;cursor:pointer}
+.qb-top button svg{width:21px;height:21px}
+.qb-top button:active{transform:scale(.95)}
+.qb-top button:focus-visible{outline:2px solid #6D28D9;outline-offset:2px}
+.qb-top b{justify-self:center;display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:999px;color:#6248bd;background:linear-gradient(110deg,#eee9ff,#e6e2ff);font-size:11px;font-weight:850;line-height:1;white-space:nowrap}
+.qb-top b svg{width:15px;height:15px}
+.qb header{margin-top:20px}
+.qb header h3{margin:0;font-size:clamp(28px,8vw,38px);line-height:1.03;font-weight:950;letter-spacing:-.05em;color:#14110F;text-wrap:balance}
+.qb header p{margin:9px 0 0;font-size:14px;line-height:1.45;color:#766E65}
+.qb section{margin-top:22px}
+.qb h4{margin:0 0 10px;font-size:12px;font-weight:950;letter-spacing:.035em;text-transform:uppercase;color:#1D1A17}
+
+.qb-task{display:grid;grid-template-columns:30px minmax(0,1fr) 20px;align-items:center;gap:10px;height:62px;padding:0 18px;border-radius:22px;border:1px solid rgba(45,35,30,.10);background:#FCF9F4;box-shadow:0 14px 28px -14px rgba(37,22,43,.18),inset 0 1px #fff;cursor:text;transition:border-color var(--motion-fast,160ms) ease,box-shadow var(--motion-fast,160ms) ease}
+.qb-task:focus-within{border-color:rgba(109,40,217,.38);box-shadow:0 14px 28px -14px rgba(109,40,217,.28),0 0 0 4px rgba(109,40,217,.08)}
+.qb-task>span{font-size:20px;line-height:1}
+.qb-task input{min-width:0;width:100%;border:0;outline:0;background:transparent;color:#1D1A17;font-size:16px;font-weight:750}
+.qb-task input::placeholder{color:#A39A90;opacity:1;font-weight:700}
+.qb-task svg{width:18px;height:18px;color:#8A8178}
+
+/* Circular duration dial: warm neutral face, recessed track, purple arc, one draggable thumb. */
+.qb-duration h4{margin-bottom:4px}
+.qb-dial{--qb-dial:min(62vw,236px);--qb-snap:var(--motion-normal,350ms);position:relative;width:calc(var(--qb-dial) + 28px);height:calc(var(--qb-dial) + 28px);margin:0 auto;display:grid;place-items:center}
+.qb-dial-face{position:relative;z-index:2;width:var(--qb-dial);height:var(--qb-dial);border-radius:50%;touch-action:none;-webkit-tap-highlight-color:transparent;cursor:grab;user-select:none;-webkit-user-select:none;
+  background:radial-gradient(circle at 34% 22%,rgba(255,255,255,.95) 0%,rgba(255,255,255,0) 42%),linear-gradient(160deg,#FFFDF9 0%,#F4EEE4 58%,#EAE2D5 100%);
+  box-shadow:0 22px 40px -18px rgba(37,22,43,.30),0 8px 16px -10px rgba(37,22,43,.14),inset 0 1px 0 #fff,inset 0 -3px 8px rgba(120,100,80,.08)}
+.qb-dial.is-dragging .qb-dial-face{cursor:grabbing}
+.qb-dial-face svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.qb-tick{fill:#CFC5B6}
+.qb-tick.is-major{fill:#B3A897}
+.qb-dial-track{fill:none;stroke:url(#qbTrackGrad);stroke-width:19}
+.qb-dial-track-shade{fill:none;stroke:rgba(80,62,45,.07);stroke-width:2}
+.qb-dial-arc{fill:none;stroke:url(#qbArcGrad);stroke-width:19;stroke-linecap:round;stroke-dasharray:60;transition:stroke-dashoffset var(--qb-snap) var(--ease-standard,cubic-bezier(.22,1,.36,1));filter:drop-shadow(0 3px 6px rgba(109,40,217,var(--qb-glow,.22)))}
+.qb-dial-thumb{transform-box:view-box;transform-origin:120px 120px;transition:transform var(--qb-snap) var(--ease-standard,cubic-bezier(.22,1,.36,1))}
+.qb-thumb-halo{fill:rgba(109,40,217,.14)}
+.qb-thumb-knob{fill:#FFFDF9;stroke:#7C3AED;stroke-width:3;filter:drop-shadow(0 3px 5px rgba(37,22,43,.28))}
+.qb-thumb-core{fill:#6D28D9}
+.qb-dial.is-dragging{--qb-snap:var(--motion-instant,90ms)}
+.qb-dial.is-dragging .qb-thumb-halo{fill:rgba(109,40,217,.22)}
+.qb-dial-readout{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+.qb-dial-readout strong{font-size:calc(var(--qb-dial) * .25);line-height:.9;font-weight:900;letter-spacing:-.05em;color:#1D1A17;font-variant-numeric:tabular-nums}
+.qb-dial-readout span{margin-top:6px;font-size:14px;font-weight:800;color:#8A8178}
+.qb-dial-input{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);border:0;white-space:nowrap;opacity:0;pointer-events:none}
+.qb-dial:has(.qb-dial-input:focus-visible) .qb-dial-face{outline:3px solid rgba(109,40,217,.55);outline-offset:4px}
+
+/* Orbit: a quiet echo of the Cosmic Core. Intensity follows the selected duration
+   (data-intensity 1–4) through opacity only; speeds are fixed per layer. */
+.qb-dial-orbit{position:absolute;inset:0;z-index:1;pointer-events:none}
+.qb-orbit-line{position:absolute;inset:3px;border-radius:50%;border:1px solid rgba(109,40,217,.10);transition:border-color var(--motion-slow,500ms) ease}
+.qb-orbit{position:absolute;inset:3px;border-radius:50%;opacity:0;transition:opacity var(--motion-slow,500ms) ease;animation:qbOrbitSpin 38s linear infinite}
+.qb-orbit i{position:absolute;inset:0}
+.qb-orbit i:nth-child(2){transform:rotate(172deg)}
+.qb-orbit i::before{content:"";position:absolute;left:50%;top:0;width:5px;height:5px;margin:-2.5px 0 0 -2.5px;border-radius:50%;background:#8B5CF6;box-shadow:0 0 6px rgba(139,92,246,.55)}
+.qb-orbit-b{animation-duration:27s;animation-direction:reverse}
+.qb-orbit-b i:nth-child(1){transform:rotate(64deg)}
+.qb-orbit-b i:nth-child(2){transform:rotate(238deg)}
+.qb-orbit-b i::before{width:4px;height:4px;margin:-2px 0 0 -2px;background:#A78BFA}
+.qb-orbit-c{animation-duration:21s}
+.qb-orbit-c i:nth-child(1){transform:rotate(118deg)}
+.qb-orbit-c i:nth-child(2){transform:rotate(300deg)}
+.qb-orbit-c i::before{width:3px;height:3px;margin:-1.5px 0 0 -1.5px;background:#C4B5FD}
+.qb-dial[data-intensity="1"] .qb-orbit-a{opacity:.45}
+.qb-dial[data-intensity="2"] .qb-orbit-a{opacity:.65}
+.qb-dial[data-intensity="2"] .qb-orbit-b{opacity:.45}
+.qb-dial[data-intensity="3"] .qb-orbit-a,.qb-dial[data-intensity="4"] .qb-orbit-a{opacity:.8}
+.qb-dial[data-intensity="3"] .qb-orbit-b{opacity:.6}
+.qb-dial[data-intensity="3"] .qb-orbit-c{opacity:.4}
+.qb-dial[data-intensity="4"] .qb-orbit-b{opacity:.75}
+.qb-dial[data-intensity="4"] .qb-orbit-c{opacity:.65}
+.qb-dial[data-intensity="1"]{--qb-glow:.14}
+.qb-dial[data-intensity="3"]{--qb-glow:.30}
+.qb-dial[data-intensity="4"]{--qb-glow:.38}
+.qb-dial[data-intensity="3"] .qb-orbit-line,.qb-dial[data-intensity="4"] .qb-orbit-line{border-color:rgba(109,40,217,.16)}
+@keyframes qbOrbitSpin{to{transform:rotate(360deg)}}
+
+/* Presets: one compact segmented row, secondary to the dial. */
+.qb-presets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin-top:6px;padding:4px;border-radius:18px;background:#EFE9DD;border:1px solid rgba(45,35,30,.06)}
+.qb-presets button{height:40px;min-width:0;border:1px solid transparent;border-radius:14px;background:transparent;color:#766E65;font-size:14px;font-weight:800;white-space:nowrap;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color var(--motion-fast,160ms) ease,color var(--motion-fast,160ms) ease,border-color var(--motion-fast,160ms) ease,box-shadow var(--motion-fast,160ms) ease,transform var(--motion-instant,90ms) ease}
+.qb-presets button.active{background:#FFFDF9;color:#5B21B6;border-color:rgba(109,40,217,.32);font-weight:900;box-shadow:0 6px 14px rgba(37,22,43,.08),0 1px 2px rgba(37,22,43,.06)}
+.qb-presets button:focus-visible{outline:2px solid #6D28D9;outline-offset:1px}
+
+/* Focus protection summary card and the honest device note. */
+.qb-app{position:relative;width:100%;min-height:82px;margin-top:22px;padding:13px 16px 13px 14px;border:1px solid rgba(45,35,30,.10);border-radius:24px;background:#FCF9F4;color:#1D1A17;display:grid;grid-template-columns:96px minmax(0,1fr) 20px;gap:12px;align-items:center;text-align:left;cursor:pointer;box-shadow:0 14px 28px -14px rgba(37,22,43,.18),inset 0 1px #fff}
+.qb-app:active{transform:scale(.99)}
+.qb-app:focus-visible{outline:2px solid #6D28D9;outline-offset:2px}
+.qb-app>svg{width:20px;height:20px;color:#8A8178}
+.qb-visual{position:relative;width:96px;height:52px}
+.qb-shield{position:absolute;left:0;top:0;z-index:3;width:52px;height:52px;border-radius:17px;background:#FCE8EC;color:#E0466B;display:grid;place-items:center}
+.qb-shield svg{width:24px;height:24px}
+.qb-icons{position:absolute;left:40px;top:9px;width:58px;height:36px}
+.qb-icons .app-dot{position:absolute;top:0;width:32px;height:32px;border-radius:10px;border:2px solid #FCF9F4;color:#fff;display:grid;place-items:center;font-size:12px;font-weight:900;box-shadow:0 3px 7px rgba(37,22,43,.16)}
+.qb-icons .app-dot svg{width:15px;height:15px}
+.qb-icons .app-dot:nth-child(1){left:0}
+.qb-icons .app-dot:nth-child(2){left:13px;top:6px}
+.qb-icons .app-dot:nth-child(3){left:26px}
+.qb-copy{display:flex;flex-direction:column;min-width:0}
+.qb-copy small{font-size:12px;font-weight:800;color:#8A8178}
+.qb-copy strong{margin-top:1px;font-size:17px;line-height:1.2;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qb-copy em{margin-top:2px;font-style:normal;font-size:13px;font-weight:650;color:#766E65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qb-info{display:flex;align-items:center;gap:12px;margin-top:12px;padding:12px 14px;border-radius:20px;background:#EAF4EC;border:1px solid rgba(22,163,74,.14)}
+.qb-info>span{flex:0 0 38px;width:38px;height:38px;border-radius:13px;background:rgba(22,163,74,.12);color:#15803D;display:grid;place-items:center}
+.qb-info>span svg{width:19px;height:19px}
+.qb-info p{margin:0;font-size:13px;line-height:1.42;color:#3F6B4C}
+.qb-info strong{font-size:13.5px;font-weight:850;color:#1F5130}
+
+.qb-bottom{flex:0 0 auto;position:relative;z-index:2;width:100%;margin-top:-16px;padding:14px 20px max(14px,env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(246,241,231,0) 0%,#F6F1E7 30%)}
+.qb-bottom button{width:100%;height:60px;border:0;border-radius:21px;color:#fff;display:flex;align-items:center;justify-content:center;gap:10px;font-size:17px;font-weight:900;cursor:pointer;background:linear-gradient(105deg,#7C3AED 0%,#6D28D9 60%,#4C1D95 100%);box-shadow:0 16px 30px rgba(109,40,217,.30),inset 0 1px rgba(255,255,255,.2)}
+.qb-bottom button svg{width:20px;height:20px;fill:#fff}
+.qb-bottom button:focus-visible{outline:2px solid #6D28D9;outline-offset:3px}
+
+@media (max-height:760px){
+  .qb-main{padding-top:calc(12px + env(safe-area-inset-top))}
+  .qb header{margin-top:14px}
+  .qb header p{font-size:13px;margin-top:6px}
+  .qb section{margin-top:16px}
+  .qb-dial{--qb-dial:min(58vw,212px)}
+  .qb-app{margin-top:16px}
+  .qb-bottom button{height:56px}
 }
-#app-screen-quicksetup .qb-bottom{
-  flex:0 0 auto!important;
-  margin-top:0!important;
-  background:transparent!important;
+@media (max-width:360px){
+  .qb-main{padding-left:16px;padding-right:16px}
+  .qb-bottom{padding-left:16px;padding-right:16px}
+  .qb-presets button{font-size:13px}
+  .qb-app{grid-template-columns:84px minmax(0,1fr) 18px;gap:10px}
+  .qb-visual{width:84px}
+  .qb-icons{left:34px}
 }
-#app-screen-quicksetup .qb-task,
-#app-screen-quicksetup .qb-app{
-  background:#FCF9F4!important;
-  border:1px solid rgba(45,35,30,.10)!important;
-  background-image:none!important;
-  filter:none!important;
-  -webkit-filter:none!important;
-}
-#app-screen-quicksetup .qb-task::after,
-#app-screen-quicksetup .qb-app::after{
-  content:none!important;
-  display:none!important;
-  background:none!important;
-  filter:none!important;
-}
-#app-screen-quicksetup .qb-task{
-  box-shadow:0 14px 28px -12px rgba(37,22,43,.14)!important;
-}
-#app-screen-quicksetup .qb-app{
-  box-shadow:0 14px 28px -12px rgba(37,22,43,.14)!important;
-}
-#app-screen-quicksetup .qb-bottom button{
-  background:linear-gradient(105deg,#7C3AED,#6D28D9 60%,#4C1D95)!important;
-  box-shadow:0 16px 30px rgba(109,40,217,.30)!important;
+@media (prefers-reduced-motion:reduce){
+  .qb-dial{--qb-snap:.01ms}
+  .qb-orbit{animation:none}
+  .qb-orbit,.qb-orbit-line{transition:none}
+  /* One constant, calm orbit state: no intensity changes under reduced motion. */
+  .qb-dial .qb-orbit-a{opacity:.5!important}
+  .qb-dial .qb-orbit-b,.qb-dial .qb-orbit-c{opacity:0!important}
+  .qb-dial{--qb-glow:.2!important}
 }
 html.quick-focus-surface,
 html.quick-focus-surface body,

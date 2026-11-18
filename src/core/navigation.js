@@ -369,15 +369,143 @@ function finishLearningFlow(){
      }
    }
 
-   function triggerAppAblenkung() {
-     const popup = document.getElementById('screen-popup-ablenkung');
-     const content = document.getElementById('popupContentAblenkung');
-     popup.classList.remove('hidden');
-     requestAnimationFrame(() => {
-       popup.classList.add('opacity-100'); popup.classList.remove('opacity-0');
-       content.classList.add('scale-100', 'opacity-100'); content.classList.remove('scale-95', 'opacity-0');
-     });
+   /* v17.10 Fokus-Schutz dialog (#screen-popup-ablenkung): one owner for the
+      "Blockierung testen" test and the leave barrier (Back during a running Session).
+      Web honesty: other apps are not blocked technically here; the dialog shows the real
+      selected apps and the barrier Focus Mode+ presents, and never claims a system block. */
+   const barrierView = { mode: 'barrier', state: 'ready', app: null, closeTimer: null, observer: null };
+   function barrierEn() { return document.documentElement.lang === 'en'; }
+   function barrierT(de, en) { return barrierEn() ? en : de; }
+   function barrierEsc(v) { return String(v ?? '').replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c])); }
+   function barrierApps() { return typeof getSelectedDistractions === 'function' ? getSelectedDistractions() : []; }
+   function barrierIcon(name) {
+     const row = [...document.querySelectorAll('#distractionList .distraction-row')].find(r => r.dataset.name === name);
+     const dot = row?.querySelector('.app-dot');
+     return dot ? dot.outerHTML : '<span class="app-dot" aria-hidden="true">' + barrierEsc(String(name || '?').charAt(0)) + '</span>';
    }
+   function barrierRunning() { return Boolean(window.activeSession && window.activeSession.status === 'running'); }
+
+   function renderBarrier(animate) {
+     const stage = document.getElementById('ucBarrierStage'), actions = document.getElementById('ucBarrierActions');
+     const kicker = document.getElementById('ucBarrierKicker'), card = document.getElementById('popupContentAblenkung');
+     if (!stage || !actions || !card) return;
+     const apps = barrierApps();
+     let state = barrierView.state;
+     if (barrierView.mode === 'test') {
+       if (!barrierRunning()) state = 'unavailable';
+       else if (!apps.length) state = 'none';
+       else if (state === 'result' && !apps.includes(barrierView.app)) state = 'ready';
+     }
+     barrierView.state = state;
+     card.dataset.state = barrierView.mode === 'test' ? state : 'barrier';
+     if (kicker) kicker.textContent = barrierView.mode === 'test' ? barrierT('Blockierung testen', 'Test blocking') : barrierT('Fokus-Schutz', 'Focus protection');
+     let html = '', buttons = '';
+     const back = '<button type="button" class="uc-barrier-btn is-primary" data-barrier="return"><i data-lucide="play" aria-hidden="true"></i>' + barrierT('Zurück zum Fokus', 'Return to focus') + '</button>';
+     const note = '<p class="uc-barrier-note"><i data-lucide="info" aria-hidden="true"></i><span>' + barrierT('Diese Web-Version sperrt Apps nicht technisch. In der iPhone-App übernimmt das die Bildschirmzeit.', 'This web version does not block apps technically. In the iPhone app, Screen Time takes care of that.') + '</span></p>';
+     if (barrierView.mode === 'barrier') {
+       const app = apps[0];
+       html = '<div class="uc-barrier-hero"><span class="uc-barrier-shield" aria-hidden="true"><i data-lucide="shield-check"></i></span>'
+         + '<h3 id="ucBarrierTitle">' + barrierEsc(app ? barrierT(app + ' ist blockiert', app + ' is blocked') : barrierT('Deine Fokus-Sitzung läuft', 'Your focus session is running')) + '</h3>'
+         + '<p>' + barrierEsc(app ? barrierT('Du hast ' + app + ' für diese Fokus-Sitzung als Ablenkung ausgewählt.', 'You selected ' + app + ' as a distraction for this focus session.') : barrierT('Bleib dran – deine Zeit läuft weiter.', 'Stay with it – your time keeps running.')) + '</p></div>'
+         + '<p class="uc-barrier-warning">' + barrierT('„Trotzdem verlassen“ beendet die laufende Sitzung.', '“Leave anyway” ends the running session.') + '</p>';
+       buttons = back + '<button type="button" class="uc-barrier-btn is-quiet" data-barrier="leave">' + barrierT('Trotzdem verlassen', 'Leave anyway') + '</button>';
+     } else if (state === 'unavailable') {
+       html = '<div class="uc-barrier-hero"><span class="uc-barrier-shield is-muted" aria-hidden="true"><i data-lucide="shield-off"></i></span>'
+         + '<h3 id="ucBarrierTitle">' + barrierT('Test gerade nicht möglich', 'Test not available right now') + '</h3>'
+         + '<p>' + barrierT('Der Test braucht eine laufende Fokus-Sitzung.', 'The test needs a running focus session.') + '</p></div>';
+       buttons = back;
+     } else if (state === 'none') {
+       html = '<div class="uc-barrier-hero"><span class="uc-barrier-shield is-muted" aria-hidden="true"><i data-lucide="shield-off"></i></span>'
+         + '<h3 id="ucBarrierTitle">' + barrierT('Keine Apps ausgewählt', 'No apps selected') + '</h3>'
+         + '<p>' + barrierT('Fokus-Schutz ist für diese Sitzung aus. Wähle Apps, damit beim Öffnen eine Barriere erscheint.', 'Focus protection is off for this session. Choose apps so a barrier appears when you open them.') + '</p></div>';
+       buttons = '<button type="button" class="uc-barrier-btn is-primary" data-barrier="pick"><i data-lucide="shield-plus" aria-hidden="true"></i>' + barrierT('Apps auswählen', 'Choose apps') + '</button>'
+         + '<button type="button" class="uc-barrier-btn is-quiet" data-barrier="return">' + barrierT('Zurück zum Fokus', 'Return to focus') + '</button>';
+     } else if (state === 'result') {
+       const app = barrierView.app;
+       html = '<div class="uc-barrier-hero is-result"><span class="uc-barrier-app" aria-hidden="true">' + barrierIcon(app) + '<span class="uc-barrier-lock"><i data-lucide="lock"></i></span></span>'
+         + '<h3 id="ucBarrierTitle">' + barrierEsc(barrierT(app + ' ist blockiert', app + ' is blocked')) + '</h3>'
+         + '<p>' + barrierEsc(barrierT('So erscheint die Barriere, wenn du ' + app + ' während dieser Sitzung öffnest.', 'This is the barrier you see when you open ' + app + ' during this session.')) + '</p></div>'
+         + '<ul class="uc-barrier-checks">'
+         + '<li><i data-lucide="check" aria-hidden="true"></i>' + barrierEsc(barrierT(app + ' ist im Fokus-Schutz ausgewählt', app + ' is selected in focus protection')) + '</li>'
+         + '<li><i data-lucide="check" aria-hidden="true"></i>' + barrierT('Deine Sitzung läuft weiter', 'Your session keeps running') + '</li></ul>' + note;
+       buttons = back + (apps.length > 1 ? '<button type="button" class="uc-barrier-btn is-quiet" data-barrier="again">' + barrierT('Andere App testen', 'Test another app') + '</button>' : '');
+     } else {
+       html = '<div class="uc-barrier-intro"><h3 id="ucBarrierTitle">' + barrierT('Prüfe deinen Fokus-Schutz', 'Check your focus protection') + '</h3>'
+         + '<p>' + barrierT('Tippe auf eine App und sieh, welche Barriere erscheint, wenn du sie jetzt öffnest.', 'Tap an app to see the barrier that appears if you open it now.') + '</p></div>'
+         + '<div class="uc-barrier-status"><span class="uc-protect-dot" aria-hidden="true"></span><strong>' + barrierT('Fokus-Schutz aktiv', 'Focus protection active') + '</strong><span>' + apps.length + ' ' + (apps.length === 1 ? 'App' : 'Apps') + '</span></div>'
+         + '<div class="uc-barrier-apps" role="list">' + apps.map(name => '<button type="button" role="listitem" class="uc-barrier-row" data-barrier="test" data-app="' + barrierEsc(name) + '">' + barrierIcon(name)
+           + '<span class="uc-barrier-row-name">' + barrierEsc(name) + '</span><span class="uc-barrier-chip">' + barrierT('Testen', 'Test') + '</span></button>').join('') + '</div>';
+       buttons = '<button type="button" class="uc-barrier-btn is-primary" data-barrier="test" data-app="' + barrierEsc(apps[0]) + '"><i data-lucide="shield-check" aria-hidden="true"></i>' + barrierT('Test starten', 'Start test') + '</button>'
+         + '<button type="button" class="uc-barrier-btn is-quiet" data-barrier="return">' + barrierT('Zurück zum Fokus', 'Return to focus') + '</button>';
+     }
+     stage.innerHTML = html;
+     actions.innerHTML = buttons;
+     if (animate) { stage.classList.remove('is-entering'); void stage.offsetWidth; stage.classList.add('is-entering'); }
+     if (window.lucide) lucide.createIcons();
+   }
+
+   function syncBarrierTime() {
+     const out = document.getElementById('ucBarrierTime'), digits = document.getElementById('timerDigits');
+     if (out && digits) out.textContent = barrierRunning() ? digits.textContent : '';
+   }
+
+   function triggerAppAblenkung(mode) {
+     const popup = document.getElementById('screen-popup-ablenkung');
+     if (!popup) return;
+     if (barrierView.closeTimer) { clearTimeout(barrierView.closeTimer); barrierView.closeTimer = null; }
+     barrierView.mode = mode === 'test' ? 'test' : 'barrier';
+     barrierView.state = 'ready';
+     barrierView.app = null;
+     renderBarrier(false);
+     syncBarrierTime();
+     const digits = document.getElementById('timerDigits');
+     if (digits && typeof MutationObserver === 'function' && !barrierView.observer) {
+       barrierView.observer = new MutationObserver(syncBarrierTime);
+       barrierView.observer.observe(digits, { childList: true, characterData: true, subtree: true });
+     }
+     const wasOpen = popup.classList.contains('uc-barrier-open');
+     popup.classList.remove('hidden', 'is-closing');
+     popup.classList.add('uc-barrier-open');
+     if (typeof window.holdFocusScene === 'function') window.holdFocusScene('barrier');
+     if (!wasOpen) { void popup.offsetWidth; }
+     popup.classList.add('is-shown');
+     popup.querySelector('.uc-barrier-btn.is-primary')?.focus({ preventScroll: true });
+   }
+
+   function closeBlockingDialog(after, immediate) {
+     const popup = document.getElementById('screen-popup-ablenkung');
+     if (!popup || popup.classList.contains('hidden')) { if (after) after(); return; }
+     popup.classList.remove('is-shown');
+     popup.classList.add('is-closing');
+     if (barrierView.observer) { barrierView.observer.disconnect(); barrierView.observer = null; }
+     const finish = () => {
+       barrierView.closeTimer = null;
+       popup.classList.add('hidden');
+       popup.classList.remove('is-closing', 'uc-barrier-open');
+       if (typeof window.releaseFocusScene === 'function') window.releaseFocusScene('barrier');
+       if (after) after();
+     };
+     const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+     if (barrierView.closeTimer) clearTimeout(barrierView.closeTimer);
+     if (immediate || reduced) finish(); else barrierView.closeTimer = setTimeout(finish, 260);
+   }
+
+   (function bindBlockingDialog() {
+     const popup = document.getElementById('screen-popup-ablenkung');
+     if (!popup || popup.__barrierBound) return;
+     popup.__barrierBound = true;
+     popup.addEventListener('click', e => {
+       const btn = e.target.closest('[data-barrier]');
+       if (!btn) return;
+       const action = btn.dataset.barrier;
+       if (action === 'return') closePopup('ablenkung', true);
+       else if (action === 'leave') closePopup('ablenkung', false);
+       else if (action === 'test') { barrierView.app = btn.dataset.app; barrierView.state = 'result'; renderBarrier(true); popup.querySelector('.uc-barrier-btn.is-primary')?.focus({ preventScroll: true }); }
+       else if (action === 'again') { barrierView.state = 'ready'; renderBarrier(true); }
+       else if (action === 'pick') closeBlockingDialog(() => openDistractionPicker('timer'), true);
+     });
+     popup.addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closePopup('ablenkung', true); } });
+   })();
 
    function triggerAchievementPopup() {
      const popup = document.getElementById('screen-popup-achievement');
@@ -390,19 +518,23 @@ function finishLearningFlow(){
    }
 
    function closePopup(type, returnToTimer = false) {
+     if (type === 'ablenkung') {
+       /* Returning keeps the exact running Session view: no route change when the timer is already shown. */
+       closeBlockingDialog(() => {
+         if (!returnToTimer) stopFocusSession();
+         else if (document.getElementById('app-screen-timer')?.classList.contains('hidden')) setAppScreen('timer');
+       });
+       return;
+     }
      const popup = document.getElementById(`screen-popup-${type}`);
-     const content = document.getElementById(type === 'ablenkung' ? 'popupContentAblenkung' : 'popupContentAchievement');
+     const content = document.getElementById('popupContentAchievement');
      
      popup.classList.add('opacity-0'); popup.classList.remove('opacity-100');
-     content.classList.add(type === 'ablenkung' ? 'scale-95' : 'scale-90', 'opacity-0'); 
+     content.classList.add('scale-90', 'opacity-0'); 
      content.classList.remove('scale-100', 'opacity-100');
      
      setTimeout(() => {
        popup.classList.add('hidden');
-       if (type === 'ablenkung') {
-         if (returnToTimer) setAppScreen('timer');
-         else stopFocusSession();
-       }
      }, 300);
    }
 
@@ -422,7 +554,7 @@ function finishLearningFlow(){
 let appScreenTransitionToken=0,appScreenAnimation=null;function getAppTransitionDuration(){if(document.body?.classList.contains('pwa-app')||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return 0;return window.matchMedia('(max-width: 980px)').matches?760:520}function animateAppBody(frames,duration,easing){const body=document.getElementById('appBody');if(!body||duration===0)return Promise.resolve();if(appScreenAnimation)appScreenAnimation.cancel();appScreenAnimation=body.animate(frames,{duration,easing,fill:'forwards'});return appScreenAnimation.finished.catch(()=>{})}async function setAppScreen(screenName,options={}){const target=document.getElementById(`app-screen-${screenName}`);if(!target)return;const token=++appScreenTransitionToken,duration=options.immediate?0:getAppTransitionDuration(),visible=document.querySelector('.app-screen:not(.hidden)'),current=visible?.id?.replace('app-screen-','');if(duration===0||!visible||current===screenName){if(appScreenAnimation)appScreenAnimation.cancel();applyAppScreenImmediately(screenName);const body=document.getElementById('appBody');if(body){body.style.opacity='';body.style.transform='';body.style.filter=''}return}const out=Math.round(duration*.44),inside=duration-out;await animateAppBody([{opacity:1,transform:'translate3d(0,0,0) scale(1)',filter:'blur(0px)'},{opacity:.18,transform:'translate3d(0,-10px,0) scale(.992)',filter:'blur(5px)'}],out,'cubic-bezier(.4,0,.6,1)');if(token!==appScreenTransitionToken)return;applyAppScreenImmediately(screenName);await animateAppBody([{opacity:.18,transform:'translate3d(0,12px,0) scale(.992)',filter:'blur(5px)'},{opacity:1,transform:'translate3d(0,0,0) scale(1)',filter:'blur(0px)'}],inside,'cubic-bezier(.16,1,.3,1)');if(token!==appScreenTransitionToken)return;const body=document.getElementById('appBody');if(body){body.style.opacity='';body.style.transform='';body.style.filter=''}}
 
 const chapters=[...document.querySelectorAll('.chapter')],mainMount=document.getElementById('mainMount'),modalMount=document.getElementById('modalMount'),device=document.getElementById('iphoneFrame');let last='home';
-function dismissDistractionPopup(){const p=document.getElementById('screen-popup-ablenkung'),c=document.getElementById('popupContentAblenkung');if(!p||p.classList.contains('hidden'))return;p.classList.add('opacity-0');p.classList.remove('opacity-100');if(c){c.classList.add('scale-95','opacity-0');c.classList.remove('scale-100','opacity-100')}setTimeout(()=>p.classList.add('hidden'),300)}
+function dismissDistractionPopup(){closeBlockingDialog(null,false)}
 function resetLandingDemo(){
  const overlay=document.getElementById('focusChoiceOverlay');
  const wrapper=document.getElementById('screenWrapper');
@@ -523,7 +655,6 @@ function syncUcData(){
  title.textContent=s.title;task.textContent=s.task;mode.textContent=s.ui.modeLabel;dur.textContent=s.plannedMinutes+' Min.';
  const current=s.ui.progressCurrent,total=s.ui.progressTotal;prog.textContent=current+' / '+total;bar.style.width=Math.min(100,current/total*100)+'%';
 }
-function hideUcTask(){document.getElementById('ucTaskPopup')?.classList.remove('open')}
 /* v17.9: the cosmic scene is rendered by src/core/cosmic-core.js (window.CosmicCore), which also
    owns its resize and visibility handling. A Session that has just begun gets the birth sequence;
    a restored or re-entered Session fades in calmly. The Mission tone only tints accents. */
