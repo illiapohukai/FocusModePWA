@@ -92,6 +92,15 @@ Durable instructions for development sessions. Code is the source of truth; `doc
 - Test the PWA path too: service worker registers, offline reload works, and install/standalone display is unaffected.
 - Report honestly what was and was not verified.
 
+## UI UX Pro Max Usage
+- The project-local skill `.claude/skills/ui-ux-pro-max/` is an audit and design-decision tool, not a design authority.
+- The existing Focus Mode+ identity is authoritative. The skill must not generate a replacement design system (no `design-system/` output, no `--persist`) without explicit permission.
+- The stack stays vanilla HTML, CSS and JavaScript. Do not introduce Tailwind, React, Vite, TypeScript or any framework, even if the skill suggests a stack.
+- Preserve: warm cream backgrounds, graphite typography, aubergine surfaces, stable Mission identity colors, purple interaction accents, restrained green states, the floating bottom navigation, and the existing Cosmic Core.
+- Use it for: information hierarchy, responsive layout, accessibility, touch targets, text wrapping, component consistency and motion review.
+- For implementation tasks, make the smallest coherent change; do not redesign unrelated screens.
+- The skill files are not app assets: never add them to the service worker `CORE` list.
+
 ## Git discipline
 - Work only on the branch assigned for the session; never push elsewhere (or to `production`) without explicit permission.
 - Before editing: check `git branch --show-current` and `git status --short`, and decide the allowed file list for the task.
