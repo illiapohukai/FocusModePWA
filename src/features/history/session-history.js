@@ -102,6 +102,21 @@ function renderSessionHistory(filter=activeHistoryFilter){
  historyLog('history_filtered',{filter,count:items.length});
 }
 function refreshSessionHistoryUI(){if(!document.getElementById('app-screen-history')?.classList.contains('hidden'))renderSessionHistory(activeHistoryFilter)}
+/* v17.16 Home Activity: one quiet card, grouped by day. Each row reads task first, then duration,
+   then outcome and time. The outcome is the same classification as History
+   (classifySessionOutcomeV173) and is shown by node shape and a short label, never by colour alone:
+   filled node = abgeschlossen, half node = teilweise, open node = abgebrochen/unterbrochen.
+   Mission rows carry their stable Mission colour; Quick Focus rows use the app purple. */
+function activityDayLabelV1716(ts){
+ const d=new Date(ts);if(Number.isNaN(d.getTime()))return'';
+ const day=new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime(),today=new Date();today.setHours(0,0,0,0);
+ const diff=Math.round((today.getTime()-day)/86400000);
+ if(diff===0)return'Heute';
+ if(diff===1)return'Gestern';
+ const locale=(document.documentElement.lang||'de')==='en'?'en-GB':'de-DE';
+ try{return new Intl.DateTimeFormat(locale,{weekday:'short',day:'numeric',month:'short'}).format(d)}catch{return d.toLocaleDateString(locale)}
+}
+document.addEventListener('DOMContentLoaded',()=>{if(typeof I18N==='object'&&I18N.en)Object.assign(I18N.en,{'Gestern':'Yesterday','Abgebrochen':'Cancelled','Unterbrochen':'Interrupted','Deine Fokus-Sitzungen erscheinen hier.':'Your focus sessions appear here.'})},{once:true});
 function renderHomeActivityTimelineV173(){
  const host=document.getElementById('homeActivityList');
  if(!host)return;
@@ -110,36 +125,48 @@ function renderHomeActivityTimelineV173(){
  if(!all.length){
    const empty=document.createElement('div');
    empty.className='home-activity-empty';
-   empty.innerHTML='<div class="home-activity-empty-icon"><i data-lucide="clock-3" class="w-4 h-4"></i></div>'
-     +'<div class="min-w-0">'
-       +'<div class="text-[12px] font-bold text-[#1D1A17]">Noch keine Aktivität</div>'
-       +'<div class="text-[10px] text-[#766E65] leading-relaxed mt-0.5">Abgeschlossene und teilweise Fokus-Sitzungen erscheinen hier chronologisch.</div>'
-     +'</div>';
+   empty.setAttribute('role','note');
+   empty.innerHTML='<span class="home-activity-empty-icon" aria-hidden="true"><i data-lucide="clock-3"></i></span>'
+     +'<strong>Noch keine Aktivität</strong>'
+     +'<span>Deine Fokus-Sitzungen erscheinen hier.</span>';
    host.append(empty);
    return;
  }
- const recent=all.slice(0,6);
- recent.forEach((s,idx)=>{
+ const missions=new Map();
+ try{(typeof missionRepository!=='undefined'?missionRepository.getAll():[]).forEach(m=>missions.set(m.id,m))}catch(_){}
+ const list=document.createElement('ul');
+ list.className='home-activity-list';
+ let lastDay='';
+ all.slice(0,6).forEach(s=>{
    const info=classifySessionOutcomeV173(s);
-   const row=document.createElement('div');
-   row.className='home-activity-row';
-   const timeStr=formatStartTimeHHMM(s);
-   const mins=Math.max(1,Math.round(Number(s.actualMinutes||s.plannedMinutes)||25));
-   const modePart=s.type==='mission'?('Mission Schritt '+String(s.ui?.progressCurrent||1).padStart(2,'0')):'Quick Focus';
-   const statusPart=info.key==='completed'?'':(' · '+info.shortLabel);
-   const subText=modePart+' · '+mins+' Min.'+statusPart;
-   const isLast=idx===recent.length-1;
-   row.innerHTML='<div class="home-activity-time"><span>'+escapeHTML(timeStr)+'</span></div>'
-     +'<div class="home-activity-rail">'
-       +'<span class="home-activity-dot '+info.badgeClass+'"><i data-lucide="'+info.icon+'" class="w-2.5 h-2.5"></i></span>'
-       +(!isLast?'<span class="home-activity-line"></span>':'')
-     +'</div>'
-     +'<div class="home-activity-card">'
-       +'<div class="home-activity-title">'+escapeHTML(s.title||'Fokus-Sitzung')+'</div>'
-       +'<div class="home-activity-sub">'+escapeHTML(subText)+'</div>'
-     +'</div>';
-   host.append(row);
+   const ts=Number(s.finishedAt||s.startedAt)||0;
+   const dayLabel=activityDayLabelV1716(ts);
+   if(dayLabel&&dayLabel!==lastDay){
+     lastDay=dayLabel;
+     const head=document.createElement('li');
+     head.className='home-activity-day';
+     head.textContent=dayLabel;
+     list.append(head);
+   }
+   const mission=s.type==='mission'?missions.get(s.missionId):null;
+   const theme=s.type==='mission'&&typeof getMissionThemeV177==='function'&&s.missionId?getMissionThemeV177(s.missionId):'';
+   const mins=Math.max(0,Math.round(Number(s.actualMinutes)||0));
+   const duration=mins===0?'< 1 Min.':formatHistoryDuration(mins);
+   const context=s.type==='mission'?(mission?.title||'Focus Mission'):'Quick Focus';
+   const row=document.createElement('li');
+   row.className='home-activity-row outcome-'+info.key+(theme?' is-mission theme-'+theme:' is-quick');
+   row.innerHTML='<span class="home-activity-node" aria-hidden="true"></span>'
+     +'<span class="home-activity-main">'
+       +'<span class="home-activity-title">'+escapeHTML(s.title||'Fokus-Sitzung')+'</span>'
+       +'<span class="home-activity-sub"><span class="home-activity-context">'+escapeHTML(context)+'</span><span class="home-activity-sep" aria-hidden="true">·</span><time>'+escapeHTML(formatStartTimeHHMM(s))+'</time></span>'
+     +'</span>'
+     +'<span class="home-activity-side">'
+       +'<span class="home-activity-duration">'+escapeHTML(duration)+'</span>'
+       +'<span class="home-activity-outcome">'+escapeHTML(info.shortLabel)+'</span>'
+     +'</span>';
+   list.append(row);
  });
+ host.append(list);
 }
 /* v17.12 compact localized Home date. The month is always abbreviated (German forms normalized by
    GERMAN_SHORT_MONTHS_V1712 from mission-renderer.js: Jan., Feb., März, ... Sept., Okt., Nov., Dez.);

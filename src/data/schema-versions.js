@@ -58,7 +58,11 @@
     migrationState: 'focus-mode-migration-state-v16',
     backupLatest: 'focus-mode-backup-latest-v16',
     backupImport: 'focus-mode-backup-import-v16',
-    backupReset: 'focus-mode-backup-reset-v16'
+    backupReset: 'focus-mode-backup-reset-v16',
+
+    // v17.16 UI preference ('1' once a first Mission existed). Not part of the export bundle:
+    // it only selects the returning-user empty Home and is re-derived from Mission data when absent.
+    homeOnboardingDone: 'focus-mode-home-onboarding-v17-16'
   });
 
   const FORBIDDEN_ID_LITERALS = new Set([

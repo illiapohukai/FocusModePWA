@@ -1,4 +1,4 @@
-const CACHE = "focus-mode-v17-15-cosmic-operator-pull-refresh";
+const CACHE = "focus-mode-v17-16-home-quick-focus-planning";
 const CACHE_PREFIX = "focus-mode";
 
 const CORE = [

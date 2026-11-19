@@ -636,9 +636,11 @@
   border-top:1px solid rgba(255,255,255,.08);
 }
 .mh-start-btn{
-  height:40px!important;
-  min-height:40px!important;
-  padding:0 16px!important;
+  flex:0 0 auto;
+  height:44px!important;
+  min-height:44px!important;
+  max-width:calc(100% - 76px);
+  padding:0 18px!important;
   border-radius:999px!important;
   border:0!important;
   background:#F6F1E7!important;
@@ -663,14 +665,17 @@
 .mh-start-btn:active{
   transform:scale(.96);
 }
+/* v17.16: progress on the left, the primary action on the right. */
 .mh-progress-readout,
 .mh-percent-box{
-  text-align:right;
+  text-align:left;
   display:flex;
   flex-direction:column;
-  align-items:flex-end;
+  align-items:flex-start;
   flex-shrink:0;
+  min-width:0;
 }
+.mh-start-btn span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mh-progress-pct,
 .mh-percent-box strong{
   font-size:16px;
@@ -1030,31 +1035,21 @@ body.mission-carousel-active #emptyMissionCard{
 .mg-plan-board{position:relative;border-radius:26px;color:#111827;background:rgba(255,255,255,.80);border:1px solid rgba(109,40,217,.16);box-shadow:0 18px 40px rgba(76,69,121,.08),inset 0 1px #fff}
 .mg-plan-board-inner{padding:16px;display:flex;flex-direction:column;gap:14px}
 
-.mg-board-empty{display:flex;align-items:flex-start;gap:12px;padding:2px 2px 0}
-.mg-board-empty.hidden{display:none}
-.mg-board-empty-icon{flex:0 0 44px;width:44px;height:44px;border-radius:15px;display:grid;place-items:center;background:#F1ECFD;color:#6D28D9}
-.mg-board-empty-icon svg{width:21px;height:21px}
-.mg-board-empty-title{margin:1px 0 0;font-size:17px;line-height:1.25;font-weight:900;letter-spacing:-.02em;color:#111827}
-.mg-board-empty-copy{margin:4px 0 0;color:#667085;font-size:13.5px;line-height:1.42}
-
-/* Deadline action: one clear dashed action before selection, the large deadline value after. */
-.mg-deadline-trigger{width:100%;min-width:0;min-height:60px;padding:10px 12px 10px 10px;border-radius:18px;border:1.5px dashed rgba(109,40,217,.38);background:#FAF8FF;display:flex;align-items:center;gap:12px;text-align:left;color:#111827;cursor:pointer;
-  transition:background-color var(--motion-fast) var(--ease-standard),border-color var(--motion-fast) var(--ease-standard),transform var(--motion-instant) var(--ease-standard)}
-.mg-deadline-trigger:active{transform:scale(.985)}
-.mg-deadline-icon{flex:0 0 40px;width:40px;height:40px;border-radius:13px;display:grid;place-items:center;background:#6D28D9;color:#fff}
-.mg-deadline-icon svg{width:19px;height:19px}
+/* v17.16 Deadline summary: header row and disclosure of the inline planning calendar. */
+.mg-deadline-trigger{width:100%;min-width:0;min-height:56px;padding:4px 2px;border:0;border-radius:16px;background:transparent;display:flex;align-items:center;gap:12px;text-align:left;color:#111827;cursor:pointer;
+  transition:transform var(--motion-instant) var(--ease-standard)}
+.mg-deadline-trigger:active{transform:scale(.99)}
+.mg-deadline-icon{flex:0 0 44px;width:44px;height:44px;border-radius:15px;display:grid;place-items:center;background:#F1ECFD;color:#6D28D9}
+.mg-deadline-icon svg{width:20px;height:20px}
 .mg-deadline-copy{flex:1;min-width:0;display:flex;flex-direction:column}
-.mg-deadline-kicker{display:none;color:#667085;font-size:12px;font-weight:800;letter-spacing:.04em}
-.mg-deadline-val{font-size:16px;font-weight:850;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#4C1D95}
-.mg-deadline-cta{flex:0 0 32px;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:#EEE8FC;color:#6D28D9}
-.mg-deadline-cta svg{width:16px;height:16px}
-.mg-deadline-cta .mg-cta-edit,.mg-deadline-trigger.has-value .mg-deadline-cta .mg-cta-empty{display:none}
-.mg-deadline-trigger.has-value .mg-deadline-cta .mg-cta-edit{display:block}
-.mg-deadline-trigger.has-value{min-height:64px;padding:8px 10px 8px 4px;border:0;background:transparent}
-.mg-deadline-trigger.has-value .mg-deadline-icon{flex-basis:46px;width:46px;height:46px;border-radius:15px;background:#F1ECFD;color:#6D28D9}
-.mg-deadline-trigger.has-value .mg-deadline-kicker{display:block}
-.mg-deadline-trigger.has-value .mg-deadline-val{margin-top:2px;white-space:normal;text-wrap:balance;font-size:19px;font-weight:900;letter-spacing:-.02em;color:#111827}
-.mg-deadline-trigger.has-value .mg-deadline-cta{background:#F2F3F7;color:#5E6880}
+.mg-deadline-kicker{color:#667085;font-size:11.5px;font-weight:850;letter-spacing:.06em}
+.mg-deadline-val{margin-top:1px;font-size:17px;font-weight:900;line-height:1.2;letter-spacing:-.015em;color:#111827;text-wrap:balance}
+.mg-deadline-val.is-placeholder{color:#6D28D9}
+.mg-deadline-sub{margin-top:2px;font-size:12.5px;font-weight:650;line-height:1.3;color:#667085;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mg-deadline-sub.hidden{display:none}
+.mg-deadline-cta{flex:0 0 36px;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:#F2F3F7;color:#5E6880;transition:transform var(--motion-fast) var(--ease-standard),background-color var(--motion-fast) var(--ease-standard)}
+.mg-deadline-cta svg{width:17px;height:17px}
+.mg-deadline-trigger[aria-expanded="true"] .mg-deadline-cta{transform:rotate(180deg);background:#EEE8FC;color:#6D28D9}
 
 /* Preparation route: START → n Tage Vorbereitung → ZIEL */
 .mg-timeline-active{display:flex;flex-direction:column;padding:12px 14px;border-radius:18px;background:#F7F6FA}
@@ -1146,225 +1141,65 @@ body.mission-carousel-active #emptyMissionCard{
   .mg-start-chip{padding:9px 8px 7px;column-gap:7px}
   .mg-start-chip-label{font-size:13px}
   .mg-start-chip-date{font-size:11.5px}
-  .mg-deadline-trigger.has-value .mg-deadline-val{font-size:17px}
   .mg-weekday-btn{height:40px;font-size:12.5px;border-radius:12px}
   .mg-preset-chip{font-size:12px;padding:0 11px}
 }
 @media (prefers-reduced-motion:reduce){.mg-prefs-panel{animation:none}}
 
-/* Viewport-Fixed Calendar Bottom Sheet (mounted directly under document.body) */
-html.mg-cal-scroll-locked,
-body.mg-cal-scroll-locked {
-  overflow: hidden !important;
-  overscroll-behavior: none !important;
+/* v17.16 Inline planning calendar (#mgPlannerCalendar, rendered by mission-calendar.js).
+   Reuses the Home calendar parts (.hc-*) with larger day cells. Shapes carry meaning:
+   filled purple = new deadline, purple ring = new preparation start, lavender band = preparation
+   period, Mission-colour ring + diamond = existing Mission deadline, outlined dot = existing start. */
+.mg-planner{padding:12px 0 0;border-top:1px solid rgba(45,35,30,.08);animation:mgPlannerIn var(--motion-normal,350ms) var(--ease-enter,cubic-bezier(.22,1,.36,1)) both}
+.mg-planner[hidden]{display:none}
+@keyframes mgPlannerIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.mg-planner .hc-head{padding:0 2px}
+.mg-planner .hc-month{font-size:16px}
+.mg-planner .hc-nav-btn{width:40px;height:40px;border-radius:13px}
+.mg-planner .hc-nav-btn:disabled{opacity:.38;cursor:default}
+.mg-planner .hc-weekdays{margin-top:12px}
+.mg-planner .hc-grid{margin-top:6px;row-gap:2px}
+.mg-planner .hc-day{height:46px;padding-top:2px;isolation:isolate}
+.mg-planner .hc-num{position:relative;z-index:1;width:34px;height:34px;font-size:15px}
+.mg-planner .hc-day.is-blocked{cursor:default}
+.mg-planner .hc-day.is-blocked .hc-num{color:#C9C2B8;font-weight:650}
+.mg-planner .hc-day.is-in-range::before,
+.mg-planner .hc-day.is-range-start::before,
+.mg-planner .hc-day.is-range-end::before{content:"";position:absolute;z-index:0;top:2px;left:0;right:0;height:34px;background:#F1EAFB}
+.mg-planner .hc-day.is-range-start::before{left:50%}
+.mg-planner .hc-day.is-range-end::before{right:50%}
+.mg-planner .hc-day.is-today.is-in-range .hc-num{background:#FFFFFF}
+.mg-planner .hc-day.is-new-start .hc-num{background:#FFFFFF;color:#4C1D95;font-weight:900;box-shadow:inset 0 0 0 2px #6D28D9}
+.mg-planner .hc-day.is-new-deadline .hc-num{background:#6D28D9;color:#FFFFFF;font-weight:900;box-shadow:0 4px 10px rgba(109,40,217,.28)}
+.mg-planner .hc-day.is-new-deadline.has-deadline .hc-num{box-shadow:0 0 0 2px #FFFFFF,0 0 0 4px var(--mt-accent-strong,#8B5CF6)}
+.mg-planner .hc-day.is-inspected:not(.is-new-deadline) .hc-num{box-shadow:inset 0 0 0 2px #1D1A17}
+.mg-planner .hc-day.is-inspected.has-deadline:not(.is-new-deadline) .hc-num{box-shadow:inset 0 0 0 2px var(--mt-accent-strong,#8B5CF6),0 0 0 2px #FFFFFF,0 0 0 4px #1D1A17}
+.mg-planner .hc-marks{position:relative;z-index:1}
+.hcp-legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;padding:0 2px;font-size:11.5px;font-weight:700;color:#766E65}
+.hcp-legend span{display:inline-flex;align-items:center;gap:6px}
+.hc-key.is-new-deadline{width:11px;height:11px;border-radius:50%;background:#6D28D9}
+.hcp-mode{display:flex;align-items:center;gap:9px;margin-bottom:10px;padding:8px 8px 8px 12px;border-radius:14px;background:#F1EAFB;color:#4C1D95;font-size:13px;font-weight:750;line-height:1.3}
+.hcp-mode>svg{flex:0 0 17px;width:17px;height:17px}
+.hcp-mode>span{flex:1;min-width:0}
+.hcp-mode-done{flex:0 0 auto;min-height:36px;padding:0 13px;border:0;border-radius:999px;background:#FFFFFF;color:#6D28D9;font-size:13px;font-weight:850;cursor:pointer}
+.hcp-detail{margin-top:10px}
+.hcp-detail-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.hcp-row{cursor:default}
+.hcp-row:active{transform:none;background:#FFFDF9}
+.hc-event.is-new-deadline .hc-event-mark{background:#6D28D9}
+.hc-event.is-new-start .hc-event-mark{background:transparent;box-shadow:inset 0 0 0 1.5px #6D28D9}
+.hc-event.is-new-deadline .hc-event-sub b,.hc-event.is-new-start .hc-event-sub b{color:#4C1D95}
+.hcp-hint{margin:0;padding:2px 2px 0;font-size:13px;line-height:1.4;font-weight:650;color:#766E65}
+.hcp-pick{width:100%;min-height:44px;margin-top:10px;padding:0 14px;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid rgba(109,40,217,.2);border-radius:14px;background:#F5F0FC;color:#6D28D9;font-size:14px;font-weight:850;cursor:pointer;transition:transform var(--motion-instant,90ms) var(--ease-standard,ease)}
+.hcp-pick svg{width:16px;height:16px}
+.hcp-pick:active{transform:scale(.985)}
+.mg-planner .hc-nav-btn:focus-visible,.mg-planner .hc-day:focus-visible,.hcp-pick:focus-visible,.hcp-mode-done:focus-visible{outline:3px solid rgba(109,40,217,.45);outline-offset:1px}
+@media (max-width:360px){
+  .mg-planner .hc-day{height:42px}
+  .mg-planner .hc-num{width:31px;height:31px;font-size:14px}
+  .mg-planner .hc-day.is-in-range::before,.mg-planner .hc-day.is-range-start::before,.mg-planner .hc-day.is-range-end::before{height:31px}
 }
-.mg-cal-backdrop {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100vh;
-  height: 100dvh;
-  z-index: 1200;
-  background: rgba(29, 26, 23, 0.50);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  opacity: 0;
-  transition: opacity 0.20s ease;
-  overflow: hidden;
-  overscroll-behavior: contain;
-  touch-action: none;
-  pointer-events: auto;
-}
-.mg-cal-backdrop.hidden {
-  display: none !important;
-}
-.mg-cal-backdrop.is-open {
-  opacity: 1;
-}
-.mg-cal-backdrop.is-closing {
-  opacity: 0;
-  pointer-events: none;
-}
-.mg-cal-sheet {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  bottom: var(--mg-cal-vv-bottom, 0px);
-  margin: 0 auto;
-  width: 100%;
-  max-width: 440px;
-  max-height: calc(100vh - 18px);
-  max-height: calc(100dvh - 18px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  box-sizing: border-box;
-  padding: 12px 16px calc(18px + env(safe-area-inset-bottom, 0px));
-  border-radius: 26px 26px 0 0;
-  background: #FCF9F4;
-  border: 1px solid rgba(45, 35, 30, 0.12);
-  border-bottom: 0;
-  box-shadow: 0 -16px 48px rgba(29, 26, 23, 0.28);
-  color: #1D1A17;
-  transform: translate3d(0, 100%, 0);
-  transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: transform;
-}
-.mg-cal-backdrop.is-open .mg-cal-sheet {
-  transform: translate3d(0, 0, 0);
-}
-.mg-cal-backdrop.is-closing .mg-cal-sheet {
-  transform: translate3d(0, 100%, 0);
-}
-@media (prefers-reduced-motion: reduce) {
-  .mg-cal-backdrop,
-  .mg-cal-sheet {
-    transition-duration: 0.01ms !important;
-  }
-}
-.mg-cal-handle {
-  width: 38px;
-  height: 4px;
-  border-radius: 999px;
-  background: rgba(45, 35, 30, 0.16);
-  margin: 0 auto 12px;
-}
-.mg-cal-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-.mg-cal-kicker {
-  display: block;
-  font-size: 9px;
-  font-weight: 850;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #6D28D9;
-}
-.mg-cal-title {
-  margin: 2px 0 0 !important;
-  font-size: 17px !important;
-  font-weight: 900 !important;
-  letter-spacing: -0.02em !important;
-  color: #1D1A17 !important;
-  text-transform: none !important;
-}
-.mg-cal-nav {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.mg-cal-nav-btn {
-  width: 34px;
-  height: 34px;
-  border-radius: 11px;
-  border: 1px solid rgba(45, 35, 30, 0.10);
-  background: #F4EFE6;
-  color: #1D1A17;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-.mg-cal-nav-btn:disabled {
-  opacity: 0.38;
-  cursor: default;
-}
-.mg-cal-nav-btn svg {
-  width: 16px;
-  height: 16px;
-}
-.mg-cal-weekdays {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  text-align: center;
-  margin-bottom: 6px;
-}
-.mg-cal-weekdays span {
-  font-size: 10px;
-  font-weight: 850;
-  color: #766E65;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-.mg-cal-grid {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 4px;
-}
-.mg-cal-day {
-  height: 38px;
-  border-radius: 11px;
-  border: 1px solid transparent;
-  background: transparent;
-  color: #1D1A17;
-  font-size: 12.5px;
-  font-weight: 750;
-  font-variant-numeric: tabular-nums;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background-color 0.12s ease, color 0.12s ease, border-color 0.12s ease;
-  padding: 0;
-}
-.mg-cal-day.is-empty {
-  pointer-events: none;
-  cursor: default;
-}
-.mg-cal-day:disabled,
-.mg-cal-day.is-disabled {
-  color: rgba(118, 110, 101, 0.36);
-  cursor: not-allowed;
-  pointer-events: none;
-}
-.mg-cal-day.is-today:not(.is-selected) {
-  border-color: #6D28D9;
-  color: #6D28D9;
-  font-weight: 900;
-}
-.mg-cal-day.is-in-range:not(.is-selected) {
-  background: #F3E8FF;
-  color: #5B21B6;
-}
-.mg-cal-day.is-selected {
-  background: #6D28D9 !important;
-  border-color: #6D28D9 !important;
-  color: #FFFFFF !important;
-  font-weight: 900;
-  box-shadow: 0 4px 12px rgba(109, 40, 217, 0.28);
-}
-.mg-cal-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-top: 14px;
-}
-.mg-cal-btn {
-  min-height: 44px;
-  border-radius: 14px;
-  font-size: 12.5px;
-  font-weight: 850;
-  cursor: pointer;
-  transition: transform 0.12s ease, opacity 0.14s ease;
-}
-.mg-cal-btn.secondary {
-  border: 1px solid rgba(45, 35, 30, 0.12);
-  background: #F4EFE6;
-  color: #1D1A17;
-}
-.mg-cal-btn.primary {
-  border: 0;
-  background: #6D28D9;
-  color: #FFFFFF;
-  box-shadow: 0 8px 18px rgba(109, 40, 217, 0.24);
-}
-.mg-cal-btn:active {
-  transform: scale(0.98);
-}
+@media (prefers-reduced-motion:reduce){.mg-planner{animation:none}}
 
 /* Optional Schedule Preview Banner on #app-screen-plan */
 .ai-plan-schedule-preview {
@@ -1969,3 +1804,81 @@ body.mg-cal-scroll-locked {
   .mgen-route i{animation:mgenRouteCalm 2.4s ease-in-out infinite;animation-delay:0s!important}
 }
 @keyframes mgenRouteCalm{0%,100%{opacity:.3}50%{opacity:.7}}
+
+/* === v17.16 Returning-user empty Home (#homeReturnEmpty) ===
+   Selected by applyHomeEmptyStateV1716() (mission-management.js) through
+   #app-screen-home[data-home-empty]. It takes the place of #emptyMissionCard and follows that
+   card's existing visibility (.hidden), so every Mission render path keeps one owner.
+   One dominant action (Neue Mission); the Quick Focus row below stays the secondary action. */
+.home-return{display:none}
+#app-screen-home[data-home-empty="returning"] #emptyMissionCard{display:none!important}
+#app-screen-home[data-home-empty="returning"] #emptyMissionCard:not(.hidden) + .home-return{display:flex}
+body.mission-aura-active .home-return,
+body.mission-carousel-active .home-return{display:none!important}
+.home-return{
+  position:relative;
+  isolation:isolate;
+  flex-direction:column;
+  align-items:flex-start;
+  overflow:hidden;
+  padding:18px 18px 16px;
+  border-radius:26px;
+  color:#FFFFFF;
+  background-color:#25162B;
+  background-image:
+    var(--fm-hero-light),
+    radial-gradient(circle at 92% 12%,rgba(124,58,237,.26),transparent 38%),
+    var(--fm-hero-vignette),
+    linear-gradient(155deg,#25162B 0%,#1B1020 62%,#160D1B 100%);
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 16px 38px rgba(37,22,43,.18),var(--fm-hero-edge);
+}
+.home-return .mh-kicker{position:relative;z-index:1}
+.home-return .mh-kicker i{background:#A78BFA;box-shadow:none}
+.home-return-title{
+  position:relative;z-index:1;
+  max-width:calc(100% - 92px);
+  margin:12px 0 0;
+  font-size:24px;line-height:1.1;font-weight:900;letter-spacing:-.03em;
+  color:#FFFFFF;text-wrap:balance;
+}
+.home-return-copy{
+  position:relative;z-index:1;
+  max-width:min(100%,290px);
+  margin:7px 0 0;
+  font-size:13.5px;line-height:1.4;font-weight:600;
+  color:rgba(255,255,255,.66);
+}
+.home-return-cta{
+  position:relative;z-index:1;
+  width:100%;height:52px;margin-top:16px;padding:0 16px;
+  display:grid;grid-template-columns:20px minmax(0,1fr) 18px;align-items:center;gap:10px;
+  border:0;border-radius:18px;
+  background:#F6F1E7;color:#1D1A17;
+  font-size:15px;font-weight:900;text-align:left;
+  box-shadow:0 10px 24px rgba(0,0,0,.24);
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+  transition:transform var(--motion-instant,90ms) var(--ease-standard,ease),background-color var(--motion-fast,160ms) ease;
+}
+.home-return-cta span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.home-return-cta svg{width:19px;height:19px;color:#6D28D9;stroke-width:2.5}
+.home-return-cta svg:last-child{width:17px;height:17px;justify-self:end;color:#766E65}
+.home-return-cta:active{transform:scale(.985);background:#FFFFFF}
+.home-return-cta:focus-visible{outline:2px solid #C4B5FD;outline-offset:3px}
+/* Decorative orbit emblem: a quiet echo of the Cosmic Core, no information. */
+.home-return-orbit{position:absolute;z-index:0;right:6px;top:4px;width:104px;height:104px;pointer-events:none}
+.home-return-orbit i{position:absolute;display:block}
+.hr-ring{inset:24px 6px;border-radius:50%;border:1.5px solid rgba(196,181,253,.34);transform:rotate(-16deg)}
+.hr-ring.hr-ring-b{inset:12px;border-color:rgba(196,181,253,.14);border-style:dashed;transform:none}
+.hr-core{left:50%;top:50%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;
+  background:radial-gradient(circle at 34% 28%,rgba(221,214,254,.55),transparent 32%),radial-gradient(circle at 50% 50%,#4C2A86,#2A1748 58%,#150B26 100%);
+  box-shadow:0 0 22px rgba(124,58,237,.42),inset -6px -6px 12px rgba(0,0,0,.45)}
+.hr-moon{left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:#DDD6FE;box-shadow:0 0 8px rgba(196,181,253,.8);
+  transform:rotate(-30deg) translateX(40px);animation:hrMoon 32s linear infinite}
+@keyframes hrMoon{from{transform:rotate(-30deg) translateX(40px)}to{transform:rotate(330deg) translateX(40px)}}
+@media (max-width:360px){
+  .home-return{padding:16px 15px 14px}
+  .home-return-title{font-size:22px;max-width:calc(100% - 78px)}
+  .home-return-orbit{width:90px;height:90px;right:0}
+}
+@media (prefers-reduced-motion:reduce){.hr-moon{animation:none}}

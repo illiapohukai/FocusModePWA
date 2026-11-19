@@ -183,6 +183,17 @@
       </div>
     </section>
 
+    <!-- v17.16: returning-user empty Home (shown instead of #emptyMissionCard by the Home empty-state classifier in mission-management.js) -->
+    <section class="home-return" id="homeReturnEmpty" aria-labelledby="homeReturnTitle">
+      <span class="home-return-orbit" aria-hidden="true"><i class="hr-ring"></i><i class="hr-ring hr-ring-b"></i><i class="hr-core"></i><i class="hr-moon"></i></span>
+      <span class="mh-kicker"><i></i><span>FOCUS MISSION</span></span>
+      <h3 class="home-return-title" id="homeReturnTitle">Bereit für ein neues Ziel?</h3>
+      <p class="home-return-copy">Plane es als Mission oder starte direkt einen Quick Focus.</p>
+      <button class="home-return-cta" type="button" onclick="openGoalIntake()">
+        <i data-lucide="plus" aria-hidden="true"></i><span>Neue Mission</span><i data-lucide="arrow-right" aria-hidden="true"></i>
+      </button>
+    </section>
+
     <section class="hidden mission-hero-v116 theme-aubergine" id="activeMissionCard">
       <div class="mh-top-row">
         <span class="mh-kicker"><i></i><span id="homeMissionRoleLabel">AKTIVE MISSION</span></span>
@@ -203,14 +214,14 @@
       </div>
       <div class="mh-nodes-row" id="homeMissionNodesRow"></div>
       <div class="mh-bottom-row">
-        <button class="mh-start-btn" id="homeMissionStartStepBtn" type="button" onclick="event.stopPropagation();prepareLearningSession()">
-          <span>Schritt starten</span>
-          <i data-lucide="play"></i>
-        </button>
         <div class="mh-percent-box">
           <strong id="homeMissionPercent">0%</strong>
           <span>MISSION</span>
         </div>
+        <button class="mh-start-btn" id="homeMissionStartStepBtn" type="button" onclick="event.stopPropagation();prepareLearningSession()">
+          <span>Schritt starten</span>
+          <i data-lucide="play"></i>
+        </button>
       </div>
       <div class="hidden" id="homeMissionProgressBar" style="width:0%"></div>
     </section>
@@ -287,7 +298,7 @@
 </div>
 <!-- FOCUS CHOICE: Schnell oder adaptiv -->
 <!-- LEARNING FLOW: Zieleingabe -->
-<div class="app-screen flow-screen qb hidden" id="app-screen-quicksetup"><div class="qb-main"><div class="qb-top"><button onclick="navigateBack()" aria-label="Zurück" title="Zurück" type="button"><i data-lucide="arrow-left"></i></button><b><i data-lucide="zap" aria-hidden="true"></i>Quick Focus</b><span></span></div><header><h3>Richte deine Sitzung ein.</h3><p>Wähle Dauer und Ablenkungen. Alle anderen Apps bleiben verfügbar.</p></header><section class="qb-task-section"><h4>Woran arbeitest du?</h4><label class="qb-task"><span>🎯</span><input id="quickTaskInput" value="" placeholder="Hier eingeben…" autocomplete="off"><i data-lucide="pencil"></i></label></section><section class="qb-duration" aria-labelledby="quickDurationHeading"><h4 id="quickDurationHeading">Dauer</h4><div class="qb-dial" id="quickDial" data-block-swipe-back="true" data-intensity="2"><div class="qb-dial-orbit" aria-hidden="true"><span class="qb-orbit-line"></span><span class="qb-orbit qb-orbit-a"><i></i><i></i></span><span class="qb-orbit qb-orbit-b"><i></i><i></i></span><span class="qb-orbit qb-orbit-c"><i></i><i></i></span></div><div class="qb-dial-face" id="quickDialFace"><svg viewBox="0 0 240 240" aria-hidden="true" focusable="false"><defs><linearGradient id="qbTrackGrad" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#DCD2C2"/><stop offset="1" stop-color="#F1EBE0"/></linearGradient><linearGradient id="qbArcGrad" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#B69CFB"/><stop offset=".5" stop-color="#7C3AED"/><stop offset="1" stop-color="#5B21B6"/></linearGradient></defs><g class="qb-ticks"><circle class="qb-tick is-major" cx="120.0" cy="8.5" r="2.2"/><circle class="qb-tick" cx="175.8" cy="23.4" r="1.5"/><circle class="qb-tick" cx="216.6" cy="64.2" r="1.5"/><circle class="qb-tick is-major" cx="231.5" cy="120.0" r="2.2"/><circle class="qb-tick" cx="216.6" cy="175.7" r="1.5"/><circle class="qb-tick" cx="175.8" cy="216.6" r="1.5"/><circle class="qb-tick is-major" cx="120.0" cy="231.5" r="2.2"/><circle class="qb-tick" cx="64.2" cy="216.6" r="1.5"/><circle class="qb-tick" cx="23.4" cy="175.8" r="1.5"/><circle class="qb-tick is-major" cx="8.5" cy="120.0" r="2.2"/><circle class="qb-tick" cx="23.4" cy="64.2" r="1.5"/><circle class="qb-tick" cx="64.2" cy="23.4" r="1.5"/></g><circle class="qb-dial-track" cx="120" cy="120" r="96"/><circle class="qb-dial-track-shade" cx="120" cy="120" r="88"/><circle id="quickRingProgress" class="qb-dial-arc" cx="120" cy="120" r="96" pathLength="60" transform="rotate(-90 120 120)" style="stroke-dashoffset:35"/><g id="quickDialThumb" class="qb-dial-thumb" style="transform:rotate(150deg)"><circle class="qb-thumb-halo" cx="120" cy="24" r="16"/><circle class="qb-thumb-knob" cx="120" cy="24" r="10.5"/><circle class="qb-thumb-core" cx="120" cy="24" r="3.2"/></g></svg><div class="qb-dial-readout" aria-hidden="true"><strong id="quickMinuteValue">25</strong><span>Minuten</span></div></div><input class="qb-dial-input" id="quickDurationInput" type="range" min="5" max="60" step="5" value="25" aria-label="Dauer in Minuten" aria-valuetext="25 Minuten"></div><div class="qb-presets" id="quickDurationButtons" role="group" aria-label="Schnellauswahl Dauer"><button class="quick-option" type="button" data-minutes="15" aria-pressed="false" onclick="selectQuickDuration(this,15)">15 Min.</button><button class="quick-option active" type="button" data-minutes="25" aria-pressed="true" onclick="selectQuickDuration(this,25)">25 Min.</button><button class="quick-option" type="button" data-minutes="35" aria-pressed="false" onclick="selectQuickDuration(this,35)">35 Min.</button><button class="quick-option" type="button" data-minutes="50" aria-pressed="false" onclick="selectQuickDuration(this,50)">50 Min.</button></div></section><button class="qb-app" onclick="openDistractionPicker('quicksetup')"><span class="qb-visual"><span class="qb-icons" id="quickSelectedAppIcons"></span><span class="qb-shield"><i data-lucide="shield-off"></i></span></span><span class="qb-copy"><small>Ablenkungen</small><strong><span class="blockedCount">7</span> Apps blockiert</strong><em class="blockedSummary">TikTok · Instagram · YouTube +4</em></span><i data-lucide="chevron-right"></i></button><div class="qb-info"><span><i data-lucide="smartphone"></i></span><p><strong>Dein Smartphone bleibt nutzbar.</strong><br>Nur die ausgewählten Ablenkungen werden blockiert.</p></div></div><div class="qb-bottom"><button onclick="startConfiguredQuickFocus()"><i data-lucide="play"></i> Fokus starten</button></div></div><div class="app-screen flow-screen hidden fs-screen" id="app-screen-distractions">
+<div class="app-screen flow-screen qb hidden" id="app-screen-quicksetup"><div class="qb-main"><div class="qb-head"><div class="qb-top"><button onclick="navigateBack()" aria-label="Zurück" title="Zurück" type="button"><i data-lucide="arrow-left"></i></button></div><header><h3>Richte deine Sitzung ein.</h3></header></div><section class="qb-duration qb-stage" aria-label="Dauer"><div class="qb-dial" id="quickDial" data-block-swipe-back="true" data-intensity="2"><div class="qb-dial-orbit" aria-hidden="true"><span class="qb-orbit-line"></span><span class="qb-orbit-tilt"></span><span class="qb-orbit qb-orbit-a"><i></i><i></i></span><span class="qb-orbit qb-orbit-b"><i></i><i></i></span><span class="qb-orbit qb-orbit-c"><i></i><i></i></span><span class="qb-orbit qb-orbit-d"><i></i><i></i><i></i><i></i></span></div><div class="qb-dial-face" id="quickDialFace"><svg viewBox="0 0 240 240" aria-hidden="true" focusable="false"><defs><linearGradient id="qbTrackGrad" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#DCD2C2"/><stop offset="1" stop-color="#F1EBE0"/></linearGradient><linearGradient id="qbArcGrad" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#B69CFB"/><stop offset=".5" stop-color="#7C3AED"/><stop offset="1" stop-color="#5B21B6"/></linearGradient></defs><g class="qb-ticks"><circle class="qb-tick is-major" cx="120.0" cy="8.5" r="2.2"/><circle class="qb-tick" cx="175.8" cy="23.4" r="1.5"/><circle class="qb-tick" cx="216.6" cy="64.2" r="1.5"/><circle class="qb-tick is-major" cx="231.5" cy="120.0" r="2.2"/><circle class="qb-tick" cx="216.6" cy="175.7" r="1.5"/><circle class="qb-tick" cx="175.8" cy="216.6" r="1.5"/><circle class="qb-tick is-major" cx="120.0" cy="231.5" r="2.2"/><circle class="qb-tick" cx="64.2" cy="216.6" r="1.5"/><circle class="qb-tick" cx="23.4" cy="175.8" r="1.5"/><circle class="qb-tick is-major" cx="8.5" cy="120.0" r="2.2"/><circle class="qb-tick" cx="23.4" cy="64.2" r="1.5"/><circle class="qb-tick" cx="64.2" cy="23.4" r="1.5"/></g><circle class="qb-dial-track" cx="120" cy="120" r="96"/><circle class="qb-dial-track-shade" cx="120" cy="120" r="88"/><circle id="quickRingProgress" class="qb-dial-arc" cx="120" cy="120" r="96" pathLength="60" transform="rotate(-90 120 120)" style="stroke-dashoffset:35"/><g id="quickDialThumb" class="qb-dial-thumb" style="transform:rotate(150deg)"><circle class="qb-thumb-halo" cx="120" cy="24" r="16"/><circle class="qb-thumb-knob" cx="120" cy="24" r="10.5"/><circle class="qb-thumb-core" cx="120" cy="24" r="3.2"/></g></svg><span class="qb-dial-core" aria-hidden="true"></span><div class="qb-dial-readout" aria-hidden="true"><strong class="fm-timer-digits" id="quickMinuteValue">25:00</strong></div></div><input class="qb-dial-input" id="quickDurationInput" type="range" min="5" max="60" step="5" value="25" aria-label="Dauer in Minuten" aria-valuetext="25 Minuten"></div></section><div class="qb-lower"><section class="qb-task-section"><h4><label for="quickTaskInput">Woran arbeitest du?</label></h4><label class="qb-task"><i data-lucide="target" aria-hidden="true"></i><input id="quickTaskInput" value="" placeholder="Hier eingeben…" autocomplete="off"><i data-lucide="pencil" aria-hidden="true"></i></label></section><button class="qb-app" type="button" onclick="openDistractionPicker('quicksetup')" data-protection-summary><span class="qb-shield" aria-hidden="true"><i data-lucide="shield"></i></span><span class="qb-copy"><strong>Fokus-Schutz</strong><small><span class="blockedCount">7</span> Apps blockiert</small></span><span class="qb-icons" id="quickSelectedAppIcons" aria-hidden="true"></span><i data-lucide="chevron-right" aria-hidden="true"></i></button></div></div><div class="qb-bottom"><button type="button" id="quickStartButton" onclick="launchQuickFocusV1716()"><i data-lucide="play" aria-hidden="true"></i> Fokus starten</button></div></div><div class="app-screen flow-screen hidden fs-screen" id="app-screen-distractions">
 <div class="fs-main">
 <div class="fs-topbar"><button class="fm-top-back-btn" onclick="returnFromDistractionPicker()" aria-label="Zurück" title="Zurück" type="button"><i data-lucide="arrow-left"></i></button><span class="fs-topbar-label">Fokus-Schutz</span><span aria-hidden="true"></span></div>
 <header class="fs-header"><h3>Was lenkt dich ab?</h3><p>Wähle die Apps, die während deiner Fokus-Sitzung tabu sind.</p></header>
@@ -364,22 +375,17 @@
       <!-- v17.8: one neutral planning card — deadline first, then preparation route and start. -->
       <div class="mg-plan-board" id="mgScheduleBoard">
         <div class="mg-plan-board-inner">
-          <div class="mg-board-empty" id="mgTimelineEmpty">
-            <span class="mg-board-empty-icon" aria-hidden="true"><i data-lucide="calendar-days"></i></span>
-            <div>
-              <h5 class="mg-board-empty-title">Wann ist deine Prüfung oder Abgabe?</h5>
-              <p class="mg-board-empty-copy">Mit einem Datum plant die AI deine Vorbereitung bis dahin.</p>
-            </div>
-          </div>
-
-          <button type="button" class="mg-deadline-trigger" id="mgDeadlineTrigger" onclick="openMissionCalendarSheet('deadline', this)" aria-label="Prüfung oder Abgabe auswählen">
+          <!-- v17.16: deadline summary + disclosure for the inline planning calendar (mission-calendar.js). -->
+          <button type="button" class="mg-deadline-trigger" id="mgDeadlineTrigger" onclick="toggleMissionPlannerCalendar()" aria-expanded="true" aria-controls="mgPlannerCalendar">
             <span class="mg-deadline-icon" aria-hidden="true"><i data-lucide="calendar"></i></span>
             <span class="mg-deadline-copy">
               <span class="mg-deadline-kicker">PRÜFUNG / ABGABE</span>
               <strong class="mg-deadline-val is-placeholder" id="mgDeadlineValue">Datum auswählen</strong>
+              <span class="mg-deadline-sub hidden" id="mgDeadlineSub"></span>
             </span>
-            <span class="mg-deadline-cta" aria-hidden="true"><i class="mg-cta-empty" data-lucide="chevron-right"></i><i class="mg-cta-edit" data-lucide="pencil"></i></span>
+            <span class="mg-deadline-cta" aria-hidden="true"><i data-lucide="chevron-down"></i></span>
           </button>
+          <div class="mg-planner" id="mgPlannerCalendar" data-block-swipe-back="true"></div>
 
           <div class="mg-timeline-active hidden" id="mgTimelineActive">
             <div class="mg-route" role="group" aria-label="Vorbereitungszeitraum">
@@ -1250,33 +1256,6 @@
 </div>
 </div>
 </div></div><span class="hint">Scrollen, um den Prototyp zu steuern</span></aside></main><div class="modal" id="modal"><button class="close" onclick="closeProto()">×</button><div class="modal-content"><div class="tools"><button onclick="setAppScreen('home')">HOME</button><button onclick="openGoalIntake()">FOCUS MISSION</button><button onclick="setAppScreen('stats')">STATS</button><button onclick="setAppScreen('score')">SCORE</button><button onclick="setAppScreen('premium')">PREMIUM</button><button onclick="setAppScreen('chat')">AI COACH</button><button onclick="triggerAppAblenkung()">DISTRACTION</button></div><div id="modalMount"></div></div></div><script id="realTimeScreenTransitions" src="./src/core/navigation.js"></script><script id="focusProtectionLogic" src="./src/features/quick-focus/quick-focus.js"></script>
-<div class="mg-cal-backdrop hidden" id="missionCalendarSheet" onclick="if(event.target===this)closeMissionCalendarSheet()" role="dialog" aria-modal="true" aria-labelledby="mgCalMonthTitle">
-  <div class="mg-cal-sheet" role="document">
-    <div class="mg-cal-handle" aria-hidden="true"></div>
-    <div class="mg-cal-top">
-      <div>
-        <span class="mg-cal-kicker" id="mgCalKicker">PRÜFUNG / ABGABE</span>
-        <h4 class="mg-cal-title" id="mgCalMonthTitle">November 2026</h4>
-      </div>
-      <div class="mg-cal-nav">
-        <button type="button" class="mg-cal-nav-btn" id="mgCalPrevBtn" onclick="shiftMissionCalendarMonth(-1)" aria-label="Vorheriger Monat">
-          <i data-lucide="chevron-left"></i>
-        </button>
-        <button type="button" class="mg-cal-nav-btn" id="mgCalNextBtn" onclick="shiftMissionCalendarMonth(1)" aria-label="Nächster Monat">
-          <i data-lucide="chevron-right"></i>
-        </button>
-      </div>
-    </div>
-    <div class="mg-cal-weekdays" id="mgCalWeekdays" aria-hidden="true">
-      <span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span>
-    </div>
-    <div class="mg-cal-grid" id="mgCalGrid" role="grid" aria-label="Kalender"></div>
-    <div class="mg-cal-actions">
-      <button type="button" class="mg-cal-btn secondary" id="mgCalCancelBtn" onclick="closeMissionCalendarSheet()">Abbrechen</button>
-      <button type="button" class="mg-cal-btn primary" id="mgCalApplyBtn" onclick="applyMissionCalendarSelection()">Übernehmen</button>
-    </div>
-  </div>
-</div>
 <div id="pwaInstallHelp"><div id="pwaInstallCard"><h2>Focus Mode+ installieren</h2><p>Öffne diese Seite in Safari und füge sie zum Home-Bildschirm hinzu.</p><ol><li>Tippe auf „Teilen“.</li><li>Wähle „Zum Home-Bildschirm“.</li><li>Tippe auf „Hinzufügen“.</li></ol><button id="pwaInstallClose">Verstanden</button></div></div><script src="./src/services/ai-service.js"></script>
 <script id="mobileUIV81" src="./src/features/missions/mission-renderer.js"></script>
 

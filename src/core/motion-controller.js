@@ -410,7 +410,11 @@
     if (intent === 'none') return;
 
     if (intent === 'focus-enter') {
-      animateFocusEnter(appBody, fromEl, toEl, reduced);
+      if (fromScreen === 'quicksetup' && isFreshSessionForLaunch()) {
+        animateQuickFocusLaunch(appBody, fromEl, toEl, reduced);
+      } else {
+        animateFocusEnter(appBody, fromEl, toEl, reduced);
+      }
       return;
     }
 
@@ -736,6 +740,284 @@
       setTimeout(cleanup, durationMs + 30);
       inAnim.finished.catch(function () {});
     } else {
+      cleanup();
+    }
+  }
+
+  /* ========================================================================
+     v17.16 QUICK FOCUS LAUNCH (quicksetup → timer)
+     One continuous object instead of a screen swap: the setup orbit collapses
+     inward, its matter forms one sphere behind the shared MM:00 digits, the
+     cream page darkens into the Cosmic scene and the sphere hands over to the
+     Cosmic Core, whose own birth entrance (cosmic-core.js) keeps growing it.
+     - The Session already exists when this runs (startSession navigated here);
+       nothing in this function reads or writes Session state.
+     - All geometry is read once, before the first frame. Only transform and
+       opacity animate. Cleanup is timer-driven, never animation-event driven,
+       and runs at once on navigation, pagehide, hide, resize or any error.
+     ======================================================================== */
+  function isFreshSessionForLaunch() {
+    const s = root.activeSession;
+    const startedAt = Number(s && s.startedAt) || 0;
+    return Boolean(s && s.type === 'quick' && startedAt > 0 && Date.now() - startedAt < 2500);
+  }
+
+  function animateQuickFocusLaunch(appBody, fromEl, toEl, reduced) {
+    const face = fromEl.querySelector('#quickDialFace');
+    const setupDigits = fromEl.querySelector('#quickMinuteValue');
+    const coreAnchor = toEl.querySelector('#ucCore');
+    const realDigits = toEl.querySelector('#timerDigits');
+    const readoutEl = toEl.querySelector('.uc-readout');
+    if (!face || !setupDigits || !coreAnchor || !realDigits || !readoutEl ||
+        typeof toEl.animate !== 'function' || typeof document.createElement !== 'function') {
+      animateFocusEnter(appBody, fromEl, toEl, reduced);
+      return;
+    }
+
+    const T = reduced
+      ? { total: 300, setupOut: [0, 170], wash: [40, 220], digitsSwap: [60, 200], handoff: [200, 1], meta: [120, 180] }
+      : { total: 1260, setupOut: [40, 360], wash: [210, 540], digitsSwap: [220, 320], handoff: [960, 1], meta: [980, 280] };
+    stateMachine.acquireLock('focus-launch', T.total + 400, forceCleanupScreenLayers);
+    stateMachine.setState('animating', 'focus-launch');
+    if (typeof root.syncTimerProtectionBadge === 'function') {
+      try { root.syncTimerProtectionBadge(); } catch (_) {}
+    }
+
+    appBody.classList.add('fm-dual-transition', 'fm-focus-entering');
+    fromEl.classList.add('fm-layer-outgoing', 'fm-motion-active');
+    toEl.classList.add('fm-layer-incoming', 'fm-layer-top', 'fm-motion-active');
+
+    const timers = [];
+    const animated = [];
+    let overlay = null;
+    let cleaned = false;
+    function later(fn, ms) { timers.push(setTimeout(fn, ms)); }
+    function run(el, keyframes, options) {
+      if (!el || typeof el.animate !== 'function') return null;
+      const a = el.animate(keyframes, options);
+      animated.push(el);
+      if (a && a.finished) a.finished.catch(function () {});
+      return a;
+    }
+    function onInterrupt(ev) {
+      if (ev && ev.type === 'visibilitychange' && !document.hidden) return;
+      cleanup();
+    }
+    function cleanup() {
+      if (cleaned) return;
+      cleaned = true;
+      stateMachine.setState('cleaning', 'focus-launch');
+      timers.forEach(clearTimeout);
+      root.removeEventListener('pagehide', onInterrupt, true);
+      root.removeEventListener('resize', onInterrupt);
+      root.removeEventListener('orientationchange', onInterrupt);
+      document.removeEventListener('visibilitychange', onInterrupt, true);
+      animated.forEach(function (el) { cancelElementAnimations(el); clearInlineMotionStyles(el); });
+      cancelElementAnimations(fromEl);
+      cancelElementAnimations(toEl);
+      if (overlay) { overlay.remove(); overlay = null; }
+      appBody.classList.remove('fm-dual-transition', 'fm-focus-entering');
+      fromEl.classList.remove('fm-layer-outgoing', 'fm-motion-active');
+      toEl.classList.remove('fm-layer-incoming', 'fm-layer-top', 'fm-motion-active');
+      clearInlineMotionStyles(fromEl);
+      clearInlineMotionStyles(toEl);
+      if (typeof root.syncPWAChrome === 'function') {
+        try { root.syncPWAChrome(); } catch (_) {}
+      }
+      if (activeScreenCleanup === cleanup) activeScreenCleanup = null;
+      stateMachine.releaseLock();
+    }
+    activeScreenCleanup = cleanup;
+
+    try {
+      /* Phase A geometry: one read of both layouts before anything moves. */
+      const body = appBody.getBoundingClientRect();
+      const faceBox = face.getBoundingClientRect();
+      const fromBox = setupDigits.getBoundingClientRect();
+      const coreBox = coreAnchor.getBoundingClientRect();
+      const toBox = realDigits.getBoundingClientRect();
+      const digitStyle = root.getComputedStyle(setupDigits);
+      const dial = fromEl.querySelector('#quickDial');
+      const energy = Math.max(0, Math.min(1, parseFloat(dial ? root.getComputedStyle(dial).getPropertyValue('--qb-energy') : '') || 0.36));
+      const sx = faceBox.left + faceBox.width / 2 - body.left;
+      const sy = faceBox.top + faceBox.height / 2 - body.top;
+      const dx = (coreBox.left + coreBox.width / 2 - body.left) - sx;
+      const dy = (coreBox.top + coreBox.height / 2 - body.top) - sy;
+      const tdx = (toBox.left + toBox.width / 2) - (fromBox.left + fromBox.width / 2);
+      const tdy = (toBox.top + toBox.height / 2) - (fromBox.top + fromBox.height / 2);
+      const coreSize = Math.max(40, coreBox.width);
+      const faceR = faceBox.width / 2;
+      if (!(faceBox.width > 0 && coreBox.width > 0 && toBox.width > 0)) throw new Error('launch_geometry_unavailable');
+
+      /* Keep the warm app chrome until the darkness dominates, then hand it to the Focus theme. */
+      if (typeof root.syncPWAChrome === 'function') {
+        try { root.syncPWAChrome('quicksetup'); } catch (_) {}
+        later(function () { try { root.syncPWAChrome('timer'); } catch (_) {} }, reduced ? 80 : 470);
+      }
+
+      /* Temporary overlay above both screens: shared digits, forming sphere, converging matter. */
+      overlay = document.createElement('div');
+      overlay.className = 'fm-qf-launch' + (reduced ? ' is-reduced' : '');
+      overlay.setAttribute('aria-hidden', 'true');
+      const digits = document.createElement('div');
+      digits.className = 'fm-qfl-digits';
+      digits.style.left = (fromBox.left - body.left) + 'px';
+      digits.style.top = (fromBox.top - body.top) + 'px';
+      digits.style.width = fromBox.width + 'px';
+      digits.style.height = fromBox.height + 'px';
+      digits.style.fontSize = digitStyle.fontSize;
+      digits.style.letterSpacing = digitStyle.letterSpacing;
+      digits.style.fontWeight = digitStyle.fontWeight;
+      digits.style.fontFamily = digitStyle.fontFamily;
+      const ink = document.createElement('span');
+      ink.className = 'fm-qfl-ink';
+      ink.textContent = setupDigits.textContent;
+      const light = document.createElement('span');
+      light.className = 'fm-qfl-light';
+      light.textContent = setupDigits.textContent;
+      digits.append(ink, light);
+
+      let sphere = null, halo = null, ring = null, dusk = null;
+      const dust = [];
+      if (!reduced) {
+        /* The sphere's light spills into the page first, so the cream darkens through violet dusk. */
+        dusk = document.createElement('div');
+        dusk.className = 'fm-qfl-dusk';
+        dusk.style.setProperty('--fm-qfl-x', sx.toFixed(1) + 'px');
+        dusk.style.setProperty('--fm-qfl-y', sy.toFixed(1) + 'px');
+        overlay.append(dusk);
+        sphere = document.createElement('div');
+        sphere.className = 'fm-qfl-sphere';
+        halo = document.createElement('div');
+        halo.className = 'fm-qfl-halo';
+        ring = document.createElement('div');
+        ring.className = 'fm-qfl-ring';
+        [sphere, halo, ring].forEach(function (el) {
+          el.style.left = (sx - coreSize / 2) + 'px';
+          el.style.top = (sy - coreSize / 2) + 'px';
+          el.style.width = coreSize + 'px';
+          el.style.height = coreSize + 'px';
+        });
+        /* Stored energy: longer sessions bring more matter into the core. */
+        const count = 12 + Math.round(energy * 14);
+        for (let i = 0; i < count; i++) {
+          const p = document.createElement('i');
+          p.className = 'fm-qfl-dust' + (i % 4 === 0 ? ' is-bright' : '');
+          p.style.left = sx + 'px';
+          p.style.top = sy + 'px';
+          dust.push(p);
+        }
+        overlay.append(halo, sphere, ring);
+        dust.forEach(function (p) { overlay.append(p); });
+      }
+      overlay.append(digits);
+      appBody.appendChild(overlay);
+      setupDigits.style.opacity = '0';
+      animated.push(setupDigits);
+
+      const easeIn = 'cubic-bezier(0.55, 0, 0.85, 0.35)';
+      const easeInOut = 'cubic-bezier(0.65, 0, 0.35, 1)';
+      const easeOut = 'cubic-bezier(0.22, 1, 0.36, 1)';
+      const glide = 'translate(' + dx.toFixed(1) + 'px,' + dy.toFixed(1) + 'px)';
+
+      /* Phase B — the setup recedes; the dial dissolves inward into moving matter. */
+      ['.qb-head', '.qb-lower', '.qb-bottom'].forEach(function (sel, i) {
+        const el = fromEl.querySelector(sel);
+        run(el, [
+          { opacity: 1, transform: 'translateY(0px) scale(1)' },
+          { opacity: 0, transform: reduced ? 'none' : 'translateY(' + (i === 0 ? -8 : 10) + 'px) scale(0.985)' }
+        ], { duration: T.setupOut[1] - T.setupOut[0], delay: T.setupOut[0], easing: 'cubic-bezier(0.4, 0, 0.2, 1)', fill: 'both' });
+      });
+      run(face, [
+        { opacity: 1, transform: 'scale(1)' },
+        { opacity: 0, transform: reduced ? 'none' : 'scale(0.74)' }
+      ], { duration: reduced ? 150 : 420, delay: reduced ? 0 : 60, easing: reduced ? 'linear' : easeIn, fill: 'both' });
+      run(fromEl.querySelector('.qb-dial-orbit'), [
+        { opacity: 1, transform: 'scale(1) rotate(0deg)' },
+        { opacity: 0, transform: reduced ? 'none' : 'scale(0.3) rotate(80deg)' }
+      ], { duration: reduced ? 150 : 440, easing: reduced ? 'linear' : easeIn, fill: 'both' });
+
+      dust.forEach(function (p, i) {
+        const a = (i / dust.length) * Math.PI * 2 + (i % 3) * 0.41;
+        const r = faceR * (0.78 + ((i * 37) % 23) / 60);
+        const ox = Math.cos(a) * r, oy = Math.sin(a) * r;
+        const swirl = 0.5;
+        const mx = Math.cos(a + swirl) * r * 0.42 + dx * 0.4, my = Math.sin(a + swirl) * r * 0.42 + dy * 0.4;
+        const ex = Math.cos(a + swirl * 2) * coreSize * 0.16 + dx * 0.85, ey = Math.sin(a + swirl * 2) * coreSize * 0.16 + dy * 0.85;
+        run(p, [
+          { opacity: 0, transform: 'translate(' + ox.toFixed(1) + 'px,' + oy.toFixed(1) + 'px) scale(1)' },
+          { opacity: 1, transform: 'translate(' + ox.toFixed(1) + 'px,' + oy.toFixed(1) + 'px) scale(1)', offset: 0.12 },
+          { opacity: 0.9, transform: 'translate(' + mx.toFixed(1) + 'px,' + my.toFixed(1) + 'px) scale(0.8)', offset: 0.68 },
+          { opacity: 0, transform: 'translate(' + ex.toFixed(1) + 'px,' + ey.toFixed(1) + 'px) scale(0.35)' }
+        ], { duration: 460 + (i % 5) * 26, delay: 20 + (i % 7) * 14, easing: easeIn, fill: 'both' });
+      });
+
+      /* Phase C — the matter forms one compact dark-violet sphere behind the digits.
+         Phase E — the sphere expands and hands over to the Cosmic Core (its birth entrance grows
+         the same body at the same centre), so the planet never appears all at once. */
+      if (dusk) {
+        run(dusk, [
+          { opacity: 0 },
+          { opacity: 0.55 + energy * 0.25, offset: 0.42 },
+          { opacity: 0 }
+        ], { duration: 760, delay: 140, easing: easeInOut, fill: 'both' });
+      }
+      if (sphere) {
+        run(sphere, [
+          { opacity: 0, transform: 'translate(0px,0px) scale(0.05)' },
+          { opacity: 1, transform: 'translate(' + (dx * 0.55).toFixed(1) + 'px,' + (dy * 0.55).toFixed(1) + 'px) scale(0.22)', offset: 0.3 },
+          { opacity: 1, transform: glide + ' scale(0.42)', offset: 0.5 },
+          { opacity: 0.85, transform: glide + ' scale(0.7)', offset: 0.7 },
+          { opacity: 0, transform: glide + ' scale(0.97)' }
+        ], { duration: 840, delay: 160, easing: 'linear', fill: 'both' });
+        run(halo, [
+          { opacity: 0, transform: 'translate(0px,0px) scale(0.4)' },
+          { opacity: 0.55 + energy * 0.35, transform: glide + ' scale(0.75)', offset: 0.45 },
+          { opacity: 0, transform: glide + ' scale(1.18)' }
+        ], { duration: 820, delay: 300, easing: easeOut, fill: 'both' });
+        run(ring, [
+          { opacity: 0, transform: 'translate(0px,0px) scale(2.1) rotate(-30deg)' },
+          { opacity: 0.85, transform: glide + ' scale(1.05) rotate(110deg)', offset: 0.55 },
+          { opacity: 0, transform: glide + ' scale(1.28) rotate(200deg)' }
+        ], { duration: 860, delay: 260, easing: easeInOut, fill: 'both' });
+      }
+
+      /* The shared digits stay on the anchor (gliding only by the small layout residual), and
+         change from graphite to the Focus white as the environment darkens. */
+      run(digits, [
+        { transform: 'translate(0px,0px)' },
+        { transform: 'translate(' + tdx.toFixed(1) + 'px,' + tdy.toFixed(1) + 'px)' }
+      ], { duration: reduced ? 1 : 560, easing: easeInOut, fill: 'forwards' });
+      run(ink, [{ opacity: 1 }, { opacity: 0 }], { duration: T.digitsSwap[1], delay: T.digitsSwap[0], easing: 'linear', fill: 'both' });
+      run(light, [{ opacity: 0 }, { opacity: 1 }], { duration: T.digitsSwap[1], delay: T.digitsSwap[0], easing: 'linear', fill: 'both' });
+
+      /* Phase D — the dark Cosmic environment fades in continuously beneath the overlay. */
+      run(toEl, [{ opacity: 0 }, { opacity: 1 }], { duration: T.wash[1], delay: T.wash[0], easing: easeInOut, fill: 'both' });
+
+      /* Handoff: the real readout (authoritative remaining time) replaces the shared digits in place,
+         as one swap at the same position (a crossfade would double-expose 25:00 and 24:59). */
+      run(readoutEl, [{ opacity: 0 }, { opacity: 1 }], { duration: T.handoff[1], delay: T.handoff[0], easing: 'linear', fill: 'both' });
+      run(digits, [{ opacity: 1 }, { opacity: 0 }], { duration: T.handoff[1], delay: T.handoff[0], easing: 'linear', fill: 'forwards' });
+
+      /* Phase F — Focus metadata appears once the core geometry is stable. */
+      const metaEls = [toEl.querySelector('.uc-header'), toEl.querySelector('#ucFocusCard'), toEl.querySelector('.uc-actions'), toEl.querySelector('.uc-protect')];
+      metaEls.forEach(function (el, i) {
+        if (!el) return;
+        cancelElementAnimations(el);
+        run(el, [{ opacity: 0 }, { opacity: 1 }], { duration: T.meta[1], delay: T.meta[0] + i * 40, easing: easeOut, fill: 'both' });
+      });
+      const protectBtn = metaEls[3];
+      const hasProtectionActive = typeof root.getSelectedDistractions === 'function' &&
+        Array.isArray(root.getSelectedDistractions()) && root.getSelectedDistractions().length > 0;
+      if (protectBtn) runProtectionGlow(protectBtn, hasProtectionActive && !reduced, T.meta[0] + 160);
+
+      root.addEventListener('pagehide', onInterrupt, true);
+      root.addEventListener('resize', onInterrupt);
+      root.addEventListener('orientationchange', onInterrupt);
+      document.addEventListener('visibilitychange', onInterrupt, true);
+      later(cleanup, T.total + 40);
+    } catch (err) {
+      /* Session correctness first: show the valid active Session without the visual launch. */
       cleanup();
     }
   }
@@ -1931,7 +2213,7 @@
       const el = document.getElementById(id);
       return Boolean(el && !el.classList.contains('hidden'));
     };
-    if (isShown('focusChoiceOverlay') || isShown('missionCalendarSheet') || isShown('sessionConfirmModal')) {
+    if (isShown('focusChoiceOverlay') || isShown('sessionConfirmModal')) {
       return true;
     }
     const missionSheet = document.getElementById('missionSheetV116');

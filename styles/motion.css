@@ -537,7 +537,6 @@ html body #screenWrapper #appBody.fm-dual-transition > :is(#app-screen-home, #ap
 .settings-nav-row,
 .data-action-btn,
 .qb-bottom button,
-.qb-presets button,
 .distraction-row,
 .recovery-primary,
 .recovery-secondary,
@@ -562,7 +561,6 @@ html body #screenWrapper #appBody.fm-dual-transition > :is(#app-screen-home, #ap
 .settings-nav-row:active,
 .data-action-btn:active,
 .qb-bottom button:active,
-.qb-presets button:active,
 .distraction-row:active,
 .recovery-primary:active,
 .recovery-secondary:active,
@@ -571,6 +569,25 @@ html body #screenWrapper #appBody.fm-dual-transition > :is(#app-screen-home, #ap
 .optional-adaptation-secondary:active {
   transform: scale(0.97);
 }
+
+/* ==========================================================================
+   7b. v17.16 QUICK FOCUS LAUNCH LAYER (MotionController.animateQuickFocusLaunch)
+   A temporary, non-interactive layer above both screens for the shared digits,
+   the forming sphere and the converging orbit matter. It exists only during
+   the launch and is removed by the controller's cleanup.
+   ========================================================================== */
+.fm-qf-launch{position:absolute;inset:0;z-index:60;pointer-events:none;overflow:hidden;contain:layout paint}
+.fm-qfl-digits{position:absolute;display:block;line-height:var(--fm-timer-line,1);text-align:center;white-space:nowrap;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;will-change:transform,opacity}
+.fm-qfl-digits span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;will-change:opacity}
+.fm-qfl-ink{color:#1D1A17}
+.fm-qfl-light{color:#FFFFFF;opacity:0;text-shadow:0 4px 24px rgba(3,5,18,.92),0 0 18px rgba(168,85,247,.22)}
+.fm-qfl-dusk{position:absolute;inset:0;opacity:0;will-change:opacity;background:radial-gradient(circle at var(--fm-qfl-x,50%) var(--fm-qfl-y,40%),rgba(91,33,182,.6) 0%,rgba(46,20,70,.6) 36%,rgba(37,22,43,.55) 68%,rgba(30,17,36,.5) 100%)}
+.fm-qfl-sphere,.fm-qfl-halo,.fm-qfl-ring{position:absolute;border-radius:50%;will-change:transform,opacity;opacity:0}
+.fm-qfl-sphere{background:radial-gradient(circle at 34% 28%,rgba(221,214,254,.42) 0%,rgba(221,214,254,0) 30%),radial-gradient(circle at 50% 50%,#3A1F6E 0%,#211243 52%,#0C0820 100%);box-shadow:inset -18px -20px 36px rgba(0,0,0,.55),0 0 34px rgba(124,58,237,.45)}
+.fm-qfl-halo{background:radial-gradient(circle,rgba(167,139,250,.32) 0%,rgba(124,58,237,.14) 42%,rgba(124,58,237,0) 70%)}
+.fm-qfl-ring{border:1.5px solid transparent;border-top-color:rgba(221,214,254,.75);border-right-color:rgba(167,139,250,.35)}
+.fm-qfl-dust{position:absolute;width:4px;height:4px;margin:-2px 0 0 -2px;border-radius:50%;background:#8B5CF6;box-shadow:0 0 6px rgba(139,92,246,.6);opacity:0;will-change:transform,opacity}
+.fm-qfl-dust.is-bright{width:5px;height:5px;margin:-2.5px 0 0 -2.5px;background:#DDD6FE;box-shadow:0 0 8px rgba(196,181,253,.85)}
 
 /* ==========================================================================
    8. REDUCED MOTION COMPLIANCE (@media (prefers-reduced-motion: reduce))

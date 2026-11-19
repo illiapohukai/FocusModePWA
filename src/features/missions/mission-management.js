@@ -73,6 +73,7 @@ function renderMultiMissionUIV115(){
   }else{
     empty?.classList.remove('hidden');card?.classList.add('hidden');
   }
+  applyHomeEmptyStateV1716();
   const plan=document.getElementById('app-screen-plan'),anchor=document.getElementById('aiPlanHero');
   let switcher=document.getElementById('missionSwitcherV115');
   if(active.length>1&&anchor){
@@ -87,6 +88,30 @@ function renderMultiMissionUIV115(){
   applyMissionThemeClassV177(anchor,selected?.id||null);
   lucide.createIcons();
 }
+/* v17.16: the one Home empty-state classifier. The large onboarding card is only for a user who has
+   never created a Mission. Evidence of an earlier Mission (any stored Mission in any status, or a
+   Mission Session in History) marks the user as returning once, and that mark is kept so deleting
+   the last Mission never brings the onboarding card back. The mark is a single UI preference
+   (registered in schema-versions.js); Mission and History data are only read, never changed. */
+function resolveHomeEmptyStateV1716(){
+ const storage=window.FocusModeApp?.services?.storage;
+ const key=window.FocusModeApp?.data?.schema?.keys?.homeOnboardingDone||'focus-mode-home-onboarding-v17-16';
+ try{if(storage?.getText(key,null)==='1')return 'returning'}catch(_){}
+ let evidence=false;
+ try{evidence=missionRepository.getAll().length>0}catch(_){}
+ if(!evidence){try{evidence=typeof sessionRepository!=='undefined'&&sessionRepository.getAll().some(s=>s&&s.type==='mission')}catch(_){}}
+ if(!evidence)return 'onboarding';
+ try{storage?.setText(key,'1')}catch(_){}
+ return 'returning';
+}
+function applyHomeEmptyStateV1716(){
+ const home=document.getElementById('app-screen-home');
+ if(!home)return;
+ const state=resolveHomeEmptyStateV1716();
+ if(home.dataset.homeEmpty!==state)home.dataset.homeEmpty=state;
+}
+window.resolveHomeEmptyStateV1716=resolveHomeEmptyStateV1716;
+document.addEventListener('DOMContentLoaded',()=>{if(typeof I18N==='object'&&I18N.en)Object.assign(I18N.en,{'Bereit für ein neues Ziel?':'Ready for a new goal?','Plane es als Mission oder starte direkt einen Quick Focus.':'Plan it as a Mission or start a Quick Focus right away.','Neue Mission':'New Mission','Mission öffnen':'Open Mission'});applyHomeEmptyStateV1716()},{once:true});
 function applyMissionThemeClassV177(el,missionId){
   if(!el)return;
   const theme=missionId?getMissionThemeV177(missionId):'aubergine';
@@ -177,9 +202,10 @@ function renderMissionHeroV116(vm){
      +'</div>'
    +'</div>'
    +'<div class="mh-nodes-row">'+nodesHTML+'</div>'
+   /* v17.16: progress reads first (left), the primary action closes the row (right). */
    +'<div class="mh-bottom-row">'
-     +'<button class="mh-start-btn" type="button" onclick="'+startCall+'"><span>Schritt starten</span><i data-lucide="play" class="w-3.5 h-3.5 fill-current"></i></button>'
      +'<div class="mh-progress-readout"><span class="mh-progress-pct">'+vm.progressPercent+'%</span><span class="mh-progress-lbl">MISSION</span></div>'
+     +'<button class="mh-start-btn" type="button" onclick="'+startCall+'"><span>'+(vm.currentStepId?'Schritt starten':'Mission öffnen')+'</span><i data-lucide="'+(vm.currentStepId?'play':'arrow-right')+'" class="w-3.5 h-3.5'+(vm.currentStepId?' fill-current':'')+'"></i></button>'
    +'</div>'
  +'</article>';
 }

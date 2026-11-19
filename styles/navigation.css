@@ -668,7 +668,7 @@ html.fm-is-offline:not(.fm-offline-notice-open) .home-status-offline-text {
 .hc-nav-btn { width: 36px; height: 36px; border-radius: 12px; border: 1px solid rgba(45, 35, 30, 0.07); background: var(--surface-muted); color: var(--text-primary); display: grid; place-items: center; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform var(--motion-instant, 90ms) ease, background-color var(--motion-fast, 160ms) ease; }
 .hc-nav-btn svg { width: 17px; height: 17px; }
 .hc-nav-btn:active { transform: scale(0.94); }
-.hc-nav-btn:focus-visible, .hc-day:focus-visible, .hc-event:focus-visible, .hc-jump:focus-visible, .hc-empty-action:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+.hc-nav-btn:focus-visible, .hc-day:focus-visible, .hc-event:focus-visible, .hc-jump:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
 .hc-weekdays, .hc-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
 .hc-weekdays { margin-top: 10px; }
 .hc-weekdays span { text-align: center; font-size: 11px; font-weight: 800; color: #A39A90; }
@@ -713,13 +713,11 @@ html.fm-is-offline:not(.fm-offline-notice-open) .home-status-offline-text {
 .hc-none { margin: 4px 0 0; font-size: 13px; font-weight: 600; color: var(--text-secondary); }
 .hc-jump { display: inline-flex; align-items: center; gap: 7px; max-width: 100%; margin-top: 8px; min-height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid rgba(109, 40, 217, 0.16); background: #F5F0FC; color: var(--primary); font-size: 12.5px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
 .hc-jump svg { width: 14px; height: 14px; flex-shrink: 0; }
-.hc-empty { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
-.hc-empty-icon { flex: 0 0 40px; width: 40px; height: 40px; border-radius: 13px; background: var(--surface-muted); color: var(--primary); display: grid; place-items: center; }
-.hc-empty-icon svg { width: 19px; height: 19px; }
-.hc-empty-copy { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; }
-.hc-empty-copy strong { font-size: 14px; font-weight: 850; color: var(--text-primary); }
-.hc-empty-copy span { margin-top: 2px; font-size: 12.5px; line-height: 1.35; font-weight: 600; color: var(--text-secondary); }
-.hc-empty-action { flex-shrink: 0; margin-left: 52px; min-height: 36px; padding: 0 12px; border-radius: 12px; border: 0; background: var(--primary); color: #FFFFFF; font-size: 12.5px; font-weight: 850; cursor: pointer; box-shadow: 0 6px 14px rgba(109, 40, 217, 0.22); }
+.hc-empty { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 8px 14px 6px; }
+.hc-empty-icon { width: 38px; height: 38px; border-radius: 13px; background: var(--surface-muted); color: #8A8178; display: grid; place-items: center; }
+.hc-empty-icon svg { width: 18px; height: 18px; }
+.hc-empty-title { margin-top: 10px; font-size: 14px; line-height: 1.3; font-weight: 850; color: var(--text-primary); }
+.hc-empty-text { max-width: 260px; margin-top: 3px; font-size: 12.5px; line-height: 1.4; font-weight: 600; color: var(--text-secondary); text-wrap: balance; }
 .hc-grid.is-enter-next { animation: hcMonthNext var(--motion-fast, 160ms) var(--ease-standard, ease) both; }
 .hc-grid.is-enter-prev { animation: hcMonthPrev var(--motion-fast, 160ms) var(--ease-standard, ease) both; }
 @keyframes hcMonthNext { from { opacity: 0.35; transform: translateX(12px); } to { opacity: 1; transform: none; } }
@@ -727,117 +725,208 @@ html.fm-is-offline:not(.fm-offline-notice-open) .home-status-offline-text {
 @media (prefers-reduced-motion: reduce) { .hc-grid.is-enter-next, .hc-grid.is-enter-prev { animation: none; } .hc-num { transition: none; } }
 @media (max-width: 360px) { .home-calendar-card { padding: 12px 10px 10px; } .hc-day { height: 35px; } .hc-num { width: 26px; height: 26px; font-size: 13px; } }
 
-/* 5. Activity Timeline */
+/* 5. Activity (v17.16, rendered by renderHomeActivityTimelineV173 in session-history.js).
+   One quiet card grouped by day. A thin rail links outcome nodes: filled = abgeschlossen,
+   half = teilweise, open = abgebrochen. The node tone is the Mission colour (Quick Focus: app
+   purple); the outcome is always also written out, so meaning never depends on colour alone. */
 .home-activity-timeline {
   display: flex;
   flex-direction: column;
 }
 
-.home-activity-empty {
-  padding: 16px;
-  border-radius: 20px;
+.home-activity-list {
+  list-style: none;
+  margin: 0;
+  padding: 6px 14px 8px;
+  border-radius: 22px;
   background: var(--surface);
   border: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  box-shadow: 0 8px 22px rgba(37, 22, 43, 0.04);
 }
 
-.home-activity-empty-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 13px;
-  background: var(--surface-muted);
-  color: var(--primary);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+.home-activity-day {
+  padding: 10px 0 4px 26px;
+  font-size: 9.5px;
+  font-weight: 850;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #A39A90;
 }
 
 .home-activity-row {
+  --act-tone: var(--primary);
+  position: relative;
   display: grid;
-  grid-template-columns: 38px 24px minmax(0, 1fr);
-  gap: 8px;
-  align-items: stretch;
+  grid-template-columns: 14px minmax(0, 1fr) auto;
+  align-items: start;
+  column-gap: 12px;
+  padding: 9px 0 10px;
 }
 
-.home-activity-time {
-  padding-top: 12px;
-  font-size: 10.5px;
-  font-weight: 700;
-  color: var(--text-secondary);
-  font-variant-numeric: tabular-nums;
-  text-align: right;
+.home-activity-row.is-mission {
+  --act-tone: var(--mt-accent-strong, var(--primary));
 }
 
-.home-activity-rail {
+/* Rail: connects consecutive rows of the same day; it stops at a day label. */
+.home-activity-row::before {
+  content: "";
+  position: absolute;
+  left: 6.25px;
+  top: 24px;
+  bottom: -9px;
+  width: 1.5px;
+  border-radius: 2px;
+  background: rgba(45, 35, 30, 0.10);
+}
+
+.home-activity-row:last-child::before,
+.home-activity-row:has(+ .home-activity-day)::before {
+  display: none;
+}
+
+.home-activity-node {
+  position: relative;
+  z-index: 1;
+  width: 14px;
+  height: 14px;
+  margin-top: 2px;
+  border-radius: 50%;
+  box-sizing: border-box;
+  border: 2px solid var(--act-tone);
+  background: var(--act-tone);
+  box-shadow: 0 0 0 3px var(--surface);
+}
+
+.home-activity-row.outcome-partial .home-activity-node {
+  background: linear-gradient(90deg, var(--act-tone) 0 50%, var(--surface) 50% 100%);
+}
+
+.home-activity-row.outcome-aborted .home-activity-node {
+  border-color: #B3A897;
+  background: var(--surface);
+}
+
+.home-activity-main {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding-top: 10px;
-}
-
-.home-activity-dot {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.home-activity-dot.status-completed {
-  background: #DCFCE7;
-  color: #15803D;
-  border: 1px solid #BBF7D0;
-}
-
-.home-activity-dot.status-partial {
-  background: #F3E8FF;
-  color: #6D28D9;
-  border: 1px solid #E9D5FF;
-}
-
-.home-activity-dot.status-aborted {
-  background: #FEF3C7;
-  color: #B45309;
-  border: 1px solid #FDE68A;
-}
-
-.home-activity-line {
-  width: 1.5px;
-  flex: 1;
-  min-height: 14px;
-  background: rgba(45, 35, 30, 0.12);
-  margin: 4px 0 -6px;
-}
-
-.home-activity-card {
-  padding: 10px 13px;
-  margin-bottom: 8px;
-  border-radius: 16px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  box-shadow: 0 4px 14px rgba(37, 22, 43, 0.035);
   min-width: 0;
 }
 
 .home-activity-title {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 850;
-  color: var(--text-primary);
   line-height: 1.25;
+  color: var(--text-primary);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
   overflow-wrap: anywhere;
 }
 
+.home-activity-row.outcome-aborted .home-activity-title {
+  color: #5C544D;
+}
+
 .home-activity-sub {
-  font-size: 10.5px;
+  display: flex;
+  min-width: 0;
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.3;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.home-activity-context {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.home-activity-sep {
+  flex-shrink: 0;
+  padding: 0 5px;
+}
+
+.home-activity-sub time {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.home-activity-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.home-activity-duration {
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.25;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.home-activity-outcome {
+  margin-top: 2px;
+  font-size: 11.5px;
+  font-weight: 800;
+  line-height: 1.3;
+  white-space: nowrap;
+  color: #15803D;
+}
+
+.home-activity-row.outcome-partial .home-activity-outcome {
+  color: #8A5A0B;
+}
+
+.home-activity-row.outcome-aborted .home-activity-outcome,
+.home-activity-row.outcome-aborted .home-activity-duration {
+  color: var(--text-secondary);
+}
+
+.home-activity-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 16px 16px 15px;
+  border-radius: 22px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.home-activity-empty-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: var(--surface-muted);
+  color: #8A8178;
+  display: grid;
+  place-items: center;
+}
+
+.home-activity-empty-icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.home-activity-empty strong {
+  margin-top: 9px;
+  font-size: 14px;
+  font-weight: 850;
+  color: var(--text-primary);
+}
+
+.home-activity-empty > span:last-child {
+  margin-top: 2px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--text-secondary);
-  margin-top: 2px;
-  line-height: 1.3;
 }
 
 /* =========================================

@@ -440,7 +440,6 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
         'Foto entfernen': 'Remove photo',
         'Zeitplan': 'Schedule',
         'optional': 'optional',
-        'Mit einem Datum plant die AI deine Vorbereitung bis dahin.': 'With a date, the AI plans your preparation up to it.',
         'Wann startest du?': 'When do you start?',
         'An welchen Tagen kannst du lernen?': 'Which days can you study?',
         'Wie lang soll eine Sitzung sein?': 'How long should a session be?',
@@ -463,23 +462,7 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
   let startClampedNotice = false;
   let prefsExpanded = false;
   let prefsUserInteracted = false;
-  let calendarSheetMode = 'deadline'; // 'deadline' | 'start'
-  let calendarViewYear = new Date().getFullYear();
-  let calendarViewMonth = new Date().getMonth(); // 0..11
-  let calendarPendingDate = null;
   let lastConfiguredScheduleSnapshot = null;
-
-  /* Calendar Viewport Scroll-Lock & Focus Restoration State */
-  let calendarCloseTimer = null;
-  let calendarReturnFocusEl = null;
-  let savedGoalScrollTop = 0;
-  let savedPageScrollTop = 0;
-  let savedWindowScrollX = 0;
-  let savedWindowScrollY = 0;
-  let savedGoalOverflowY = '';
-  let savedGoalTouchAction = '';
-  let calendarScrollLocked = false;
-  let visualViewportCleanup = null;
 
   function getActiveLang() {
     const saved = window.FocusModeApp?.services?.storage?.getText('focus-mode-language', '');
@@ -756,7 +739,6 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
     const deadlineVal = document.getElementById('mgDeadlineValue');
     const clearBtn = document.getElementById('mgDeadlineClearBtn');
     const prepBlock = document.getElementById('mgPrepStartBlock');
-    const timelineEmpty = document.getElementById('mgTimelineEmpty');
     const timelineActive = document.getElementById('mgTimelineActive');
     const startLabel = document.getElementById('mgTimelineStartLabel');
     const endLabel = document.getElementById('mgTimelineEndLabel');
@@ -772,10 +754,8 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
       board.classList.toggle('has-deadline', hasDeadline);
     }
     if (deadlineTrigger) {
+      /* v17.16: the trigger is the inline calendar's disclosure; its visible text is its name. */
       deadlineTrigger.classList.toggle('has-value', hasDeadline);
-      deadlineTrigger.setAttribute('aria-label', hasDeadline
-        ? (isEn ? 'Change exam or deadline date' : 'Prüfungs- oder Abgabedatum ändern')
-        : (isEn ? 'Select exam or deadline date' : 'Prüfung oder Abgabe auswählen'));
     }
     if (deadlineVal) {
       if (hasDeadline) {
@@ -821,8 +801,7 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
       }
     });
 
-    if (timelineEmpty && timelineActive) {
-      timelineEmpty.classList.toggle('hidden', hasDeadline);
+    if (timelineActive) {
       timelineActive.classList.toggle('hidden', !hasDeadline);
     }
 
@@ -921,6 +900,9 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
       window.updateMissionPlanButton();
     }
 
+    /* v17.16: the inline planning calendar (mission-calendar.js) reflects the same state. */
+    window.MissionCalendar?.refreshPlanner?.();
+
     if (typeof window.lucide?.createIcons === 'function') {
       window.lucide.createIcons();
     }
@@ -943,6 +925,21 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
     return true;
   }
 
+  window.selectMissionDeadlineDate = selectDeadlineDate;
+
+  /* v17.16: custom preparation start chosen in the inline calendar ("Eigene Wahl"). */
+  function selectMissionPreparationStartDate(iso) {
+    if (!parseLocalISODate(iso)) return false;
+    if (diffCalendarDays(getTodayISO(), iso) < 0) return false;
+    userManuallyChoseStartMode = true;
+    missionScheduleState.startMode = 'custom';
+    missionScheduleState.preparationStartDate = iso;
+    startClampedNotice = false;
+    syncMissionScheduleUI();
+    return true;
+  }
+  window.selectMissionPreparationStartDate = selectMissionPreparationStartDate;
+
   function clearMissionDeadline(ev) {
     if (ev && typeof ev.stopPropagation === 'function') ev.stopPropagation();
     missionScheduleState.deadlineDate = null;
@@ -951,6 +948,8 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
     userManuallyChoseStartMode = false;
     startClampedNotice = false;
     syncMissionScheduleUI();
+    /* v17.16: without a deadline the inline calendar opens again for a new choice. */
+    window.MissionCalendar?.togglePlanner?.(true);
   }
   window.clearMissionDeadline = clearMissionDeadline;
 
@@ -963,7 +962,7 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
         recomputePreparationStartDate();
       }
       syncMissionScheduleUI();
-      openMissionCalendarSheet('start', document.querySelector('#mgStartModeChips [data-start-mode="custom"]'));
+      window.MissionCalendar?.openPlanner?.('start');
       return;
     }
     recomputePreparationStartDate();
@@ -1008,325 +1007,6 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
   }
   window.selectMissionPreferredDuration = selectMissionPreferredDuration;
 
-  /* Viewport-Level Calendar Bottom Sheet */
-  function ensureCalendarMountedToBody(sheet) {
-    if (sheet && document.body && sheet.parentElement !== document.body) {
-      document.body.appendChild(sheet);
-    }
-  }
-
-  function syncVisualViewportInset(sheet) {
-    if (!sheet) return;
-    const vv = window.visualViewport;
-    if (!vv) {
-      sheet.style.setProperty('--mg-cal-vv-bottom', '0px');
-      return;
-    }
-    const bottomInset = Math.max(0, Math.round(window.innerHeight - (vv.offsetTop + vv.height)));
-    sheet.style.setProperty('--mg-cal-vv-bottom', bottomInset + 'px');
-  }
-
-  function bindVisualViewportListener(sheet) {
-    if (visualViewportCleanup) {
-      visualViewportCleanup();
-      visualViewportCleanup = null;
-    }
-    const update = () => syncVisualViewportInset(sheet);
-    update();
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', update, { passive: true });
-      window.visualViewport.addEventListener('scroll', update, { passive: true });
-    }
-    window.addEventListener('resize', update, { passive: true });
-    visualViewportCleanup = () => {
-      if (window.visualViewport) {
-        window.visualViewport.removeEventListener('resize', update);
-        window.visualViewport.removeEventListener('scroll', update);
-      }
-      window.removeEventListener('resize', update);
-      sheet?.style?.removeProperty('--mg-cal-vv-bottom');
-    };
-  }
-
-  function lockBackgroundScrollForCalendar() {
-    if (calendarScrollLocked) return;
-    const goalScreen = document.getElementById('app-screen-goal');
-    const pageEl = document.querySelector('main.page');
-    savedGoalScrollTop = goalScreen ? goalScreen.scrollTop : 0;
-    savedPageScrollTop = pageEl ? pageEl.scrollTop : 0;
-    savedWindowScrollX = window.scrollX || window.pageXOffset || 0;
-    savedWindowScrollY = window.scrollY || window.pageYOffset || 0;
-
-    if (goalScreen) {
-      savedGoalOverflowY = goalScreen.style.overflowY || '';
-      savedGoalTouchAction = goalScreen.style.touchAction || '';
-      goalScreen.style.overflowY = 'hidden';
-      goalScreen.style.touchAction = 'none';
-      goalScreen.scrollTop = savedGoalScrollTop;
-    }
-    document.documentElement.classList.add('mg-cal-scroll-locked');
-    document.body.classList.add('mg-cal-scroll-locked');
-    calendarScrollLocked = true;
-  }
-
-  function unlockBackgroundScrollForCalendar() {
-    if (!calendarScrollLocked) return;
-    document.documentElement.classList.remove('mg-cal-scroll-locked');
-    document.body.classList.remove('mg-cal-scroll-locked');
-
-    const goalScreen = document.getElementById('app-screen-goal');
-    const pageEl = document.querySelector('main.page');
-    if (goalScreen) {
-      goalScreen.style.overflowY = savedGoalOverflowY;
-      goalScreen.style.touchAction = savedGoalTouchAction;
-      goalScreen.scrollTop = savedGoalScrollTop;
-    }
-    if (pageEl) {
-      pageEl.scrollTop = savedPageScrollTop;
-    }
-    try {
-      window.scrollTo(savedWindowScrollX, savedWindowScrollY);
-    } catch (_) {}
-
-    requestAnimationFrame(() => {
-      if (goalScreen) goalScreen.scrollTop = savedGoalScrollTop;
-      if (pageEl) pageEl.scrollTop = savedPageScrollTop;
-      try {
-        window.scrollTo(savedWindowScrollX, savedWindowScrollY);
-      } catch (_) {}
-    });
-
-    calendarScrollLocked = false;
-  }
-
-  function renderMissionCalendarGrid() {
-    const titleEl = document.getElementById('mgCalMonthTitle');
-    const kickerEl = document.getElementById('mgCalKicker');
-    const gridEl = document.getElementById('mgCalGrid');
-    const prevBtn = document.getElementById('mgCalPrevBtn');
-    const weekdaysEl = document.getElementById('mgCalWeekdays');
-    if (!gridEl || !titleEl) return;
-
-    const isEn = getActiveLang() === 'en';
-    const locale = isEn ? 'en-US' : 'de-DE';
-
-    if (kickerEl) {
-      kickerEl.textContent = calendarSheetMode === 'start'
-        ? (isEn ? 'PREPARATION START' : 'START DER VORBEREITUNG')
-        : (isEn ? 'EXAM / DEADLINE' : 'PRÜFUNG / ABGABE');
-    }
-
-    if (weekdaysEl) {
-      const names = isEn ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] : ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
-      weekdaysEl.innerHTML = names.map(n => '<span>' + n + '</span>').join('');
-    }
-
-    const viewDate = new Date(calendarViewYear, calendarViewMonth, 1);
-    try {
-      const formattedMonth = new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(viewDate);
-      titleEl.textContent = formattedMonth.charAt(0).toUpperCase() + formattedMonth.slice(1);
-    } catch {
-      titleEl.textContent = (calendarViewMonth + 1) + ' / ' + calendarViewYear;
-    }
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayISO = toLocalISODate(today);
-
-    if (prevBtn) {
-      const isCurrentOrPastMonth =
-        calendarViewYear < today.getFullYear() ||
-        (calendarViewYear === today.getFullYear() && calendarViewMonth <= today.getMonth());
-      prevBtn.disabled = isCurrentOrPastMonth;
-    }
-
-    const firstDayOfMonth = new Date(calendarViewYear, calendarViewMonth, 1);
-    const leadingEmptyCount = (firstDayOfMonth.getDay() + 6) % 7; // Monday = 0 .. Sunday = 6
-    const daysInMonth = new Date(calendarViewYear, calendarViewMonth + 1, 0).getDate();
-
-    const rangeStartISO = calendarSheetMode === 'start'
-      ? calendarPendingDate
-      : (missionScheduleState.preparationStartDate || todayISO);
-    const rangeEndISO = calendarSheetMode === 'deadline'
-      ? calendarPendingDate
-      : missionScheduleState.deadlineDate;
-
-    gridEl.replaceChildren();
-
-    for (let i = 0; i < leadingEmptyCount; i++) {
-      const emptyCell = document.createElement('span');
-      emptyCell.className = 'mg-cal-day is-empty';
-      emptyCell.setAttribute('aria-hidden', 'true');
-      gridEl.appendChild(emptyCell);
-    }
-
-    for (let day = 1; day <= daysInMonth; day++) {
-      const cellDate = new Date(calendarViewYear, calendarViewMonth, day, 0, 0, 0, 0);
-      const cellISO = toLocalISODate(cellDate);
-      const isPast = diffCalendarDays(todayISO, cellISO) < 0;
-      const isToday = cellISO === todayISO;
-      const isSelected = cellISO === calendarPendingDate;
-      const isInRange = Boolean(
-        rangeStartISO &&
-        rangeEndISO &&
-        diffCalendarDays(rangeStartISO, cellISO) > 0 &&
-        diffCalendarDays(cellISO, rangeEndISO) > 0
-      );
-
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'mg-cal-day'
-        + (isPast ? ' is-disabled' : '')
-        + (isToday ? ' is-today' : '')
-        + (isSelected ? ' is-selected' : '')
-        + (isInRange ? ' is-in-range' : '');
-      btn.textContent = String(day);
-      btn.dataset.iso = cellISO;
-      btn.disabled = isPast;
-      btn.setAttribute('aria-selected', isSelected ? 'true' : 'false');
-      if (!isPast) {
-        btn.onclick = function () {
-          calendarPendingDate = cellISO;
-          renderMissionCalendarGrid();
-        };
-      }
-      gridEl.appendChild(btn);
-    }
-  }
-
-  function openMissionCalendarSheet(mode, triggerEl) {
-    calendarSheetMode = mode === 'start' ? 'start' : 'deadline';
-    const todayISO = getTodayISO();
-    const initialISO = calendarSheetMode === 'start'
-      ? (missionScheduleState.preparationStartDate || todayISO)
-      : (missionScheduleState.deadlineDate || todayISO);
-    const dt = parseLocalISODate(initialISO) || new Date();
-    calendarViewYear = dt.getFullYear();
-    calendarViewMonth = dt.getMonth();
-    calendarPendingDate = initialISO;
-
-    const sheet = document.getElementById('missionCalendarSheet');
-    if (!sheet) return;
-
-    if (calendarCloseTimer) {
-      clearTimeout(calendarCloseTimer);
-      calendarCloseTimer = null;
-    }
-
-    ensureCalendarMountedToBody(sheet);
-
-    // Dismiss active keyboard focus on Goal textarea/inputs without jumping scroll
-    const activeEl = document.activeElement;
-    if (activeEl && activeEl !== document.body && typeof activeEl.blur === 'function' && activeEl.matches('input, textarea, select')) {
-      activeEl.blur();
-    }
-
-    calendarReturnFocusEl = (triggerEl instanceof HTMLElement && triggerEl.isConnected)
-      ? triggerEl
-      : (activeEl instanceof HTMLElement && activeEl !== document.body && !activeEl.matches('input, textarea, select')
-        ? activeEl
-        : document.getElementById('mgDeadlineTrigger'));
-
-    lockBackgroundScrollForCalendar();
-    renderMissionCalendarGrid();
-    bindVisualViewportListener(sheet);
-
-    sheet.classList.remove('hidden', 'is-closing', 'is-open');
-    void sheet.offsetWidth;
-    requestAnimationFrame(() => {
-      if (!sheet.classList.contains('hidden')) {
-        sheet.classList.add('is-open');
-      }
-    });
-
-    if (typeof window.lucide?.createIcons === 'function') {
-      window.lucide.createIcons();
-    }
-  }
-  window.openMissionCalendarSheet = openMissionCalendarSheet;
-
-  function closeMissionCalendarSheet(options = {}) {
-    const sheet = document.getElementById('missionCalendarSheet');
-    if (!sheet) {
-      unlockBackgroundScrollForCalendar();
-      return;
-    }
-
-    if (calendarCloseTimer) {
-      clearTimeout(calendarCloseTimer);
-      calendarCloseTimer = null;
-    }
-
-    if (visualViewportCleanup) {
-      visualViewportCleanup();
-      visualViewportCleanup = null;
-    }
-
-    const prefersReduced = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const isAlreadyHidden = sheet.classList.contains('hidden');
-    const immediate = Boolean(options?.immediate) || prefersReduced || isAlreadyHidden;
-
-    const finalizeClose = () => {
-      sheet.classList.remove('is-open', 'is-closing');
-      sheet.classList.add('hidden');
-      unlockBackgroundScrollForCalendar();
-      if (!options?.skipFocusRestore) {
-        const focusTarget = (calendarReturnFocusEl && calendarReturnFocusEl.isConnected)
-          ? calendarReturnFocusEl
-          : document.getElementById('mgDeadlineTrigger');
-        if (focusTarget && typeof focusTarget.focus === 'function') {
-          try { focusTarget.focus({ preventScroll: true }); } catch (_) { focusTarget.focus(); }
-        }
-      }
-    };
-
-    if (immediate) {
-      finalizeClose();
-      return;
-    }
-
-    sheet.classList.remove('is-open');
-    sheet.classList.add('is-closing');
-    calendarCloseTimer = setTimeout(() => {
-      calendarCloseTimer = null;
-      finalizeClose();
-    }, 240);
-  }
-  window.closeMissionCalendarSheet = closeMissionCalendarSheet;
-
-  function shiftMissionCalendarMonth(delta) {
-    const d = new Date(calendarViewYear, calendarViewMonth + Number(delta || 0), 1);
-    const today = new Date();
-    const minMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    if (d < minMonth) return;
-    calendarViewYear = d.getFullYear();
-    calendarViewMonth = d.getMonth();
-    renderMissionCalendarGrid();
-  }
-  window.shiftMissionCalendarMonth = shiftMissionCalendarMonth;
-
-  function applyMissionCalendarSelection() {
-    if (!calendarPendingDate) {
-      closeMissionCalendarSheet();
-      return;
-    }
-    const todayISO = getTodayISO();
-    if (diffCalendarDays(todayISO, calendarPendingDate) < 0) {
-      return;
-    }
-    if (calendarSheetMode === 'start') {
-      userManuallyChoseStartMode = true;
-      missionScheduleState.startMode = 'custom';
-      missionScheduleState.preparationStartDate = calendarPendingDate;
-      startClampedNotice = false;
-      syncMissionScheduleUI();
-    } else {
-      selectDeadlineDate(calendarPendingDate);
-    }
-    closeMissionCalendarSheet();
-  }
-  window.applyMissionCalendarSelection = applyMissionCalendarSelection;
-
   function resetMissionScheduleState() {
     missionScheduleState.deadlineDate = null;
     missionScheduleState.preparationStartDate = null;
@@ -1337,7 +1017,7 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
     startClampedNotice = false;
     prefsExpanded = false;
     prefsUserInteracted = false;
-    closeMissionCalendarSheet({ immediate: true, skipFocusRestore: true });
+    window.MissionCalendar?.resetPlanner?.();
     syncMissionScheduleUI();
   }
   window.resetMissionScheduleState = resetMissionScheduleState;
@@ -1488,21 +1168,8 @@ const renderBeforeDepthV105=renderAIPlan;renderAIPlan=function(){const r=renderB
     };
   }
 
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') {
-      const sheet = document.getElementById('missionCalendarSheet');
-      if (sheet && !sheet.classList.contains('hidden')) {
-        e.stopImmediatePropagation?.();
-        e.preventDefault();
-        closeMissionCalendarSheet();
-      }
-    }
-  }, true);
-
   document.addEventListener('DOMContentLoaded', function () {
     registerScheduleI18N();
-    const sheet = document.getElementById('missionCalendarSheet');
-    ensureCalendarMountedToBody(sheet);
     if (typeof window.setLanguage === 'function') {
       window.setLanguage(getActiveLang(), false);
     }
