@@ -24,6 +24,12 @@
     return;
   }
 
+  /* v17.17: last failed write (code/key/name only, never values) for user-facing quota messages. */
+  let lastWriteError = null;
+
+  /* All keys this app owns. Used for predictable full deletion; nothing else is touched. */
+  const APP_KEY_PREFIXES = Object.freeze(['focus-mode', 'focusmode-', 'focus-pwa-', 'focus_lang']);
+
   function storageAvailable() {
     try {
       const storage = global.localStorage;
@@ -94,12 +100,24 @@
       global.localStorage.setItem(normalizedKey, String(value));
       return result(true, true, null);
     } catch (error) {
-      return result(false, null, {
-        code: 'storage_write_failed',
+      const failure = {
+        code: isQuotaError(error) ? 'storage_quota_exceeded' : 'storage_write_failed',
         key: normalizedKey,
         name: error?.name || 'Error'
-      });
+      };
+      lastWriteError = Object.freeze({ ...failure, at: Date.now() });
+      return result(false, null, failure);
     }
+  }
+
+  /* v17.17: quota errors are named differently across engines (Chromium/WebKit/Gecko). */
+  function isQuotaError(error) {
+    if (!error) return false;
+    const name = String(error.name || '');
+    return name === 'QuotaExceededError' ||
+      name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
+      error.code === 22 ||
+      error.code === 1014;
   }
 
   function getText(key, fallback = null) {
@@ -197,8 +215,32 @@
     return writeRaw(normalizedBackup, readResult.value).ok;
   }
 
+  function listAppKeys() {
+    if (!storageAvailable()) return [];
+    const keys = [];
+    try {
+      const storage = global.localStorage;
+      for (let i = 0; i < storage.length; i += 1) {
+        const key = storage.key(i);
+        if (typeof key === 'string' && APP_KEY_PREFIXES.some(prefix => key.startsWith(prefix))) {
+          keys.push(key);
+        }
+      }
+    } catch (error) {
+      return [];
+    }
+    return keys;
+  }
+
+  function getLastWriteError() {
+    return lastWriteError;
+  }
+
   const storageService = Object.freeze({
     isAvailable: storageAvailable,
+    isQuotaError,
+    listAppKeys,
+    getLastWriteError,
     getText,
     setText,
     getJSON,

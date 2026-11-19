@@ -101,14 +101,19 @@
       KEYS.migrationState
     ];
     try {
+      let allRestored = true;
       for (const key of trackedKeys) {
         if (Object.prototype.hasOwnProperty.call(rawEntries, key) && rawEntries[key] !== null) {
-          storage.setText(key, rawEntries[key]);
+          // v17.17: only rewrite keys that actually changed (fewer writes; an untouched key that
+          // still cannot be written does not turn a successful rollback into a reported failure).
+          if (storage.getText(key, null) === rawEntries[key]) continue;
+          if (!storage.setText(key, rawEntries[key])) allRestored = false;
         } else {
           storage.remove(key);
+          if (storage.getText(key, null) !== null) allRestored = false;
         }
       }
-      return true;
+      return allRestored;
     } catch (error) {
       console.error('[MigrationRunner]', { event: 'raw_restore_failed', message: error?.message });
       return false;
@@ -226,6 +231,38 @@
     }
 
     return bundle;
+  }
+
+  /* v17.17: same as createBackup, but reports whether the target backup was actually stored.
+     Import uses it so current data is never replaced without a restorable copy. */
+  function createBackupChecked(reason, targetKey, options = {}) {
+    const bundle = collectCurrentDataBundle(reason);
+    const stored = Boolean(targetKey) && storage.setJSON(targetKey, bundle) &&
+      storage.getText(targetKey, null) === JSON.stringify(bundle);
+    if (stored && options.updateLatest !== false) {
+      const hasMeaningfulData = bundle.integrity.missionCount > 0 || bundle.integrity.sessionCount > 0 || bundle.integrity.hasActiveSession;
+      if (hasMeaningfulData) storage.setJSON(KEYS.backupLatest, bundle);
+    }
+    return { ok: stored, bundle, code: stored ? null : (storage.getLastWriteError?.()?.code || 'backup_write_failed') };
+  }
+
+  /* v17.17: every write of a transactional apply is checked and read back. Returns null on
+     success or { code, key } for the first failed operation. */
+  function performVerifiedWrites(operations) {
+    for (const op of operations) {
+      if (op.type === 'remove') {
+        storage.remove(op.key);
+        if (storage.getText(op.key, null) !== null) return { code: 'storage_remove_failed', key: op.key };
+        continue;
+      }
+      const text = op.type === 'json' ? JSON.stringify(op.value) : String(op.value);
+      const ok = storage.setText(op.key, text);
+      if (!ok) {
+        return { code: storage.getLastWriteError?.()?.code || 'storage_write_failed', key: op.key };
+      }
+      if (storage.getText(op.key, null) !== text) return { code: 'storage_verify_failed', key: op.key };
+    }
+    return null;
   }
 
   function getLastBackup(preferredKey = null) {
@@ -1108,56 +1145,70 @@
         };
       }
 
-      // Write atomically to localStorage
-      storage.setJSON(KEYS.missions, normalized.missionsStore);
-      storage.setText(KEYS.missionsMigrated, '1');
-      storage.setJSON(KEYS.sessionHistory, normalized.sessionHistoryStore);
-
-      if (normalized.activeSession) {
-        storage.setJSON(KEYS.activeSession, normalized.activeSession);
-      } else {
-        storage.remove(KEYS.activeSession);
-      }
-
-      if (normalized.lastSession) {
-        storage.setJSON(KEYS.lastSession, normalized.lastSession);
-      } else {
-        storage.remove(KEYS.lastSession);
-      }
-
-      if (normalized.lastAiPlan) {
-        storage.setJSON(KEYS.lastAiPlan, normalized.lastAiPlan);
-      } else {
-        storage.remove(KEYS.lastAiPlan);
-      }
-
-      if (normalized.preferences?.language) {
-        storage.setText(KEYS.language, normalized.preferences.language);
-      }
-      if (normalized.preferences?.pwaInstallHelpDismissed != null) {
-        storage.setText(KEYS.pwaHelp, String(normalized.preferences.pwaInstallHelpDismissed));
-      }
-
+      // v17.17: transactional write. Every operation is checked and read back; any failure
+      // (quota, private mode, verification mismatch) restores the pre-apply snapshot.
       const fingerprint = computeStateFingerprint(
         normalized.missionsStore,
         normalized.sessionHistoryStore,
         normalized.activeSession
       );
-
-      schema.writeStoredSchemaState({
-        lastAppliedAt: Date.now(),
-        dataFingerprint: fingerprint
+      const operations = [
+        { type: 'json', key: KEYS.missions, value: normalized.missionsStore },
+        { type: 'text', key: KEYS.missionsMigrated, value: '1' },
+        { type: 'json', key: KEYS.sessionHistory, value: normalized.sessionHistoryStore },
+        normalized.activeSession
+          ? { type: 'json', key: KEYS.activeSession, value: normalized.activeSession }
+          : { type: 'remove', key: KEYS.activeSession },
+        normalized.lastSession
+          ? { type: 'json', key: KEYS.lastSession, value: normalized.lastSession }
+          : { type: 'remove', key: KEYS.lastSession },
+        normalized.lastAiPlan
+          ? { type: 'json', key: KEYS.lastAiPlan, value: normalized.lastAiPlan }
+          : { type: 'remove', key: KEYS.lastAiPlan }
+      ];
+      if (normalized.preferences?.language) {
+        operations.push({ type: 'text', key: KEYS.language, value: normalized.preferences.language });
+      }
+      if (normalized.preferences?.pwaInstallHelpDismissed != null) {
+        operations.push({ type: 'text', key: KEYS.pwaHelp, value: String(normalized.preferences.pwaInstallHelpDismissed) });
+      }
+      operations.push({
+        type: 'json',
+        key: KEYS.schemaState,
+        value: {
+          applicationVersion: schema.applicationVersion,
+          exportVersion: schema.exportVersion,
+          versions: { ...schema.versions },
+          updatedAt: Date.now(),
+          lastAppliedAt: Date.now(),
+          dataFingerprint: fingerprint
+        }
+      });
+      operations.push({
+        type: 'json',
+        key: KEYS.migrationState,
+        value: {
+          schemaVersion: schema.versions.bundle,
+          applicationVersion: schema.applicationVersion,
+          lastStatus: 'migration_completed',
+          lastRunAt: Date.now(),
+          dataFingerprint: fingerprint,
+          appliedSteps: ['bundle_atomic_apply', 'v16_schema_stamp'],
+          provenance: options.provenance || 'local_backup',
+          idMap: normalized.idMap
+        }
       });
 
-      storage.setJSON(KEYS.migrationState, {
-        schemaVersion: schema.versions.bundle,
-        applicationVersion: schema.applicationVersion,
-        lastStatus: 'migration_completed',
-        lastRunAt: Date.now(),
-        dataFingerprint: fingerprint,
-        appliedSteps: ['bundle_atomic_apply', 'v16_schema_stamp'],
-        idMap: normalized.idMap
-      });
+      const writeFailure = performVerifiedWrites(operations);
+      if (writeFailure) {
+        const restored = restoreRawLocalStorageSnapshot(preApplySnapshot);
+        return {
+          ok: false,
+          status: restored ? 'storage_write_failed' : 'rollback_failed',
+          errors: [writeFailure.code],
+          rolledBack: restored
+        };
+      }
 
       syncRuntimeStateAfterDataChange();
 
@@ -1170,11 +1221,13 @@
         sessionCount: normalized.sessionHistoryStore.sessions.length
       };
     } catch (error) {
-      restoreRawLocalStorageSnapshot(preApplySnapshot);
+      const restored = restoreRawLocalStorageSnapshot(preApplySnapshot);
+      console.error('[MigrationRunner]', { event: 'apply_bundle_failed', name: error?.name || 'Error', restored });
       return {
         ok: false,
-        status: 'migration_failed_and_restored',
-        errors: [error?.message || 'apply_bundle_failed']
+        status: restored ? 'migration_failed_and_restored' : 'rollback_failed',
+        errors: ['apply_bundle_failed'],
+        rolledBack: restored
       };
     }
   }
@@ -1187,6 +1240,7 @@
     inspectCurrentStateNeedsMigration,
     collectCurrentDataBundle,
     createBackup,
+    createBackupChecked,
     getLastBackup,
     normalizeDatasetAndBuildMappings,
     applyBundleAtomically,

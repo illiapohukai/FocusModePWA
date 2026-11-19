@@ -157,7 +157,7 @@ function updateProtectionSummary(){
 function saveDistractions(){updateProtectionSummary();setAppScreen(distractionReturnScreen)}
 function showBlockedAppsPopup(){
  const popup=document.getElementById('blockedAppsPopup'),card=document.getElementById('blockedAppsPopupCard'),box=document.getElementById('blockedAppsChips');
- box.innerHTML=getSelectedDistractions().map(x=>'<span class="px-2.5 py-1.5 rounded-full bg-rose-50 text-rose-600 text-[9px] font-bold">'+x+'</span>').join('');
+ box.replaceChildren(...getSelectedDistractions().map(x=>{const chip=document.createElement('span');chip.className='px-2.5 py-1.5 rounded-full bg-rose-50 text-rose-600 text-[9px] font-bold';chip.textContent=String(x??'');return chip}));
  popup.classList.remove('hidden');requestAnimationFrame(()=>{popup.classList.remove('opacity-0');card.classList.remove('translate-y-6','opacity-0')});
 }
 function hideBlockedAppsPopup(){const popup=document.getElementById('blockedAppsPopup'),card=document.getElementById('blockedAppsPopupCard');popup.classList.add('opacity-0');card.classList.add('translate-y-6','opacity-0');setTimeout(()=>popup.classList.add('hidden'),250)}

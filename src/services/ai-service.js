@@ -15,6 +15,13 @@ const MISSION_IMAGE_MAX_ATTACHMENTS = 1;
 const MISSION_REQUEST_TIMEOUT_TEXT_MS = 38000;
 const MISSION_REQUEST_TIMEOUT_IMAGE_MS = 52000;
 
+/* v17.17 input/output bounds. Header-declared image dimensions are checked before decoding so a
+   small file cannot expand into a huge bitmap (decompression bomb). */
+const MISSION_IMAGE_MAX_SOURCE_SIDE = 12000;
+const MISSION_IMAGE_MAX_SOURCE_PIXELS = 40 * 1000 * 1000;
+const MISSION_GOAL_TEXT_MAX_CHARS = 6000;
+const AI_TEXT_LIMITS = Object.freeze({ title: 200, short: 120, text: 2000, item: 500, listItems: 20, tools: 12 });
+
 let missionImageFile = null;
 let missionImagePreviewUrl = null;
 let pendingAIPlan = null;
@@ -22,6 +29,9 @@ let activeAIPlan = null;
 let aiRequestController = null;
 let aiRequestCancelledByUser = false;
 let isMissionAnalyzeInFlight = false;
+/* v17.17: one active request owner. Only the request whose token matches may touch shared state,
+   so a late-settling aborted request can never release the lock of a newer one. */
+let aiRequestToken = 0;
 
 function isEnglishLanguage() {
   try {
@@ -96,6 +106,90 @@ function validateMissionImageInput(file) {
   return { ok: true, mime: normalizedMime };
 }
 
+/* v17.17: identify the real format from the file signature (magic bytes) and read the
+   header-declared dimensions without decoding pixels. Returns { mime, width, height } or null. */
+function readU16BE(b, i) { return (b[i] << 8) | b[i + 1]; }
+function readU32BE(b, i) { return ((b[i] << 24) >>> 0) + (b[i + 1] << 16) + (b[i + 2] << 8) + b[i + 3]; }
+function readU16LE(b, i) { return b[i] | (b[i + 1] << 8); }
+function readU24LE(b, i) { return b[i] | (b[i + 1] << 8) | (b[i + 2] << 16); }
+
+function sniffImageHeader(bytes) {
+  const b = bytes;
+  if (!b || b.length < 12) return null;
+  // PNG: 89 50 4E 47 0D 0A 1A 0A, IHDR width/height at 16/20
+  if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4E && b[3] === 0x47 && b[4] === 0x0D && b[5] === 0x0A && b[6] === 0x1A && b[7] === 0x0A) {
+    if (b.length < 24) return { mime: 'image/png', width: 0, height: 0 };
+    return { mime: 'image/png', width: readU32BE(b, 16), height: readU32BE(b, 20) };
+  }
+  // WebP: "RIFF" .... "WEBP"
+  if (b[0] === 0x52 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x46 && b[8] === 0x57 && b[9] === 0x45 && b[10] === 0x42 && b[11] === 0x50) {
+    let width = 0, height = 0;
+    const chunk = String.fromCharCode(b[12], b[13], b[14], b[15]);
+    if (chunk === 'VP8X' && b.length >= 30) { width = readU24LE(b, 24) + 1; height = readU24LE(b, 27) + 1; }
+    else if (chunk === 'VP8 ' && b.length >= 30) { width = readU16LE(b, 26) & 0x3fff; height = readU16LE(b, 28) & 0x3fff; }
+    else if (chunk === 'VP8L' && b.length >= 25) {
+      const bits = b[21] | (b[22] << 8) | (b[23] << 16) | (b[24] << 24);
+      width = (bits & 0x3fff) + 1; height = ((bits >> 14) & 0x3fff) + 1;
+    }
+    return { mime: 'image/webp', width, height };
+  }
+  // JPEG: FF D8 FF, then scan segments for a SOFn marker
+  if (b[0] === 0xFF && b[1] === 0xD8 && b[2] === 0xFF) {
+    let i = 2;
+    while (i + 9 < b.length) {
+      if (b[i] !== 0xFF) { i += 1; continue; }
+      const marker = b[i + 1];
+      if (marker === 0xFF) { i += 1; continue; }
+      if (marker === 0xD8 || marker === 0x01 || (marker >= 0xD0 && marker <= 0xD7)) { i += 2; continue; }
+      const len = readU16BE(b, i + 2);
+      if (len < 2) break;
+      if (marker >= 0xC0 && marker <= 0xCF && marker !== 0xC4 && marker !== 0xC8 && marker !== 0xCC) {
+        return { mime: 'image/jpeg', width: readU16BE(b, i + 7), height: readU16BE(b, i + 5) };
+      }
+      i += 2 + len;
+    }
+    return { mime: 'image/jpeg', width: 0, height: 0 };
+  }
+  return null;
+}
+
+/* Header-based checks before any decoding. JPEG SOF may sit after large EXIF blocks, so up to
+   256 KB of the file head is inspected; unknown dimensions are re-checked after decoding. */
+async function inspectMissionImageFile(file, declaredMime) {
+  const en = isEnglishLanguage();
+  let head;
+  try {
+    head = new Uint8Array(await file.slice(0, 262144).arrayBuffer());
+  } catch (_) {
+    return { ok: false, message: en ? 'The image could not be read.' : 'Das Bild konnte nicht gelesen werden.' };
+  }
+  const info = sniffImageHeader(head);
+  if (!info || info.mime !== declaredMime) {
+    return {
+      ok: false,
+      message: en
+        ? 'The file content does not match a JPEG, PNG, or WEBP image.'
+        : 'Der Dateiinhalt passt nicht zu einem JPEG-, PNG- oder WEBP-Bild. Bitte wähle ein anderes Foto.'
+    };
+  }
+  if (!isMissionImageSizeAcceptable(info.width, info.height, true)) {
+    return {
+      ok: false,
+      message: en
+        ? 'The image resolution is too large. Please choose a smaller photo or a screenshot.'
+        : 'Die Bildauflösung ist zu groß. Bitte wähle ein kleineres Foto oder einen Ausschnitt.'
+    };
+  }
+  return { ok: true, mime: info.mime, width: info.width, height: info.height };
+}
+
+function isMissionImageSizeAcceptable(width, height, allowUnknown) {
+  const w = Number(width) || 0;
+  const h = Number(height) || 0;
+  if (!w || !h) return Boolean(allowUnknown);
+  return w <= MISSION_IMAGE_MAX_SOURCE_SIDE && h <= MISSION_IMAGE_MAX_SOURCE_SIDE && (w * h) <= MISSION_IMAGE_MAX_SOURCE_PIXELS;
+}
+
 function openRealFilePicker(cameraPreferred) {
   const input = document.getElementById('missionFileInput');
   if (!input) return;
@@ -154,6 +248,12 @@ async function handleMissionFile(event) {
     return;
   }
 
+  const header = await inspectMissionImageFile(original, check.mime);
+  if (!header.ok) {
+    showMissionError(header.message, { retryable: false });
+    return;
+  }
+
   try {
     const optimized = await compressMissionImage(original, check.mime);
     if (!optimized || !(optimized instanceof Blob) || optimized.size <= 0) {
@@ -180,7 +280,7 @@ async function handleMissionFile(event) {
       card.classList.remove('hidden');
       card.classList.add('selected');
     }
-    if (nameEl) nameEl.textContent = original.name || missionImageFile.name || 'Foto.jpg';
+    if (nameEl) nameEl.textContent = String(original.name || 'Foto.jpg').replace(/[\u0000-\u001f\u007f]/g, '').slice(0, 80);
     if (metaEl) metaEl.textContent = formatBytes(missionImageFile.size) + ' · bereit für AI-Analyse';
     if (iconBox) {
       iconBox.innerHTML = '';
@@ -242,20 +342,24 @@ async function compressMissionImage(file, explicitMime) {
     const srcW = drawable.width;
     const srcH = drawable.height;
     if (!srcW || !srcH) throw new Error('IMAGE_PROCESSING_FAILED');
+    if (!isMissionImageSizeAcceptable(srcW, srcH, false)) throw new Error('IMAGE_TOO_LARGE');
 
     const longSide = Math.max(srcW, srcH);
     const needsResize = longSide > MISSION_IMAGE_MAX_DIMENSION;
     const needsCompress = file.size > MISSION_IMAGE_OPTIMIZE_THRESHOLD_BYTES;
 
-    if (!needsResize && !needsCompress) {
-      if (file instanceof File && file.type === mime) return file;
-      return new File([file], file.name || 'material.jpg', { type: mime, lastModified: Date.now() });
-    }
-
-    const attempts = [
-      { maxSide: MISSION_IMAGE_MAX_DIMENSION, quality: 0.84 },
-      { maxSide: 1600, quality: 0.76 }
-    ];
+    /* v17.17: every image is re-encoded through a canvas, which drops embedded metadata
+       (EXIF incl. GPS location, camera serials, comments). Small images keep full size and
+       high quality; PNG screenshots stay lossless PNG. */
+    const attempts = (!needsResize && !needsCompress)
+      ? [
+          { maxSide: longSide, quality: 0.92, type: mime === 'image/png' ? 'image/png' : 'image/jpeg' },
+          { maxSide: longSide, quality: 0.84 }
+        ]
+      : [
+          { maxSide: MISSION_IMAGE_MAX_DIMENSION, quality: 0.84 },
+          { maxSide: 1600, quality: 0.76 }
+        ];
 
     let bestBlob = null;
     for (const cfg of attempts) {
@@ -269,16 +373,18 @@ async function compressMissionImage(file, explicitMime) {
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(drawable.source, 0, 0, canvas.width, canvas.height);
 
+      const outType = cfg.type || 'image/jpeg';
       const blob = await new Promise((resolve, reject) => {
-        canvas.toBlob(b => (b && b.size > 0) ? resolve(b) : reject(new Error('compression failed')), 'image/jpeg', cfg.quality);
+        canvas.toBlob(b => (b && b.size > 0) ? resolve(b) : reject(new Error('compression failed')), outType, cfg.quality);
       });
       bestBlob = blob;
       if (blob.size <= MISSION_IMAGE_MAX_PROCESSED_BYTES) break;
     }
 
     if (!bestBlob || bestBlob.size <= 0) throw new Error('IMAGE_PROCESSING_FAILED');
-    const baseName = (file.name || 'material').replace(/\.[^.]+$/, '') || 'material';
-    return new File([bestBlob], baseName + '.jpg', { type: 'image/jpeg', lastModified: Date.now() });
+    // Generic name: the original filename (which may contain personal names) is not uploaded.
+    const outMime = bestBlob.type === 'image/png' ? 'image/png' : 'image/jpeg';
+    return new File([bestBlob], outMime === 'image/png' ? 'material.png' : 'material.jpg', { type: outMime, lastModified: Date.now() });
   } finally {
     drawable.cleanup?.();
   }
@@ -453,15 +559,16 @@ function buildMissionSchedulePayload(scheduleState, options = {}) {
   return payload;
 }
 
-function parseMissionErrorResponse(status, body, fallbackError) {
+function parseMissionErrorResponseCore(status, body, fallbackError) {
   const en = isEnglishLanguage();
   const rawErr = body && typeof body === 'object' ? body.error : null;
   const code = (rawErr && typeof rawErr === 'object' && typeof rawErr.code === 'string')
     ? rawErr.code
     : (body && typeof body.code === 'string' ? body.code : '');
-  const serverMessage = (rawErr && typeof rawErr === 'object' && typeof rawErr.message === 'string')
+  const serverMessage = ((rawErr && typeof rawErr === 'object' && typeof rawErr.message === 'string')
     ? rawErr.message
-    : (typeof rawErr === 'string' ? rawErr : '');
+    : (typeof rawErr === 'string' ? rawErr : '')).replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, 300);
+
   const retryableFlag = (rawErr && typeof rawErr === 'object' && typeof rawErr.retryable === 'boolean')
     ? rawErr.retryable
     : null;
@@ -549,12 +656,22 @@ function parseMissionErrorResponse(status, body, fallbackError) {
     };
   }
 
+  // v17.17: internal exception text (e.g. JSON parser messages) is never shown to the user.
   return {
     code: code || 'INTERNAL_ERROR',
     retryable: retryableFlag !== null ? retryableFlag : true,
-    message: serverMessage || (fallbackError?.message && fallbackError.message !== '[object Object]' ? fallbackError.message : '') ||
+    message: serverMessage ||
       (en ? 'AI analysis unavailable. Please try again.' : 'AI-Analyse momentan nicht verfügbar. Bitte versuche es erneut.')
   };
+}
+
+/* The Worker's error contract may include a request ID; it is shown only as a support reference. */
+function parseMissionErrorResponse(status, body, fallbackError) {
+  const parsed = parseMissionErrorResponseCore(status, body, fallbackError);
+  const rawErr = body && typeof body === 'object' ? body.error : null;
+  const rawRequestId = rawErr && typeof rawErr === 'object' ? (rawErr.requestId ?? body?.requestId) : body?.requestId;
+  parsed.requestId = typeof rawRequestId === 'string' && /^[A-Za-z0-9_-]{4,64}$/.test(rawRequestId) ? rawRequestId : null;
+  return parsed;
 }
 
 function cancelMissionAnalysis() {
@@ -584,6 +701,12 @@ async function analyzeGoal() {
     showMissionError(en ? 'Please describe your goal or add a photo.' : 'Beschreibe dein Ziel oder füge ein Foto hinzu.', { retryable: false });
     return false;
   }
+  if (goalText.length > MISSION_GOAL_TEXT_MAX_CHARS) {
+    showMissionError(en
+      ? 'Please shorten your description (max. ' + MISSION_GOAL_TEXT_MAX_CHARS + ' characters).'
+      : 'Bitte kürze deine Beschreibung (max. ' + MISSION_GOAL_TEXT_MAX_CHARS + ' Zeichen). Deine Eingabe bleibt erhalten.', { retryable: false });
+    return false;
+  }
   if (typeof navigator !== 'undefined' && navigator.onLine === false) {
     showMissionOfflineError();
     return false;
@@ -607,6 +730,8 @@ async function analyzeGoal() {
 
   isMissionAnalyzeInFlight = true;
   aiRequestCancelledByUser = false;
+  const requestToken = ++aiRequestToken;
+  const isCurrentRequest = () => requestToken === aiRequestToken;
 
   const button = document.getElementById('missionPlanButton');
   if (button) {
@@ -622,12 +747,13 @@ async function analyzeGoal() {
   if (aiRequestController) {
     try { aiRequestController.abort(); } catch (_) {}
   }
-  aiRequestController = new AbortController();
+  const requestController = new AbortController();
+  aiRequestController = requestController;
 
   const hasImage = Boolean(missionImageFile && missionImageFile instanceof Blob && missionImageFile.size > 0);
   const timeoutMs = hasImage ? MISSION_REQUEST_TIMEOUT_IMAGE_MS : MISSION_REQUEST_TIMEOUT_TEXT_MS;
   const timeout = setTimeout(() => {
-    try { aiRequestController?.abort(); } catch (_) {}
+    try { requestController.abort(); } catch (_) {}
   }, timeoutMs);
 
   const schedulePayload = buildMissionSchedulePayload(scheduleState);
@@ -641,24 +767,30 @@ async function analyzeGoal() {
       form.append('schedule', JSON.stringify(schedulePayload));
     }
     if (hasImage) {
-      const safeName = (missionImageFile.name && String(missionImageFile.name).trim()) || 'material.jpg';
+      // Generic upload name only (no user filename leaves the device).
+      const safeName = missionImageFile.type === 'image/png' ? 'material.png' : 'material.jpg';
       form.append('image', missionImageFile, safeName);
     }
 
     const response = await fetch(FOCUS_AI_ENDPOINT, {
       method: 'POST',
       body: form,
-      signal: aiRequestController.signal
+      signal: requestController.signal,
+      credentials: 'omit',
+      cache: 'no-store',
+      referrerPolicy: 'strict-origin-when-cross-origin'
     });
 
     let data = {};
     try { data = await response.json(); } catch (_) { data = {}; }
+    if (!isCurrentRequest()) return false;
 
     if (!response.ok || !data || data.ok !== true || !data.plan) {
       const parsedErr = parseMissionErrorResponse(response.status, data, null);
       const err = new Error(parsedErr.message);
       err.code = parsedErr.code;
       err.retryable = parsedErr.retryable;
+      err.requestId = parsedErr.requestId || null;
       throw err;
     }
 
@@ -672,14 +804,15 @@ async function analyzeGoal() {
     });
     return true;
   } catch (error) {
-    if (aiRequestCancelledByUser) {
+    if (aiRequestCancelledByUser || !isCurrentRequest()) {
       return false;
     }
     window.MissionOperator?.fail(operatorRun, error?.name === 'AbortError' ? 'timeout' : 'error');
+    // Operational log: codes only, never the goal text, photo or full server message.
     console.error('Focus AI request failed', {
       name: error?.name,
-      code: error?.code,
-      message: error?.message
+      code: error?.code || null,
+      requestId: error?.requestId || null
     });
     if (isOfflineOrNetworkFailure(error)) {
       showMissionOfflineError();
@@ -688,20 +821,62 @@ async function analyzeGoal() {
     const resolved = error?.code
       ? { message: error.message, retryable: error.retryable !== false }
       : parseMissionErrorResponse(0, null, error);
-    showMissionError(resolved.message, { retryable: resolved.retryable });
+    const supportRef = error?.requestId ? ((en ? ' (Request ID: ' : ' (Anfrage-ID: ') + error.requestId + ')') : '';
+    showMissionError(resolved.message + supportRef, { retryable: resolved.retryable });
     return false;
   } finally {
     clearTimeout(timeout);
-    aiRequestController = null;
-    isMissionAnalyzeInFlight = false;
-    if (button) {
-      button.classList.remove('ai-loading');
-      button.removeAttribute('aria-busy');
-    }
-    if (typeof window.updateMissionPlanButton === 'function') {
-      window.updateMissionPlanButton();
+    // A superseded request must not release the lock or UI state of the newer request.
+    if (isCurrentRequest()) {
+      aiRequestController = null;
+      isMissionAnalyzeInFlight = false;
+      if (button) {
+        button.classList.remove('ai-loading');
+        button.removeAttribute('aria-busy');
+      }
+      if (typeof window.updateMissionPlanButton === 'function') {
+        window.updateMissionPlanButton();
+      }
     }
   }
+}
+
+/* v17.17 AI output boundary. Model output is untrusted data (prompt injection via user material
+   is possible): strings are length-capped, lists are bounded, and step IDs must satisfy the same
+   safe-ID policy as imported data, because IDs are later placed into inline handler strings. */
+function aiText(value, max) {
+  if (value === null || value === undefined) return '';
+  const text = typeof value === 'string' || typeof value === 'number' ? String(value) : '';
+  return text.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '').trim().slice(0, max);
+}
+
+function aiList(value, maxItems, maxLen) {
+  if (!Array.isArray(value)) return [];
+  return value.slice(0, maxItems).map(item => {
+    if (item && typeof item === 'object' && !Array.isArray(item)) {
+      const out = {};
+      for (const key of ['label', 'name', 'title', 'value', 'text', 'description', 'detail']) {
+        if (typeof item[key] === 'string' || typeof item[key] === 'number') out[key] = aiText(item[key], maxLen);
+      }
+      return out;
+    }
+    return aiText(item, maxLen);
+  }).filter(item => (typeof item === 'string' ? item : Object.keys(item).length));
+}
+
+function isSafeEntityId(value) {
+  const schema = window.FocusModeApp?.data?.schema;
+  if (schema?.isValidEntityId) return schema.isValidEntityId(value);
+  return typeof value === 'string' && /^[a-zA-Z0-9_.:-]{2,160}$/.test(value);
+}
+
+function safeAiStepId(rawId, index, used) {
+  const candidate = typeof rawId === 'string' || typeof rawId === 'number' ? String(rawId).trim() : '';
+  let id = candidate && isSafeEntityId(candidate) && !used.has(candidate) ? candidate : 'session-' + (index + 1);
+  let n = 2;
+  while (used.has(id)) id = 'session-' + (index + 1) + '-' + n++;
+  used.add(id);
+  return id;
 }
 
 function normalizeAIPlan(plan, activeSchedule) {
@@ -711,7 +886,7 @@ function normalizeAIPlan(plan, activeSchedule) {
     throw err;
   }
   const goalObj = plan.goal && typeof plan.goal === 'object' ? plan.goal : null;
-  const rawTitle = goalObj && typeof goalObj.title === 'string' ? goalObj.title.trim() : '';
+  const rawTitle = goalObj && typeof goalObj.title === 'string' ? aiText(goalObj.title, AI_TEXT_LIMITS.title) : '';
   if (!rawTitle) {
     const err = new Error('Der AI-Plan enthält keinen gültigen Titel.');
     err.code = 'INVALID_AI_RESPONSE';
@@ -731,14 +906,15 @@ function normalizeAIPlan(plan, activeSchedule) {
     ? activeSchedule.deadlineDate
     : null;
 
+  const usedStepIds = new Set();
   const sessions = plan.sessions.slice(0, 6).map((s, i) => {
     if (!s || typeof s !== 'object') {
       const err = new Error('Ein Missionsschritt ist ungültig.');
       err.code = 'INVALID_AI_RESPONSE';
       throw err;
     }
-    const title = String(s.title || '').trim();
-    const task = String(s.task || s.reason || '').trim();
+    const title = aiText(s.title, AI_TEXT_LIMITS.title);
+    const task = aiText(s.task || s.reason, AI_TEXT_LIMITS.text);
     const durationNum = Number(s.durationMinutes);
     if (!title || !task || !Number.isFinite(durationNum) || durationNum < 5 || durationNum > 60) {
       const err = new Error('Ein Missionsschritt ist unvollständig.');
@@ -754,48 +930,51 @@ function normalizeAIPlan(plan, activeSchedule) {
       throw err;
     }
     const out = {
-      id: String(s.id || ('session-' + (i + 1))),
+      id: safeAiStepId(s.id, i, usedStepIds),
       title,
       task,
       durationMinutes: Math.max(5, Math.min(60, Math.round(durationNum))),
-      reason: String(s.reason || ''),
-      requiredTools: Array.isArray(s.requiredTools) ? s.requiredTools.map(String) : [],
-      recommendedApps: Array.isArray(s.recommendedApps) ? s.recommendedApps.map(String) : []
+      reason: aiText(s.reason, AI_TEXT_LIMITS.text),
+      requiredTools: aiList(s.requiredTools, AI_TEXT_LIMITS.tools, AI_TEXT_LIMITS.short).map(String).filter(x => x && x !== '[object Object]'),
+      recommendedApps: aiList(s.recommendedApps, AI_TEXT_LIMITS.tools, AI_TEXT_LIMITS.short).map(String).filter(x => x && x !== '[object Object]')
     };
     if (stepDate) out.scheduledDate = stepDate;
     return out;
   });
 
-  const rawDeadlineText = String(goalObj.deadlineText || '').trim();
+  const rawDeadlineText = aiText(goalObj.deadlineText, AI_TEXT_LIMITS.short);
   const resolvedDeadlineText = rawDeadlineText && rawDeadlineText !== 'Nicht angegeben'
     ? rawDeadlineText
     : (deadlineISO || 'Nicht angegeben');
 
-  const scheduleWarning = typeof plan.scheduleWarning === 'string' && plan.scheduleWarning.trim()
-    ? plan.scheduleWarning.trim()
-    : (typeof plan.estimate?.scheduleWarning === 'string' && plan.estimate.scheduleWarning.trim()
-      ? plan.estimate.scheduleWarning.trim()
-      : (typeof plan.warning === 'string' && plan.warning.trim() ? plan.warning.trim() : ''));
+  const scheduleWarning = aiText(
+    typeof plan.scheduleWarning === 'string' && plan.scheduleWarning.trim()
+      ? plan.scheduleWarning
+      : (typeof plan.estimate?.scheduleWarning === 'string' && plan.estimate.scheduleWarning.trim()
+        ? plan.estimate.scheduleWarning
+        : (typeof plan.warning === 'string' ? plan.warning : '')),
+    AI_TEXT_LIMITS.item
+  );
 
   return {
     goal: {
       title: rawTitle,
-      subject: String(goalObj.subject || 'Allgemein').trim() || 'Allgemein',
+      subject: aiText(goalObj.subject, AI_TEXT_LIMITS.short) || 'Allgemein',
       type: normalizedType,
       deadlineText: resolvedDeadlineText
     },
     sourceAnalysis: {
-      detectedTasks: String(plan.sourceAnalysis?.detectedTasks || ''),
-      detectedPages: String(plan.sourceAnalysis?.detectedPages || ''),
-      confidence: Number(plan.sourceAnalysis?.confidence) || 0,
-      missingInformation: Array.isArray(plan.sourceAnalysis?.missingInformation) ? plan.sourceAnalysis.missingInformation : [],
-      facts: Array.isArray(plan.sourceAnalysis?.facts) ? plan.sourceAnalysis.facts : [],
-      estimates: Array.isArray(plan.sourceAnalysis?.estimates) ? plan.sourceAnalysis.estimates : []
+      detectedTasks: aiText(plan.sourceAnalysis?.detectedTasks, AI_TEXT_LIMITS.item),
+      detectedPages: aiText(plan.sourceAnalysis?.detectedPages, AI_TEXT_LIMITS.item),
+      confidence: Math.max(0, Math.min(100, Number(plan.sourceAnalysis?.confidence) || 0)),
+      missingInformation: aiList(plan.sourceAnalysis?.missingInformation, AI_TEXT_LIMITS.listItems, AI_TEXT_LIMITS.item),
+      facts: aiList(plan.sourceAnalysis?.facts, AI_TEXT_LIMITS.listItems, AI_TEXT_LIMITS.item),
+      estimates: aiList(plan.sourceAnalysis?.estimates, AI_TEXT_LIMITS.listItems, AI_TEXT_LIMITS.item)
     },
     estimate: {
-      totalMinutes: Number(plan.estimate?.totalMinutes) || sessions.reduce((a, s) => a + s.durationMinutes, 0),
-      difficulty: String(plan.estimate?.difficulty || 'unknown'),
-      explanation: String(plan.estimate?.explanation || 'Die Dauer ist eine erste Schätzung und wird nach deinen Sitzungen angepasst.'),
+      totalMinutes: Math.max(0, Math.min(100000, Number(plan.estimate?.totalMinutes) || 0)) || sessions.reduce((a, s) => a + s.durationMinutes, 0),
+      difficulty: aiText(plan.estimate?.difficulty, 40) || 'unknown',
+      explanation: aiText(plan.estimate?.explanation, AI_TEXT_LIMITS.text) || 'Die Dauer ist eine erste Schätzung und wird nach deinen Sitzungen angepasst.',
       ...(scheduleWarning ? { scheduleWarning } : {})
     },
     ...(scheduleWarning ? { scheduleWarning } : {}),

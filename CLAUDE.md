@@ -88,6 +88,7 @@ Durable instructions for development sessions. Code is the source of truth; `doc
 
 ## Testing rules
 - No test framework exists. Validate with `node --check` on edited JS files and by serving statically (`python3 -m http.server`) and exercising flows with the preinstalled Playwright/Chromium at a mobile viewport.
+- Security regression suites (dependency-free): `node tests/security/run-all.js` (add `--browser` for Playwright). Keep them green when touching import/export, storage, AI boundaries, rendering of user/AI text or the service worker. See `docs/security/security-baseline.md`.
 - Check the console for errors, and regress the affected flows from the section above. See `docs/REGRESSION_CHECKLIST.md` for a starting list.
 - Test the PWA path too: service worker registers, offline reload works, and install/standalone display is unaffected.
 - Report honestly what was and was not verified.

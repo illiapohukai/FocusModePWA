@@ -230,3 +230,36 @@
 .data-screen-head>.flex-1 span{font-size:11px!important;letter-spacing:.08em!important;color:#6D28D9!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .data-screen-head h3{font-size:22px!important;line-height:1.1;letter-spacing:-.03em;color:#14110F!important}
 .data-screen-head #dataAppVersionBadge{order:3;flex:0 1 auto;max-width:calc(100% - 56px);margin-left:56px;padding:4px 10px!important;border-radius:999px!important;font-size:11px!important;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:#EFE9DD!important;border-color:rgba(45,35,30,.08)!important;color:#5C544D!important}
+
+/* v17.17 Security & Privacy: neutral "checking" banner, local-backup notes, full-deletion card. */
+.dm-feedback-info {
+  background: #F4EFE6;
+  border: 1px solid rgba(45, 35, 30, 0.10);
+  color: #3F3833;
+}
+
+.data-privacy-note {
+  font-size: 10px;
+  line-height: 1.45;
+  color: #5C544D;
+  padding: 0 4px;
+}
+
+.data-import-trust-note {
+  margin-top: 8px;
+  font-size: 9.5px;
+  line-height: 1.4;
+  color: #5C544D;
+}
+
+.data-delete-card {
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  border-radius: 18px;
+  padding: 13px;
+}
+
+/* v17.17: the action list grew by two rows; keep the last action clear of the floating bottom nav. */
+#app-screen-data .data-screen-shell {
+  padding-bottom: var(--fm-screen-bottom-padding, calc(100px + env(safe-area-inset-bottom, 0px)));
+}

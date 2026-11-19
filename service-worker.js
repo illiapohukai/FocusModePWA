@@ -1,4 +1,4 @@
-const CACHE = "focus-mode-v17-16-home-quick-focus-planning";
+const CACHE = "focus-mode-v17-17-security-privacy";
 const CACHE_PREFIX = "focus-mode";
 
 const CORE = [
@@ -24,6 +24,8 @@ const CORE = [
   "./assets/operator/mission-operator.json",
   "./assets/operator/mission-operator-work.png",
   "./assets/operator/mission-operator-success.png",
+  "./assets/vendor/lucide/lucide.min.js",
+  "./assets/fonts/inter/inter-latin-wght-normal.woff2",
   "./src/core/architecture-shell.js",
   "./src/core/runtime-ownership.js",
   "./src/services/storage-service.js",
@@ -62,11 +64,75 @@ const CORE = [
   "./src/features/missions/mission-operator.js"
 ];
 
+/* v17.17: Lucide and Inter are self-hosted (precached above). The only remaining third-party runtime
+   asset is the Tailwind Play CDN; no other cross-origin response is ever cached. */
 const EXTERNAL_CDN_URLS = [
-  "https://cdn.tailwindcss.com",
-  "https://unpkg.com/lucide@latest",
-  "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+  "https://cdn.tailwindcss.com"
 ];
+const CACHEABLE_CROSS_ORIGIN_HOSTS = new Set(["cdn.tailwindcss.com"]);
+
+/* AI Worker traffic is never intercepted or cached (any method). */
+const WORKER_HOST_SUFFIX = ".workers.dev";
+const API_PATH_PATTERN = /\/(create-mission|adapt-mission)$/;
+
+/* Same-origin runtime caching is limited to static asset types. Development material
+   (docs, tests, Claude skills, Git data, Markdown) is never cached. */
+const RUNTIME_CACHEABLE_EXTENSIONS = /\.(?:js|css|png|jpe?g|webp|svg|ico|woff2|json|webmanifest)$/i;
+const NEVER_CACHE_PATH_PATTERN = /(?:^|\/)(?:docs|tests|\.claude|\.git|\.github|scratchpad)(?:\/|$)|\.(?:md|map|txt|zip|log)$/i;
+
+function scopePath() {
+  try {
+    return new URL(self.registration ? self.registration.scope : "./", self.location.href).pathname;
+  } catch (_) {
+    return "/";
+  }
+}
+
+function relativePath(url) {
+  const base = scopePath();
+  return url.pathname.startsWith(base) ? url.pathname.slice(base.length) : url.pathname.replace(/^\//, "");
+}
+
+/* Pure routing decision, exposed for tests. */
+function classifyRequest(request) {
+  if (!request || request.method !== "GET") return "bypass";
+  let url;
+  try {
+    url = new URL(request.url);
+  } catch (_) {
+    return "bypass";
+  }
+  if (url.protocol !== "https:" && url.protocol !== "http:") return "bypass";
+  if (url.hostname.endsWith(WORKER_HOST_SUFFIX) || API_PATH_PATTERN.test(url.pathname)) return "bypass";
+  const sameOrigin = url.origin === self.location.origin;
+  if (request.mode === "navigate") return sameOrigin ? "navigate" : "bypass";
+  if (sameOrigin) {
+    const rel = relativePath(url);
+    if (NEVER_CACHE_PATH_PATTERN.test(rel)) return "bypass";
+    return RUNTIME_CACHEABLE_EXTENSIONS.test(url.pathname) || rel === "" ? "same-origin-asset" : "same-origin-network";
+  }
+  return CACHEABLE_CROSS_ORIGIN_HOSTS.has(url.hostname) ? "cdn" : "bypass";
+}
+
+function isAppShellPath(url) {
+  const rel = relativePath(url);
+  return rel === "" || rel === "index.html";
+}
+
+function isCacheableSameOriginResponse(response) {
+  if (!response || !response.ok || response.status !== 200 || response.type !== "basic") return false;
+  const contentType = response.headers.get("content-type") || "";
+  return !contentType.includes("text/html");
+}
+
+self.FocusModeSWPolicy = Object.freeze({
+  CACHE,
+  CORE,
+  EXTERNAL_CDN_URLS,
+  classifyRequest,
+  isAppShellPath,
+  isCacheableSameOriginResponse
+});
 
 function fetchWithTimeout(request, timeoutMs) {
   return new Promise((resolve, reject) => {
@@ -148,44 +214,41 @@ self.addEventListener("activate", e => {
 });
 
 self.addEventListener("fetch", e => {
-  if (e.request.method !== "GET") return;
+  const route = classifyRequest(e.request);
+  if (route === "bypass") return;
 
   const url = new URL(e.request.url);
-  if (
-    url.hostname.includes("workers.dev") ||
-    url.pathname.endsWith("/create-mission") ||
-    url.pathname.endsWith("/adapt-mission")
-  ) {
-    return;
-  }
 
-  if (e.request.mode === "navigate") {
+  if (route === "navigate") {
     e.respondWith(
       (async () => {
         const cache = await caches.open(CACHE);
         try {
           const networkResponse = await fetchWithTimeout(e.request, 3000);
-          if (networkResponse && networkResponse.ok && networkResponse.status === 200) {
+          if (networkResponse && networkResponse.ok && networkResponse.status === 200 && networkResponse.type === "basic") {
             const contentType = networkResponse.headers.get("content-type") || "";
-            if (contentType.includes("text/html")) {
+            // Only the app shell itself refreshes the cached shell; other pages are never cached.
+            if (contentType.includes("text/html") && isAppShellPath(url)) {
               await cache.put("./index.html", networkResponse.clone());
             }
             return networkResponse;
           }
+          if (networkResponse && !isAppShellPath(url)) return networkResponse;
         } catch (_) {
           // Offline or network timeout: fall back to cached app shell
         }
         return (
           (await cache.match("./index.html", { ignoreSearch: true })) ||
           (await cache.match("./", { ignoreSearch: true })) ||
-          (await caches.match("./index.html", { ignoreSearch: true }))
+          (await caches.match("./index.html", { ignoreSearch: true })) ||
+          new Response("Offline", { status: 503, statusText: "Offline", headers: { "Content-Type": "text/plain; charset=utf-8" } })
         );
       })()
     );
     return;
   }
 
-  if (url.origin === self.location.origin) {
+  if (route === "same-origin-asset" || route === "same-origin-network") {
     e.respondWith(
       (async () => {
         const cache = await caches.open(CACHE);
@@ -194,12 +257,9 @@ self.addEventListener("fetch", e => {
 
         try {
           const networkResponse = await fetch(e.request);
-          if (networkResponse && networkResponse.ok && networkResponse.status === 200) {
-            const contentType = networkResponse.headers.get("content-type") || "";
-            const isAsset = /\.(js|css|png|webmanifest)$/i.test(url.pathname);
-            if (!isAsset || !contentType.includes("text/html")) {
-              await cache.put(e.request, networkResponse.clone());
-            }
+          // Failed, redirected, opaque or HTML-fallback responses are never stored as assets.
+          if (route === "same-origin-asset" && isCacheableSameOriginResponse(networkResponse)) {
+            await cache.put(e.request, networkResponse.clone());
           }
           return networkResponse;
         } catch (_) {
@@ -213,7 +273,7 @@ self.addEventListener("fetch", e => {
     return;
   }
 
-  // External GET resources (Tailwind CDN, Lucide CDN, Google Fonts)
+  // route === "cdn": the allowlisted Tailwind Play CDN only.
   e.respondWith(
     (async () => {
       const cache = await caches.open(CACHE);
@@ -224,29 +284,18 @@ self.addEventListener("fetch", e => {
 
       try {
         const networkResponse = await fetch(e.request);
-        if (networkResponse && (networkResponse.ok || networkResponse.type === "opaque")) {
+        if (networkResponse && ((networkResponse.ok && networkResponse.status === 200) || networkResponse.type === "opaque")) {
           await cache.put(e.request.url, networkResponse.clone());
         }
         return networkResponse;
       } catch (_) {
-        const fallbackCached =
-          (await cache.match(e.request, { ignoreVary: true })) ||
-          (await cache.match(e.request.url, { ignoreVary: true }));
-        if (fallbackCached) return fallbackCached;
-
-        if (e.request.destination === "script" || /\.js($|\?)/i.test(url.href) || url.hostname.includes("tailwindcss") || url.hostname.includes("unpkg")) {
+        if (e.request.destination === "script" || /\.js($|\?)/i.test(url.href) || url.hostname.includes("tailwindcss")) {
           return new Response("/* offline script fallback */", {
             status: 200,
             headers: { "Content-Type": "application/javascript; charset=utf-8" }
           });
         }
-        if (e.request.destination === "style" || url.hostname.includes("fonts.googleapis.com")) {
-          return new Response("/* offline style fallback */", {
-            status: 200,
-            headers: { "Content-Type": "text/css; charset=utf-8" }
-          });
-        }
-        return new Response("", { status: 200 });
+        return new Response("", { status: 503, statusText: "Offline" });
       }
     })()
   );

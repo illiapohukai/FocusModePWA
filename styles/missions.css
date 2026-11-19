@@ -1882,3 +1882,10 @@ body.mission-carousel-active .home-return{display:none!important}
   .home-return-orbit{width:90px;height:90px;right:0}
 }
 @media (prefers-reduced-motion:reduce){.hr-moon{animation:none}}
+
+/* v17.17 Security & Privacy: concise, non-blocking note on what the AI request contains. */
+#app-screen-goal .mg-ai-note{margin-top:16px;padding:10px 12px;border:1px solid rgba(45,35,30,.10);border-radius:16px;background:rgba(255,255,255,.72);color:#5C544D;font-size:12px;line-height:1.45}
+#app-screen-goal .mg-ai-note summary{display:flex;align-items:center;gap:7px;min-height:28px;cursor:pointer;list-style:none;color:#3F3833;font-weight:800}
+#app-screen-goal .mg-ai-note summary::-webkit-details-marker{display:none}
+#app-screen-goal .mg-ai-note summary svg,#app-screen-goal .mg-ai-note summary i{width:16px;height:16px;flex:0 0 16px;color:#6D28D9}
+#app-screen-goal .mg-ai-note p{margin:6px 0 0}

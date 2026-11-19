@@ -470,6 +470,340 @@
     return finalizeReport(report);
   }
 
+  /* ------------------------------------------------------------------
+   * v17.17 Hostile-input validation (import boundary).
+   * Every imported file is treated as untrusted. These checks run on the
+   * parsed JSON before any normalisation, migration or storage write.
+   * Limits are sized from real data (a full v17.16 export has depth 8 and
+   * the app keeps at most 500 History records) with generous headroom.
+   * ------------------------------------------------------------------ */
+  const IMPORT_LIMITS = Object.freeze({
+    maxFileBytes: 5 * 1024 * 1024,
+    maxDepth: 20,
+    maxNodes: 250000,
+    maxKeysPerObject: 200,
+    maxKeyLength: 100,
+    maxArrayLength: 10000,
+    maxStringLength: 50000,
+    maxMissions: 250,
+    maxStepsPerMission: 100,
+    maxSessions: 5000,
+    maxProgressHistory: 1000,
+    maxListItems: 100,
+    maxTitleLength: 300,
+    maxShortTextLength: 300,
+    maxTextLength: 20000,
+    maxIdLength: 160,
+    maxMinutes: 1440,
+    maxElapsedMs: 2 * 24 * 60 * 60 * 1000,
+    minTimestamp: 0,
+    maxTimestamp: Date.UTC(2100, 0, 1)
+  });
+
+  const DANGEROUS_KEYS = new Set(['__proto__', 'prototype', 'constructor']);
+  const RESERVED_SERVER_FIELDS = new Set(schema.reservedServerFields || []);
+
+  /* Iterative walk (no recursion, so hostile nesting cannot overflow the call stack). */
+  function inspectUntrustedStructure(value, limits = IMPORT_LIMITS) {
+    const report = createReport();
+    const stats = { nodes: 0, maxDepth: 0 };
+    const stack = [{ value, depth: 0, path: '$' }];
+    const fail = (code, path, message, detail = null) => {
+      addBlockingError(report, code, path, message, detail);
+    };
+
+    while (stack.length > 0) {
+      const { value: node, depth, path } = stack.pop();
+      stats.nodes += 1;
+      if (depth > stats.maxDepth) stats.maxDepth = depth;
+
+      if (stats.nodes > limits.maxNodes) {
+        fail('import_too_many_nodes', path, 'Backup contains too many values.', limits.maxNodes);
+        break;
+      }
+      if (depth > limits.maxDepth) {
+        fail('import_too_deep', path, 'Backup is nested too deeply.', limits.maxDepth);
+        break;
+      }
+
+      if (node === null || typeof node === 'boolean') continue;
+      if (typeof node === 'number') {
+        if (!Number.isFinite(node)) fail('import_number_invalid', path, 'Non-finite number.');
+        continue;
+      }
+      if (typeof node === 'string') {
+        if (node.length > limits.maxStringLength) {
+          fail('import_string_too_long', path, 'Text value is too long.', node.length);
+          break;
+        }
+        continue;
+      }
+      if (Array.isArray(node)) {
+        if (node.length > limits.maxArrayLength) {
+          fail('import_array_too_long', path, 'List is too long.', node.length);
+          break;
+        }
+        for (let i = node.length - 1; i >= 0; i -= 1) {
+          stack.push({ value: node[i], depth: depth + 1, path: path + '[' + i + ']' });
+        }
+        continue;
+      }
+      if (typeof node === 'object') {
+        const keys = Object.keys(node);
+        if (keys.length > limits.maxKeysPerObject) {
+          fail('import_too_many_keys', path, 'Object has too many fields.', keys.length);
+          break;
+        }
+        for (const key of keys) {
+          if (DANGEROUS_KEYS.has(key)) {
+            fail('import_dangerous_key', path, 'Forbidden property name.', key);
+            continue;
+          }
+          if (RESERVED_SERVER_FIELDS.has(key)) {
+            fail('import_reserved_server_field', path, 'Server-authoritative field names are not accepted from local backups.', key);
+            continue;
+          }
+          if (key.length > limits.maxKeyLength) {
+            fail('import_key_too_long', path, 'Property name is too long.', key.length);
+            continue;
+          }
+          stack.push({ value: node[key], depth: depth + 1, path: path + '.' + key });
+        }
+        if (!report.valid) break;
+        continue;
+      }
+      fail('import_type_invalid', path, 'Unsupported value type.', typeof node);
+      break;
+    }
+
+    report.stats = stats;
+    return finalizeReport(report);
+  }
+
+  function isValidDateKey(value) {
+    if (typeof value !== 'string') return false;
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+    if (!m) return false;
+    const y = Number(m[1]), mo = Number(m[2]) - 1, d = Number(m[3]);
+    const dt = new Date(Date.UTC(y, mo, d));
+    return dt.getUTCFullYear() === y && dt.getUTCMonth() === mo && dt.getUTCDate() === d;
+  }
+
+  /* Accepts epoch milliseconds (current format) and ISO strings (tolerated for older data). */
+  function isAcceptableTimestamp(value, limits = IMPORT_LIMITS) {
+    if (value === null || value === undefined) return true;
+    if (typeof value === 'number') {
+      return Number.isFinite(value) && value >= limits.minTimestamp && value <= limits.maxTimestamp;
+    }
+    if (typeof value === 'string') {
+      if (value.length > 40) return false;
+      const ms = Date.parse(value);
+      return Number.isFinite(ms) && ms >= limits.minTimestamp && ms <= limits.maxTimestamp;
+    }
+    return false;
+  }
+
+  function checkText(report, value, path, maxLength, code) {
+    if (value === null || value === undefined) return;
+    if (typeof value !== 'string' && typeof value !== 'number') {
+      addBlockingError(report, code + '_type', path, 'Text field has an invalid type.');
+      return;
+    }
+    if (String(value).length > maxLength) {
+      addBlockingError(report, code + '_too_long', path, 'Text field is too long.', String(value).length);
+    }
+  }
+
+  function checkMinutes(report, value, path, code, limits) {
+    if (value === null || value === undefined) return;
+    const n = Number(value);
+    if (!Number.isFinite(n) || n < 0 || n > limits.maxMinutes) {
+      addBlockingError(report, code, path, 'Duration is outside the supported range.', value);
+    }
+  }
+
+  function checkTimestamps(report, record, fields, path, limits) {
+    for (const field of fields) {
+      if (!isAcceptableTimestamp(record[field], limits)) {
+        addBlockingError(report, 'import_timestamp_invalid', `${path}.${field}`, 'Timestamp is malformed or out of range.', field);
+      }
+    }
+  }
+
+  function checkStringList(report, list, path, limits) {
+    if (list === null || list === undefined) return;
+    if (!Array.isArray(list)) {
+      addBlockingError(report, 'import_list_invalid', path, 'Expected a list.');
+      return;
+    }
+    if (list.length > limits.maxListItems) {
+      addBlockingError(report, 'import_list_too_long', path, 'List has too many entries.', list.length);
+    }
+  }
+
+  function checkSessionRecord(report, s, path, limits) {
+    if (!s || typeof s !== 'object' || Array.isArray(s)) return;
+    checkText(report, s.id, `${path}.id`, limits.maxIdLength, 'import_id');
+    checkText(report, s.missionId, `${path}.missionId`, limits.maxIdLength, 'import_id');
+    checkText(report, s.missionStepId, `${path}.missionStepId`, limits.maxIdLength, 'import_id');
+    checkText(report, s.title, `${path}.title`, limits.maxTitleLength, 'import_title');
+    checkText(report, s.task, `${path}.task`, limits.maxTextLength, 'import_text');
+    checkMinutes(report, s.plannedMinutes, `${path}.plannedMinutes`, 'import_duration_invalid', limits);
+    checkMinutes(report, s.actualMinutes, `${path}.actualMinutes`, 'import_duration_invalid', limits);
+    if (s.elapsedMs != null) {
+      const ms = Number(s.elapsedMs);
+      if (!Number.isFinite(ms) || ms < 0 || ms > limits.maxElapsedMs) {
+        addBlockingError(report, 'import_duration_invalid', `${path}.elapsedMs`, 'Elapsed time is outside the supported range.', s.elapsedMs);
+      }
+    }
+    checkTimestamps(report, s, ['startedAt', 'finishedAt', 'pausedAt', 'endsAt', 'lastCheckpointAt', 'createdAt', 'updatedAt'], path, limits);
+    if (s.result && typeof s.result === 'object') {
+      checkText(report, s.result.feedback, `${path}.result.feedback`, limits.maxTextLength, 'import_text');
+    }
+  }
+
+  /* Domain limits on the structured bundle ({ data: { missions, sessionHistory, ... } }). */
+  function validateImportLimits(bundle, limits = IMPORT_LIMITS) {
+    const report = createReport();
+    const data = bundle && typeof bundle.data === 'object' && bundle.data ? bundle.data : {};
+    const missions = Array.isArray(data.missions?.missions) ? data.missions.missions : [];
+    const sessions = Array.isArray(data.sessionHistory?.sessions) ? data.sessionHistory.sessions : [];
+
+    if (missions.length > limits.maxMissions) {
+      addBlockingError(report, 'import_too_many_missions', 'missions', 'Too many Missions in backup.', missions.length);
+    }
+    if (sessions.length > limits.maxSessions) {
+      addBlockingError(report, 'import_too_many_sessions', 'sessionHistory', 'Too many Sessions in backup.', sessions.length);
+    }
+
+    missions.forEach((m, mi) => {
+      if (!m || typeof m !== 'object') return;
+      const path = `missions[${mi}]`;
+      checkText(report, m.id, `${path}.id`, limits.maxIdLength, 'import_id');
+      checkText(report, m.title, `${path}.title`, limits.maxTitleLength, 'import_title');
+      checkText(report, m.subject, `${path}.subject`, limits.maxShortTextLength, 'import_title');
+      checkText(report, m.type, `${path}.type`, 40, 'import_title');
+      checkText(report, m.deadlineText, `${path}.deadlineText`, limits.maxShortTextLength, 'import_title');
+      checkTimestamps(report, m, ['createdAt', 'updatedAt', 'completedAt', 'archivedAt'], path, limits);
+      if (m.estimate && typeof m.estimate === 'object') {
+        checkText(report, m.estimate.explanation, `${path}.estimate.explanation`, limits.maxTextLength, 'import_text');
+      }
+      const steps = Array.isArray(m.steps) ? m.steps : [];
+      if (steps.length > limits.maxStepsPerMission) {
+        addBlockingError(report, 'import_too_many_steps', `${path}.steps`, 'Mission has too many steps.', steps.length);
+      }
+      steps.forEach((st, si) => {
+        if (!st || typeof st !== 'object') return;
+        const sp = `${path}.steps[${si}]`;
+        checkText(report, st.id, `${sp}.id`, limits.maxIdLength, 'import_id');
+        checkText(report, st.title, `${sp}.title`, limits.maxTitleLength, 'import_title');
+        checkText(report, st.task, `${sp}.task`, limits.maxTextLength, 'import_text');
+        checkText(report, st.reason, `${sp}.reason`, limits.maxTextLength, 'import_text');
+        checkMinutes(report, st.durationMinutes ?? st.duration, `${sp}.durationMinutes`, 'import_duration_invalid', limits);
+        checkTimestamps(report, st, ['createdAt', 'updatedAt', 'completedAt'], sp, limits);
+        checkStringList(report, st.requiredTools, `${sp}.requiredTools`, limits);
+        checkStringList(report, st.recommendedApps, `${sp}.recommendedApps`, limits);
+        if (st.scheduledDate != null && !isValidDateKey(st.scheduledDate)) {
+          addBlockingError(report, 'import_date_invalid', `${sp}.scheduledDate`, 'Date must be YYYY-MM-DD.', st.scheduledDate);
+        }
+      });
+      const progress = m.progress;
+      if (progress != null && typeof progress === 'object') {
+        if (Array.isArray(progress.completedStepIds) && progress.completedStepIds.length > limits.maxStepsPerMission) {
+          addBlockingError(report, 'import_too_many_steps', `${path}.progress.completedStepIds`, 'Too many completed step references.');
+        }
+        if (progress.history != null && !Array.isArray(progress.history)) {
+          addBlockingError(report, 'import_list_invalid', `${path}.progress.history`, 'Progress history must be a list.');
+        } else if (Array.isArray(progress.history) && progress.history.length > limits.maxProgressHistory) {
+          addBlockingError(report, 'import_list_too_long', `${path}.progress.history`, 'Progress history is too long.', progress.history.length);
+        }
+      }
+    });
+
+    sessions.forEach((s, i) => checkSessionRecord(report, s, `sessionHistory.sessions[${i}]`, limits));
+    if (data.activeSession) checkSessionRecord(report, data.activeSession, 'activeSession', limits);
+    if (data.lastSession) checkSessionRecord(report, data.lastSession, 'lastSession', limits);
+
+    return finalizeReport(report);
+  }
+
+  /* ------------------------------------------------------------------
+   * v17.17 Backup integrity (corruption detection only).
+   * Canonical form "focusmode-canonical-json-v1": JSON with object keys
+   * sorted by UTF-16 code units, arrays in order, no whitespace, values
+   * normalised exactly like JSON.stringify (undefined fields omitted).
+   * Anyone can recompute this digest: it proves the file is unchanged
+   * since it was written, never who wrote it or that its content is honest.
+   * ------------------------------------------------------------------ */
+  const CANONICALIZATION = 'focusmode-canonical-json-v1';
+  const DIGEST_ALGORITHM = 'SHA-256';
+
+  function canonicalJSON(value) {
+    const normalized = JSON.parse(JSON.stringify(value === undefined ? null : value));
+    const out = [];
+    const stack = [{ v: normalized, state: 'value' }];
+    while (stack.length) {
+      const frame = stack.pop();
+      if (frame.state === 'raw') { out.push(frame.text); continue; }
+      const v = frame.v;
+      if (v === null || typeof v !== 'object') { out.push(JSON.stringify(v)); continue; }
+      if (Array.isArray(v)) {
+        stack.push({ state: 'raw', text: ']' });
+        for (let i = v.length - 1; i >= 0; i -= 1) {
+          stack.push({ v: v[i], state: 'value' });
+          if (i > 0) stack.push({ state: 'raw', text: ',' });
+        }
+        out.push('[');
+        continue;
+      }
+      const keys = Object.keys(v).sort();
+      stack.push({ state: 'raw', text: '}' });
+      for (let i = keys.length - 1; i >= 0; i -= 1) {
+        stack.push({ v: v[keys[i]], state: 'value' });
+        stack.push({ state: 'raw', text: (i > 0 ? ',' : '') + JSON.stringify(keys[i]) + ':' });
+      }
+      out.push('{');
+    }
+    return out.join('');
+  }
+
+  function integrityPayload(bundle) {
+    return {
+      format: bundle?.format ?? null,
+      exportVersion: bundle?.exportVersion ?? null,
+      schemaVersions: bundle?.schemaVersions ?? null,
+      scope: bundle?.scope ?? null,
+      data: bundle?.data ?? null
+    };
+  }
+
+  function digestAvailable() {
+    return Boolean(global.crypto && global.crypto.subtle && typeof global.crypto.subtle.digest === 'function' && typeof global.TextEncoder === 'function');
+  }
+
+  async function computeBundleDigest(bundle) {
+    if (!digestAvailable()) return null;
+    const bytes = new global.TextEncoder().encode(canonicalJSON(integrityPayload(bundle)));
+    const hash = await global.crypto.subtle.digest(DIGEST_ALGORITHM, bytes);
+    return Array.from(new Uint8Array(hash), b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  /* Returns { status } with status: verified | absent | not_checked | mismatch | invalid. */
+  async function verifyBundleIntegrity(bundle) {
+    const integrity = bundle && typeof bundle.integrity === 'object' && bundle.integrity ? bundle.integrity : null;
+    const digest = integrity ? integrity.digest : undefined;
+    if (digest === undefined || digest === null || integrity.status === 'unavailable') {
+      return { status: 'absent' };
+    }
+    if (integrity.algorithm !== DIGEST_ALGORITHM || integrity.canonicalization !== CANONICALIZATION ||
+        typeof digest !== 'string' || !/^[0-9a-f]{64}$/.test(digest)) {
+      return { status: 'invalid' };
+    }
+    if (!digestAvailable()) return { status: 'not_checked' };
+    const actual = await computeBundleDigest(bundle);
+    return { status: actual === digest ? 'verified' : 'mismatch' };
+  }
+
   const validatorApi = Object.freeze({
     createReport,
     validateMissionStep,
@@ -478,7 +812,21 @@
     validateFocusSession,
     validateHistory,
     validateRecovery,
-    validateBundle
+    validateBundle,
+    limits: IMPORT_LIMITS,
+    inspectUntrustedStructure,
+    validateImportLimits,
+    isValidDateKey,
+    isAcceptableTimestamp,
+    integrity: Object.freeze({
+      algorithm: DIGEST_ALGORITHM,
+      canonicalization: CANONICALIZATION,
+      canonicalJSON,
+      integrityPayload,
+      digestAvailable,
+      computeBundleDigest,
+      verifyBundleIntegrity
+    })
   });
 
   App.data = App.data || {};

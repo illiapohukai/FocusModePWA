@@ -1,0 +1,33 @@
+# v17.17 secret and repository hygiene.
+# Project-local Claude skills under .claude/skills/ are committed on purpose and are NOT ignored.
+
+# Local environment and credentials (never commit; rotate if ever committed)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials*.json
+service-account*.json
+.dev.vars
+.wrangler/
+.claude/settings.local.json
+
+# Logs, temporary files, local reports and media
+*.log
+*.tmp
+*.swp
+.DS_Store
+Thumbs.db
+scratchpad/
+tmp/
+test-results/
+playwright-report/
+*.local.md
+*.mov
+*.mp4
+
+# Tooling that must not appear in this no-build project
+node_modules/

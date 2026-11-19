@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 
-<html class="dark" lang="de"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/><meta content="#F6F1E7" name="theme-color"/><title>v17.8 Mission Plan &amp; Focus Protection Polish</title>
+<html class="dark" lang="de"><head><meta charset="utf-8"/>
+<!-- v17.17 Security: strongest CSP compatible with static GitHub Pages hosting (meta, no headers available). 'unsafe-inline' remains required by inline handlers and the Tailwind Play CDN; see docs/security/security-baseline.md. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://focusmodedemoai.illia-pohukai.workers.dev; media-src 'self'; worker-src 'self'; manifest-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'"/><meta name="referrer" content="strict-origin-when-cross-origin"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/><meta content="#F6F1E7" name="theme-color"/><title>v17.8 Mission Plan &amp; Focus Protection Polish</title>
 <meta name="description" content="Focus Mode+ v17.6 Navigation, Insights &amp; League Polish — stabile Navigation, Root-Swipe, moderner Fokusverlauf und Liga-Vorschau.">
 <meta property="og:title" content="v17.6 Navigation, Insights &amp; League Polish">
-<meta property="og:description" content="Focus Mode+ v17.8 Mission Plan &amp; Focus Protection Polish — Mission-Plan in Missionsfarbe, neutraler Zeitplan, neuer Fokus-Schutz und ruhige Navigation."><script src="https://cdn.tailwindcss.com"></script><script>window.tailwind=window.tailwind||{};tailwind.config={darkMode:'class'}</script><script src="https://unpkg.com/lucide@latest"></script><script>window.lucide=window.lucide||{createIcons:function(){}}</script><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>  <link rel="stylesheet" href="./styles/app.css" />
+<meta property="og:description" content="Focus Mode+ v17.8 Mission Plan &amp; Focus Protection Polish — Mission-Plan in Missionsfarbe, neutraler Zeitplan, neuer Fokus-Schutz und ruhige Navigation."><script src="https://cdn.tailwindcss.com"></script><script>window.tailwind=window.tailwind||{};tailwind.config={darkMode:'class'}</script><script src="./assets/vendor/lucide/lucide.min.js"></script><script>window.lucide=window.lucide||{createIcons:function(){}}</script>  <link rel="stylesheet" href="./styles/app.css" />
   <link rel="stylesheet" href="./styles/timer.css" />
   <link rel="stylesheet" href="./styles/recovery.css" />
   <link rel="stylesheet" href="./styles/quick-focus.css" />
@@ -485,6 +487,11 @@
         </div>
       </div>
     </section>
+    <details class="mg-ai-note" id="missionAiPrivacyNote">
+      <summary><i data-lucide="info" aria-hidden="true"></i><span>Was wird an die AI gesendet?</span></summary>
+      <p>Für den Plan werden nur dein Ziel-Text, ein ausgewähltes Foto sowie Mission-Typ, Sicherheit und der gewählte Zeitplan an den AI-Dienst gesendet (unser Server bei Cloudflare, Modell: Google Gemini). Fotos werden vorher verkleinert und ohne Metadaten (z. B. Standort) übertragen.</p>
+      <p>Missionen, Sitzungsverlauf, Serie und Einstellungen bleiben auf diesem Gerät.</p>
+    </details>
     <button type="button" class="mg-plan-button opacity-40 cursor-not-allowed" disabled id="missionPlanButton" onclick="analyzeGoal()">Mission planen <i data-lucide="arrow-up"></i></button>
   </div>
 </div>
@@ -932,6 +939,7 @@
 <div class="text-[10px] font-black uppercase tracking-wider text-indigo-600">Import-Vorschau</div>
 <p class="text-[10px] text-slate-700 mt-1 leading-relaxed" id="dataImportWarningText">Dies ersetzt die aktuellen lokalen App-Daten. Ein Backup der aktuellen Daten wird automatisch erstellt.</p>
 <div class="data-preview-meta" id="dataImportPreviewDetails"></div>
+<p class="data-import-trust-note" id="dataImportTrustNote">Lokales Backup: Verlauf, Serie und Fortschritt stammen aus einer Datei und sind keine verifizierten Nachweise.</p>
 <div class="flex gap-2 mt-3">
 <button class="flex-1 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold rounded-xl transition" id="confirmImportBtn" onclick="confirmPendingDataImport()" type="button">Import bestätigen</button>
 <button class="py-2 px-3 bg-white border border-slate-200 text-slate-600 text-[11px] font-semibold rounded-xl transition" onclick="cancelPendingDataImport()" type="button">Abbrechen</button>
@@ -947,15 +955,34 @@
 </div>
 </div>
 
+<div class="hidden data-delete-card" id="dataDeleteAllConfirmCard">
+<div class="text-[10px] font-black uppercase tracking-wider text-rose-600">Alle lokalen Daten endgültig löschen?</div>
+<p class="text-[10px] text-rose-900 mt-1 leading-relaxed">Missionen, Sitzungsverlauf, Einstellungen und alle automatischen Backups werden von diesem Gerät entfernt. Das kann nicht rückgängig gemacht werden. Exportiere vorher ein Backup, wenn du die Daten behalten möchtest.</p>
+<div class="flex gap-2 mt-3">
+<button class="flex-1 py-2 bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold rounded-xl transition" id="confirmDeleteAllDataBtn" onclick="confirmDeleteAllLocalData()" type="button">Alles löschen</button>
+<button class="py-2 px-3 bg-white border border-rose-200 text-slate-600 text-[11px] font-semibold rounded-xl transition" onclick="cancelDeleteAllLocalData()" type="button">Abbrechen</button>
+</div>
+</div>
+
 <div class="space-y-2">
+<p class="data-privacy-note" id="dataPrivacyNote">Backups enthalten deine Missionen, Aufgaben und Notizen als lesbaren Text. Teile Backup-Dateien nur mit Personen, denen du vertraust. Ein Backup ist ein lokaler Datenexport – kein Nachweis für Fortschritt oder Serien.</p>
 <div class="text-[9px] font-bold uppercase tracking-wider text-slate-400 px-1">Aktionen</div>
 <button class="data-action-btn primary" id="exportDataBtn" onclick="handleDataExportClick()" type="button">
 <div class="data-action-icon"><i class="w-4 h-4" data-lucide="download"></i></div>
 <div class="data-action-copy">
 <span class="data-action-title">Daten exportieren</span>
-<span class="data-action-sub">JSON-Backup herunterladen</span>
+<span class="data-action-sub">Vollständiges JSON-Backup herunterladen</span>
 </div>
 <i class="w-4 h-4 text-indigo-400 shrink-0" data-lucide="chevron-right"></i>
+</button>
+
+<button class="data-action-btn" id="exportMissionsOnlyBtn" onclick="handleDataExportClick('missions')" type="button">
+<div class="data-action-icon"><i class="w-4 h-4" data-lucide="file-down"></i></div>
+<div class="data-action-copy">
+<span class="data-action-title">Nur Missionen &amp; Einstellungen</span>
+<span class="data-action-sub">Backup ohne Sitzungsverlauf</span>
+</div>
+<i class="w-4 h-4 text-slate-300 shrink-0" data-lucide="chevron-right"></i>
 </button>
 
 <input accept="application/json,.json" class="hidden" id="dataImportFileInput" onchange="handleDataImportFileChange(event)" type="file"/>
@@ -982,6 +1009,15 @@
 <div class="data-action-copy">
 <span class="data-action-title">Lokale Daten zurücksetzen</span>
 <span class="data-action-sub">Missionen &amp; Sitzungen löschen (Backup bleibt erhalten)</span>
+</div>
+<i class="w-4 h-4 text-rose-300 shrink-0" data-lucide="chevron-right"></i>
+</button>
+
+<button class="data-action-btn danger" id="deleteAllLocalDataBtn" onclick="promptDeleteAllLocalData()" type="button">
+<div class="data-action-icon"><i class="w-4 h-4" data-lucide="shield-x"></i></div>
+<div class="data-action-copy">
+<span class="data-action-title">Alle lokalen Daten löschen</span>
+<span class="data-action-sub">Inklusive automatischer Backups und Einstellungen</span>
 </div>
 <i class="w-4 h-4 text-rose-300 shrink-0" data-lucide="chevron-right"></i>
 </button>

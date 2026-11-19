@@ -21,6 +21,52 @@
   const APPLICATION_VERSION = 'v16 Data Stability';
   const EXPORT_VERSION = 1;
 
+  /* v17.17 backup envelope. The bundle schema stays at 1 (additive fields only), so older
+     app versions can still import newer backups and every older export remains importable. */
+  const APP_RELEASE = 'v17.17';
+  const BACKUP_FORMAT = 'focusmode-backup';
+
+  /* v17.17 trust boundary. Every domain stored on this device is either user-editable or
+     derived locally from user-editable data. Nothing local is server-authoritative, so no
+     local value (including an imported backup) may ever feed a verified streak, League score,
+     rank, entitlement, subscription or AI quota. See docs/security/future-auth-and-verified-data.md. */
+  const TRUST_CLASSES = Object.freeze({
+    userEditable: 'user_editable',
+    localDerived: 'local_derived',
+    serverAuthoritative: 'server_authoritative'
+  });
+
+  const DATA_TRUST_MAP = Object.freeze({
+    missions: TRUST_CLASSES.userEditable,
+    missionSteps: TRUST_CLASSES.userEditable,
+    preferences: TRUST_CLASSES.userEditable,
+    sessionHistory: TRUST_CLASSES.userEditable,
+    activeSession: TRUST_CLASSES.userEditable,
+    localStreak: TRUST_CLASSES.localDerived,
+    localTotals: TRUST_CLASSES.localDerived,
+    localAchievements: TRUST_CLASSES.localDerived,
+    localActivity: TRUST_CLASSES.localDerived
+  });
+
+  /* Field names reserved for future server-issued data. Import rejects backups containing them,
+     so a crafted local file can never pre-populate verified records. */
+  const RESERVED_SERVER_FIELDS = Object.freeze([
+    'verified', 'verifiedAt', 'verifiedBy', 'verifiedStreak', 'verifiedScore',
+    'serverSessionId', 'serverSignature', 'serverVerified', 'serverAuthoritative',
+    'leagueScore', 'leagueRank', 'leaguePoints',
+    'entitlement', 'entitlements', 'subscription', 'subscriptionTier', 'aiQuota'
+  ]);
+
+  function classifyTrust(domain) {
+    return DATA_TRUST_MAP[domain] || TRUST_CLASSES.userEditable;
+  }
+
+  /* Always false today: there is no authenticated backend. Kept as the single question every
+     future competitive or paid feature must ask before using a value. */
+  function isServerAuthoritative(domain) {
+    return classifyTrust(domain) === TRUST_CLASSES.serverAuthoritative;
+  }
+
   const DATA_SCHEMA_VERSIONS = Object.freeze({
     bundle: 1,
     missions: 1,
@@ -224,6 +270,13 @@
   const schemaApi = Object.freeze({
     applicationVersion: APPLICATION_VERSION,
     exportVersion: EXPORT_VERSION,
+    appRelease: APP_RELEASE,
+    backupFormat: BACKUP_FORMAT,
+    trustClasses: TRUST_CLASSES,
+    dataTrustMap: DATA_TRUST_MAP,
+    reservedServerFields: RESERVED_SERVER_FIELDS,
+    classifyTrust,
+    isServerAuthoritative,
     versions: DATA_SCHEMA_VERSIONS,
     keys: STORAGE_KEYS,
     generateUUID,

@@ -137,6 +137,39 @@
     };
   }
 
+  /* v17.17 privacy control: remove every key this app owns, including automatic backups,
+     corrupt-data quarantine copies and preferences. Nothing outside the app's key prefixes is
+     touched. Static files in the service-worker cache contain no user data and are kept for
+     offline use. This cannot be undone; the UI asks for explicit confirmation first. */
+  function deleteAllLocalData() {
+    try { global.stopSessionRuntime?.(); } catch {}
+    try { global.stopUc?.(); } catch {}
+    try { global.releaseRecoveryNavigationV112?.(); } catch {}
+    if (global.timerInterval) {
+      clearInterval(global.timerInterval);
+      global.timerInterval = null;
+    }
+
+    const keys = storage.listAppKeys();
+    for (const key of keys) {
+      storage.remove(key);
+    }
+    const remaining = storage.listAppKeys();
+
+    global.activeSession = null;
+    global.sessionRecoveryCandidate = null;
+    global.activeAIPlan = null;
+    global.pendingAIPlan = null;
+    runner.syncRuntimeStateAfterDataChange();
+
+    return {
+      ok: remaining.length === 0,
+      removedCount: keys.length - remaining.length,
+      remainingCount: remaining.length,
+      deletedAt: new Date().toISOString()
+    };
+  }
+
   function inspectLastBackup(preferredKey = null) {
     const backup = runner.getLastBackup(preferredKey);
     if (!backup) {
@@ -208,6 +241,7 @@
 
   const resetApi = Object.freeze({
     safeResetLocalData,
+    deleteAllLocalData,
     inspectLastBackup,
     restoreLastBackup
   });
