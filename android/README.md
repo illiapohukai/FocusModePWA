@@ -1,0 +1,288 @@
+# Focus Mode+ — Android (v18 Android Foundation)
+
+A native Android app for Focus Mode+, written in Kotlin with Jetpack Compose. It is **not** a
+WebView, a Trusted Web Activity or a wrapper around the PWA. The PWA in the repository root is
+unchanged and stays the reference for product terms, Mission and Session behavior, timer semantics,
+History, Recovery, colors, typography, the Cosmic Core identity, backups and the AI Worker contract.
+
+- [Protection capabilities](docs/protection-capabilities.md): what consumer Android can and cannot do
+- [PWA parity](docs/pwa-parity.md): what is implemented, partial, deferred or intentionally different
+
+## Selected versions (resolved from official repositories on 2026-11-19)
+
+| Component | Version | Note |
+|---|---|---|
+| Android Gradle Plugin | 9.5.1 | built-in Kotlin (no `kotlin-android` plugin), max API 37 |
+| Gradle (wrapper) | 9.9.2 | SHA-256 pinned in `gradle-wrapper.properties`; AGP 9.5 needs ≥ 9.6.0 |
+| Kotlin / Compose compiler | 2.4.21 | |
+| KSP | 2.3.14 | Room and Hilt via KSP (no kapt) |
+| JDK | 21 to run, bytecode target 17 | AGP 9.5 needs JDK ≥ 17 |
+| compileSdk | 37, minor 2 (`android-37.2`) | Compose 1.13 requires compileSdk ≥ 37.1 |
+| targetSdk | 37 (Android 17) | |
+| minSdk | 26 (Android 8.0) | java.time and notification channels are native |
+| Build tools | 36.0.0 | AGP 9.5 default |
+| Compose BOM | 2026.11.01 | UI/foundation 1.13.0, Material 3 1.5.0 |
+| Navigation Compose | 2.10.2 | type-safe routes (kotlinx.serialization) |
+| Lifecycle | 2.11.1 | |
+| Activity Compose | 1.13.0 | |
+| Room | 2.8.5 | schemas exported to `core/data/schemas` |
+| DataStore Preferences | 1.3.0 | |
+| WorkManager | 2.12.0 | |
+| Hilt / AndroidX Hilt | 2.60.1 / 1.4.0 | |
+| Coroutines / Serialization | 1.11.0 / 1.13.0 | |
+| Retrofit / OkHttp | 3.0.0 / 5.5.1 | the only networking stack |
+| JUnit / Robolectric / Turbine | 4.13.2 / 4.18.1 / 1.2.1 | Robolectric runs the Android 17 (SDK 37) runtime |
+
+All versions live in `gradle/libs.versions.toml`. Shared build logic is in `build-logic/`
+(convention plugins `focus.android.application|library|compose|hilt|feature`, `focus.jvm.library`).
+
+## Build
+
+Requirements: JDK 17+ (21 tested), Android SDK with `platforms;android-37.2` and
+`build-tools;36.0.0`. Android Studio: a version that supports AGP 9.5.
+
+```bash
+cd android
+export ANDROID_HOME=/path/to/sdk      # or sdk.dir in local.properties (never committed)
+./gradlew :app:assembleDebug          # app/build/outputs/apk/debug/app-debug.apk
+./gradlew testDebugUnitTest :core:domain:test   # all unit, Room, Robolectric and Compose tests
+./gradlew :app:lintDebug              # lint for the app and every module it depends on
+./gradlew :app:assembleRelease        # R8-minified, unsigned (no signing config in the repo)
+```
+
+CI: `.github/workflows/android.yml` (tests, lint, debug APK artifact, Gradle caching). No signing
+secrets, no Play upload.
+
+## Architecture
+
+Unidirectional data flow: immutable UI state from `ViewModel`s (`StateFlow`), user actions as
+methods, one-shot navigation events. Composables never touch Room or platform APIs directly.
+Hilt is the only DI framework. Time comes from `FocusClock`, so it is testable.
+
+```
+android/
+├── app/                 Application, MainActivity, NavHost, adaptive navigation, deep links, system receiver
+├── build-logic/         convention plugins
+├── core/
+│   ├── model/           (JVM) domain models + data-trust classification
+│   ├── domain/          (JVM) business rules, repository/gateway contracts, PWA backup parser
+│   ├── testing/         (JVM) fakes and fixtures (tests only; never shipped)
+│   ├── data/            Room (v2, migration 1→2), DataStore, repositories, backup import, RestoreGuard
+│   ├── network/         Cloudflare Worker client (Retrofit/OkHttp), DTO validation, error mapping
+│   ├── designsystem/    tokens, Inter typography, components, icons, Cosmic Core renderer
+│   ├── notifications/   channels, capability reader, the single notifier, PendingIntents
+│   ├── protection/      the single capability owner, Usage Access, DND, managed-device boundary, app catalog
+│   ├── session/         the single Focus Session owner, foreground service, end alarm
+│   └── reminders/       the single reminder scheduler (WorkManager + AlarmManager)
+└── feature/             home, quickfocus, focus, result, history, missions, reminders, settings
+```
+
+Each feature owns its UI state, ViewModel, actions, navigation contract (`…Destination` +
+`NavGraphBuilder` extension) and UI. Features depend only on `core:domain`, `core:model`,
+`core:designsystem` and, where needed, the capability owner in `core:protection`.
+
+**Single owners**
+- Session: `FocusSessionManager` (`core:session`), behind `FocusSessionController`.
+- Missions: `RoomMissionRepository`. History: `RoomSessionRepository`.
+- Notifications: `FocusNotifier`. Reminders: `AndroidReminderScheduler`.
+- Protection capability: `ProtectionCapabilityOwner`.
+
+## First vertical slice (fully implemented)
+
+Home → Quick Focus setup → active Focus Session → Result → History, persisted in Room.
+
+- **Home**: localized date, title, Bereit/Offline readiness, active-Session banner (running, paused
+  after a restart, or Mission review pending), primary Mission card (repository-backed; there are
+  no hard-coded sample Missions), Quick Focus entry, Today summary (minutes, Sessions, local streak,
+  week), upcoming reminders (with an honest notice when they cannot be delivered), recent Activity,
+  floating bottom navigation with the raised Plus action (start sheet).
+- **Quick Focus**: optional task, circular duration dial (5–60 min in steps of 5, the PWA contract)
+  with the static `MM:00` readout in the timer typography, one authoritative duration, honest
+  Fokus-Schutz summary, contextual notification prompt, Start (one launch per tap).
+- **Active Focus**: native Cosmic Core, the timer as real text, task card, protection badge, end
+  flow (Standard / Protected barrier / emergency exit), landscape layout, Recovery UI.
+- **Result**: outcome, real duration, task, time range, local streak (labelled "lokal berechnet,
+  nicht verifiziert"), Mission step review for Mission Sessions.
+- **History**: Heute/Woche/Alle filters (PWA), grouped by local day, local statistics.
+
+Also implemented: Missions list/detail (identity tones, start the current step, archive/delete
+guards), Scheduled Focus (list and editor), Settings, Permission Center, distracting-app selection,
+PWA backup import (behind a development flag).
+
+## Session timing and Recovery
+
+- One durable `active_session` row (single slot; a second active Session is rejected by the database).
+- Timing: banked elapsed time plus the current segment's start on `SystemClock.elapsedRealtime`
+  (monotonic, includes deep sleep, ignores wall-clock changes), together with the boot counter
+  (`Settings.Global.BOOT_COUNT`). Remaining time is always derived, never ticked.
+- No per-second writes: one write at start, one coarse checkpoint per minute while running, one
+  transactional finalization.
+- Backgrounding, process death and app restart: the Session keeps running in real time and is
+  re-derived on start, from the end alarm or from the foreground-service tick. If the planned time
+  passed while away, it is finalized once as `timer_finished_while_away`, with the exact completion instant.
+- Reboot: the monotonic base is gone, so the Session freezes at the last checkpoint and waits
+  ("Fortsetzen" / "Fokuszeit speichern" / "Verwerfen"), like the PWA after a reload. A notification
+  tells the user.
+- Finalization (`FinalizationPolicy`): below 1 minute → cancelled (`ended_too_early`); user cancel
+  never counts; an early end with ≥ 1 minute → PARTIAL (counts); the planned time elapsed → COMPLETED.
+  Mission Sessions wait for the step review. History insert is `IGNORE` on the Session id, inside one
+  transaction that also clears the active row and appends one Activity entry, so a Session is
+  finalized exactly once even when the alarm, a tick and a tap race.
+- Restore from an OS backup on a new device: `RestoreGuard` freezes a running Session and drops the
+  DND record and reminder occurrences (they belong to the old device).
+
+## Active-session notification
+
+`FocusSessionService` is a visible foreground service of type `specialUse`. It is started only with
+a running Session and stops itself when the Session ends. One ongoing notification ("Fokus läuft",
+"Noch 18 Minuten") is updated at whole-minute boundaries of the remaining time and on screen-on,
+never every second. Tapping it returns to the Session; "Beenden …" opens the safe end flow (it never
+ends the Session directly). If Android refuses a foreground start from the background, the same
+notification is posted directly. The end alarm (`ELAPSED_REALTIME_WAKEUP`, inexact
+allow-while-idle; exact only where the platform already allows it) finalizes the Session even when
+the process was killed.
+
+Lock-screen privacy (Settings → "Inhalt auf dem Sperrbildschirm"): *Aufgabe* (task in the shade; the
+lock screen gets a generic public version when it hides sensitive content), *Nur Status* (never the
+task), *Ausblenden* (secret on the lock screen).
+
+## Notification strategy and permission
+
+Channels: `focus_active` (low, silent), `focus_finished`, `reminders`, `mission_deadlines`,
+`protection_status` (silent hints). `POST_NOTIFICATIONS` is never requested at launch, only in
+context (Quick Focus card, Permission Center). States: not requested, denied, permanently denied
+(denied after a request with no rationale), OS-disabled, channel disabled, app switch off. The UI
+says when reminders cannot be delivered. Copy is concise German without motivational filler; hints
+never name the opened app.
+
+## Reminder strategy
+
+`ReminderPlanner` (pure) produces the desired occurrences; the scheduler diffs them with stored rows
+and only changes the differences, using one stable key per occurrence (`type:source:date`) as the
+unique WorkManager name and PendingIntent identity. Repeated syncs (start, data change, boot,
+time or time-zone change, app update) never duplicate. A delivered occurrence is marked atomically
+before posting, so it is never shown twice, and the next occurrence is planned.
+
+| Type | Copy | Delivery |
+|---|---|---|
+| Vorbereitungsstart | "Deine Vorbereitung beginnt heute" | WorkManager (deferrable) |
+| Mission-Deadline (2 days before) | "Deadline in 2 Tagen" / "Für „…“ sind noch 3 Schritte offen." | WorkManager |
+| Geplanter Fokus (start − lead time) | "Bereit für deinen Fokus?" / "25 Minuten · …" | AlarmManager, inexact allow-while-idle |
+| Tagesplanung (opt-in) | "Zeit für deinen Plan" | WorkManager |
+
+`SCHEDULE_EXACT_ALARM` and `USE_EXACT_ALARM` are **not** declared. On Android 12+ reminders are
+therefore delivered approximately on time (usually within minutes; Doze and OEM battery policies can
+delay them), and the app says so. Exact delivery is used only where the platform allows it without a
+permission (Android 8–11). Battery-optimization status is shown read-only; the exemption is never requested.
+
+## Permission model (Settings → Berechtigungen)
+
+Each row states why, which data, whether it leaves the device (it never does), the current state,
+the action and the limits: notifications, Usage Access, Do Not Disturb, exact reminders, battery
+optimization, managed device, accessibility ("Nicht verwendet"). Quick Focus works with none of them.
+
+Declared permissions: `POST_NOTIFICATIONS`, `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_SPECIAL_USE`,
+`PACKAGE_USAGE_STATS` (granted by the user in settings), `ACCESS_NOTIFICATION_POLICY`,
+`RECEIVE_BOOT_COMPLETED`, `INTERNET`, `ACCESS_NETWORK_STATE` (plus `WAKE_LOCK` from WorkManager).
+Not requested: exact alarms, `SYSTEM_ALERT_WINDOW`, `QUERY_ALL_PACKAGES`, accessibility service,
+device admin, notification listener, SMS, contacts, call log, location, microphone, camera.
+
+## App selection, Usage Access, DND, managed devices
+
+See [docs/protection-capabilities.md](docs/protection-capabilities.md). In short: launchable apps
+come from a narrow `<queries>` launcher intent; only package name, label snapshot and an optional
+icon reference are stored, locally. Usage Access is read only during an active *protected* Session,
+every 20 s while the screen is on, for the selected packages only. Hints are rate-limited to one per
+3 minutes; per-Session counts are kept for 30 days. DND changes only the interruption filter, records
+the prior state first and restores it only if Focus Mode+ set it. Managed-device enforcement is a
+detection boundary with a no-op implementation. **No app is ever blocked.**
+
+## AI Worker integration
+
+`core:network` talks only to the existing Cloudflare Worker (`BuildConfig.WORKER_BASE_URL`, public
+URL, HTTPS enforced). There is no Gemini key on Android. `POST /create-mission` (multipart:
+`goalText`, `missionType`, `confidence`, optional `schedule` JSON and `image` with a generic file
+name) is implemented with PWA-equivalent validation (1–6 steps of 5–60 min, text bounds, safe step
+ids, no step after the deadline), timeouts (38 s text / 52 s image), cancellation, one request at a
+time, a validated support request id, and error mapping (400/402/413/415/429/502/503/504 and
+malformed output). No redirects, no automatic retries, no logging interceptor, no cache. The
+Mission-creation UI is deferred (see parity). `POST /adapt-mission` is declared as a foundation only.
+
+## PWA migration boundary
+
+Settings → "Web-Backup übernehmen" (default on in debug builds, off in release; toggle in debug
+Settings) reads a Focus Mode+ backup through the Storage Access Framework. It is never read from
+browser storage. It accepts `format: "focusmode-backup"` with exportVersion 1, and the legacy
+root-array shape. The v17.17 limits apply: 5 MB, depth 20 (checked before parsing), 250 000 nodes,
+200 keys, 10 000 array items, 250 Missions, 100 steps, 5 000 Sessions (newest 500 kept), string
+bounds, safe ids, sane timestamps. There is a preview (new vs. existing, archived by the
+two-active limit, everything not imported), then one Room transaction: all or nothing, existing ids
+never overwritten. Imported Sessions stay `LOCAL_UNVERIFIED`; streak, League and score values are
+never imported. The web app's app selection has no Android package names and is not mapped.
+
+## Data trust and privacy
+
+- User-editable: Missions, tasks, schedules, selected apps, settings.
+- Local derived: streak, totals, Activity, progress (always recomputed; never "verified").
+- Future server-authoritative (no producer exists): verified Sessions and streak, League, rank,
+  subscription, entitlements, AI quota (`ServerAuthoritative` types).
+
+Everything stays on the device except goal text and optional photo sent to the Worker when the user
+asks for AI planning, which v18's UI does not offer yet. No analytics, crash reporting, ads or trackers.
+
+## Backup policy
+
+`data_extraction_rules.xml` / `backup_rules.xml` include the Room database (Missions, History,
+schedules, selected apps) and the preferences DataStore in OS backup and device transfer. Caches and
+`no_backup` (install marker, WorkManager's database) are excluded. Device-bound transient state is
+neutralized after a restore by `RestoreGuard` (see above). No tokens or API secrets exist.
+
+## Security
+
+HTTPS only via Network Security Config (no cleartext; system CAs only). Every component is
+non-exported except the launcher activity. Receivers listen only to protected system broadcasts.
+PendingIntents are immutable and explicit. Deep links (`focusmode://…`, not BROWSABLE) are strictly
+parsed: ids must match the safe-id policy, and anything unknown goes to Home. They carry no task
+text. Narrow package queries. DTO and backup validation. No sensitive logs (there is no logging of
+tasks, Missions or AI text). No signing material in the repository.
+
+## Accessibility and adaptive UI
+
+Semantic headings, content descriptions, 48 dp minimum targets, sp typography (tested at 160 %
+font scale on a 320 dp width), the duration dial as an adjustable slider (TalkBack `setProgress`,
+custom actions, arrow keys). The timer exposes minute-level descriptions ("Noch 18 Minuten"), never
+per-second announcements. Decorative Cosmic Core content is excluded from semantics. Reduced motion
+(system "Remove animations" or the app setting) shortens transitions and shows a static Core. Layout
+is edge-to-edge with safe insets. Widths ≥ 600 dp use a floating navigation rail, and content keeps a
+readable maximum width. Focus has a landscape layout.
+
+## Cosmic Core
+
+A native Canvas renderer (`core/designsystem/cosmic`) translated from the PWA's v17.9 architecture:
+the PWA orbit table and palette, front/rear layering around a dark volumetric core, a readability
+zone that keeps front orbits off the timer, and particles as a closed-form function of one clock (no
+simulation). One frame loop runs only while the screen is at least STARTED and motion is allowed.
+Quality steps down (HIGH → MEDIUM → LOW) on sustained slow frames or low-RAM devices. Session timing
+never depends on it.
+
+## Testing
+
+`./gradlew testDebugUnitTest :core:domain:test` runs 153 JVM tests (domain rules, Room DAO,
+relationships, transactions, rollback and the 1→2 migration, DataStore defaults and migration, the
+Session owner incl. process recreation and reboot, the reminder scheduler, notifications under
+Robolectric, protection gateways, the Worker client against MockWebServer, Compose screens, and
+end-to-end app flows on Robolectric with the real Hilt graph). The app flow tests write screenshots
+to `app/build/screenshots/`. There are no instrumented or emulator tests yet.
+
+## Known limitations and OEM notes
+
+- Not tested on a physical device or emulator yet; Robolectric is not a device.
+- Usage events can arrive late on some OEM builds. Aggressive battery managers (several OEMs) can
+  delay or drop inexact alarms and WorkManager jobs, and can kill foreground services.
+- Work-profile apps are not listed in the app picker, and the personal profile's Usage Access does
+  not see them.
+- Android 15+ turns `setInterruptionFilter` into an implicit app-owned DND mode; an explicit
+  `AutomaticZenRule` integration is future work.
+- The `specialUse` foreground-service type needs a Play Console declaration; Play eligibility has
+  not been reviewed.
+- `applicationId` `io.github.illiapohukai.focusmode` (debug: `.debug`) may be changed before any store release.

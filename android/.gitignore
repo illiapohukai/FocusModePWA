@@ -1,0 +1,23 @@
+# Android build hygiene (v18). Never commit SDK paths, build outputs, IDE state or signing material.
+local.properties
+.gradle/
+.kotlin/
+build/
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.ap_
+*.dex
+*.jks
+*.keystore
+keystore.properties
+*.hprof
+.idea/
+*.iml
+.DS_Store
+# Emulator / device artifacts
+*.avd/
+logcat*.txt
+screenshots/

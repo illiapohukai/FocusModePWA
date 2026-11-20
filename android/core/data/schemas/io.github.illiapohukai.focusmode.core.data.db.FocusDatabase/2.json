@@ -1,0 +1,951 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "identityHash": "f9aa27e1f3327c442a115c15f70f6ea2",
+    "entities": [
+      {
+        "tableName": "missions",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `title` TEXT NOT NULL, `subject` TEXT NOT NULL, `type` TEXT NOT NULL, `deadline_text` TEXT NOT NULL, `deadline_date` TEXT, `preparation_start_date` TEXT, `status` TEXT NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, `completed_at` INTEGER, `archived_at` INTEGER, `current_step_id` TEXT, `origin` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "subject",
+            "columnName": "subject",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "deadlineText",
+            "columnName": "deadline_text",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "deadlineDate",
+            "columnName": "deadline_date",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "preparationStartDate",
+            "columnName": "preparation_start_date",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "completedAt",
+            "columnName": "completed_at",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "archivedAt",
+            "columnName": "archived_at",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "currentStepId",
+            "columnName": "current_step_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "origin",
+            "columnName": "origin",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_missions_status",
+            "unique": false,
+            "columnNames": [
+              "status"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_missions_status` ON `${TABLE_NAME}` (`status`)"
+          }
+        ]
+      },
+      {
+        "tableName": "mission_steps",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `mission_id` TEXT NOT NULL, `position` INTEGER NOT NULL, `title` TEXT NOT NULL, `task` TEXT NOT NULL, `duration_minutes` INTEGER NOT NULL, `status` TEXT NOT NULL, `reason` TEXT NOT NULL, `scheduled_date` TEXT, `completed_at` INTEGER, PRIMARY KEY(`id`), FOREIGN KEY(`mission_id`) REFERENCES `missions`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "missionId",
+            "columnName": "mission_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "task",
+            "columnName": "task",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "durationMinutes",
+            "columnName": "duration_minutes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reason",
+            "columnName": "reason",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "scheduledDate",
+            "columnName": "scheduled_date",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "completedAt",
+            "columnName": "completed_at",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_mission_steps_mission_id_position",
+            "unique": true,
+            "columnNames": [
+              "mission_id",
+              "position"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_mission_steps_mission_id_position` ON `${TABLE_NAME}` (`mission_id`, `position`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "missions",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "mission_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "active_session",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`slot` INTEGER NOT NULL, `session_id` TEXT NOT NULL, `type` TEXT NOT NULL, `title` TEXT NOT NULL, `task` TEXT NOT NULL, `planned_minutes` INTEGER NOT NULL, `mission_id` TEXT, `mission_step_id` TEXT, `started_at` INTEGER NOT NULL, `lifecycle` TEXT NOT NULL, `accumulated_ms` INTEGER NOT NULL, `segment_start_wall` INTEGER, `segment_start_realtime_ms` INTEGER, `segment_boot_count` INTEGER, `checkpoint_elapsed_ms` INTEGER NOT NULL, `checkpoint_wall` INTEGER NOT NULL, `protection_mode` TEXT NOT NULL, `mode_label` TEXT NOT NULL, `progress_current` INTEGER NOT NULL, `progress_total` INTEGER NOT NULL, `schedule_id` TEXT, PRIMARY KEY(`slot`), FOREIGN KEY(`mission_id`) REFERENCES `missions`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "slot",
+            "columnName": "slot",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sessionId",
+            "columnName": "session_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "task",
+            "columnName": "task",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "plannedMinutes",
+            "columnName": "planned_minutes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "missionId",
+            "columnName": "mission_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "missionStepId",
+            "columnName": "mission_step_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "startedAt",
+            "columnName": "started_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lifecycle",
+            "columnName": "lifecycle",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "accumulatedMs",
+            "columnName": "accumulated_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "segmentStartWall",
+            "columnName": "segment_start_wall",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "segmentStartRealtimeMs",
+            "columnName": "segment_start_realtime_ms",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "segmentBootCount",
+            "columnName": "segment_boot_count",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "checkpointElapsedMs",
+            "columnName": "checkpoint_elapsed_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "checkpointWall",
+            "columnName": "checkpoint_wall",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "protectionMode",
+            "columnName": "protection_mode",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "modeLabel",
+            "columnName": "mode_label",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "progressCurrent",
+            "columnName": "progress_current",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "progressTotal",
+            "columnName": "progress_total",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "scheduleId",
+            "columnName": "schedule_id",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "slot"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_active_session_session_id",
+            "unique": true,
+            "columnNames": [
+              "session_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_active_session_session_id` ON `${TABLE_NAME}` (`session_id`)"
+          },
+          {
+            "name": "index_active_session_mission_id",
+            "unique": false,
+            "columnNames": [
+              "mission_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_active_session_mission_id` ON `${TABLE_NAME}` (`mission_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "missions",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "mission_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "session_results",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`session_id` TEXT NOT NULL, `type` TEXT NOT NULL, `status` TEXT NOT NULL, `outcome` TEXT NOT NULL, `end_reason` TEXT NOT NULL, `title` TEXT NOT NULL, `task` TEXT NOT NULL, `planned_minutes` INTEGER NOT NULL, `actual_minutes` INTEGER NOT NULL, `elapsed_ms` INTEGER NOT NULL, `counts_as_focus` INTEGER NOT NULL, `started_at` INTEGER NOT NULL, `finished_at` INTEGER NOT NULL, `local_date` TEXT NOT NULL, `zone_id` TEXT NOT NULL, `mission_id` TEXT, `mission_step_id` TEXT, `protection_mode` TEXT NOT NULL, `rating` INTEGER, `origin` TEXT NOT NULL, `verification` TEXT NOT NULL, `saved_at` INTEGER NOT NULL, `end_note` TEXT, PRIMARY KEY(`session_id`))",
+        "fields": [
+          {
+            "fieldPath": "sessionId",
+            "columnName": "session_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "outcome",
+            "columnName": "outcome",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endReason",
+            "columnName": "end_reason",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "task",
+            "columnName": "task",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "plannedMinutes",
+            "columnName": "planned_minutes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "actualMinutes",
+            "columnName": "actual_minutes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "elapsedMs",
+            "columnName": "elapsed_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "countsAsFocus",
+            "columnName": "counts_as_focus",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startedAt",
+            "columnName": "started_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "finishedAt",
+            "columnName": "finished_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "localDate",
+            "columnName": "local_date",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "zoneId",
+            "columnName": "zone_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "missionId",
+            "columnName": "mission_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "missionStepId",
+            "columnName": "mission_step_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "protectionMode",
+            "columnName": "protection_mode",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rating",
+            "columnName": "rating",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "origin",
+            "columnName": "origin",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "verification",
+            "columnName": "verification",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "savedAt",
+            "columnName": "saved_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endNote",
+            "columnName": "end_note",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "session_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_session_results_finished_at",
+            "unique": false,
+            "columnNames": [
+              "finished_at"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_session_results_finished_at` ON `${TABLE_NAME}` (`finished_at`)"
+          },
+          {
+            "name": "index_session_results_local_date",
+            "unique": false,
+            "columnNames": [
+              "local_date"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_session_results_local_date` ON `${TABLE_NAME}` (`local_date`)"
+          },
+          {
+            "name": "index_session_results_mission_id",
+            "unique": false,
+            "columnNames": [
+              "mission_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_session_results_mission_id` ON `${TABLE_NAME}` (`mission_id`)"
+          }
+        ]
+      },
+      {
+        "tableName": "activity_log",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `type` TEXT NOT NULL, `ref_id` TEXT NOT NULL, `occurred_at` INTEGER NOT NULL, `local_date` TEXT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "refId",
+            "columnName": "ref_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "occurredAt",
+            "columnName": "occurred_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "localDate",
+            "columnName": "local_date",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_activity_log_occurred_at",
+            "unique": false,
+            "columnNames": [
+              "occurred_at"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_activity_log_occurred_at` ON `${TABLE_NAME}` (`occurred_at`)"
+          },
+          {
+            "name": "index_activity_log_type_ref_id",
+            "unique": true,
+            "columnNames": [
+              "type",
+              "ref_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_activity_log_type_ref_id` ON `${TABLE_NAME}` (`type`, `ref_id`)"
+          }
+        ]
+      },
+      {
+        "tableName": "reminders",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`key` TEXT NOT NULL, `type` TEXT NOT NULL, `source_id` TEXT NOT NULL, `trigger_at` INTEGER NOT NULL, `title` TEXT NOT NULL, `body` TEXT NOT NULL, `precision` TEXT NOT NULL, `deep_link` TEXT NOT NULL, `delivered_at` INTEGER, PRIMARY KEY(`key`))",
+        "fields": [
+          {
+            "fieldPath": "key",
+            "columnName": "key",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceId",
+            "columnName": "source_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "triggerAt",
+            "columnName": "trigger_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "body",
+            "columnName": "body",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "precision",
+            "columnName": "precision",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "deepLink",
+            "columnName": "deep_link",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "deliveredAt",
+            "columnName": "delivered_at",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "key"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_reminders_trigger_at",
+            "unique": false,
+            "columnNames": [
+              "trigger_at"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_reminders_trigger_at` ON `${TABLE_NAME}` (`trigger_at`)"
+          }
+        ]
+      },
+      {
+        "tableName": "selected_apps",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`package_name` TEXT NOT NULL, `label_snapshot` TEXT NOT NULL, `selected_at` INTEGER NOT NULL, `icon_cache_ref` TEXT, PRIMARY KEY(`package_name`))",
+        "fields": [
+          {
+            "fieldPath": "packageName",
+            "columnName": "package_name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "labelSnapshot",
+            "columnName": "label_snapshot",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "selectedAt",
+            "columnName": "selected_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "iconCacheRef",
+            "columnName": "icon_cache_ref",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "package_name"
+          ]
+        }
+      },
+      {
+        "tableName": "focus_schedules",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `label` TEXT NOT NULL, `weekdays_mask` INTEGER NOT NULL, `start_minute` INTEGER NOT NULL, `end_minute` INTEGER NOT NULL, `zone_id` TEXT, `protection_mode` TEXT NOT NULL, `lead_time_minutes` INTEGER NOT NULL, `skip_date` TEXT, `enabled` INTEGER NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "label",
+            "columnName": "label",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "weekdaysMask",
+            "columnName": "weekdays_mask",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startMinute",
+            "columnName": "start_minute",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endMinute",
+            "columnName": "end_minute",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "zoneId",
+            "columnName": "zone_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "protectionMode",
+            "columnName": "protection_mode",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "leadTimeMinutes",
+            "columnName": "lead_time_minutes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "skipDate",
+            "columnName": "skip_date",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "enabled",
+            "columnName": "enabled",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_focus_schedules_enabled",
+            "unique": false,
+            "columnNames": [
+              "enabled"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_focus_schedules_enabled` ON `${TABLE_NAME}` (`enabled`)"
+          }
+        ]
+      },
+      {
+        "tableName": "schedule_apps",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`schedule_id` TEXT NOT NULL, `package_name` TEXT NOT NULL, PRIMARY KEY(`schedule_id`, `package_name`), FOREIGN KEY(`schedule_id`) REFERENCES `focus_schedules`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "scheduleId",
+            "columnName": "schedule_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "packageName",
+            "columnName": "package_name",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "schedule_id",
+            "package_name"
+          ]
+        },
+        "foreignKeys": [
+          {
+            "table": "focus_schedules",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "schedule_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "session_distractions",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`session_id` TEXT NOT NULL, `package_name` TEXT NOT NULL, `attempts` INTEGER NOT NULL, `first_at` INTEGER NOT NULL, `last_at` INTEGER NOT NULL, PRIMARY KEY(`session_id`, `package_name`))",
+        "fields": [
+          {
+            "fieldPath": "sessionId",
+            "columnName": "session_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "packageName",
+            "columnName": "package_name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "attempts",
+            "columnName": "attempts",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "firstAt",
+            "columnName": "first_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastAt",
+            "columnName": "last_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "session_id",
+            "package_name"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_session_distractions_last_at",
+            "unique": false,
+            "columnNames": [
+              "last_at"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_session_distractions_last_at` ON `${TABLE_NAME}` (`last_at`)"
+          }
+        ]
+      },
+      {
+        "tableName": "dnd_override",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`slot` INTEGER NOT NULL, `session_id` TEXT NOT NULL, `prior_filter` INTEGER NOT NULL, `applied_filter` INTEGER NOT NULL, `applied_at` INTEGER NOT NULL, PRIMARY KEY(`slot`))",
+        "fields": [
+          {
+            "fieldPath": "slot",
+            "columnName": "slot",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sessionId",
+            "columnName": "session_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "priorFilter",
+            "columnName": "prior_filter",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "appliedFilter",
+            "columnName": "applied_filter",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "appliedAt",
+            "columnName": "applied_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "slot"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f9aa27e1f3327c442a115c15f70f6ea2')"
+    ]
+  }
+}

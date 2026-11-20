@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Usage Access: special access the user grants in system settings; checked, never assumed.
+         Used only during an active protected Session for the user's selected apps. -->
+    <uses-permission
+        android:name="android.permission.PACKAGE_USAGE_STATS"
+        tools:ignore="ProtectedPermissions" />
+
+    <!-- Lets the user grant optional Do Not Disturb access in system settings. -->
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+
+    <!-- Narrow package visibility: only launchable apps (for the selection screen) and the two
+         settings screens we deep-link to. No QUERY_ALL_PACKAGES. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+        <intent>
+            <action android:name="android.settings.USAGE_ACCESS_SETTINGS" />
+        </intent>
+        <intent>
+            <action android:name="android.settings.NOTIFICATION_POLICY_ACCESS_SETTINGS" />
+        </intent>
+    </queries>
+</manifest>

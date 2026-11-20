@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- A visible, user-started Focus timer. specialUse is the type Android provides for
+         use cases not covered by other foreground-service types (Play Console declaration needed). -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+
+    <application>
+        <service
+            android:name=".FocusSessionService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="User-started focus session timer with a visible countdown notification; stops automatically when the session ends." />
+        </service>
+
+        <receiver
+            android:name=".SessionAlarmReceiver"
+            android:exported="false" />
+    </application>
+</manifest>

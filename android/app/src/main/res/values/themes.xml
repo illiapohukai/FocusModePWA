@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Platform theme only (no AppCompat). Compose draws everything; the window starts cream. -->
+    <style name="Theme.FocusMode" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/cream</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+    <color name="cream">#F6F1E7</color>
+    <color name="aubergine">#25162B</color>
+</resources>

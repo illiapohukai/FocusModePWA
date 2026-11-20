@@ -1,0 +1,57 @@
+package io.github.illiapohukai.focusmode.core.designsystem.icon
+
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.addPathNodes
+import androidx.compose.ui.unit.dp
+
+/**
+ * Stroke icons on a 24-unit grid with round caps, matching the PWA's line-icon character.
+ * Drawn here (no icon library); tinted by `Icon`. Decorative unless given a contentDescription.
+ */
+object FocusIcons {
+    private fun icon(name: String, vararg paths: String): ImageVector =
+        ImageVector.Builder(name = name, defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 24f, viewportHeight = 24f).apply {
+            paths.forEach { d ->
+                addPath(
+                    pathData = addPathNodes(d),
+                    stroke = SolidColor(Color.Black),
+                    strokeLineWidth = 2f,
+                    strokeLineCap = StrokeCap.Round,
+                    strokeLineJoin = StrokeJoin.Round,
+                )
+            }
+        }.build()
+
+    private const val CIRCLE9 = "M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0 -18z"
+
+    val Home = icon("home", "M3.5 10.5L12 3.5l8.5 7", "M5.5 9v11h13V9", "M10 20v-5.5h4V20")
+    val Target = icon("target", CIRCLE9, "M12 7.5a4.5 4.5 0 1 0 0 9a4.5 4.5 0 1 0 0 -9z", "M12 11.5a0.5 0.5 0 1 0 0 1a0.5 0.5 0 1 0 0 -1z")
+    val Plus = icon("plus", "M12 5v14", "M5 12h14")
+    val History = icon("history", "M3.5 12a8.5 8.5 0 1 0 2.6-6.1", "M3.5 4v4.5H8", "M12 7.5V12l3 2")
+    val Settings = icon("settings", "M4 7h9", "M17 7h3", "M15 5v4", "M4 17h3", "M11 17h9", "M9 15v4")
+    val Bell = icon("bell", "M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 1.5h-15z", "M10 20.5a2 2 0 0 0 4 0")
+    val Shield = icon("shield", "M12 3l7.5 3v5.5c0 4.7-3.2 8-7.5 9.5c-4.3-1.5-7.5-4.8-7.5-9.5V6z")
+    val ShieldCheck = icon("shield_check", "M12 3l7.5 3v5.5c0 4.7-3.2 8-7.5 9.5c-4.3-1.5-7.5-4.8-7.5-9.5V6z", "M9 12l2 2l4-4")
+    val Play = icon("play", "M8 5.5v13l10.5-6.5z")
+    val Check = icon("check", "M5 12.5l4.5 4.5L19 7.5")
+    val Close = icon("close", "M6 6l12 12", "M18 6L6 18")
+    val ChevronRight = icon("chevron_right", "M9.5 5.5l6.5 6.5l-6.5 6.5")
+    val ArrowLeft = icon("arrow_left", "M19 12H5.5", "M11 6l-6 6l6 6")
+    val Pencil = icon("pencil", "M4 20h4l10.5-10.5l-4-4L4 16z", "M13 7l4 4")
+    val Calendar = icon("calendar", "M4.5 6h15v14h-15z", "M4.5 10h15", "M8.5 3.5v4", "M15.5 3.5v4")
+    val Clock = icon("clock", CIRCLE9, "M12 7.5V12l3 2")
+    val Moon = icon("moon", "M19.5 14.5A7.5 7.5 0 0 1 9.5 4.5a8 8 0 1 0 10 10z")
+    val Apps = icon("apps", "M7.5 3.5h9a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1v-15a1 1 0 0 1 1-1z", "M11 17.5h2")
+    val Info = icon("info", CIRCLE9, "M12 11v5", "M12 8h0.01")
+    val Alert = icon("alert", "M12 4l9 16H3z", "M12 10v4", "M12 17h0.01")
+    val Lock = icon("lock", "M6 11h12v9.5H6z", "M8.5 11V8a3.5 3.5 0 0 1 7 0v3")
+    val Activity = icon("activity", "M3 12h4l2.5-6l5 12l2.5-6h4")
+    val Download = icon("download", "M12 4v11", "M7 10.5l5 5l5-5", "M5 20h14")
+    val Trash = icon("trash", "M4.5 7h15", "M9.5 7V4.5h5V7", "M6.5 7l1 13h9l1-13")
+    val Sparkle = icon("sparkle", "M12 3.5l1.8 5.2L19 10.5l-5.2 1.8L12 17.5l-1.8-5.2L5 10.5l5.2-1.8z")
+    val Flame = icon("flame", "M12 21c-3.6 0-6-2.4-6-5.6c0-3.4 2.6-5 3.6-8.4c1.5 1.2 2 2.7 2 4c1-0.8 1.6-2 1.7-3.5c2.4 2 4.7 4.6 4.7 7.9C18 18.6 15.6 21 12 21z")
+}

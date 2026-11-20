@@ -1,0 +1,150 @@
+{
+  "exportVersion": 1,
+  "applicationVersion": "v15 Modular Baseline",
+  "exportedAt": "2026-09-01T10:00:00.000Z",
+  "missions": [
+    {
+      "id": "mission_22222222-2222-4222-8222-222222222222",
+      "missionSchemaVersion": 1,
+      "title": "Mathe Hausaufgabe",
+      "subject": "Biologie",
+      "type": "assignment",
+      "deadlineText": "Nicht angegeben",
+      "status": "active",
+      "createdAt": 1790841600000,
+      "updatedAt": 1791273600000,
+      "completedAt": null,
+      "archivedAt": null,
+      "currentStepId": "step_00000000-2222-4000-8000-000000000000",
+      "estimate": {
+        "totalMinutes": 100,
+        "difficulty": "medium",
+        "explanation": "Erste Schätzung"
+      },
+      "sourceAnalysis": {
+        "detectedTasks": "3 Kapitel",
+        "detectedPages": "S. 10-40",
+        "confidence": 0.8,
+        "missingInformation": [
+          "Genaues Prüfungsformat"
+        ],
+        "facts": [
+          "Kapitel 1-3"
+        ],
+        "estimates": [
+          "ca. 100 Min."
+        ]
+      },
+      "steps": [
+        {
+          "id": "step_00000000-2222-4000-8000-000000000000",
+          "missionId": "mission_22222222-2222-4222-8222-222222222222",
+          "stepSchemaVersion": 1,
+          "title": "Schritt 1: Kapitel 1 lesen",
+          "task": "Kapitel 1 zusammenfassen und Fragen notieren",
+          "durationMinutes": 25,
+          "status": "active",
+          "reason": "Baut auf dem vorherigen Schritt auf",
+          "requiredTools": [
+            "Lehrbuch",
+            "Notizen"
+          ],
+          "recommendedApps": [
+            "Notizen"
+          ],
+          "createdAt": 1790841600000,
+          "updatedAt": 1790841600000,
+          "completedAt": null
+        },
+        {
+          "id": "step_00000001-2222-4000-8000-000000000000",
+          "missionId": "mission_22222222-2222-4222-8222-222222222222",
+          "stepSchemaVersion": 1,
+          "title": "Schritt 2: Kapitel 2 lesen",
+          "task": "Kapitel 2 zusammenfassen und Fragen notieren",
+          "durationMinutes": 30,
+          "status": "pending",
+          "reason": "Baut auf dem vorherigen Schritt auf",
+          "requiredTools": [
+            "Lehrbuch",
+            "Notizen"
+          ],
+          "recommendedApps": [
+            "Notizen"
+          ],
+          "createdAt": 1790841600000,
+          "updatedAt": 1790928000000,
+          "completedAt": null
+        }
+      ],
+      "progress": {
+        "completedStepIds": [],
+        "history": [],
+        "initialStepCount": 2
+      }
+    }
+  ],
+  "selectedMissionId": "mission_22222222-2222-4222-8222-222222222222",
+  "primaryMissionId": "mission_22222222-2222-4222-8222-222222222222",
+  "sessionHistory": [
+    {
+      "id": "session_00000000-0000-4000-8000-000000000000",
+      "type": "quick",
+      "status": "completed",
+      "lifecycleState": "completed",
+      "title": "Konzentriert arbeiten",
+      "task": "Konzentriert arbeiten",
+      "plannedMinutes": 25,
+      "actualMinutes": 25,
+      "elapsedMs": 1500000,
+      "startedAt": 1790841600000,
+      "finishedAt": 1790843100000,
+      "missionId": null,
+      "missionStepId": null,
+      "result": {
+        "reason": null,
+        "outcome": null,
+        "feedback": null,
+        "rating": null
+      },
+      "ui": {
+        "modeLabel": "Kurzer Fokus",
+        "progressCurrent": 1,
+        "progressTotal": 1
+      },
+      "finalizationState": "saved",
+      "schemaVersion": 1
+    },
+    {
+      "id": "session_00000003-0000-4000-8000-000000000000",
+      "type": "quick",
+      "status": "completed",
+      "lifecycleState": "completed",
+      "title": "Konzentriert arbeiten",
+      "task": "Konzentriert arbeiten",
+      "plannedMinutes": 25,
+      "actualMinutes": 25,
+      "elapsedMs": 1500000,
+      "startedAt": 1791100800000,
+      "finishedAt": 1791102300000,
+      "missionId": null,
+      "missionStepId": null,
+      "result": {
+        "reason": null,
+        "outcome": null,
+        "feedback": null,
+        "rating": null
+      },
+      "ui": {
+        "modeLabel": "Kurzer Fokus",
+        "progressCurrent": 1,
+        "progressTotal": 1
+      },
+      "finalizationState": "saved",
+      "schemaVersion": 1
+    }
+  ],
+  "preferences": {
+    "language": "de"
+  }
+}

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 12+ backup policy (see android/README.md "Backup policy").
+  Included: the Room database (Missions, steps, History, schedules, selected apps) and the
+  preferences DataStore. Excluded: caches and no_backup (install marker, WorkManager database).
+  Device-bound transient state that lives in the database (running Session timing, DND restore
+  record, reminder occurrences) is neutralized on first start after a restore (RestoreGuard).
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <include domain="database" path="." />
+        <include domain="file" path="datastore/" />
+    </cloud-backup>
+    <device-transfer>
+        <include domain="database" path="." />
+        <include domain="file" path="datastore/" />
+    </device-transfer>
+</data-extraction-rules>
