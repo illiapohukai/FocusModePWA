@@ -1,5 +1,12 @@
 package io.github.illiapohukai.focusmode.feature.result
 
+import io.github.illiapohukai.focusmode.core.domain.history.OutcomeBadge
+import io.github.illiapohukai.focusmode.core.designsystem.theme.Radii
+import io.github.illiapohukai.focusmode.core.designsystem.component.IconTile
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -72,19 +79,29 @@ fun ResultScreen(state: ResultUiState, actions: ResultActions, onReview: (Boolea
 
 @Composable
 private fun Content(state: ResultUiState, actions: ResultActions, onReview: (Boolean, Int?) -> Unit) {
-    AubergineSurface(Modifier.fillMaxWidth().testTag("result_summary")) {
-        Eyebrow(state.eyebrow, color = FocusPalette.Lavender)
-        Spacer(Modifier.height(Spacing.xs))
+    AubergineSurface(Modifier.fillMaxWidth().testTag("result_summary"), contentPadding = PaddingValues(start = 22.dp, end = 22.dp, top = 22.dp, bottom = 20.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            // Restrained green only for a completed Session.
+            val dot = when (state.badge) {
+                OutcomeBadge.COMPLETED -> FocusPalette.Green
+                OutcomeBadge.PARTIAL -> FocusPalette.Lavender
+                else -> FocusPalette.StarlightMuted
+            }
+            Box(Modifier.size(8.dp).clip(Radii.pill).background(dot))
+            Spacer(Modifier.width(8.dp))
+            Eyebrow(state.eyebrow, color = FocusPalette.HeroKicker)
+        }
+        Spacer(Modifier.height(Spacing.sm))
         Text(state.headline, style = MaterialTheme.typography.headlineMedium, color = Color.White, modifier = Modifier.semantics { heading() })
         Spacer(Modifier.height(Spacing.md))
         Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = "${state.minutes} von ${state.plannedMinutes} Minuten fokussiert" }) {
-            Text("${state.minutes}", style = MaterialTheme.typography.displayLarge, color = Color.White)
+            Text("${state.minutes}", style = MaterialTheme.typography.displayLarge.copy(fontSize = 64.sp), color = Color.White)
             Spacer(Modifier.width(Spacing.xs))
             Text("von ${state.plannedMinutes} Min.", style = MaterialTheme.typography.titleMedium, color = FocusPalette.Lavender, modifier = Modifier.padding(bottom = 8.dp))
         }
         Spacer(Modifier.height(Spacing.sm))
-        Text(state.task, style = MaterialTheme.typography.titleMedium, color = Color.White)
-        Text(state.timeRange, style = MaterialTheme.typography.bodySmall, color = FocusPalette.Lavender)
+        Text(state.task, style = MaterialTheme.typography.titleLarge, color = Color.White)
+        Text(state.timeRange, style = MaterialTheme.typography.bodySmall, color = FocusPalette.HeroCopy)
         state.endNote?.let { Text("Grund: $it", style = MaterialTheme.typography.bodySmall, color = FocusPalette.Lavender) }
         if (!state.countsAsFocus) {
             Spacer(Modifier.height(Spacing.xs))
@@ -96,10 +113,10 @@ private fun Content(state: ResultUiState, actions: ResultActions, onReview: (Boo
         Review(state, onReview)
         Spacer(Modifier.height(Spacing.md))
     }
-    FocusCard(Modifier.fillMaxWidth()) {
+    FocusCard(Modifier.fillMaxWidth(), contentPadding = PaddingValues(Spacing.md)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(FocusIcons.Flame, null, tint = FocusPalette.Purple, modifier = Modifier.size(22.dp))
-            Spacer(Modifier.width(Spacing.xs))
+            IconTile(FocusIcons.Flame)
+            Spacer(Modifier.width(Spacing.sm))
             Column(Modifier.weight(1f)) {
                 Text(
                     if (state.streak.current == 1) "1 Tag in Folge" else "${state.streak.current} Tage in Folge",
@@ -116,10 +133,10 @@ private fun Content(state: ResultUiState, actions: ResultActions, onReview: (Boo
     if (!state.awaitingReview) {
         PrimaryButton("Fertig", actions.onDone, Modifier.fillMaxWidth().testTag("result_done"))
         Spacer(Modifier.height(Spacing.xs))
-        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-            SecondaryButton("Verlauf", actions.onHistory, Modifier.weight(1f))
-            SecondaryButton("Noch eine Runde", actions.onAgain, Modifier.weight(1f), icon = FocusIcons.Play)
-        }
+        // Stacked so neither label wraps at 320 dp or large font scales.
+        SecondaryButton("Noch eine Runde", actions.onAgain, Modifier.fillMaxWidth(), icon = FocusIcons.Play)
+        Spacer(Modifier.height(Spacing.xs))
+        SecondaryButton("Verlauf", actions.onHistory, Modifier.fillMaxWidth())
     }
     Spacer(Modifier.height(Spacing.xl))
 }

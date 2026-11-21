@@ -32,17 +32,25 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import io.github.illiapohukai.focusmode.core.designsystem.theme.LabelType
+import kotlin.math.max
 import io.github.illiapohukai.focusmode.core.designsystem.icon.FocusIcons
 import io.github.illiapohukai.focusmode.core.designsystem.theme.Elevation
 import io.github.illiapohukai.focusmode.core.designsystem.theme.FocusPalette
@@ -76,7 +84,10 @@ fun FocusCard(
     )
 }
 
-/** Deep aubergine Mission/summary surface with the PWA hero light and vignette. */
+/**
+ * Deep aubergine Mission/summary surface (PWA `.home-mission-hero`, `.st-summary`): the Mission tone
+ * gradient under the shared hero light (top left), a tone glow (top right) and a soft lower vignette.
+ */
 @Composable
 fun AubergineSurface(
     modifier: Modifier = Modifier,
@@ -92,7 +103,13 @@ fun AubergineSurface(
             .shadow(Elevation.raised, shape, ambientColor = tone.base.copy(alpha = 0.25f), spotColor = tone.base.copy(alpha = 0.35f))
             .clip(shape)
             .background(Brush.linearGradient(listOf(tone.base, tone.mid, tone.deep)))
-            .background(Brush.radialGradient(listOf(Color.White.copy(alpha = 0.075f), Color.Transparent), radius = 900f, center = androidx.compose.ui.geometry.Offset.Zero))
+            .drawBehind {
+                val w = size.width
+                val h = size.height
+                drawRect(Brush.radialGradient(listOf(tone.glow, Color.Transparent), center = Offset(w * 0.88f, h * 0.16f), radius = max(w, h) * 0.42f))
+                drawRect(Brush.radialGradient(listOf(Color.White.copy(alpha = 0.075f), Color.Transparent), center = Offset.Zero, radius = max(w, h) * 0.62f))
+                drawRect(Brush.radialGradient(listOf(Color.Black.copy(alpha = 0.24f), Color.Transparent), center = Offset(w * 0.5f, h * 1.18f), radius = max(w, h) * 0.7f))
+            }
             .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)), shape)
             .then(if (onClick != null) Modifier.clickable(onClickLabel = onClickLabel, role = Role.Button, onClick = onClick) else Modifier)
             .padding(contentPadding),
@@ -108,8 +125,8 @@ fun PrimaryButton(
     enabled: Boolean = true,
     icon: ImageVector? = null,
 ) {
-    val shape = Radii.pill
-    val brush = if (enabled) Brush.linearGradient(listOf(FocusPalette.PurpleBright, FocusPalette.Purple, FocusPalette.PurpleDeep))
+    val shape = Radii.button
+    val brush = if (enabled) Brush.horizontalGradient(0f to FocusPalette.PurpleBright, 0.6f to FocusPalette.Purple, 1f to FocusPalette.PurpleDeep)
     else Brush.linearGradient(listOf(FocusPalette.OutlineStrong, FocusPalette.OutlineStrong))
     Row(
         modifier
@@ -126,7 +143,7 @@ fun PrimaryButton(
             Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
             Spacer(Modifier.width(Spacing.xs))
         }
-        Text(text, style = MaterialTheme.typography.labelLarge, color = if (enabled) Color.White else FocusPalette.GraphiteSoft)
+        Text(text, style = MaterialTheme.typography.labelLarge.copy(fontSize = 16.sp), color = if (enabled) Color.White else FocusPalette.GraphiteSoft)
     }
 }
 
@@ -173,21 +190,36 @@ fun TextAction(text: String, onClick: () -> Unit, modifier: Modifier = Modifier,
     ) { Text(text, style = MaterialTheme.typography.labelLarge, color = color) }
 }
 
-enum class PillTone { NEUTRAL, READY, ACCENT, WARNING, ON_DARK }
+enum class PillTone { NEUTRAL, READY, ACCENT, WARNING, ON_DARK, SURFACE }
 
+/**
+ * Small uppercase status pill. [dot] adds the PWA live dot (green only for ready/active states).
+ * [SURFACE] is the floating cream pill of the Home header (`.home-status-pill`).
+ */
 @Composable
-fun StatusPill(text: String, modifier: Modifier = Modifier, tone: PillTone = PillTone.NEUTRAL, icon: ImageVector? = null) {
+fun StatusPill(text: String, modifier: Modifier = Modifier, tone: PillTone = PillTone.NEUTRAL, icon: ImageVector? = null, dot: Color? = null) {
     val (bg, fg) = when (tone) {
         PillTone.NEUTRAL -> FocusPalette.SurfaceMuted to FocusPalette.GraphiteSoft
         PillTone.READY -> FocusPalette.GreenTint to Color(0xFF15803D)
         PillTone.ACCENT -> FocusPalette.PurpleTint to FocusPalette.PurpleInk
         PillTone.WARNING -> Color(0xFFFFF4E5) to Color(0xFF92400E)
         PillTone.ON_DARK -> Color.White.copy(alpha = 0.10f) to FocusPalette.Starlight
+        PillTone.SURFACE -> FocusPalette.Surface to FocusPalette.Ink
     }
+    val surface = tone == PillTone.SURFACE
     Row(
-        modifier.clip(Radii.pill).background(bg).padding(horizontal = 10.dp, vertical = 5.dp),
+        modifier
+            .then(if (surface) Modifier.shadow(3.dp, Radii.pill, ambientColor = FocusPalette.Shadow.copy(alpha = 0.06f), spotColor = FocusPalette.Shadow.copy(alpha = 0.08f)) else Modifier)
+            .clip(Radii.pill)
+            .background(bg)
+            .then(if (surface) Modifier.border(BorderStroke(1.dp, FocusPalette.Outline), Radii.pill) else Modifier)
+            .padding(horizontal = if (surface) 12.dp else 10.dp, vertical = if (surface) 7.dp else 5.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        if (dot != null) {
+            Box(Modifier.size(7.dp).clip(Radii.pill).background(dot))
+            Spacer(Modifier.width(6.dp))
+        }
         if (icon != null) {
             Icon(icon, null, tint = fg, modifier = Modifier.size(13.dp))
             Spacer(Modifier.width(5.dp))
@@ -220,8 +252,12 @@ fun SectionHeader(title: String, modifier: Modifier = Modifier, action: (@Compos
 fun FocusTopBar(onBack: (() -> Unit)?, modifier: Modifier = Modifier, title: String? = null, onDark: Boolean = false, trailing: (@Composable RowScope.() -> Unit)? = null) {
     Row(modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
         if (onBack != null) {
-            IconButton(onClick = onBack, modifier = Modifier.size(TouchTarget.min)) {
-                Icon(FocusIcons.ArrowLeft, contentDescription = "Zurück", tint = if (onDark) FocusPalette.Starlight else FocusPalette.Graphite)
+            if (onDark) {
+                IconButton(onClick = onBack, modifier = Modifier.size(TouchTarget.min)) {
+                    Icon(FocusIcons.ArrowLeft, contentDescription = "Zurück", tint = FocusPalette.Starlight)
+                }
+            } else {
+                BackButton(onBack)
             }
         }
         if (title != null) {
@@ -237,6 +273,51 @@ fun FocusTopBar(onBack: (() -> Unit)?, modifier: Modifier = Modifier, title: Str
         trailing?.invoke(this)
     }
 }
+
+/** PWA flow-screen back control: a 48 dp rounded-square cream button with a hairline and soft shadow. */
+@Composable
+fun BackButton(onBack: () -> Unit, modifier: Modifier = Modifier) {
+    Box(
+        modifier
+            .padding(horizontal = Spacing.xs)
+            .size(TouchTarget.min)
+            .shadow(2.dp, Radii.control, ambientColor = FocusPalette.Shadow.copy(alpha = 0.05f), spotColor = FocusPalette.Shadow.copy(alpha = 0.08f))
+            .clip(Radii.control)
+            .background(FocusPalette.Surface.copy(alpha = 0.9f))
+            .border(BorderStroke(1.dp, Color(0x1F2D231E)), Radii.control)
+            .clickable(role = Role.Button, onClickLabel = "Zurück", onClick = onBack)
+            .semantics { contentDescription = "Zurück" }
+            .testTag("back"),
+        contentAlignment = Alignment.Center,
+    ) { Icon(FocusIcons.ArrowLeft, contentDescription = null, tint = FocusPalette.Graphite, modifier = Modifier.size(22.dp)) }
+}
+
+/**
+ * Root-screen header (PWA `.st-header`): uppercase kicker over a heavy title, optional round
+ * trailing control. The title is the screen's semantic heading.
+ */
+@Composable
+fun ScreenHeader(kicker: String, title: String, modifier: Modifier = Modifier, trailing: (@Composable () -> Unit)? = null) {
+    Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f)) {
+            Text(kicker.uppercase(), style = LabelType.Kicker, color = FocusPalette.GraphiteSoft)
+            Spacer(Modifier.size(2.dp))
+            Text(title, style = MaterialTheme.typography.headlineLarge, color = FocusPalette.Ink, modifier = Modifier.semantics { heading() })
+        }
+        trailing?.invoke()
+    }
+}
+
+/** Rounded icon tile (PWA `.home-quick-icon`, settings row icons). */
+@Composable
+fun IconTile(icon: ImageVector, modifier: Modifier = Modifier, background: Brush = SolidColor(FocusPalette.PurpleTint), tint: Color = FocusPalette.Purple, size: Dp = 44.dp, iconSize: Dp = 22.dp) {
+    Box(modifier.size(size).clip(Radii.tile).background(background), contentAlignment = Alignment.Center) {
+        Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(iconSize))
+    }
+}
+
+/** The PWA purple gradient used by primary actions and the Quick Focus tile. */
+val PrimaryGradient: Brush = Brush.linearGradient(0f to FocusPalette.PurpleBright, 0.6f to FocusPalette.Purple, 1f to FocusPalette.PurpleDeep)
 
 /** Whole row toggles (large touch target, Switch semantics). */
 @Composable

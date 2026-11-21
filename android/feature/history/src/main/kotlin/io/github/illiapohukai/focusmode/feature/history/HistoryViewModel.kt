@@ -25,11 +25,15 @@ import javax.inject.Inject
 data class HistoryRow(val sessionId: String, val title: String, val timeRange: String, val minutes: String, val badge: OutcomeBadge, val mission: Boolean)
 data class HistorySection(val label: String, val focusLabel: String, val rows: List<HistoryRow>)
 
+data class PeriodSummary(val countedMinutes: Int = 0, val sessions: Int = 0, val completed: Int = 0, val partial: Int = 0, val cancelled: Int = 0)
+
 data class HistoryUiState(
     val filter: HistoryFilter = HistoryFilter.TODAY,
     val sections: List<HistorySection> = emptyList(),
     val progress: LocalProgress = LocalProgress.EMPTY,
     val totalCount: Int = 0,
+    /** The selected period (PWA "Fokus-Bilanz"): counted minutes, Sessions and outcomes. */
+    val period: PeriodSummary = PeriodSummary(),
     val loading: Boolean = true,
 )
 
@@ -40,9 +44,18 @@ class HistoryViewModel @Inject constructor(history: SessionHistoryRepository, pr
     val uiState: StateFlow<HistoryUiState> = combine(history.observeResults(), filter) { results, f ->
         val today = clock.today()
         val zone = clock.zone()
+        val filtered = HistoryQueries.filter(results, f, today)
+        val badges = filtered.map(HistoryQueries::badge)
         HistoryUiState(
             filter = f,
-            sections = HistoryQueries.groupByDay(HistoryQueries.filter(results, f, today)).map { day ->
+            period = PeriodSummary(
+                countedMinutes = filtered.filter(ProgressCalculator::isCounted).sumOf { it.actualMinutes },
+                sessions = filtered.size,
+                completed = badges.count { it == OutcomeBadge.COMPLETED },
+                partial = badges.count { it == OutcomeBadge.PARTIAL },
+                cancelled = badges.count { it == OutcomeBadge.CANCELLED || it == OutcomeBadge.INTERRUPTED },
+            ),
+            sections = HistoryQueries.groupByDay(filtered).map { day ->
                 HistorySection(
                     label = dayLabel(day.date, today),
                     focusLabel = HistoryQueries.formatMinutes(day.focusMinutes) + " Fokus",

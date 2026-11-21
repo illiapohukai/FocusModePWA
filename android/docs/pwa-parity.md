@@ -1,7 +1,8 @@
 # PWA ↔ Android parity (v18)
 
 The PWA (repository root, v17.17) is the reference for product behavior. This file tracks every
-material difference.
+material difference. The screen-by-screen visual comparison of v18.1 is in
+[visual-parity-v18.1.md](visual-parity-v18.1.md).
 
 ## Implemented
 
@@ -51,3 +52,4 @@ instrumented and device tests, a formatting check in CI (`.editorconfig` only).
 | Session timer clock | `Date.now()` | monotonic `elapsedRealtime` + boot counter | survives sleep and wall-clock changes |
 | Language | DE + EN | German only | v18 scope |
 | Distracting apps | a fixed illustrative list | the user's real launchable apps, stored locally | native capability |
+| Session actions | "Blockierung testen" next to "Sitzung beenden" | "Sitzung beenden" only | nothing is blocked on consumer Android, so there is nothing to test |

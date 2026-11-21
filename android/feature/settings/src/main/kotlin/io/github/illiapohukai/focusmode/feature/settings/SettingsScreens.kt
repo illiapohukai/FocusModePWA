@@ -1,10 +1,18 @@
 package io.github.illiapohukai.focusmode.feature.settings
 
+import io.github.illiapohukai.focusmode.core.designsystem.component.ScreenHeader
+import io.github.illiapohukai.focusmode.core.designsystem.component.AubergineSurface
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.draw.shadow
+import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.foundation.layout.IntrinsicSize
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,8 +30,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -32,28 +39,32 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.drawable.toBitmap
+import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.illiapohukai.focusmode.core.designsystem.component.AppIcon
+import io.github.illiapohukai.focusmode.core.designsystem.component.AppIconStack
 import io.github.illiapohukai.focusmode.core.designsystem.component.ChoiceChips
 import io.github.illiapohukai.focusmode.core.designsystem.component.ChoiceOption
 import io.github.illiapohukai.focusmode.core.designsystem.component.EmptyState
 import io.github.illiapohukai.focusmode.core.designsystem.component.FocusCard
 import io.github.illiapohukai.focusmode.core.designsystem.component.FocusTopBar
+import io.github.illiapohukai.focusmode.core.designsystem.component.IconTile
 import io.github.illiapohukai.focusmode.core.designsystem.component.NavigationRow
 import io.github.illiapohukai.focusmode.core.designsystem.component.PillTone
 import io.github.illiapohukai.focusmode.core.designsystem.component.PrimaryButton
@@ -65,6 +76,7 @@ import io.github.illiapohukai.focusmode.core.designsystem.component.TextAction
 import io.github.illiapohukai.focusmode.core.designsystem.component.ToggleRow
 import io.github.illiapohukai.focusmode.core.designsystem.icon.FocusIcons
 import io.github.illiapohukai.focusmode.core.designsystem.theme.FocusPalette
+import io.github.illiapohukai.focusmode.core.designsystem.theme.LabelType
 import io.github.illiapohukai.focusmode.core.designsystem.theme.Radii
 import io.github.illiapohukai.focusmode.core.designsystem.theme.Spacing
 import io.github.illiapohukai.focusmode.core.designsystem.util.notificationRationale
@@ -92,6 +104,7 @@ data class SettingsActions(
 @Composable
 fun SettingsRoute(actions: SettingsActions, contentPadding: PaddingValues, snackbar: SnackbarHostState, viewModel: SettingsViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val summary by viewModel.summary.collectAsStateWithLifecycle()
     val context = LocalContext.current
     LifecycleResumeEffect(viewModel) { viewModel.refresh(context.notificationRationale()); onPauseOrDispose { } }
     LaunchedEffect(viewModel) { viewModel.messages.collect { snackbar.showSnackbar(it) } }
@@ -102,9 +115,18 @@ fun SettingsRoute(actions: SettingsActions, contentPadding: PaddingValues, snack
             contentPadding = PaddingValues(start = Spacing.screenHorizontal, end = Spacing.screenHorizontal, top = contentPadding.calculateTopPadding() + Spacing.md, bottom = contentPadding.calculateBottomPadding() + Spacing.xl),
             verticalArrangement = Arrangement.spacedBy(Spacing.sm),
         ) {
-            item { Text("Einstellungen", style = MaterialTheme.typography.headlineLarge, color = FocusPalette.Graphite, modifier = Modifier.semantics { heading() }) }
+            item {
+                ScreenHeader("Konfiguration & Profil", "Einstellungen", Modifier.padding(bottom = Spacing.xs)) {
+                    Box(
+                        Modifier.size(48.dp).shadow(4.dp, Radii.pill, ambientColor = FocusPalette.Shadow.copy(alpha = 0.07f), spotColor = FocusPalette.Shadow.copy(alpha = 0.08f))
+                            .clip(Radii.pill).background(FocusPalette.Surface).border(BorderStroke(1.dp, FocusPalette.Outline), Radii.pill).clearAndSetSemantics { },
+                        contentAlignment = Alignment.Center,
+                    ) { Text("FM+", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Black), color = FocusPalette.Purple) }
+                }
+            }
             if (state == null || prefs == null) return@LazyColumn
             val s = state!!
+            item { SystemHero(summary, s.selectedApps.size) }
             item { SectionHeader("Fokus-Schutz") }
             item {
                 FocusCard(Modifier.fillMaxWidth(), contentPadding = PaddingValues(Spacing.md)) {
@@ -180,6 +202,7 @@ fun SettingsRoute(actions: SettingsActions, contentPadding: PaddingValues, snack
 @Composable
 fun PermissionCenterRoute(onBack: () -> Unit, viewModel: SettingsViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val summary by viewModel.summary.collectAsStateWithLifecycle()
     val context = LocalContext.current
     LifecycleResumeEffect(viewModel) { viewModel.refresh(context.notificationRationale()); onPauseOrDispose { } }
     val request = rememberNotificationPermissionRequest { _, rationale -> viewModel.onNotificationPermissionResult(rationale) }
@@ -225,6 +248,44 @@ private fun PermissionCard(row: PermissionRow, onAction: () -> Unit) {
     }
 }
 
+/** PWA `.st-summary`: aubergine hero with three local counts. Data is local; the chip says so. */
+@Composable
+private fun SystemHero(summary: SystemSummary, selectedApps: Int) {
+    AubergineSurface(Modifier.fillMaxWidth().testTag("settings_summary"), contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = 18.dp, bottom = 16.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(FocusIcons.Sparkle, null, tint = FocusPalette.Lavender, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(Spacing.xs))
+            Text("Focus Mode+", style = MaterialTheme.typography.titleSmall, color = FocusPalette.Lavender, modifier = Modifier.weight(1f))
+            Row(
+                Modifier.clip(Radii.pill).background(Color.White.copy(alpha = 0.07f)).border(BorderStroke(1.dp, Color.White.copy(alpha = 0.14f)), Radii.pill).padding(horizontal = 10.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(Modifier.size(7.dp).clip(Radii.pill).background(FocusPalette.ProtectDot))
+                Spacer(Modifier.width(6.dp))
+                Text("Lokal gespeichert", style = MaterialTheme.typography.labelMedium, color = Color.White)
+            }
+        }
+        Spacer(Modifier.height(Spacing.sm))
+        Text("Dein Fokus-System", style = MaterialTheme.typography.headlineSmall, color = Color.White, modifier = Modifier.semantics { heading() })
+        HorizontalDivider(Modifier.padding(vertical = Spacing.sm), color = Color.White.copy(alpha = 0.12f))
+        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+            HeroStat("${summary.activeMissions} / ${summary.maxActiveMissions}", "Aktive Missionen", Modifier.weight(1f))
+            VerticalDivider(color = Color.White.copy(alpha = 0.12f))
+            HeroStat("${summary.savedSessions}", "Sitzungen gespeichert", Modifier.weight(1f).padding(start = Spacing.sm))
+            VerticalDivider(color = Color.White.copy(alpha = 0.12f))
+            HeroStat("$selectedApps", "Apps ausgewählt", Modifier.weight(1f).padding(start = Spacing.sm))
+        }
+    }
+}
+
+@Composable
+private fun HeroStat(value: String, label: String, modifier: Modifier) {
+    Column(modifier.semantics(mergeDescendants = true) {}) {
+        Text(value, style = MaterialTheme.typography.headlineSmall, color = Color.White, maxLines = 1)
+        Text(label, style = MaterialTheme.typography.bodySmall, color = Color(0xFFE9E2F5))
+    }
+}
+
 @Composable
 private fun Labeled(label: String, text: String) {
     Column(Modifier.padding(vertical = 3.dp).semantics(mergeDescendants = true) {}) {
@@ -238,17 +299,29 @@ fun AppSelectionRoute(onBack: () -> Unit, viewModel: AppSelectionViewModel = hil
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     ReadableWidth(Modifier.fillMaxSize().background(FocusPalette.Cream)) {
         LazyColumn(Modifier.fillMaxSize().systemBarsPadding().testTag("app_selection"), contentPadding = PaddingValues(horizontal = Spacing.screenHorizontal, vertical = Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-            item { FocusTopBar(onBack, title = "Ablenkende Apps") }
+            item {
+                FocusTopBar(onBack, trailing = {
+                    Text("FOKUS-SCHUTZ", style = LabelType.Kicker.copy(fontWeight = FontWeight.Black, letterSpacing = 0.17.em), color = FocusPalette.Purple, modifier = Modifier.padding(end = Spacing.xs))
+                })
+            }
+            item {
+                Text("Was lenkt dich ab?", style = MaterialTheme.typography.headlineLarge, color = FocusPalette.Ink, modifier = Modifier.semantics { heading() })
+            }
             item {
                 Text(
                     "Wähle Apps, bei denen dich Focus Mode+ in einer geschützten Sitzung an deinen Fokus erinnern soll. Apps werden nicht blockiert. Deine Auswahl bleibt auf diesem Gerät.",
                     style = MaterialTheme.typography.bodyMedium, color = FocusPalette.GraphiteSoft,
                 )
             }
+            item { SelectionSummary(state.apps.filter { it.selected }, state.selectedCount) }
             item {
                 OutlinedTextField(
-                    state.query, viewModel::setQuery, Modifier.fillMaxWidth().testTag("app_search"), placeholder = { Text("App suchen") }, singleLine = true, shape = Radii.md,
-                    colors = OutlinedTextFieldDefaults.colors(focusedContainerColor = FocusPalette.Surface, unfocusedContainerColor = FocusPalette.Surface, focusedBorderColor = FocusPalette.Purple),
+                    state.query, viewModel::setQuery, Modifier.fillMaxWidth().testTag("app_search"), placeholder = { Text("App suchen") }, singleLine = true, shape = Radii.lg,
+                    leadingIcon = { Icon(FocusIcons.Apps, null, tint = FocusPalette.GraphiteSoft) },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = FocusPalette.Surface, unfocusedContainerColor = FocusPalette.Surface,
+                        focusedBorderColor = FocusPalette.Purple, unfocusedBorderColor = FocusPalette.Outline,
+                    ),
                 )
             }
             item { SectionHeader("${state.selectedCount} ausgewählt") }
@@ -271,27 +344,55 @@ fun AppSelectionRoute(onBack: () -> Unit, viewModel: AppSelectionViewModel = hil
     }
 }
 
+/** PWA `.qs-selection` summary: a stack of the real selected icons, the count and an honest status. */
 @Composable
-private fun AppRowItem(row: AppRow, onToggle: () -> Unit) {
-    val context = LocalContext.current
-    val px = with(LocalDensity.current) { 36.dp.roundToPx() }
-    // Icons are loaded lazily per visible row at small size and never stored.
-    val icon by produceState<ImageBitmap?>(null, row.packageName) {
-        value = withContext(Dispatchers.IO) {
-            try { context.packageManager.getApplicationIcon(row.packageName).toBitmap(px, px).asImageBitmap() } catch (_: PackageManager.NameNotFoundException) { null }
+private fun SelectionSummary(selected: List<AppRow>, count: Int) {
+    FocusCard(Modifier.fillMaxWidth().testTag("app_selection_summary"), contentPadding = PaddingValues(Spacing.md)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            AppIconStack(selected.map { it.packageName to it.label }, count)
+            Spacer(Modifier.width(Spacing.sm))
+            Column(Modifier.weight(1f)) {
+                Text(if (count == 1) "1 App ausgewählt" else "$count Apps ausgewählt", style = MaterialTheme.typography.titleMedium, color = FocusPalette.Graphite)
+                Text(
+                    if (count == 0) "Noch keine Auswahl" else "Hinweise in geschützten Sitzungen · nicht blockiert",
+                    style = MaterialTheme.typography.bodySmall, color = if (count == 0) FocusPalette.GraphiteSoft else Color(0xFF15803D),
+                )
+            }
+            IconTile(FocusIcons.ShieldCheck, background = SolidColor(if (count == 0) FocusPalette.SurfaceMuted else FocusPalette.GreenTint), tint = if (count == 0) FocusPalette.GraphiteSoft else Color(0xFF15803D))
         }
     }
+}
+
+@Composable
+private fun AppRowItem(row: AppRow, onToggle: () -> Unit) {
+    val shape = Radii.lg
     Row(
-        Modifier.fillMaxWidth().heightIn(min = 56.dp).clip(Radii.md).background(FocusPalette.Surface)
+        Modifier.fillMaxWidth().heightIn(min = 64.dp).clip(shape)
+            .background(if (row.selected) FocusPalette.PurpleTint.copy(alpha = 0.6f) else FocusPalette.Surface)
+            .border(BorderStroke(1.dp, if (row.selected) FocusPalette.Lavender.copy(alpha = 0.8f) else FocusPalette.Outline), shape)
             .toggleable(row.selected, role = Role.Checkbox) { onToggle() }
-            .padding(horizontal = Spacing.sm),
+            .padding(horizontal = Spacing.sm, vertical = Spacing.xs)
+            .testTag("app_row_${row.packageName}"),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(Modifier.size(36.dp), contentAlignment = Alignment.Center) { icon?.let { Image(it, contentDescription = null) } }
+        // Real launcher icon, loaded lazily per visible row at small size and never stored.
+        AppIcon(row.packageName, row.label, size = 40.dp)
         Spacer(Modifier.width(Spacing.sm))
-        Text(row.label, style = MaterialTheme.typography.titleSmall, color = FocusPalette.Graphite, modifier = Modifier.weight(1f))
-        Checkbox(checked = row.selected, onCheckedChange = null, colors = CheckboxDefaults.colors(checkedColor = FocusPalette.Purple))
+        Text(row.label, style = MaterialTheme.typography.titleSmall.copy(fontSize = 15.sp), color = FocusPalette.Graphite, modifier = Modifier.weight(1f), maxLines = 2, overflow = TextOverflow.Ellipsis)
+        Spacer(Modifier.width(Spacing.xs))
+        SelectionMark(row.selected)
     }
+}
+
+/** PWA round check mark: filled purple when selected, an empty ring otherwise. */
+@Composable
+private fun SelectionMark(selected: Boolean) {
+    Box(
+        Modifier.size(28.dp).clip(Radii.pill)
+            .background(if (selected) FocusPalette.Purple else FocusPalette.Surface)
+            .border(BorderStroke(1.5.dp, if (selected) FocusPalette.Purple else FocusPalette.OutlineStrong), Radii.pill),
+        contentAlignment = Alignment.Center,
+    ) { if (selected) Icon(FocusIcons.Check, null, tint = Color.White, modifier = Modifier.size(16.dp)) }
 }
 
 @Composable

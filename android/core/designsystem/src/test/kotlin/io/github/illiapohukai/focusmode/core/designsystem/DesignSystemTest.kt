@@ -61,8 +61,8 @@ class DesignSystemTest {
                     PrimaryButton("Fokus starten", {}, Modifier.testTag("primary"))
                     FloatingBottomBar(
                         listOf(
-                            NavDestinationItem("home", "Start", FocusIcons.Home), NavDestinationItem("missions", "Missionen", FocusIcons.Target),
-                            NavDestinationItem("history", "Verlauf", FocusIcons.History), NavDestinationItem("settings", "Mehr", FocusIcons.Settings),
+                            NavDestinationItem("home", "Home", FocusIcons.Home), NavDestinationItem("missions", "Missionen", FocusIcons.Target),
+                            NavDestinationItem("history", "Verlauf", FocusIcons.History), NavDestinationItem("settings", "Profil", FocusIcons.User),
                         ),
                         "home", {}, {},
                     )

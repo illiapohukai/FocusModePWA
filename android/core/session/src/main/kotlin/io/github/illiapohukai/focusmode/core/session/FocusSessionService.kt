@@ -11,21 +11,16 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
-import io.github.illiapohukai.focusmode.core.domain.protection.AppSelectionReconciler
 import io.github.illiapohukai.focusmode.core.domain.session.SessionState
 import io.github.illiapohukai.focusmode.core.domain.session.SessionTimeline
 import io.github.illiapohukai.focusmode.core.domain.time.FocusClock
 import io.github.illiapohukai.focusmode.core.model.FocusSession
-import io.github.illiapohukai.focusmode.core.model.ProtectionMode
 import io.github.illiapohukai.focusmode.core.notifications.FocusNotifier
 import io.github.illiapohukai.focusmode.core.notifications.NotificationIds
-import io.github.illiapohukai.focusmode.core.protection.DistractionMonitor
-import io.github.illiapohukai.focusmode.core.protection.ProtectionCapabilityOwner
+import io.github.illiapohukai.focusmode.core.protection.DistractionMonitorOwner
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -42,12 +37,10 @@ class FocusSessionService : LifecycleService() {
     @Inject lateinit var manager: FocusSessionManager
     @Inject lateinit var notifier: FocusNotifier
     @Inject lateinit var clock: FocusClock
-    @Inject lateinit var monitor: DistractionMonitor
-    @Inject lateinit var protection: ProtectionCapabilityOwner
+    @Inject lateinit var monitor: DistractionMonitorOwner
 
     private var started = false
     private var loop: Job? = null
-    private var monitorJob: Job? = null
 
     private val screenOn = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -98,19 +91,8 @@ class FocusSessionService : LifecycleService() {
                 }
             }
         }
-        startMonitorIfProtected(session)
-    }
-
-    private fun startMonitorIfProtected(session: FocusSession) {
-        if (session.protectionMode != ProtectionMode.PROTECTED || monitorJob?.isActive == true) return
-        monitorJob = lifecycleScope.launch {
-            val state = protection.state.filterNotNull().first()
-            if (!state.preferences.usageMonitoringEnabled) return@launch
-            val watched = AppSelectionReconciler.watchablePackages(state.selectedApps)
-            protection.markUsageRevoked(false)
-            val stop = monitor.run(session.id, watched) { manager.read()?.remainingMinutesCeil ?: 1 }
-            if (stop == DistractionMonitor.Stop.AccessRevoked) protection.markUsageRevoked(true)
-        }
+        // One monitor job per protected Session (a no-op for the same Session); it runs off the main thread.
+        monitor.start(lifecycleScope, session) { manager.read()?.remainingMinutesCeil ?: 1 }
     }
 
     private fun render(session: FocusSession? = (manager.state.value as? SessionState.Running)?.session) {
@@ -121,12 +103,13 @@ class FocusSessionService : LifecycleService() {
 
     private fun shutdown() {
         loop?.cancel()
-        monitorJob?.cancel()
+        monitor.stop()
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
 
     override fun onDestroy() {
+        monitor.stop()
         unregisterReceiver(screenOn)
         super.onDestroy()
     }

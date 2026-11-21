@@ -85,7 +85,9 @@ class ProtectionCapabilityOwner @Inject constructor(
         tick.update { it + 1 }
     }
 
+    /** Re-reads platform state only when the flag actually changes (no refresh churn per Session). */
     fun markUsageRevoked(revoked: Boolean) {
+        if (usageRevoked.value == revoked) return
         usageRevoked.value = revoked
         refresh()
     }

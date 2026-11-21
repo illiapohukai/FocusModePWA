@@ -47,7 +47,12 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -58,7 +63,10 @@ import io.github.illiapohukai.focusmode.core.designsystem.component.PrimaryButto
 import io.github.illiapohukai.focusmode.core.designsystem.component.ReadableWidth
 import io.github.illiapohukai.focusmode.core.designsystem.component.TextAction
 import io.github.illiapohukai.focusmode.core.designsystem.icon.FocusIcons
+import io.github.illiapohukai.focusmode.core.designsystem.component.AppIconStack
+import io.github.illiapohukai.focusmode.core.designsystem.component.IconTile
 import io.github.illiapohukai.focusmode.core.designsystem.theme.FocusPalette
+import io.github.illiapohukai.focusmode.core.designsystem.theme.LabelType
 import io.github.illiapohukai.focusmode.core.designsystem.theme.Radii
 import io.github.illiapohukai.focusmode.core.designsystem.theme.Spacing
 import io.github.illiapohukai.focusmode.core.designsystem.util.notificationRationale
@@ -116,30 +124,35 @@ fun QuickFocusScreen(
             ) {
                 Text(
                     "Richte deine Sitzung ein.",
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = FocusPalette.Graphite,
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = FocusPalette.Ink,
                     modifier = Modifier.fillMaxWidth().semantics { heading() },
                 )
                 state.scheduleLabel?.let {
                     Text("Geplanter Fokus · $it", style = MaterialTheme.typography.bodySmall, color = FocusPalette.Purple, modifier = Modifier.fillMaxWidth())
                 }
-                Spacer(Modifier.height(Spacing.md))
-                DurationDial(state.minutes, onMinutes, Modifier.fillMaxWidth(0.78f), enabled = !state.starting)
                 Spacer(Modifier.height(Spacing.lg))
-                Text("Woran arbeitest du?", style = MaterialTheme.typography.titleSmall, color = FocusPalette.Graphite, modifier = Modifier.fillMaxWidth())
-                Spacer(Modifier.height(Spacing.xs))
+                DurationDial(state.minutes, onMinutes, Modifier.fillMaxWidth(0.82f), enabled = !state.starting)
+                Spacer(Modifier.height(Spacing.lg))
+                Text(
+                    "WORAN ARBEITEST DU?", style = LabelType.Kicker.copy(fontWeight = FontWeight.Black, letterSpacing = 0.035.em), color = FocusPalette.Graphite,
+                    modifier = Modifier.fillMaxWidth().semantics { heading() },
+                )
+                Spacer(Modifier.height(Spacing.sm))
                 OutlinedTextField(
                     value = state.task,
                     onValueChange = onTask,
                     modifier = Modifier.fillMaxWidth().testTag("quick_task"),
-                    placeholder = { Text("Hier eingeben…") },
+                    placeholder = { Text("Hier eingeben…", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                     leadingIcon = { Icon(FocusIcons.Target, null, tint = FocusPalette.Purple) },
+                    trailingIcon = { Icon(FocusIcons.Pencil, null, tint = FocusPalette.GraphiteSoft, modifier = Modifier.size(20.dp)) },
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                     singleLine = true,
-                    shape = Radii.md,
+                    shape = Radii.lg,
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Done),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = FocusPalette.Surface, unfocusedContainerColor = FocusPalette.Surface,
-                        focusedBorderColor = FocusPalette.Purple, unfocusedBorderColor = FocusPalette.OutlineStrong,
+                        focusedBorderColor = FocusPalette.Purple, unfocusedBorderColor = FocusPalette.Outline,
                     ),
                 )
                 Spacer(Modifier.height(Spacing.sm))
@@ -147,16 +160,23 @@ fun QuickFocusScreen(
                     Modifier.fillMaxWidth().testTag("protection_row"),
                     onClick = { showProtection = true },
                     onClickLabel = "Fokus-Schutz einstellen",
-                    contentPadding = PaddingValues(Spacing.md),
+                    contentPadding = PaddingValues(start = 10.dp, end = 14.dp, top = 10.dp, bottom = 10.dp),
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(Modifier.size(40.dp).clip(Radii.sm).background(FocusPalette.PurpleTint), contentAlignment = Alignment.Center) {
-                            Icon(FocusIcons.Shield, null, tint = FocusPalette.Purple)
-                        }
+                        // Restrained green only when protection is actually ready (protected mode + Usage Access).
+                        IconTile(
+                            if (state.protectionReady) FocusIcons.ShieldCheck else FocusIcons.Shield,
+                            background = SolidColor(if (state.protectionReady) FocusPalette.GreenTint else FocusPalette.PurpleTint),
+                            tint = if (state.protectionReady) Color(0xFF15803D) else FocusPalette.Purple,
+                        )
                         Spacer(Modifier.width(Spacing.sm))
                         Column(Modifier.weight(1f)) {
-                            Text("Fokus-Schutz", style = MaterialTheme.typography.titleSmall, color = FocusPalette.Graphite)
+                            Text("Fokus-Schutz", style = MaterialTheme.typography.titleSmall.copy(fontSize = 15.sp), color = FocusPalette.Graphite)
                             Text(state.protectionSummary, style = MaterialTheme.typography.bodySmall, color = FocusPalette.GraphiteSoft, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        }
+                        if (state.selectedApps.isNotEmpty()) {
+                            Spacer(Modifier.width(Spacing.xs))
+                            AppIconStack(state.selectedApps, state.selectedApps.size, max = 3, size = 28.dp)
                         }
                         Icon(FocusIcons.ChevronRight, null, tint = FocusPalette.GraphiteSoft)
                     }
@@ -177,7 +197,7 @@ fun QuickFocusScreen(
                 onStart,
                 Modifier.fillMaxWidth().padding(horizontal = Spacing.screenHorizontal, vertical = Spacing.md).testTag("quick_start"),
                 enabled = !state.starting,
-                icon = FocusIcons.Play,
+                icon = FocusIcons.PlayFilled,
             )
         }
     }
@@ -188,15 +208,19 @@ fun QuickFocusScreen(
     }
 }
 
+/** Contextual notification readiness: one compact row, asked only here (never at launch). */
 @Composable
 private fun NotificationAsk(onAllow: () -> Unit) {
-    FocusCard(Modifier.fillMaxWidth().padding(top = Spacing.sm).testTag("notification_prompt"), color = FocusPalette.PurpleTint, contentPadding = PaddingValues(Spacing.md)) {
-        Text("Fokus-Hinweis anzeigen?", style = MaterialTheme.typography.titleSmall, color = FocusPalette.Graphite)
-        Text(
-            "Mit Benachrichtigungen siehst du die Restzeit, ohne die App zu öffnen, und erfährst, wann dein Fokus vorbei ist.",
-            style = MaterialTheme.typography.bodySmall, color = FocusPalette.GraphiteSoft,
-        )
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) { TextAction("Erlauben", onAllow) }
+    FocusCard(Modifier.fillMaxWidth().padding(top = Spacing.sm).testTag("notification_prompt"), contentPadding = PaddingValues(start = 10.dp, end = 6.dp, top = 8.dp, bottom = 8.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconTile(FocusIcons.Bell, size = 40.dp, iconSize = 20.dp)
+            Spacer(Modifier.width(Spacing.sm))
+            Column(Modifier.weight(1f)) {
+                Text("Fokus-Hinweis anzeigen?", style = MaterialTheme.typography.titleSmall, color = FocusPalette.Graphite)
+                Text("Restzeit und Ende als Benachrichtigung.", style = MaterialTheme.typography.bodySmall, color = FocusPalette.GraphiteSoft)
+            }
+            TextAction("Erlauben", onAllow)
+        }
     }
 }
 

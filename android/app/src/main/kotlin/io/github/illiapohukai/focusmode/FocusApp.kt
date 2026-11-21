@@ -1,5 +1,15 @@
 package io.github.illiapohukai.focusmode
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.navigation.NavBackStackEntry
 import android.view.Window
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,6 +59,10 @@ import io.github.illiapohukai.focusmode.core.designsystem.component.NavDestinati
 import io.github.illiapohukai.focusmode.core.designsystem.component.NavigationRow
 import io.github.illiapohukai.focusmode.core.designsystem.icon.FocusIcons
 import io.github.illiapohukai.focusmode.core.designsystem.theme.FocusPalette
+import io.github.illiapohukai.focusmode.core.designsystem.theme.Easings
+import io.github.illiapohukai.focusmode.core.designsystem.theme.LocalMotion
+import io.github.illiapohukai.focusmode.core.designsystem.theme.MotionTokens
+import io.github.illiapohukai.focusmode.core.designsystem.theme.NavGeometry
 import io.github.illiapohukai.focusmode.core.designsystem.theme.Spacing
 import io.github.illiapohukai.focusmode.core.domain.deeplink.DeepLinkTarget
 import io.github.illiapohukai.focusmode.core.domain.session.SessionState
@@ -85,13 +99,13 @@ import io.github.illiapohukai.focusmode.feature.settings.SettingsDestination
 import io.github.illiapohukai.focusmode.feature.settings.settingsScreens
 
 /** Root sections in the PWA's logical order: home → missions → history → settings. Plus is an action. */
-private enum class Root(val key: String, val label: String) { HOME("home", "Start"), MISSIONS("missions", "Missionen"), HISTORY("history", "Verlauf"), SETTINGS("settings", "Mehr") }
+private enum class Root(val key: String, val label: String) { HOME("home", "Home"), MISSIONS("missions", "Missionen"), HISTORY("history", "Verlauf"), SETTINGS("settings", "Profil") }
 
 private val NAV_ITEMS = listOf(
     NavDestinationItem(Root.HOME.key, Root.HOME.label, FocusIcons.Home),
     NavDestinationItem(Root.MISSIONS.key, Root.MISSIONS.label, FocusIcons.Target),
     NavDestinationItem(Root.HISTORY.key, Root.HISTORY.label, FocusIcons.History),
-    NavDestinationItem(Root.SETTINGS.key, Root.SETTINGS.label, FocusIcons.Settings),
+    NavDestinationItem(Root.SETTINGS.key, Root.SETTINGS.label, FocusIcons.User),
 )
 
 private fun NavDestination?.root(): Root? = when {
@@ -114,6 +128,32 @@ private fun NavHostController.navigateRoot(root: Root) {
         popUpTo(graph.findStartDestination().id) { saveState = true }
         launchSingleTop = true
         restoreState = true
+    }
+}
+
+/**
+ * Route motion (the one owner for screen changes, PWA `motion.css` tokens): a quick crossfade
+ * between root sections, a short slide-and-fade into flow screens (mirrored on Back), and the
+ * Focus environment fading and settling in. Reduced motion keeps only short fades. Only
+ * opacity and transforms animate; navigation never waits for an animation.
+ */
+private fun AnimatedContentTransitionScope<NavBackStackEntry>.routeEnter(motion: MotionTokens, pop: Boolean): EnterTransition {
+    val to = targetState.destination
+    val betweenRoots = initialState.destination.root() != null && to.root() != null
+    return when {
+        motion.reduced || betweenRoots -> fadeIn(tween(motion.fast))
+        to.hasRoute<FocusDestination>() -> fadeIn(tween(motion.normal)) + scaleIn(tween(motion.focusEnter, easing = Easings.Standard), initialScale = 0.96f)
+        else -> fadeIn(tween(motion.normal, easing = Easings.Standard)) +
+            slideInHorizontally(tween(motion.normal, easing = Easings.Standard)) { w -> (if (pop) -w else w) / 10 }
+    }
+}
+
+private fun AnimatedContentTransitionScope<NavBackStackEntry>.routeExit(motion: MotionTokens, pop: Boolean): ExitTransition {
+    val betweenRoots = initialState.destination.root() != null && targetState.destination.root() != null
+    return when {
+        motion.reduced || betweenRoots -> fadeOut(tween(motion.fast))
+        else -> fadeOut(tween(motion.fast, easing = Easings.Exit)) +
+            slideOutHorizontally(tween(motion.normal, easing = Easings.Exit)) { w -> (if (pop) w else -w) / 14 }
     }
 }
 
@@ -172,7 +212,9 @@ fun FocusApp(appViewModel: AppViewModel, window: Window) {
     val barVisible = currentRoot != null
     val rootPadding = PaddingValues(
         top = with(density) { WindowInsets.statusBars.getTop(this).toDp() },
-        bottom = if (barVisible && !wide) 108.dp else with(density) { WindowInsets.navigationBars.getBottom(this).toDp() },
+        // The floating bar sits above the system navigation inset (gesture pill or three-button bar),
+        // so the clearance is added on top of that inset, never instead of it.
+        bottom = with(density) { WindowInsets.navigationBars.getBottom(this).toDp() } + if (barVisible && !wide) NavGeometry.contentClearance else 0.dp,
     )
     val openQuickFocus = { if (session.activeSession != null) nav.openSession() else nav.navigateToQuickFocus() }
 
@@ -182,7 +224,14 @@ fun FocusApp(appViewModel: AppViewModel, window: Window) {
                 Modifier.windowInsetsPadding(WindowInsets.statusBars).windowInsetsPadding(WindowInsets.navigationBars))
         }
         Box(Modifier.weight(1f).fillMaxSize()) {
-            NavHost(nav, startDestination = HomeDestination, modifier = Modifier.fillMaxSize()) {
+            val motion = LocalMotion.current
+            NavHost(
+                nav, startDestination = HomeDestination, modifier = Modifier.fillMaxSize(),
+                enterTransition = { routeEnter(motion, pop = false) },
+                exitTransition = { routeExit(motion, pop = false) },
+                popEnterTransition = { routeEnter(motion, pop = true) },
+                popExitTransition = { routeExit(motion, pop = true) },
+            ) {
                 homeScreen(
                     HomeActions(
                         onQuickFocus = openQuickFocus,
@@ -245,7 +294,11 @@ fun FocusApp(appViewModel: AppViewModel, window: Window) {
                     Modifier.align(Alignment.BottomCenter).windowInsetsPadding(WindowInsets.navigationBars),
                 )
             }
-            SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter).padding(bottom = if (barVisible && !wide) 110.dp else Spacing.md))
+            SnackbarHost(
+                snackbar,
+                Modifier.align(Alignment.BottomCenter).windowInsetsPadding(WindowInsets.navigationBars)
+                    .padding(bottom = if (barVisible && !wide) NavGeometry.contentClearance else Spacing.md),
+            )
         }
     }
 

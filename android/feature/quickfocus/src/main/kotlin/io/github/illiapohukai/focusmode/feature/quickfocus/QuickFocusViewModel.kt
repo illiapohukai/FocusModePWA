@@ -43,6 +43,10 @@ data class QuickFocusUiState(
     val availableModes: Set<ProtectionMode> = setOf(ProtectionMode.STANDARD, ProtectionMode.PROTECTED),
     val protectionSummary: String = "",
     val selectedAppLabels: List<String> = emptyList(),
+    /** Package name and label of the installed selected apps (real icons in the summary). */
+    val selectedApps: List<Pair<String, String>> = emptyList(),
+    /** Protected mode with Usage Access ready: the only state the summary shows in green. */
+    val protectionReady: Boolean = false,
     val notificationPrompt: NotificationPrompt = NotificationPrompt.NONE,
     val scheduleLabel: String? = null,
     val starting: Boolean = false,
@@ -92,6 +96,9 @@ class QuickFocusViewModel @Inject constructor(
             availableModes = p.overview.availableModes,
             protectionSummary = p.overview.summaryFor(f.mode, apps.size),
             selectedAppLabels = apps.map { it.displayLabel },
+            selectedApps = apps.map { it.selection.packageName to it.displayLabel },
+            protectionReady = f.mode == ProtectionMode.PROTECTED &&
+                p.overview.usageMonitoring.capability == io.github.illiapohukai.focusmode.core.model.ProtectionCapability.READY_FOR_USAGE_MONITORING,
             notificationPrompt = when (p.notifications.permission) {
                 ProtectionPermissionState.NOT_REQUESTED -> NotificationPrompt.ASK
                 ProtectionPermissionState.DENIED, ProtectionPermissionState.PERMANENTLY_DENIED -> NotificationPrompt.DENIED

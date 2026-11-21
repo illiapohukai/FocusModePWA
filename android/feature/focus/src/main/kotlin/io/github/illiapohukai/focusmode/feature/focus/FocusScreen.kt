@@ -1,9 +1,13 @@
 package io.github.illiapohukai.focusmode.feature.focus
 
 import android.content.res.Configuration
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
@@ -20,6 +24,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,7 +45,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
@@ -47,25 +58,28 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.illiapohukai.focusmode.core.designsystem.component.Eyebrow
-import io.github.illiapohukai.focusmode.core.designsystem.component.PillTone
 import io.github.illiapohukai.focusmode.core.designsystem.component.PrimaryButton
 import io.github.illiapohukai.focusmode.core.designsystem.component.SecondaryButton
-import io.github.illiapohukai.focusmode.core.designsystem.component.StatusPill
 import io.github.illiapohukai.focusmode.core.designsystem.cosmic.CosmicCore
 import io.github.illiapohukai.focusmode.core.designsystem.icon.FocusIcons
 import io.github.illiapohukai.focusmode.core.designsystem.theme.CosmicTheme
 import io.github.illiapohukai.focusmode.core.designsystem.theme.FocusPalette
+import io.github.illiapohukai.focusmode.core.designsystem.theme.LabelType
 import io.github.illiapohukai.focusmode.core.designsystem.theme.LocalMotion
 import io.github.illiapohukai.focusmode.core.designsystem.theme.Radii
 import io.github.illiapohukai.focusmode.core.designsystem.theme.Spacing
 import io.github.illiapohukai.focusmode.core.designsystem.theme.TimerType
 import io.github.illiapohukai.focusmode.core.model.ProtectionMode
+import kotlin.math.max
 
 data class FocusActions(val onShowResult: (String) -> Unit, val onLeave: () -> Unit)
 
@@ -110,7 +124,7 @@ fun FocusScreen(
     onDiscardRecovered: () -> Unit,
 ) {
     CosmicTheme {
-        Box(Modifier.fillMaxSize().background(FocusPalette.Space).testTag("focus_screen")) {
+        Box(Modifier.fillMaxSize().then(SessionBackground).testTag("focus_screen")) {
             when (state.phase) {
                 FocusPhase.RUNNING -> RunningContent(state, onRequestEnd)
                 FocusPhase.FROZEN -> RecoveryContent(state, onResume, onSaveRecovered, onDiscardRecovered)
@@ -121,72 +135,166 @@ fun FocusScreen(
             ModalBottomSheet(
                 onDismissRequest = onDismissEnd,
                 sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-                containerColor = FocusPalette.SpaceRaised,
+                containerColor = FocusPalette.AubergineMid,
                 contentColor = FocusPalette.Starlight,
             ) { EndSheet(sheet, onSelectNote, onConfirmEnd, onDiscard, onEmergency, onDismissEnd) }
         }
     }
 }
 
+/** PWA `.uc-shell`: a 170° graphite-indigo gradient under two purple blooms. Drawn once (static). */
+private val SessionBackground = Modifier.drawWithCache {
+    val w = size.width
+    val h = size.height
+    val base = Brush.linearGradient(
+        0f to FocusPalette.SpaceTop, 0.52f to FocusPalette.SpaceMid, 1f to FocusPalette.SpaceBottom,
+        start = Offset(w * 0.41f, 0f), end = Offset(w * 0.59f, h),
+    )
+    val bloom = Brush.radialGradient(listOf(FocusPalette.SpaceBloom, Color.Transparent), center = Offset(w * 0.5f, h * 0.34f), radius = max(w, h) * 0.46f)
+    val high = Brush.radialGradient(listOf(FocusPalette.SpaceBloomHigh, Color.Transparent), center = Offset(w * 0.82f, h * 0.08f), radius = max(w, h) * 0.30f)
+    onDrawBehind { drawRect(base); drawRect(bloom); drawRect(high) }
+}
+
 @Composable
 private fun RunningContent(state: FocusUiState, onRequestEnd: () -> Unit) {
     val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     val reduced = LocalMotion.current.reduced
-    val core: @Composable (Modifier) -> Unit = { m ->
-        Box(m, contentAlignment = Alignment.Center) {
-            CosmicCore(Modifier.fillMaxSize(), animate = true, reducedMotion = reduced, coreFraction = if (landscape) 0.62f else 0.56f)
-            Text(
-                state.timerText,
-                style = if (landscape) TimerType.Compact else TimerType.Live,
-                color = FocusPalette.Starlight,
-                modifier = Modifier.testTag("focus_timer").clearAndSetSemantics { contentDescription = state.timerDescription },
-            )
-        }
-    }
+    val coreFraction = if (landscape) 0.62f else 0.6f
     if (landscape) {
         Row(Modifier.fillMaxSize().safeDrawingPadding().padding(Spacing.md)) {
-            core(Modifier.weight(1f).fillMaxHeight())
+            Scene(state.timerText, state.timerDescription, state.protectionMode, reduced, coreFraction, landscape = true, Modifier.weight(1f).fillMaxHeight())
             Column(Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState()).padding(start = Spacing.md), verticalArrangement = Arrangement.Center) {
-                Header(state)
+                Header(state.headline, state.modeLabel, state.stepLabel, state.plannedMinutes)
                 Spacer(Modifier.height(Spacing.md))
-                TaskCard(state)
+                TaskCard(state.task, state.monitoringLabel, state.stepLabel)
                 Spacer(Modifier.height(Spacing.md))
-                SecondaryButton("Beenden", onRequestEnd, Modifier.fillMaxWidth().testTag("focus_end"), onDark = true)
+                EndButton(onRequestEnd, Modifier.fillMaxWidth())
             }
         }
     } else {
-        Column(Modifier.fillMaxSize().safeDrawingPadding().padding(horizontal = Spacing.screenHorizontal, vertical = Spacing.md), horizontalAlignment = Alignment.CenterHorizontally) {
-            Header(state)
-            core(Modifier.weight(1f).fillMaxWidth())
-            TaskCard(state)
-            Spacer(Modifier.height(Spacing.md))
-            SecondaryButton("Beenden", onRequestEnd, Modifier.widthIn(max = 420.dp).fillMaxWidth().testTag("focus_end"), onDark = true)
+        Column(
+            Modifier.fillMaxSize().safeDrawingPadding().padding(start = 18.dp, end = 18.dp, top = Spacing.md, bottom = 13.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Header(state.headline, state.modeLabel, state.stepLabel, state.plannedMinutes)
+            Scene(state.timerText, state.timerDescription, state.protectionMode, reduced, coreFraction, landscape = false, Modifier.weight(1f).fillMaxWidth())
+            TaskCard(state.task, state.monitoringLabel, state.stepLabel)
+            Spacer(Modifier.height(11.dp))
+            EndButton(onRequestEnd, Modifier.widthIn(max = 560.dp).fillMaxWidth())
         }
     }
 }
 
+/**
+ * The Cosmic Core with the live timer as real text centred on the sphere, and the protection
+ * badge under it. The Core draws in its own layers, so a timer change re-records only the text.
+ */
 @Composable
-private fun Header(state: FocusUiState) {
-    Row(Modifier.fillMaxWidth().widthIn(max = 560.dp), verticalAlignment = Alignment.CenterVertically) {
-        Column(Modifier.weight(1f)) {
-            Eyebrow(state.modeLabel, color = FocusPalette.Lavender)
-            state.stepLabel?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = FocusPalette.StarlightMuted) }
-        }
-        StatusPill(state.protectionMode.label, tone = PillTone.ON_DARK,
-            icon = if (state.protectionMode == ProtectionMode.PROTECTED) FocusIcons.ShieldCheck else FocusIcons.Shield,
+private fun Scene(
+    timerText: String,
+    timerDescription: String,
+    mode: ProtectionMode,
+    reduced: Boolean,
+    coreFraction: Float,
+    landscape: Boolean,
+    modifier: Modifier,
+) {
+    BoxWithConstraints(modifier, contentAlignment = Alignment.Center) {
+        val diameter = minOf(maxWidth, maxHeight) * coreFraction
+        CosmicCore(Modifier.fillMaxSize(), animate = true, reducedMotion = reduced, coreFraction = coreFraction)
+        BasicText(
+            timerText,
+            style = (if (landscape) TimerType.Compact else TimerType.Live).copy(color = FocusPalette.Starlight, textAlign = TextAlign.Center, shadow = TimerShadow),
+            maxLines = 1,
+            autoSize = TextAutoSize.StepBased(minFontSize = TimerType.MinFitSize, maxFontSize = if (landscape) TimerType.Compact.fontSize else TimerType.Live.fontSize),
+            modifier = Modifier.width(diameter * 0.86f).testTag("focus_timer").clearAndSetSemantics { contentDescription = timerDescription },
         )
+        ProtectionBadge(mode, Modifier.align(Alignment.BottomCenter).padding(bottom = Spacing.xs))
+    }
+}
+
+private val TimerShadow = Shadow(color = Color(0xEB030512), offset = Offset(0f, 4f), blurRadius = 24f)
+
+@Composable
+private fun Header(headline: String, modeLabel: String, stepLabel: String?, plannedMinutes: Int) {
+    Column(Modifier.fillMaxWidth().widthIn(max = 560.dp)) {
+        Text("FOKUS-SITZUNG", style = LabelType.Kicker.copy(fontWeight = FontWeight.Black, letterSpacing = 0.17.em), color = Color(0xFFA78BFA))
+        Spacer(Modifier.height(Spacing.xxs))
+        Text(
+            headline, style = MaterialTheme.typography.headlineSmall.copy(fontSize = 20.sp), color = Color.White,
+            maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.semantics { heading() },
+        )
+        Spacer(Modifier.height(Spacing.xs))
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.xxs), itemVerticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.semantics(mergeDescendants = true) {}) {
+                Icon(FocusIcons.BookOpen, null, tint = FocusPalette.StarlightMuted, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(6.dp))
+                Text("$plannedMinutes Min.", style = MaterialTheme.typography.titleSmall, color = FocusPalette.Starlight.copy(alpha = 0.86f))
+            }
+            Text(
+                modeLabel.uppercase(),
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Black, fontSize = 11.sp),
+                color = FocusPalette.ModeChipInk,
+                maxLines = 1,
+                modifier = Modifier.clip(Radii.pill).background(FocusPalette.ModeChipSurface).border(BorderStroke(1.dp, FocusPalette.ModeChipLine), Radii.pill)
+                    .padding(horizontal = 11.dp, vertical = 7.dp),
+            )
+            stepLabel?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = FocusPalette.StarlightMuted) }
+        }
+    }
+}
+
+/** PWA `.uc-protect`: restrained green only when a protected Session is active; neutral otherwise. */
+@Composable
+private fun ProtectionBadge(mode: ProtectionMode, modifier: Modifier = Modifier) {
+    val active = mode == ProtectionMode.PROTECTED
+    Row(
+        modifier
+            .heightIn(min = 40.dp)
+            .clip(Radii.pill)
+            .background(if (active) FocusPalette.ProtectSurface else FocusPalette.NeutralBadgeSurface)
+            .border(BorderStroke(1.dp, if (active) FocusPalette.ProtectLine else FocusPalette.NeutralBadgeLine), Radii.pill)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .semantics(mergeDescendants = true) {}
+            .testTag("focus_protection_badge"),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (active) {
+            Box(Modifier.size(9.dp).clip(Radii.pill).background(FocusPalette.ProtectDot))
+        } else {
+            Icon(FocusIcons.Shield, null, tint = FocusPalette.NeutralBadgeInk, modifier = Modifier.size(15.dp))
+        }
+        Spacer(Modifier.width(8.dp))
+        Text(mode.label, style = MaterialTheme.typography.titleSmall, color = if (active) FocusPalette.ProtectInk else FocusPalette.NeutralBadgeInk, maxLines = 1)
     }
 }
 
 @Composable
-private fun TaskCard(state: FocusUiState) {
+private fun TaskCard(task: String, monitoringLabel: String?, stepLabel: String?) {
     Column(
-        Modifier.widthIn(max = 560.dp).fillMaxWidth().clip(Radii.lg).background(Color.White.copy(alpha = 0.06f)).padding(Spacing.md)
-            .semantics(mergeDescendants = true) {},
+        Modifier.widthIn(max = 560.dp).fillMaxWidth()
+            .shadow(14.dp, Radii.session, ambientColor = Color.Black.copy(alpha = 0.25f), spotColor = FocusPalette.PurpleBright.copy(alpha = 0.18f))
+            .clip(Radii.session)
+            .background(FocusPalette.SpaceMid.copy(alpha = 0.55f))
+            .background(Brush.linearGradient(listOf(FocusPalette.TaskCardTop, FocusPalette.TaskCardBottom)))
+            .border(BorderStroke(1.dp, FocusPalette.TaskCardLine), Radii.session)
+            .padding(start = 18.dp, end = 18.dp, top = 17.dp, bottom = 18.dp)
+            .semantics(mergeDescendants = true) {}
+            .testTag("focus_task_card"),
     ) {
-        Eyebrow("Aktuelle Aufgabe", color = FocusPalette.StarlightMuted)
-        Text(state.task, style = MaterialTheme.typography.titleMedium, color = FocusPalette.Starlight, maxLines = 3, overflow = TextOverflow.Ellipsis)
-        state.monitoringLabel?.let {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(FocusIcons.Target, null, tint = FocusPalette.TaskLabel, modifier = Modifier.size(17.dp))
+            Spacer(Modifier.width(8.dp))
+            Text("AUFGABE", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Black, letterSpacing = 0.1.em), color = FocusPalette.TaskLabel, modifier = Modifier.weight(1f))
+            stepLabel?.let { Text(it, style = MaterialTheme.typography.labelMedium, color = FocusPalette.ModeChipInk) }
+        }
+        Spacer(Modifier.height(Spacing.sm))
+        Text(
+            task.ifBlank { "Konzentriert weiterarbeiten." },
+            style = MaterialTheme.typography.headlineSmall.copy(fontSize = 24.sp, fontWeight = FontWeight.ExtraBold),
+            color = Color.White, maxLines = 3, overflow = TextOverflow.Ellipsis,
+        )
+        monitoringLabel?.let {
             Spacer(Modifier.height(Spacing.xs))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(FocusIcons.Activity, null, tint = FocusPalette.Lavender, modifier = Modifier.size(16.dp))
@@ -194,6 +302,27 @@ private fun TaskCard(state: FocusUiState) {
                 Text(it, style = MaterialTheme.typography.bodySmall, color = FocusPalette.Lavender)
             }
         }
+    }
+}
+
+/** PWA end action: rose surface and ink with a stop mark. It opens the safe end flow, never ends directly. */
+@Composable
+private fun EndButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Row(
+        modifier
+            .heightIn(min = 55.dp)
+            .clip(Radii.md)
+            .background(Brush.linearGradient(listOf(FocusPalette.EndSurfaceStart, FocusPalette.EndSurfaceEnd)))
+            .border(BorderStroke(1.dp, Color(0x29FB7185)), Radii.md)
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = Spacing.lg)
+            .testTag("focus_end"),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(FocusIcons.StopFilled, null, tint = FocusPalette.EndInk, modifier = Modifier.size(20.dp))
+        Spacer(Modifier.width(Spacing.xs))
+        Text("Sitzung beenden", style = MaterialTheme.typography.labelLarge, color = FocusPalette.EndInk)
     }
 }
 

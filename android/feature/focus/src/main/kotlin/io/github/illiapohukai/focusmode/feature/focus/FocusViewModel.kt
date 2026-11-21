@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
@@ -52,6 +53,8 @@ data class FocusUiState(
     val timerDescription: String = "",
     val progress: Float = 0f,
     val title: String = "",
+    /** Session header line (PWA `#activeTaskLabel`): the Quick Focus task or the Mission step title. */
+    val headline: String = "",
     val task: String = "",
     val modeLabel: String = "",
     val stepLabel: String? = null,
@@ -94,12 +97,17 @@ class FocusViewModel @Inject constructor(
         _events.emit(event)
     }
 
-    /** Display-only ticker; it never writes. Aligned to whole seconds of the remaining time. */
-    private val ticker = flow {
-        while (true) {
-            emit(Unit)
-            val remaining = controller.read()?.remainingMs ?: 1_000L
-            delay(((remaining - 1) % 1_000L + 1).coerceIn(50L, 1_000L))
+    /**
+     * Display-only ticker; it never writes. Aligned to whole seconds of the remaining time, and it
+     * ticks only while a Session is running (Recovery and loading need no per-second work).
+     */
+    private val ticker = controller.state.map { it is SessionState.Running }.distinctUntilChanged().flatMapLatest { running ->
+        if (!running) flowOf(Unit) else flow {
+            while (true) {
+                emit(Unit)
+                val remaining = controller.read()?.remainingMs ?: 1_000L
+                delay(((remaining - 1) % 1_000L + 1).coerceIn(50L, 1_000L))
+            }
         }
     }
 
@@ -155,6 +163,7 @@ class FocusViewModel @Inject constructor(
             timerDescription = if (minutesLeft <= 1) "Noch weniger als eine Minute" else "Noch $minutesLeft Minuten",
             progress = (r.elapsedMs.toFloat() / r.plannedMs).coerceIn(0f, 1f),
             title = s.title,
+            headline = s.title.ifBlank { s.task.text },
             task = s.task.text,
             modeLabel = if (s.type == SessionType.MISSION) s.modeLabel else "Kurzer Fokus",
             stepLabel = if (s.type == SessionType.MISSION) "Schritt ${s.progressCurrent} von ${s.progressTotal}" else null,

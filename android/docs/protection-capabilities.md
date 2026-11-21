@@ -56,12 +56,17 @@ an administrator.
   `AppOpsManager` after returning. It is never assumed.
 - Use: only during an active **protected** Session with monitoring on and at least one selected app.
   `UsageStatsManager.queryEvents` is polled every 20 s while the screen is on (nothing can be in the
-  foreground while it is off), for foreground events of the selected packages only.
+  foreground while it is off; with the screen off the monitor waits for `ACTION_SCREEN_ON` instead of
+  waking), for foreground events of the selected packages only. The polling runs off the main
+  thread. `DistractionMonitorOwner` keeps exactly one monitor job per protected Session (repeated
+  starts for the same Session are no-ops) and cancels it on completion, cancellation and service
+  shutdown; a restored process starts one new job.
 - Data: per Session and package, a count plus first and last time (`session_distractions`). Kept 30
   days, deletable in Settings ("Ablenkungsdaten löschen"). Never uploaded, never sent to the AI
   Worker; the app-selection and protection modules have no dependency on the network module.
 - Revoked during a Session: monitoring stops, the state becomes `TEMPORARILY_UNAVAILABLE`, and the
-  Session continues normally.
+  Session continues normally. Polling does not restart until access is granted again (re-read on
+  app resume); then it resumes within the same Session.
 - Limits: some OEMs deliver events late; work-profile apps are invisible to the personal profile;
   Android Go devices may not offer Usage Access (`UNSUPPORTED`).
 

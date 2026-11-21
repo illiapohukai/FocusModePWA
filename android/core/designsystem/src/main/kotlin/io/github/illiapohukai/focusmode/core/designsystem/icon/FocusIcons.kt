@@ -26,6 +26,12 @@ object FocusIcons {
             }
         }.build()
 
+    /** Solid glyphs (PWA uses filled play/stop marks on its primary Session actions). */
+    private fun solid(name: String, d: String): ImageVector =
+        ImageVector.Builder(name = name, defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 24f, viewportHeight = 24f).apply {
+            addPath(pathData = addPathNodes(d), fill = SolidColor(Color.Black))
+        }.build()
+
     private const val CIRCLE9 = "M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0 -18z"
 
     val Home = icon("home", "M3.5 10.5L12 3.5l8.5 7", "M5.5 9v11h13V9", "M10 20v-5.5h4V20")
@@ -53,5 +59,12 @@ object FocusIcons {
     val Download = icon("download", "M12 4v11", "M7 10.5l5 5l5-5", "M5 20h14")
     val Trash = icon("trash", "M4.5 7h15", "M9.5 7V4.5h5V7", "M6.5 7l1 13h9l1-13")
     val Sparkle = icon("sparkle", "M12 3.5l1.8 5.2L19 10.5l-5.2 1.8L12 17.5l-1.8-5.2L5 10.5l5.2-1.8z")
+    val Zap = icon("zap", "M13 2.5L4 13.5h7l-1 8l9-11h-7z")
+    val ArrowRight = icon("arrow_right", "M5 12h13.5", "M13 6l6 6l-6 6")
+    val BookOpen = icon("book_open", "M3 5h5.5A3.5 3.5 0 0 1 12 8.5V20a2.5 2.5 0 0 0-2.5-2.5H3z", "M21 5h-5.5A3.5 3.5 0 0 0 12 8.5V20a2.5 2.5 0 0 1 2.5-2.5H21z")
+    val User = icon("user", "M12 12.5a4 4 0 1 0 0-8a4 4 0 1 0 0 8z", "M4.5 20.5a7.5 7.5 0 0 1 15 0")
+    val BarChart = icon("bar_chart", "M6 20v-6", "M12 20V8", "M18 20V4")
+    val PlayFilled = solid("play_filled", "M7.5 4.8c0-.8.9-1.3 1.6-.9l10.6 6.9c.6.4.6 1.4 0 1.8L9.1 19.5c-.7.4-1.6-.1-1.6-.9z")
+    val StopFilled = solid("stop_filled", "M7 5h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z")
     val Flame = icon("flame", "M12 21c-3.6 0-6-2.4-6-5.6c0-3.4 2.6-5 3.6-8.4c1.5 1.2 2 2.7 2 4c1-0.8 1.6-2 1.7-3.5c2.4 2 4.7 4.6 4.7 7.9C18 18.6 15.6 21 12 21z")
 }

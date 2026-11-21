@@ -65,6 +65,8 @@ data class HomeUiState(
     val online: Boolean = true,
     val banner: SessionBanner? = null,
     val mission: MissionCard? = null,
+    /** Active Missions in the repository (PWA hero states: none, one, several). */
+    val activeMissionCount: Int = 0,
     val quickMinutes: Int = 25,
     val progress: LocalProgress = LocalProgress.EMPTY,
     val reminders: List<ReminderItem> = emptyList(),
@@ -130,6 +132,7 @@ class HomeViewModel @Inject constructor(
                     theme = themes[m.id] ?: MissionTheme.AUBERGINE,
                 )
             },
+            activeMissionCount = all.count { it.status == io.github.illiapohukai.focusmode.core.model.MissionStatus.ACTIVE },
             progress = ProgressCalculator.compute(results, today),
             reminders = upcoming.map { ReminderItem(whenLabel(it.triggerAt, today), it.title) },
             remindersDeliverable = protectionState?.notifications?.canDeliver(FocusChannel.REMINDERS) ?: true,

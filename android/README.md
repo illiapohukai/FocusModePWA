@@ -1,4 +1,4 @@
-# Focus Mode+ — Android (v18 Android Foundation)
+# Focus Mode+ — Android (v18.1 Android Stability & Visual Parity)
 
 A native Android app for Focus Mode+, written in Kotlin with Jetpack Compose. It is **not** a
 WebView, a Trusted Web Activity or a wrapper around the PWA. The PWA in the repository root is
@@ -7,6 +7,9 @@ History, Recovery, colors, typography, the Cosmic Core identity, backups and the
 
 - [Protection capabilities](docs/protection-capabilities.md): what consumer Android can and cannot do
 - [PWA parity](docs/pwa-parity.md): what is implemented, partial, deferred or intentionally different
+- [Visual parity v18.1](docs/visual-parity-v18.1.md): screen-by-screen comparison with the live PWA
+- [Performance v18.1](docs/performance-v18.1.md): emulator ANR diagnosis, fixed bottlenecks, Cosmic Core tiers
+- [Device smoke test](docs/device-smoke-test.md): manual physical-device checklist (results pending)
 
 ## Selected versions (resolved from official repositories on 2026-11-19)
 
@@ -192,7 +195,9 @@ device admin, notification listener, SMS, contacts, call log, location, micropho
 See [docs/protection-capabilities.md](docs/protection-capabilities.md). In short: launchable apps
 come from a narrow `<queries>` launcher intent; only package name, label snapshot and an optional
 icon reference are stored, locally. Usage Access is read only during an active *protected* Session,
-every 20 s while the screen is on, for the selected packages only. Hints are rate-limited to one per
+every 20 s while the screen is on (off the main thread; with the screen off it waits for screen-on
+instead of waking), for the selected packages only. `DistractionMonitorOwner` keeps exactly one job
+per protected Session and stops it on every end path. Hints are rate-limited to one per
 3 minutes; per-Session counts are kept for 30 days. DND changes only the interruption filter, records
 the prior state first and restores it only if Focus Mode+ set it. Managed-device enforcement is a
 detection boundary with a no-op implementation. **No app is ever blocked.**
@@ -259,24 +264,32 @@ readable maximum width. Focus has a landscape layout.
 ## Cosmic Core
 
 A native Canvas renderer (`core/designsystem/cosmic`) translated from the PWA's v17.9 architecture:
-the PWA orbit table and palette, front/rear layering around a dark volumetric core, a readability
-zone that keeps front orbits off the timer, and particles as a closed-form function of one clock (no
-simulation). One frame loop runs only while the screen is at least STARTED and motion is allowed.
-Quality steps down (HIGH → MEDIUM → LOW) on sustained slow frames or low-RAM devices. Session timing
-never depends on it.
+the PWA orbit table and palette, front/rear layering, the PWA's per-pixel core sphere (`bakeCore`,
+baked once per size off the main thread), a readability zone that keeps front orbits off the timer,
+and particles as a closed-form function of one clock (no simulation). It draws in two layers (a
+static deep field and the animated system in its own graphics layer), so a frame never re-records
+the rest of the screen. One frame loop runs only while the screen is at least STARTED and motion is
+allowed; reduced motion draws one static frame. Quality tiers HIGH → BALANCED → LOW (fewer particles,
+then the primary ring only at ~30 fps) start from the device class and step down on sustained slow
+frames, never up. Session timing never depends on it. See [performance](docs/performance-v18.1.md).
 
 ## Testing
 
-`./gradlew testDebugUnitTest :core:domain:test` runs 153 JVM tests (domain rules, Room DAO,
+`./gradlew testDebugUnitTest :core:domain:test` runs 181 JVM tests (domain rules, Room DAO,
 relationships, transactions, rollback and the 1→2 migration, DataStore defaults and migration, the
 Session owner incl. process recreation and reboot, the reminder scheduler, notifications under
 Robolectric, protection gateways, the Worker client against MockWebServer, Compose screens, and
 end-to-end app flows on Robolectric with the real Hilt graph). The app flow tests write screenshots
-to `app/build/screenshots/`. There are no instrumented or emulator tests yet.
+to `app/build/screenshots/`. v18.1 adds tests for the monitor owner, Cosmic Core tiers and reduced
+motion, bottom-bar label fit at 320 dp / 130 % / 160 %, Home states, History period summary, the
+app picker and the Focus screen. There are no instrumented or emulator tests yet; the physical-device
+checklist is [device-smoke-test.md](docs/device-smoke-test.md).
 
 ## Known limitations and OEM notes
 
-- Not tested on a physical device or emulator yet; Robolectric is not a device.
+- Not tested on a physical device yet; Robolectric is not a device. The only emulator available to
+  v18.1 (software CPU emulation, no KVM) kept restarting `system_server` and logged System UI ANRs
+  without the app installed, so no in-app emulator measurement exists (see performance doc).
 - Usage events can arrive late on some OEM builds. Aggressive battery managers (several OEMs) can
   delay or drop inexact alarms and WorkManager jobs, and can kill foreground services.
 - Work-profile apps are not listed in the app picker, and the personal profile's Usage Access does

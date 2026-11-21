@@ -205,8 +205,10 @@ class AppFlowTest {
         waitFor("home")
         rule.onNodeWithTag("nav_settings").performClick()
         waitFor("settings")
+        // Scrolling a lazy list only brings the row just into view, which can leave it under the
+        // floating bar; the semantics click targets the row itself, as TalkBack does.
         rule.onNodeWithTag("settings").performScrollToNode(androidx.compose.ui.test.hasText("Berechtigungen"))
-        rule.onNodeWithText("Berechtigungen").performClick()
+        rule.onNodeWithText("Berechtigungen").performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.OnClick)
         waitFor("permission_center")
         rule.onNodeWithTag("permission_center").performScrollToNode(hasTestTag("permission_accessibility"))
         rule.onNodeWithText("Nicht verwendet", ignoreCase = true).assertIsDisplayed()

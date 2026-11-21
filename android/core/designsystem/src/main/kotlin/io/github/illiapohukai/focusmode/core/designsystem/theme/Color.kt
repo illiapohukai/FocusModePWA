@@ -33,6 +33,11 @@ object FocusPalette {
     val Danger = Color(0xFFB42318)
     val DangerTint = Color(0xFFFBE9E7)
     val Shadow = Color(0xFF25162B)         // shadows are aubergine-tinted, never black
+    val Ink = Color(0xFF14161B)            // brand and screen titles (.home-brand-title, .st-title)
+    val DateInk = Color(0xFF7B8496)        // .home-current-date
+    val HeroCopy = Color(0xFFC0C6D5)       // .mh-empty-copy on aubergine
+    val HeroKicker = Color(0xE0FFFFFF)     // .mh-kicker rgba(255,255,255,.88)
+    val SurfaceGlass = Color(0xF7FCF9F4)   // floating nav rgba(252,249,244,.97)
 
     // Cosmic Focus environment (dark).
     val Space = Color(0xFF05050A)
@@ -40,6 +45,34 @@ object FocusPalette {
     val Starlight = Color(0xFFF7F7FB)
     val StarlightMuted = Color(0xFF9797AA)
     val SpaceLine = Color(0x17FFFFFF)
+    /** Active Focus shell (PWA `.uc-shell`): 170° graphite-indigo gradient under a purple bloom. */
+    val SpaceTop = Color(0xFF040613)
+    val SpaceMid = Color(0xFF07091B)
+    val SpaceBottom = Color(0xFF090A1D)
+    val SpaceBloom = Color(0x386D28D9)     // rgba(109,40,217,.22)
+    val SpaceBloomHigh = Color(0x474C1D95) // rgba(76,29,149,.28)
+    /** Protected-focus badge (`.uc-protect.is-active`): restrained green for the active state. */
+    val ProtectInk = Color(0xFF5EEAD4)
+    val ProtectDot = Color(0xFF34D399)
+    val ProtectSurface = Color(0x85082F36)
+    val ProtectLine = Color(0x5C34D399)
+    /** Neutral badge (`.uc-protect.is-inactive`). */
+    val NeutralBadgeInk = Color(0xFFCBD5E1)
+    val NeutralBadgeSurface = Color(0x8F0F172A)
+    val NeutralBadgeLine = Color(0x3D94A3B8)
+    /** Mode chip in the Session header (`.uc-meta`). */
+    val ModeChipInk = Color(0xFFBBA6FF)
+    val ModeChipSurface = Color(0x335B21B6)
+    val ModeChipLine = Color(0x24A78BFA)
+    /** Task card (`#ucFocusCard`). */
+    val TaskCardTop = Color(0x1BFFFFFF)
+    val TaskCardBottom = Color(0x57272349)
+    val TaskCardLine = Color(0x858B5CF6)
+    val TaskLabel = Color(0xFF9BA3B8)
+    /** End action (`.uc-actions` last button): rose surface, rose ink. */
+    val EndInk = Color(0xFFE11D48)
+    val EndSurfaceStart = Color(0xFFFFF1F2)
+    val EndSurfaceEnd = Color(0xFFFCE7F3)
 }
 
 /** Stable Mission identity tones (PWA v17.7 `--mt-*`). */

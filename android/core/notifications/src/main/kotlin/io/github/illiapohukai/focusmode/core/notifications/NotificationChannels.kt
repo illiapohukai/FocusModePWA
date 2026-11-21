@@ -12,9 +12,17 @@ import javax.inject.Singleton
 @Singleton
 class NotificationChannels @Inject constructor(@ApplicationContext private val context: Context) {
 
+    @Volatile private var created = false
+
+    /**
+     * Once per process: the minute-cadence Session notification calls this on every update, and a
+     * repeated `createNotificationChannels` is a system-server round trip that changes nothing.
+     */
     fun ensureCreated() {
+        if (created) return
         val manager = context.getSystemService(NotificationManager::class.java) ?: return
         manager.createNotificationChannels(FocusChannel.entries.map(::channelFor))
+        created = true
     }
 
     internal fun channelFor(channel: FocusChannel): NotificationChannel {

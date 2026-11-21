@@ -20,11 +20,16 @@ object Spacing {
     val maxContentWidth = 560.dp
 }
 
+/** PWA radii: chips 12, tiles 15, controls 17, buttons 21, cards 22, Session card 27, heroes 30. */
 object Radii {
     val sm = RoundedCornerShape(12.dp)
+    val tile = RoundedCornerShape(15.dp)
+    val control = RoundedCornerShape(17.dp)
     val md = RoundedCornerShape(18.dp)
-    val lg = RoundedCornerShape(24.dp)
-    val xl = RoundedCornerShape(28.dp)
+    val button = RoundedCornerShape(21.dp)
+    val lg = RoundedCornerShape(22.dp)
+    val session = RoundedCornerShape(27.dp)
+    val xl = RoundedCornerShape(30.dp)
     val pill = RoundedCornerShape(percent = 50)
 }
 
@@ -37,7 +42,18 @@ object Elevation {
 
 object TouchTarget {
     val min: Dp = 48.dp
-    val primaryButtonHeight: Dp = 56.dp
+    /** PWA `#quickStartButton`: 60 px. */
+    val primaryButtonHeight: Dp = 60.dp
+}
+
+/** Floating bottom navigation geometry (PWA `fm-bottom-nav`: 65 px bar, 10 px above the safe area). */
+object NavGeometry {
+    val barHeight: Dp = 65.dp
+    val bottomMargin: Dp = 10.dp
+    val sideMargin: Dp = 14.dp
+    val plusSize: Dp = 56.dp
+    /** Space root content keeps clear above the system navigation inset (bar + margin + 24 dp). */
+    val contentClearance: Dp = barHeight + bottomMargin + 24.dp
 }
 
 /** PWA `styles/motion.css` tokens. Reduced motion shortens (never removes) state feedback. */

@@ -8,8 +8,10 @@ import android.app.admin.DevicePolicyManager
 import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
 import android.content.ActivityNotFoundException
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -17,6 +19,7 @@ import android.os.Build
 import android.os.PowerManager
 import android.os.Process
 import android.provider.Settings
+import androidx.core.content.ContextCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.illiapohukai.focusmode.core.domain.platform.DndApplyResult
 import io.github.illiapohukai.focusmode.core.domain.platform.DoNotDisturbController
@@ -35,7 +38,10 @@ import io.github.illiapohukai.focusmode.core.model.ManagedDeviceStatus
 import io.github.illiapohukai.focusmode.core.model.SessionId
 import io.github.illiapohukai.focusmode.core.model.SettingsTarget
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.resume
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -197,11 +203,41 @@ class AndroidSystemSettingsNavigator @Inject constructor(@ApplicationContext pri
 }
 
 /** Screen state: no app can be in the foreground while the screen is off, so nothing is polled. */
-interface ScreenState { fun isInteractive(): Boolean }
+interface ScreenState {
+    fun isInteractive(): Boolean
+
+    /** Suspends until the screen is on; returns at once when it already is. */
+    suspend fun awaitInteractive() {
+        while (!isInteractive()) delay(SCREEN_FALLBACK_POLL_MS)
+    }
+
+    companion object {
+        /** Only for implementations without a screen-on signal (tests); Android waits for the broadcast. */
+        const val SCREEN_FALLBACK_POLL_MS = 60_000L
+    }
+}
 
 @Singleton
 class AndroidScreenState @Inject constructor(@ApplicationContext private val context: Context) : ScreenState {
     override fun isInteractive(): Boolean = context.getSystemService(PowerManager::class.java)?.isInteractive != false
+
+    /** Waits for `ACTION_SCREEN_ON` (a protected system broadcast) instead of waking periodically. */
+    override suspend fun awaitInteractive() {
+        if (isInteractive()) return
+        var receiver: BroadcastReceiver? = null
+        try {
+            suspendCancellableCoroutine { cont ->
+                val r = object : BroadcastReceiver() {
+                    override fun onReceive(c: Context, intent: Intent) { if (cont.isActive) cont.resume(Unit) }
+                }
+                receiver = r
+                ContextCompat.registerReceiver(context, r, IntentFilter(Intent.ACTION_SCREEN_ON), ContextCompat.RECEIVER_NOT_EXPORTED)
+                if (isInteractive() && cont.isActive) cont.resume(Unit) // turned on while registering
+            }
+        } finally {
+            receiver?.let { runCatching { context.unregisterReceiver(it) } }
+        }
+    }
 }
 
 /** Battery-optimization exemption status (read-only; Focus Mode+ never requests the exemption). */

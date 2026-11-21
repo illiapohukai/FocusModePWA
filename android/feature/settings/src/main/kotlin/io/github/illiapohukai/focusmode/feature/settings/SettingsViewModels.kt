@@ -39,14 +39,22 @@ import java.io.ByteArrayOutputStream
 import java.time.LocalTime
 import javax.inject.Inject
 
+/** Local summary for the Settings hero (PWA "Dein Fokus-System"); counts only, nothing leaves the device. */
+data class SystemSummary(val activeMissions: Int = 0, val maxActiveMissions: Int = io.github.illiapohukai.focusmode.core.model.Mission.MAX_ACTIVE, val savedSessions: Int = 0)
+
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val preferences: PreferencesRepository,
     private val protection: ProtectionCapabilityOwner,
     private val navigator: SystemSettingsNavigator,
     private val distractions: DistractionLog,
+    missions: io.github.illiapohukai.focusmode.core.domain.repository.MissionRepository,
+    history: io.github.illiapohukai.focusmode.core.domain.repository.SessionHistoryRepository,
 ) : ViewModel() {
     val state: StateFlow<ProtectionState?> = protection.state
+    val summary: StateFlow<SystemSummary> = kotlinx.coroutines.flow.combine(missions.observeMissions(), history.observeResults()) { m, r ->
+        SystemSummary(activeMissions = m.count { it.status == io.github.illiapohukai.focusmode.core.model.MissionStatus.ACTIVE }, savedSessions = r.size)
+    }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5_000), SystemSummary())
     private val _messages = MutableSharedFlow<String>(extraBufferCapacity = 2)
     val messages: SharedFlow<String> = _messages
 
