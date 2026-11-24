@@ -1,0 +1,151 @@
+/* Focus Mode+ Pitch · engine: stage fit, scene visibility, modes and presenter overlays. */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; }
+html {
+  --letterbox: var(--cream);
+  background: var(--letterbox);
+  transition: background-color var(--motion-scene) var(--ease-in-out);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  background: transparent;
+  overscroll-behavior: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+html.cursor-hidden, html.cursor-hidden * { cursor: none !important; }
+
+/* Fixed 1920 x 1080 stage, scaled to fit and centred by presentation-controller.js. */
+#stage {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: var(--stage-w);
+  height: var(--stage-h);
+  transform-origin: 50% 50%;
+  overflow: hidden;
+  contain: layout paint size;
+  background: var(--cream);
+}
+
+.scene {
+  position: absolute;
+  inset: 0;
+  display: none;
+  opacity: 0;
+  overflow: hidden;
+  transition: opacity var(--motion-scene) var(--ease-in-out);
+}
+.scene.is-mounted { display: block; }
+/* Scene change = one motion owner: a short dip (the old scene clears before the new one arrives),
+   so headlines never double-expose. Scenes that share elements on purpose blend instead. */
+.scene.is-active { opacity: 1; z-index: 2; transition: opacity 640ms var(--ease-in-out) 300ms; }
+.scene.is-leaving { opacity: 0; z-index: 1; pointer-events: none; transition: opacity 400ms ease; }
+.scene.is-active.blend-in { transition: opacity var(--motion-scene) var(--ease-in-out); }
+.scene.is-leaving.blend-out { transition: opacity var(--motion-scene) var(--ease-in-out); }
+
+/* Settling a beat or resetting a scene never animates. */
+.is-instant, .is-instant *, .is-instant *::before, .is-instant *::after { transition: none !important; }
+
+/* Reduced motion: state changes become short fades; travel, zoom and particle streams are dropped
+   by the scenes themselves (they read Pitch.modes.reducedMotion). */
+html.reduced-motion .scene *, html.reduced-motion .scene *::before, html.reduced-motion .scene *::after {
+  transition-duration: 260ms !important;
+  transition-delay: 0ms !important;
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+}
+html.reduced-motion .scene, html.reduced-motion .scene.is-active, html.reduced-motion .scene.is-leaving { transition-duration: 300ms; transition-delay: 0ms; }
+
+/* Camera-safe area (top right, stage pixels). Outlined only in rehearsal or with ?safe=show. */
+.safe-guide {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: var(--safe-w);
+  height: var(--safe-h);
+  z-index: 50;
+  pointer-events: none;
+  display: none;
+  border: 3px dashed rgba(109, 40, 217, .55);
+  border-top: 0;
+  border-right: 0;
+  border-bottom-left-radius: 28px;
+  background: repeating-linear-gradient(135deg, rgba(109, 40, 217, .06) 0 14px, transparent 14px 28px);
+}
+.safe-guide span {
+  position: absolute;
+  left: 18px;
+  bottom: 14px;
+  font: 800 18px/1.2 var(--font);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: rgba(109, 40, 217, .8);
+}
+html.show-safe .safe-guide { display: block; }
+html[data-tone="dark"] .safe-guide { border-color: rgba(196, 181, 253, .55); }
+html[data-tone="dark"] .safe-guide span { color: rgba(196, 181, 253, .85); }
+html.mode-recording .safe-guide { display: none !important; }
+
+/* ---------------------------------------------------------------- presenter overlays */
+#overlay-root { position: fixed; inset: 0; z-index: 100; pointer-events: none; font-family: var(--font); }
+.ov[hidden] { display: none !important; }
+.ov {
+  position: fixed;
+  pointer-events: auto;
+  color: #F7F3FF;
+  background: rgba(18, 11, 24, .92);
+  border: 1px solid rgba(196, 181, 253, .22);
+  border-radius: 18px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .35);
+  font-size: 14px;
+  line-height: 1.4;
+}
+.ov-presenter { right: 16px; bottom: 16px; width: 380px; padding: 14px 16px; }
+.ovp-top { display: flex; align-items: baseline; gap: 10px; }
+.ovp-time { font-size: 34px; font-weight: 900; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+.ovp-time.is-over { color: #FCA5A5; }
+.ovp-limit { color: #BDB1D6; font-size: 12px; }
+.ovp-paused { margin-left: auto; padding: 3px 9px; border-radius: 999px; background: #FDE68A; color: #3B2A00; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: .08em; }
+.ovp-paused[hidden] { display: none; }
+.ovp-bar { position: relative; height: 8px; margin: 10px 0 18px; border-radius: 999px; background: rgba(255, 255, 255, .1); }
+.ovp-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: inherit; background: linear-gradient(90deg, #8B5CF6, #C4B5FD); }
+.ovp-bar b { position: absolute; top: -3px; width: 2px; height: 14px; background: #F6F1E7; opacity: .7; font-size: 10px; font-weight: 800; }
+.ovp-bar b:last-child { background: #FCA5A5; }
+.ovp-bar b:not(:empty) { text-indent: 4px; line-height: 34px; color: #FCA5A5; white-space: nowrap; }
+.ovp-row { display: flex; justify-content: space-between; gap: 10px; color: #D9CFF0; font-size: 13px; margin-top: 4px; }
+.ovp-row b { color: #fff; }
+.ovp-row .is-over { color: #FCA5A5; font-weight: 800; }
+.ovp-row .is-ok { color: #86EFAC; font-weight: 800; }
+.ovp-cue { margin: 12px 0 6px; font-size: 18px; font-weight: 850; letter-spacing: -.01em; color: #fff; }
+.ovp-next { margin: 0; color: #BDB1D6; font-size: 13px; }
+.ovp-next span { text-transform: uppercase; letter-spacing: .1em; font-size: 10px; font-weight: 900; }
+.ovp-warn { margin: 10px 0 0; padding: 8px 10px 8px 26px; border-radius: 12px; background: rgba(253, 230, 138, .1); color: #FDE68A; font-size: 12px; }
+.ovp-warn:empty { display: none; }
+
+.ov-notes { left: 16px; bottom: 16px; width: min(760px, calc(100vw - 430px)); padding: 16px 20px; }
+.ovn-kicker { margin: 0 0 6px; color: #C4B5FD; font-size: 11px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+.ovn-say { margin: 0; font-size: 22px; line-height: 1.38; font-weight: 650; color: #fff; }
+.ovn-note { margin: 10px 0 0; color: #FDE68A; font-size: 14px; }
+.ovn-note:empty { display: none; }
+
+.ov-help { left: 50%; top: 50%; transform: translate(-50%, -50%); width: 520px; padding: 22px 26px; }
+.ov-help h2, .ov-appendix h2 { margin: 0 0 12px; font-size: 20px; }
+.ov-help dl { display: grid; grid-template-columns: 170px 1fr; gap: 6px 14px; margin: 0; }
+.ov-help dt { font-weight: 900; color: #C4B5FD; }
+.ov-help dd { margin: 0; }
+.ov-help p { margin: 14px 0 0; color: #BDB1D6; }
+.ov-help code { color: #fff; }
+
+.ov-appendix { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(1180px, calc(100vw - 40px)); max-height: calc(100vh - 40px); overflow: auto; padding: 24px 28px; }
+.ov-appendix h2 small { font-size: 12px; font-weight: 700; color: #FDE68A; margin-left: 8px; }
+.ova-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.ova-grid article { padding: 16px; border-radius: 14px; background: rgba(255, 255, 255, .05); }
+.ova-grid h3 { margin: 0 0 8px; font-size: 16px; }
+.ova-fig { font-size: 15px; font-weight: 800; color: #fff; }
+.ova-grid p, .ova-grid li { color: #D9CFF0; font-size: 13px; }
+.ova-grid ul { padding-left: 18px; margin: 8px 0 0; }

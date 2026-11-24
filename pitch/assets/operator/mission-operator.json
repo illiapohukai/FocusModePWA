@@ -1,0 +1,39 @@
+{
+  "name": "mission-operator",
+  "assetVersion": "v17.14-1",
+  "description": "Pixel-art operator at the terminal. 'work' loops while a Mission request is pending; 'success' plays once after a validated Mission response. Frames are cut, chroma-keyed and downscaled from the approved source video without redrawing.",
+  "source": {
+    "width": 720,
+    "height": 1280,
+    "fps": 24,
+    "frameCount": 360,
+    "crop": { "x": 42, "y": 80, "width": 665, "height": 895 },
+    "scale": 0.4,
+    "workFrames": "136-166, every 2nd source frame",
+    "successFrames": "200-240 every 2nd source frame, then 244, 246, 248"
+  },
+  "frameWidth": 266,
+  "frameHeight": 358,
+  "work": {
+    "image": "mission-operator-work.png",
+    "columns": 4,
+    "rows": 4,
+    "frameCount": 16,
+    "fps": 12,
+    "loopStart": 0,
+    "loopEnd": 15,
+    "exitToSuccess": [0, 2, 1, 0, 4, 5, 5, null, null, 5, 4, 1, 1, 0, 3, 3]
+  },
+  "success": {
+    "image": "mission-operator-success.png",
+    "columns": 6,
+    "rows": 4,
+    "frameCount": 24,
+    "fps": 12,
+    "successStart": 0,
+    "successEnd": 23,
+    "finalHoldMs": 450
+  },
+  "minWorkMs": 500,
+  "maxExitWaitMs": 450
+}
