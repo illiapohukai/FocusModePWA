@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300" data-pitch-placeholder="true" role="img" aria-label="QR-Platzhalter: Pilot-Link folgt">
+  <!-- Focus Mode+ pitch: QR PLACEHOLDER. Not a QR code, not scannable, encodes nothing.
+       Final asset: a square QR (with its own quiet zone) saved as pitch/assets/pilot-qr.svg. -->
+  <rect x="0" y="0" width="300" height="300" rx="20" fill="#FCF9F4"/>
+  <rect x="14" y="14" width="272" height="272" rx="14" fill="none" stroke="#A78BFA" stroke-width="3" stroke-dasharray="12 10"/>
+  <g fill="#EFE9DD">
+    <rect x="40" y="40" width="30" height="30" rx="8"/>
+    <rect x="230" y="40" width="30" height="30" rx="8"/>
+    <rect x="40" y="230" width="30" height="30" rx="8"/>
+    <rect x="230" y="230" width="30" height="30" rx="8"/>
+  </g>
+  <text x="150" y="158" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="84" font-weight="900" letter-spacing="-4" fill="#25162B">QR</text>
+  <text x="150" y="204" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="25" font-weight="800" fill="#6D28D9">Pilot-Link folgt</text>
+</svg>

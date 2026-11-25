@@ -1,0 +1,23 @@
+{
+  "name": "orbit-standing",
+  "assetVersion": "pitch-1",
+  "description": "Approved standing pixel astronaut. Background keyed out without redrawing: a flood fill from the image border removed only the flat background colour, so the visor and the outline are untouched. Silhouette, proportions, palette and pixel grid are unchanged.",
+  "source": {
+    "file": "source/orbit-standing-source.jpg",
+    "width": 1024,
+    "height": 1024,
+    "background": [54, 38, 64]
+  },
+  "processing": [
+    "flood fill from the 1px image border through pixels within distance 26 of the background colour",
+    "crop to the figure bounding box plus 8 px",
+    "2 x 2 area average (exact 1/2 scale), colour weighted by coverage",
+    "1-bit alpha at 50 %",
+    "24-colour median-cut palette snap without dithering (removes JPEG noise only)"
+  ],
+  "image": "orbit-standing.png",
+  "width": 319,
+  "height": 438,
+  "render": "image-rendering: pixelated; display at exact 1/2 (219 px) or 1/3 (146 px) height on the 1920 x 1080 stage",
+  "allowedMotion": "whole-sprite translation (2-5 px), rotation up to 2 deg, opacity, shadow, surrounding light and particles"
+}
