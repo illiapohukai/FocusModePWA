@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" role="img" aria-label="QR Placeholder — Pilot-Link folgt">
+  <defs>
+    <linearGradient id="qrBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E1433"/>
+      <stop offset="100%" stop-color="#110B1F"/>
+    </linearGradient>
+    <linearGradient id="qrBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A78BFA" stop-opacity="0.65"/>
+      <stop offset="50%" stop-color="#6D28D9" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#C4B5FD" stop-opacity="0.55"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Outer Exact-Size Frame -->
+  <rect x="2" y="2" width="236" height="236" rx="28" fill="url(#qrBg)" stroke="url(#qrBorder)" stroke-width="2"/>
+
+  <!-- Subtle Inner Grid Guides (non-scannable architectural reticle) -->
+  <rect x="22" y="22" width="196" height="196" rx="18" fill="none" stroke="#A78BFA" stroke-opacity="0.14" stroke-width="1" stroke-dasharray="6 6"/>
+  <circle cx="120" cy="104" r="46" fill="none" stroke="#8B5CF6" stroke-opacity="0.22" stroke-width="1.5"/>
+  <circle cx="120" cy="104" r="64" fill="none" stroke="#C4B5FD" stroke-opacity="0.12" stroke-width="1" stroke-dasharray="4 8"/>
+
+  <!-- Corner Alignment Reticles (decorative, non-QR) -->
+  <path d="M 34 56 L 34 38 Q 34 34 38 34 L 56 34" fill="none" stroke="#C4B5FD" stroke-width="3" stroke-linecap="round"/>
+  <path d="M 184 34 L 202 34 Q 206 34 206 38 L 206 56" fill="none" stroke="#C4B5FD" stroke-width="3" stroke-linecap="round"/>
+  <path d="M 34 184 L 34 202 Q 34 206 38 206 L 56 206" fill="none" stroke="#C4B5FD" stroke-width="3" stroke-linecap="round"/>
+  <path d="M 184 206 L 202 206 Q 206 206 206 202 L 206 184" fill="none" stroke="#C4B5FD" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Visible Required Placeholder Copy -->
+  <text x="120" y="114" text-anchor="middle" fill="#F6F1E7" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="38" font-weight="900" letter-spacing="-0.04em">QR</text>
+  <rect x="54" y="148" width="132" height="30" rx="15" fill="#6D28D9" fill-opacity="0.28" stroke="#A78BFA" stroke-opacity="0.4" stroke-width="1"/>
+  <text x="120" y="168" text-anchor="middle" fill="#E9D5FF" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="800" letter-spacing="0.02em">Pilot-Link folgt</text>
+</svg>

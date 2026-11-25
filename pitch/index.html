@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="de" data-pitch-mode="standard" data-cosmic-stage="false">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#F6F1E7" />
+  <title>Focus Mode+ — Vom Plan zur Umsetzung (5-Minuten-Pitch)</title>
+  <link rel="icon" type="image/png" href="./assets/app/icon-192.png" />
+  <link rel="stylesheet" href="./pitch.css" />
+</head>
+<body>
+  <div class="pitch-viewport" id="pitchViewport">
+    <!-- Persistent Top-Left Brand Mark (Clear of Top-Right 320x220 Camera Bubble Zone) -->
+    <div class="pitch-brand-badge" aria-hidden="true">
+      <img src="./assets/app/icon-192.png" alt="" width="28" height="28" class="pitch-brand-icon" />
+      <span class="pitch-brand-name">Focus Mode+</span>
+      <span class="pitch-brand-sep">·</span>
+      <span class="pitch-brand-tag">From Plan to Orbit</span>
+    </div>
+
+    <!-- Main 7-Scene Stage -->
+    <main class="pitch-stage" id="pitchStage" role="main"></main>
+
+    <!-- Presenter / Rehearsal HUD (Completely hidden in ?mode=recording) -->
+    <div class="pitch-hud-root" id="pitchHudRoot"></div>
+  </div>
+
+  <script type="module" src="./pitch.js"></script>
+</body>
+</html>
