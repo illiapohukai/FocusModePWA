@@ -1,6 +1,11 @@
 package io.github.illiapohukai.focusmode.core.domain.backup
 
+import io.github.illiapohukai.focusmode.core.domain.repository.MissionProgressEntry
 import io.github.illiapohukai.focusmode.core.model.DataOrigin
+import io.github.illiapohukai.focusmode.core.model.EndNote
+import io.github.illiapohukai.focusmode.core.model.MissionReview
+import io.github.illiapohukai.focusmode.core.model.MissionSchedule
+import io.github.illiapohukai.focusmode.core.model.ScheduleStartMode
 import io.github.illiapohukai.focusmode.core.model.EntityIds
 import io.github.illiapohukai.focusmode.core.model.FocusSessionResult
 import io.github.illiapohukai.focusmode.core.model.Mission
@@ -27,6 +32,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.doubleOrNull
+import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -58,9 +64,20 @@ data class ImportReport(
     val sessionsFound: Int,
     val skipped: List<String>,
     val notImported: List<String>,
+    /** PWA `verifyBundleIntegrity`; a mismatch or malformed digest never reaches a plan. */
+    val integrity: IntegrityStatus = IntegrityStatus.ABSENT,
+    /** "android" for a backup written by this app, null for the web app. */
+    val platform: String? = null,
+    val scope: String? = null,
 )
 
-data class ImportPlan(val missions: List<Mission>, val results: List<FocusSessionResult>, val report: ImportReport)
+data class ImportPlan(
+    val missions: List<Mission>,
+    val results: List<FocusSessionResult>,
+    val report: ImportReport,
+    /** Applied Mission Session results (`progress.history`), keyed by Session id. */
+    val progress: List<MissionProgressEntry> = emptyList(),
+)
 
 sealed interface BackupParseResult {
     data class Ok(val plan: ImportPlan) : BackupParseResult
@@ -94,6 +111,11 @@ class PwaBackupImporter(private val limits: ImportLimits = ImportLimits()) {
             val tooNew = versions.entries.any { (domain, v) -> domain in KNOWN_DOMAINS && ((v as? JsonPrimitive)?.doubleOrNull ?: 0.0) > 1.0 }
             if (tooNew) return reject("Dieses Backup stammt aus einer neueren Version von Focus Mode+.")
         }
+        // PWA v17.17: a changed or truncated file is rejected before anything is read from it.
+        val integrity = BackupIntegrity.verify(root)
+        if (integrity == IntegrityStatus.MISMATCH) return reject("Datei beschädigt: Die Prüfsumme stimmt nicht. Die Datei wurde nach dem Export verändert oder unvollständig kopiert.")
+        if (integrity == IntegrityStatus.INVALID) return reject("Datei beschädigt: Die Prüfsumme ist ungültig.")
+        val platform = root.str("platform")?.takeIf { it == "android" }
         val data = root["data"] as? JsonObject
 
         val skipped = mutableListOf<String>()
@@ -102,7 +124,10 @@ class PwaBackupImporter(private val limits: ImportLimits = ImportLimits()) {
         if (rawMissions == null && rawSessions == null) return reject("Das Backup enthält keine Missionen und keinen Verlauf.")
 
         val missions = mapMissions(rawMissions.orEmpty(), now, skipped)
-        val results = mapSessions(rawSessions.orEmpty(), zone, skipped)
+        // The web app keeps at most 500 Sessions; an Android backup may hold up to the accepted maximum.
+        val keep = if (platform != null) limits.maxSessionsAccepted else limits.keepSessions
+        val results = mapSessions(rawSessions.orEmpty(), zone, skipped, keep)
+        val progress = mapProgress(rawMissions.orEmpty(), missions)
 
         val report = ImportReport(
             sourceAppVersion = root.str("appVersion") ?: root.str("applicationVersion"),
@@ -112,8 +137,11 @@ class PwaBackupImporter(private val limits: ImportLimits = ImportLimits()) {
             sessionsFound = rawSessions?.size ?: 0,
             skipped = skipped.groupingBy { it }.eachCount().map { (msg, n) -> if (n > 1) "$msg ($n×)" else msg },
             notImported = notImported(root, data),
+            integrity = integrity,
+            platform = platform,
+            scope = root.str("scope"),
         )
-        return BackupParseResult.Ok(ImportPlan(missions, results, report))
+        return BackupParseResult.Ok(ImportPlan(missions, results, report, progress))
     }
 
     private fun reject(message: String) = BackupParseResult.Rejected(message)
@@ -182,11 +210,11 @@ class PwaBackupImporter(private val limits: ImportLimits = ImportLimits()) {
         if (d["activeSession"].present() || d["lastSession"].present() || (d["recovery"] as? JsonObject)?.get("hasRecoverableSession")?.let { (it as? JsonPrimitive)?.booleanOrNull } == true)
             add("Aktive oder letzte Sitzung (wird nicht übernommen; nur abgeschlossener Verlauf zählt)")
         if (d["lastAiPlan"].present()) add("Letzter AI-Entwurf (nicht bestätigte Pläne werden nicht übernommen)")
-        if (d["preferences"].present()) add("Sprache und Web-Einstellungen (Android nutzt die Systemsprache)")
-        if (root["integrity"].present()) add("Integritätsangaben (Backup bleibt „lokal, nicht verifiziert“)")
+        if (d["preferences"].present()) add("Einstellungen (dieses Gerät behält seine eigenen; die Sprache bleibt Deutsch)")
+        if (root["integrity"].present()) add("Integritätsangaben (die Prüfsumme erkennt nur Beschädigung; das Backup bleibt „lokal, nicht verifiziert“)")
         if (d.keys.any { it.contains("league", true) || it.contains("streak", true) || it.contains("score", true) })
             add("Serie, Liga oder Punkte (werden lokal neu berechnet und nie als verifiziert übernommen)")
-        add("App-Auswahl der Web-App (enthält keine Android-Paketnamen)")
+        add(if (root.str("platform") == "android") "App-Auswahl und Geplanter Fokus (sind nicht im Backup enthalten)" else "App-Auswahl der Web-App (enthält keine Android-Paketnamen)")
     }
 
     // ---------------------------------------------------------------- missions
@@ -214,14 +242,17 @@ class PwaBackupImporter(private val limits: ImportLimits = ImportLimits()) {
                 val current = m.str("currentStepId")?.let(::MissionStepId)
                     ?.takeIf { cid -> steps.any { it.id == cid && it.status != MissionStepStatus.COMPLETED } }
                     ?: steps.firstOrNull { it.status != MissionStepStatus.COMPLETED }?.id
+                val estimate = m["estimate"] as? JsonObject
+                val android = m["android"] as? JsonObject
+                val archivedStep = m.str("archivedCurrentStepId")?.let(::MissionStepId)?.takeIf { aid -> steps.any { it.id == aid } }
                 Mission(
                     id = missionId,
                     title = title,
                     subject = m.str("subject")?.trim()?.take(limits.titleMax).orEmpty().ifEmpty { "Allgemein" },
                     type = MissionType.fromWire(m.str("type")),
                     deadlineText = deadlineText,
-                    deadlineDate = isoDate(deadlineText),
-                    preparationStartDate = null,
+                    deadlineDate = isoDate(deadlineText) ?: isoDate(android?.str("deadlineDate")),
+                    preparationStartDate = isoDate(android?.str("preparationStartDate")),
                     status = status,
                     createdAt = createdAt,
                     updatedAt = instant(m["updatedAt"]) ?: createdAt,
@@ -230,6 +261,11 @@ class PwaBackupImporter(private val limits: ImportLimits = ImportLimits()) {
                     currentStepId = if (status == MissionStatus.ACTIVE) current else null,
                     steps = steps,
                     origin = DataOrigin.IMPORTED_PWA,
+                    schedule = schedule(android),
+                    summary = estimate?.str("explanation")?.let(::cleanText)?.take(2_000).orEmpty(),
+                    estimateTotalMinutes = estimate?.num("totalMinutes")?.toInt()?.takeIf { it in 1..100_000 },
+                    scheduleWarning = estimate?.str("scheduleWarning")?.let(::cleanText)?.take(500)?.ifEmpty { null },
+                    archivedStepId = if (status == MissionStatus.ARCHIVED) archivedStep else null,
                 )
             }
     }
@@ -256,19 +292,21 @@ class PwaBackupImporter(private val limits: ImportLimits = ImportLimits()) {
                 reason = s.str("reason")?.trim()?.take(2_000).orEmpty(),
                 scheduledDate = isoDate(s.str("scheduledDate")),
                 completedAt = instant(s["completedAt"]),
+                requiredTools = textList(s["requiredTools"]),
+                recommendedApps = textList(s["recommendedApps"]),
             )
         }
     }
 
     // ---------------------------------------------------------------- sessions
 
-    private fun mapSessions(raw: List<JsonElement>, zone: ZoneId, skipped: MutableList<String>): List<FocusSessionResult> {
+    private fun mapSessions(raw: List<JsonElement>, zone: ZoneId, skipped: MutableList<String>, keep: Int): List<FocusSessionResult> {
         val seen = HashSet<String>()
         if (raw.size > limits.maxSessionsAccepted) skipped += "Mehr als ${limits.maxSessionsAccepted} Sitzungen – Rest ignoriert"
         return raw.take(limits.maxSessionsAccepted).mapNotNull { el ->
             val s = el as? JsonObject ?: return@mapNotNull null.also { skipped += "Ungültige Sitzung" }
             mapSession(s, zone, seen, skipped)
-        }.sortedByDescending { it.finishedAt }.take(limits.keepSessions)
+        }.sortedByDescending { it.finishedAt }.take(keep)
     }
 
     private fun mapSession(s: JsonObject, zone: ZoneId, seen: MutableSet<String>, skipped: MutableList<String>): FocusSessionResult? {
@@ -308,12 +346,18 @@ class PwaBackupImporter(private val limits: ImportLimits = ImportLimits()) {
             }
         }
         val elapsed = s.num("elapsedMs")?.toLong()?.takeIf { it in 0..limits.maxElapsedMs } ?: actual * 60_000L
+        val android = s["android"] as? JsonObject
+        // The local day stored with an Android backup is kept when it is consistent with the end instant.
+        val storedDay = isoDate(android?.str("localDate"))?.takeIf { d -> kotlin.math.abs(java.time.temporal.ChronoUnit.DAYS.between(finished.atZone(java.time.ZoneOffset.UTC).toLocalDate(), d)) <= 1 }
+        val storedZone = android?.str("zoneId")?.let { runCatching { ZoneId.of(it) }.getOrNull() }
         return FocusSessionResult(
             sessionId = SessionId(id),
             type = type,
             status = status,
             outcome = outcome,
-            endReason = SessionEndReason.fromWire(result?.str("reason")) ?: SessionEndReason.IMPORTED,
+            // A review that was still open on the source device is not reopened here: the record
+            // counts like any imported Session and never becomes a pending review.
+            endReason = SessionEndReason.fromWire(result?.str("reason"))?.takeIf { it != SessionEndReason.AWAITING_USER_REVIEW } ?: SessionEndReason.IMPORTED,
             title = title,
             task = s.str("task")?.trim()?.take(1_200).orEmpty().ifEmpty { title },
             plannedMinutes = planned,
@@ -322,14 +366,65 @@ class PwaBackupImporter(private val limits: ImportLimits = ImportLimits()) {
             countsAsFocus = counts,
             startedAt = started,
             finishedAt = finished,
-            localDate = finished.atZone(zone).toLocalDate(),
-            zoneId = zone.id,
+            localDate = storedDay ?: finished.atZone(zone).toLocalDate(),
+            zoneId = if (storedDay != null && storedZone != null) storedZone.id else zone.id,
             missionLink = link,
-            protectionMode = ProtectionMode.STANDARD,
+            protectionMode = android?.str("protectionMode")?.let { m -> ProtectionMode.entries.firstOrNull { it.name == m && it != ProtectionMode.STRICT_MANAGED } } ?: ProtectionMode.STANDARD,
+            endNote = android?.str("endNote")?.let { n -> EndNote.entries.firstOrNull { it.name == n } },
+            reviewNote = if (type == SessionType.MISSION) MissionReview.cleanNote(result?.str("feedback")) else null,
             rating = result?.num("rating")?.toInt()?.takeIf { it in 1..5 },
             origin = DataOrigin.IMPORTED_PWA,
             verification = Verification.LOCAL_UNVERIFIED,
         )
+    }
+
+    // ---------------------------------------------------------------- Mission extras
+
+    /** Android Zeitplan extension; unknown or invalid values fall back to "not set". */
+    private fun schedule(android: JsonObject?): MissionSchedule {
+        android ?: return MissionSchedule()
+        val days = (android["preferredWeekdays"] as? JsonArray).orEmpty()
+            .mapNotNull { (it as? JsonPrimitive)?.takeIf { p -> !p.isString }?.doubleOrNull?.toInt()?.takeIf { d -> d in 1..7 }?.let(DayOfWeek::of) }.toSet()
+        return MissionSchedule(
+            startMode = ScheduleStartMode.fromWire(android.str("startMode")),
+            preferredWeekdays = days,
+            preferredSessionMinutes = android.num("preferredSessionMinutes")?.toInt()?.takeIf { it in MissionSchedule.SESSION_MINUTES },
+        )
+    }
+
+    /** PWA `aiList` bounds for step tools and apps: 12 items of 120 characters. */
+    private fun textList(e: JsonElement?): List<String> = (e as? JsonArray).orEmpty().take(12)
+        .mapNotNull { (it as? JsonPrimitive)?.takeIf { p -> p.isString }?.content?.let(::cleanText)?.take(120)?.ifEmpty { null } }.distinct()
+
+    private fun cleanText(v: String): String = v.replace(CONTROL, " ").trim()
+
+    /**
+     * `progress.history` of the imported Missions: only entries whose Session id is safe and whose
+     * step belongs to that Mission. They let an adaptation after a restore see the same history.
+     */
+    private fun mapProgress(raw: List<JsonElement>, missions: List<Mission>): List<MissionProgressEntry> {
+        val byId = missions.associateBy { it.id.value }
+        val seen = HashSet<String>()
+        return raw.take(limits.maxMissions).flatMap { el ->
+            val m = el as? JsonObject ?: return@flatMap emptyList()
+            val mission = byId[m.str("id")] ?: return@flatMap emptyList()
+            val history = ((m["progress"] as? JsonObject)?.get("history") as? JsonArray).orEmpty().take(limits.maxArrayLength)
+            history.mapNotNull { h ->
+                val e = h as? JsonObject ?: return@mapNotNull null
+                val sessionId = e.str("sessionId")?.takeIf { EntityIds.isSafe(it) && seen.add(it) } ?: return@mapNotNull null
+                val stepId = e.str("stepId")?.let(::MissionStepId)?.takeIf { sid -> mission.steps.any { it.id == sid } } ?: return@mapNotNull null
+                MissionProgressEntry(
+                    sessionId = SessionId(sessionId),
+                    missionId = mission.id,
+                    stepId = stepId,
+                    outcome = SessionOutcome.fromWire(e.str("outcome")) ?: return@mapNotNull null,
+                    rating = e.num("rating")?.toInt()?.takeIf { it in 1..5 },
+                    actualMinutes = e.num("actualMinutes")?.toInt()?.takeIf { it in 0..limits.maxMinutes } ?: return@mapNotNull null,
+                    plannedMinutes = e.num("plannedMinutes")?.toInt()?.takeIf { it in 1..limits.maxMinutes } ?: return@mapNotNull null,
+                    appliedAt = instant(e["appliedAt"]) ?: return@mapNotNull null,
+                )
+            }
+        }
     }
 
     // ---------------------------------------------------------------- primitives
@@ -351,6 +446,7 @@ class PwaBackupImporter(private val limits: ImportLimits = ImportLimits()) {
     }
 
     private companion object {
+        val CONTROL = Regex("[\\u0000-\\u001F\\u007F]")
         val KNOWN_DOMAINS = setOf("bundle", "missions", "missionSteps", "sessions", "sessionHistory", "preferences", "recovery")
         val ISO_DATE = Regex("^\\d{4}-\\d{2}-\\d{2}$")
         const val MAX_EPOCH_MS = 4_102_444_800_000L // 2100-01-01

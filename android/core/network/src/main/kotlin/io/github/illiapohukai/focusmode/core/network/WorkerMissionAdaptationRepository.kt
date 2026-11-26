@@ -54,6 +54,8 @@ internal data class AdaptedSessionDto(
     val task: String? = null,
     val durationMinutes: Double? = null,
     val reason: String? = null,
+    val requiredTools: kotlinx.serialization.json.JsonElement? = null,
+    val recommendedApps: kotlinx.serialization.json.JsonElement? = null,
 )
 
 @Serializable
@@ -147,7 +149,7 @@ class WorkerMissionAdaptationRepository(
             val task = MissionPlanMapper.text(s.task, MissionPlanRules.TEXT_MAX)
             val minutes = s.durationMinutes?.takeIf { it.isFinite() }?.let { Math.round(it).toInt() }
             if (title.isEmpty() || minutes == null || minutes !in MissionPlanRules.STEP_MINUTES) return null
-            AdaptedStep(title, task, minutes, MissionPlanMapper.text(s.reason, MissionPlanRules.TEXT_MAX))
+            AdaptedStep(title, task, minutes, MissionPlanMapper.text(s.reason, MissionPlanRules.TEXT_MAX), MissionPlanMapper.tools(s.requiredTools), MissionPlanMapper.tools(s.recommendedApps))
         }
         if (steps.map { it.title.lowercase() to it.task.lowercase() }.toSet().size != steps.size) return null
         val message = MissionPlanMapper.text(dto.message, MissionPlanRules.ITEM_MAX)

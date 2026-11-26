@@ -29,6 +29,8 @@ interface SessionNotifications {
 interface ReminderNotifications {
     fun showReminder(reminder: io.github.illiapohukai.focusmode.core.model.Reminder): Boolean
     fun showDistractionHint(remainingMinutes: Int): Boolean
+    /** Removes every notification Focus Mode+ has posted (used by full data deletion). */
+    fun clearAll() {}
 }
 
 /** Opens a system settings screen; false when the device offers none. */

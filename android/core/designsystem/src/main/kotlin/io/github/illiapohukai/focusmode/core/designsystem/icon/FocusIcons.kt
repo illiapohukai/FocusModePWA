@@ -78,4 +78,8 @@ object FocusIcons {
     val Rotate = icon("rotate", "M4 12a8 8 0 1 0 2.4-5.7", "M4 4v4.5h4.5")
     val Gauge = icon("gauge", "M4 17a8 8 0 1 1 16 0", "M12 17l4-5")
     val Flame = icon("flame", "M12 21c-3.6 0-6-2.4-6-5.6c0-3.4 2.6-5 3.6-8.4c1.5 1.2 2 2.7 2 4c1-0.8 1.6-2 1.7-3.5c2.4 2 4.7 4.6 4.7 7.9C18 18.6 15.6 21 12 21z")
+    val Camera = icon("camera", "M4 8h3.2l1.8-2.5h6l1.8 2.5H20v11H4z", "M12 10a3.5 3.5 0 1 0 0 7a3.5 3.5 0 1 0 0 -7z")
+    val Mic = icon("mic", "M12 3.5a2.5 2.5 0 0 0-2.5 2.5v6a2.5 2.5 0 0 0 5 0V6A2.5 2.5 0 0 0 12 3.5z", "M6.5 11.5a5.5 5.5 0 0 0 11 0", "M12 17v3.5")
+    val Upload = icon("upload", "M12 20V9", "M7 13.5l5-5l5 5", "M5 4h14")
+    val Medal = icon("medal", "M8.5 3.5l2.3 6", "M15.5 3.5l-2.3 6", "M12 10a5 5 0 1 0 0 10a5 5 0 1 0 0 -10z")
 }

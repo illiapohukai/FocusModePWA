@@ -111,6 +111,14 @@ class RoomMissionRepository @Inject constructor(
         MissionWriteResult.Ok(mission)
     }.also { clearSelectionIf(id, it) }
 
+    /** PWA `renameMissionV116`: one row update; the id (identity colour, steps, History, reminders) stays. */
+    override suspend fun rename(id: MissionId, title: String): MissionWriteResult = db.withTransaction {
+        val mission = dao.get(id.value)?.toModel() ?: return@withTransaction MissionWriteResult.Rejected("mission_not_found")
+        val renamed = MissionRules.rename(mission, title, clock.now()) ?: return@withTransaction MissionWriteResult.Rejected("title_invalid")
+        if (renamed != mission) dao.update(renamed.toEntity())
+        MissionWriteResult.Ok(renamed)
+    }
+
     /** The primary/selected Mission preference never points at an inactive or deleted Mission. */
     private suspend fun clearSelectionIf(id: MissionId, result: MissionWriteResult) {
         if (result is MissionWriteResult.Ok && preferences.current().lastSelectedMissionId == id.value) preferences.setLastSelectedMission(null)

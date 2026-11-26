@@ -73,7 +73,9 @@ class SchedulesViewModel @Inject constructor(
                     next?.let { NEXT.format(ZonedDateTime.ofInstant(it.reminderAt(s.leadTimeMinutes), clock.zone())) },
                 )
             },
+            // No delivery claim before the capability owner has read the platform state.
             delivery = when {
+                p == null -> ""
                 !canNotify -> p?.notifications?.let { NotificationCapability.deliveryLabel(it.deliveryFor(FocusChannel.REMINDERS)) } + " – Erinnerungen werden nicht angezeigt."
                 exact -> "Erinnerungen werden pünktlich zugestellt."
                 else -> "Erinnerungen kommen ungefähr pünktlich, meist innerhalb weniger Minuten. Akku-Optimierung kann sie verzögern."

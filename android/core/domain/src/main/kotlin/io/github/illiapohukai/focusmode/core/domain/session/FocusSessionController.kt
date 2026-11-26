@@ -64,6 +64,13 @@ interface FocusSessionController {
     suspend fun submitMissionReview(review: MissionReview): Boolean
     suspend fun submitMissionReview(stepCompleted: Boolean, rating: Int?): Boolean =
         submitMissionReview(MissionReview(if (stepCompleted) SessionOutcome.COMPLETED else SessionOutcome.PARTIAL, rating))
+    /**
+     * "Alle persönlichen und nutzergenerierten Daten löschen": the running, frozen or pending
+     * Session is dropped without a History record (it is about to be erased anyway); the
+     * foreground service, end alarm and Session notifications stop and DND is restored if
+     * Focus Mode+ changed it. Afterwards the state is Idle.
+     */
+    suspend fun abandonForDataDeletion()
     /** Coarse runtime tick (minute cadence): checkpoint and detect completion. */
     suspend fun onRuntimeTick()
     fun read(): ElapsedReading?

@@ -35,6 +35,8 @@ data class AppPreferences(
     val lastSelectedMissionId: String? = null,
     val notificationPermissionRequests: Int = 0,
     val featureFlags: FeatureFlags = FeatureFlags(),
+    /** When this device last wrote a backup file (PWA "Letztes Backup"); null = never. */
+    val lastExportAt: java.time.Instant? = null,
 ) {
     companion object {
         const val DEFAULT_QUICK_MINUTES = 25

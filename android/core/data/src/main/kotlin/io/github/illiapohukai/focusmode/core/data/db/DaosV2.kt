@@ -91,4 +91,39 @@ interface MissionProgressDao {
 
     @Query("SELECT * FROM mission_progress WHERE mission_id = :missionId ORDER BY applied_at ASC, session_id ASC")
     suspend fun forMission(missionId: String): List<MissionProgressEntity>
+
+    @Query("SELECT * FROM mission_progress ORDER BY applied_at ASC, session_id ASC")
+    suspend fun all(): List<MissionProgressEntity>
+}
+
+/**
+ * Full personal-data deletion (v20). Children before parents so foreign keys hold at every
+ * step; always called inside one transaction. Reminder rows are not deleted here: the reminder
+ * scheduler cancels each scheduled occurrence first (see `PersonalDataEraser`).
+ */
+@Dao
+interface PersonalDataDao {
+    @Query("DELETE FROM active_session") suspend fun clearActiveSession()
+    @Query("DELETE FROM mission_progress") suspend fun clearMissionProgress()
+    @Query("DELETE FROM mission_draft_steps") suspend fun clearDraftSteps()
+    @Query("DELETE FROM mission_drafts") suspend fun clearDrafts()
+    @Query("DELETE FROM session_results") suspend fun clearHistory()
+    @Query("DELETE FROM mission_steps") suspend fun clearMissionSteps()
+    @Query("DELETE FROM missions") suspend fun clearMissions()
+    @Query("DELETE FROM activity_log") suspend fun clearActivity()
+    @Query("DELETE FROM selected_apps") suspend fun clearSelectedApps()
+    @Query("DELETE FROM schedule_apps") suspend fun clearScheduleApps()
+    @Query("DELETE FROM focus_schedules") suspend fun clearSchedules()
+    @Query("DELETE FROM session_distractions") suspend fun clearDistractions()
+    @Query("DELETE FROM dnd_override") suspend fun clearDndOverride()
+    @Query("DELETE FROM reminders") suspend fun clearReminders()
+
+    /** Rows that would survive a deletion; 0 after a complete one. */
+    @Query(
+        "SELECT (SELECT COUNT(*) FROM missions) + (SELECT COUNT(*) FROM mission_steps) + (SELECT COUNT(*) FROM mission_drafts) + " +
+            "(SELECT COUNT(*) FROM mission_progress) + (SELECT COUNT(*) FROM session_results) + (SELECT COUNT(*) FROM active_session) + " +
+            "(SELECT COUNT(*) FROM activity_log) + (SELECT COUNT(*) FROM selected_apps) + (SELECT COUNT(*) FROM focus_schedules) + " +
+            "(SELECT COUNT(*) FROM session_distractions) + (SELECT COUNT(*) FROM dnd_override) + (SELECT COUNT(*) FROM reminders)",
+    )
+    suspend fun remainingRows(): Int
 }

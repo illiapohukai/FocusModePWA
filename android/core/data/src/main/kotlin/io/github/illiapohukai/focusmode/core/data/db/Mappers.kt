@@ -4,6 +4,7 @@ import io.github.illiapohukai.focusmode.core.domain.ai.GeneratedMissionPlan
 import io.github.illiapohukai.focusmode.core.domain.ai.GeneratedStep
 import io.github.illiapohukai.focusmode.core.domain.ai.GenerationConfidence
 import io.github.illiapohukai.focusmode.core.domain.ai.GenerationError
+import io.github.illiapohukai.focusmode.core.domain.ai.SourceAnalysis
 import io.github.illiapohukai.focusmode.core.domain.mission.DraftAttachment
 import io.github.illiapohukai.focusmode.core.domain.mission.MissionDraft
 import io.github.illiapohukai.focusmode.core.domain.mission.MissionDraftPhase
@@ -90,7 +91,13 @@ fun MissionStepEntity.toModel(): MissionStep? = MissionStep(
     reason = reason,
     scheduledDate = scheduledDate,
     completedAt = completedAt,
+    requiredTools = linesOf(requiredTools),
+    recommendedApps = linesOf(recommendedApps),
 )
+
+/** One list item per line. Items are control-stripped by their producers, so they never contain a line break. */
+internal fun linesOf(text: String): List<String> = if (text.isEmpty()) emptyList() else text.split('\n').map(String::trim).filter(String::isNotEmpty)
+internal fun lines(items: List<String>): String = items.map { it.replace('\n', ' ').replace('\r', ' ').trim() }.filter(String::isNotEmpty).joinToString("\n")
 
 fun Mission.toEntity() = MissionEntity(
     id = id.value, title = title, subject = subject, type = type.wire, deadlineText = deadlineText,
@@ -105,7 +112,7 @@ fun Mission.toEntity() = MissionEntity(
 fun MissionStep.toEntity() = MissionStepEntity(
     id = id.value, missionId = missionId.value, position = position, title = title, task = task,
     durationMinutes = durationMinutes, status = status.wire, reason = reason, scheduledDate = scheduledDate,
-    completedAt = completedAt,
+    completedAt = completedAt, requiredTools = lines(requiredTools), recommendedApps = lines(recommendedApps),
 )
 
 fun ActiveSessionEntity.toModel(): FocusSession? = runCatching {
@@ -237,11 +244,21 @@ fun MissionDraftWithSteps.toModel(): MissionDraft? = runCatching {
             subject = d.planSubject.orEmpty(),
             type = MissionType.fromWire(d.planType),
             deadlineText = d.planDeadlineText.orEmpty(),
-            steps = steps.sortedBy { it.position }.map { GeneratedStep(it.stepId, it.title, it.task, it.durationMinutes, it.reason, it.scheduledDate) },
+            steps = steps.sortedBy { it.position }.map {
+                GeneratedStep(it.stepId, it.title, it.task, it.durationMinutes, it.reason, it.scheduledDate, linesOf(it.requiredTools), linesOf(it.recommendedApps))
+            },
             estimateTotalMinutes = d.planEstimateMinutes ?: steps.sumOf { it.durationMinutes },
             scheduleWarning = d.planWarning,
             difficulty = d.planDifficulty,
             explanation = d.planExplanation.orEmpty(),
+            source = SourceAnalysis(
+                detectedTasks = d.sourceDetectedTasks,
+                detectedPages = d.sourceDetectedPages,
+                confidencePercent = d.sourceConfidence?.takeIf { it in 1..100 },
+                missingInformation = linesOf(d.sourceMissing),
+                facts = linesOf(d.sourceFacts),
+                estimates = linesOf(d.sourceEstimates),
+            ),
         )
     } else null
     val phase = enumOrNull<MissionDraftPhase>(d.phase) ?: MissionDraftPhase.EDITING
@@ -302,10 +319,18 @@ fun MissionDraft.toEntity() = MissionDraftEntity(
     planWarning = plan?.scheduleWarning,
     createdAt = createdAt,
     updatedAt = updatedAt,
+    sourceDetectedTasks = plan?.source?.detectedTasks.orEmpty(),
+    sourceDetectedPages = plan?.source?.detectedPages.orEmpty(),
+    sourceConfidence = plan?.source?.confidencePercent,
+    sourceMissing = lines(plan?.source?.missingInformation.orEmpty()),
+    sourceFacts = lines(plan?.source?.facts.orEmpty()),
+    sourceEstimates = lines(plan?.source?.estimates.orEmpty()),
 )
 
 fun MissionDraft.stepEntities(): List<MissionDraftStepEntity> =
-    plan?.steps.orEmpty().mapIndexed { i, s -> MissionDraftStepEntity(0, i, s.id, s.title, s.task, s.durationMinutes, s.reason, s.scheduledDate) }
+    plan?.steps.orEmpty().mapIndexed { i, s ->
+        MissionDraftStepEntity(0, i, s.id, s.title, s.task, s.durationMinutes, s.reason, s.scheduledDate, lines(s.requiredTools), lines(s.recommendedApps))
+    }
 
 fun MissionProgressEntity.toModel(): MissionProgressEntry? = runCatching {
     MissionProgressEntry(

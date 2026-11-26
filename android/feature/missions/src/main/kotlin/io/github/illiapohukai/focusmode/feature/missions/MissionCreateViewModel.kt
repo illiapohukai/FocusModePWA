@@ -339,6 +339,51 @@ class MissionCreateViewModel @Inject constructor(
         }
     }
 
+    /**
+     * System camera (PWA "Foto aufnehmen", `capture="environment"`): asks the one photo owner for
+     * a fresh FileProvider target and remembers it across process death while the camera app is
+     * open. No camera permission is involved; the photo takes the same path as a picked one.
+     */
+    fun requestCapture(launch: (String) -> Unit) {
+        viewModelScope.launch {
+            val target = material.captureTarget()
+            if (target == null) {
+                updateLocal { it.copy(photoMessage = "Die Kamera ist auf diesem Gerät nicht verfügbar. Wähle ein Foto aus der Galerie.") }
+                return@launch
+            }
+            savedState[KEY_CAPTURE] = target
+            launch(target)
+        }
+    }
+
+    /** Camera result: on success the captured photo is checked, re-encoded and its original deleted. */
+    fun onCaptured(success: Boolean) {
+        val target = savedState.get<String>(KEY_CAPTURE)
+        savedState.remove<String>(KEY_CAPTURE)
+        if (success && target != null) onPhotoPicked(target)
+    }
+
+    fun onCameraUnavailable() = updateLocal { it.copy(photoMessage = "Keine Kamera-App verfügbar. Wähle ein Foto aus der Galerie.") }
+
+    /**
+     * System speech input (PWA "Diktieren"): only the recognized text arrives here; it is added to
+     * the goal field, where it can be read and edited before anything is sent. Audio never reaches
+     * Focus Mode+ or the AI Worker.
+     */
+    fun onDictated(text: String?) {
+        val clean = text?.replace(Regex("[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F]"), " ")?.trim().orEmpty()
+        if (clean.isEmpty()) return
+        val current = goal.value
+        val joined = if (current.isBlank()) clean else current.trimEnd() + " " + clean
+        onGoalChange(joined.take(GOAL_DICTATION_CAP))
+        updateLocal { it.copy(photoMessage = null) }
+        _events.tryEmit(CreateEvent.Message("Diktat eingefügt – prüfe den Text, bevor du planst."))
+    }
+
+    fun onDictationUnavailable() {
+        _events.tryEmit(CreateEvent.Message("Spracheingabe ist auf diesem Gerät nicht verfügbar. Du kannst dein Ziel eintippen."))
+    }
+
     fun removePhoto() {
         viewModelScope.launch {
             material.clear()
@@ -392,5 +437,9 @@ class MissionCreateViewModel @Inject constructor(
         const val KEY_MONTH = "planner_month"
         const val KEY_INSPECT = "planner_inspect"
         const val KEY_RHYTHM = "rhythm_open"
+        /** The FileProvider target while the system camera is open (survives process death). */
+        const val KEY_CAPTURE = "camera_capture_target"
+        /** Same bound as the text field (the plan button explains anything above 6000). */
+        const val GOAL_DICTATION_CAP = 6500
     }
 }

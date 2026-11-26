@@ -152,6 +152,11 @@ class FakeMissionRepository(private val clock: FakeClock) : MissionRepository {
         progress.value = progress.value.filterNot { it.missionId == id }
         return MissionWriteResult.Ok(m)
     }
+    override suspend fun rename(id: MissionId, title: String): MissionWriteResult {
+        val m = getMission(id) ?: return MissionWriteResult.Rejected("mission_not_found")
+        val r = MissionRules.rename(m, title, clock.now()) ?: return MissionWriteResult.Rejected("title_invalid")
+        put(r); return MissionWriteResult.Ok(r)
+    }
     override fun observeDraft(): Flow<MissionDraft?> = draft
     override suspend fun getDraft(): MissionDraft? = draft.value
     override suspend fun saveDraft(draft: MissionDraft) { this.draft.value = draft }
@@ -201,6 +206,10 @@ class FakePreferencesRepository(initial: AppPreferences = AppPreferences()) : Pr
     override suspend fun setLastSelectedMission(id: String?) = edit { it.copy(lastSelectedMissionId = id) }
     override suspend fun incrementNotificationPermissionRequests() = edit { it.copy(notificationPermissionRequests = it.notificationPermissionRequests + 1) }
     override suspend fun setPwaImportEnabled(enabled: Boolean) = edit { it.copy(featureFlags = it.featureFlags.copy(pwaImportEnabled = enabled)) }
+    override suspend fun setLastExportAt(at: Instant) = edit { it.copy(lastExportAt = at) }
+    override suspend fun resetUserPreferences() = edit {
+        AppPreferences(notificationPermissionRequests = it.notificationPermissionRequests, featureFlags = it.featureFlags)
+    }
 }
 
 class FakeScheduleRepository : ScheduleRepository {
@@ -266,6 +275,8 @@ class FakePlatform : SessionRuntime, SessionEndAlarm, SessionNotifications, Remi
     override fun clearSessionNotifications() { cleared++ }
     override fun showReminder(reminder: Reminder): Boolean = notificationsDeliverable.also { if (it) reminders += reminder }
     override fun showDistractionHint(remainingMinutes: Int): Boolean = notificationsDeliverable.also { if (it) hints++ }
+    var allCleared = 0
+    override fun clearAll() { allCleared++ }
     override fun isSupported() = true
     override fun hasAccess() = dndAccess
     override suspend fun applyForSession(sessionId: SessionId): DndApplyResult =

@@ -3,6 +3,7 @@ package io.github.illiapohukai.focusmode.feature.missions
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.net.toUri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -103,6 +104,14 @@ fun MissionCreateRoute(actions: MissionFlowActions, snackbar: SnackbarHostState,
     }
     // System photo picker: no storage permission; one image (PWA MISSION_IMAGE_MAX_ATTACHMENTS).
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri -> viewModel.onPhotoPicked(uri?.toString()) }
+    // System camera and system speech input run in other apps: no CAMERA or RECORD_AUDIO permission.
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { ok -> viewModel.onCaptured(ok) }
+    val speech = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { r ->
+        viewModel.onDictated(r.data?.getStringArrayListExtra(android.speech.RecognizerIntent.EXTRA_RESULTS)?.firstOrNull())
+    }
+    val canCapture = androidx.compose.runtime.remember { SystemInputs.canCapture(context) }
+    val canDictate = androidx.compose.runtime.remember { SystemInputs.canDictate(context) }
     MissionCreateScreen(
         state = state,
         onBack = actions.onBack,
@@ -123,6 +132,12 @@ fun MissionCreateRoute(actions: MissionFlowActions, snackbar: SnackbarHostState,
             onWeekdayPreset = viewModel::weekdayPreset,
             onSessionMinutes = viewModel::selectSessionMinutes,
             onAddPhoto = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+            onCapturePhoto = if (!canCapture) null else {
+                { viewModel.requestCapture { target -> runCatching { camera.launch(target.toUri()) }.onFailure { viewModel.onCameraUnavailable() } } }
+            },
+            onDictate = if (!canDictate) null else {
+                { runCatching { speech.launch(SystemInputs.dictationIntent()) }.onFailure { viewModel.onDictationUnavailable() } }
+            },
             onRemovePhoto = viewModel::removePhoto,
             onDismissPhotoMessage = viewModel::dismissPhotoMessage,
             onPlan = viewModel::plan,
@@ -148,6 +163,10 @@ data class CreateCallbacks(
     val onWeekdayPreset: (Set<DayOfWeek>) -> Unit = {},
     val onSessionMinutes: (Int?) -> Unit = {},
     val onAddPhoto: () -> Unit = {},
+    /** PWA "Foto aufnehmen"; null when the device has no camera app (the button is hidden). */
+    val onCapturePhoto: (() -> Unit)? = null,
+    /** PWA "Diktieren"; null when no speech input is available (the button is hidden). */
+    val onDictate: (() -> Unit)? = null,
     val onRemovePhoto: () -> Unit = {},
     val onDismissPhotoMessage: () -> Unit = {},
     val onPlan: () -> Unit = {},
@@ -276,6 +295,14 @@ private fun GoalInput(state: CreateUiState, callbacks: CreateCallbacks) {
                     .semantics { contentDescription = "Foto hinzufügen" }.testTag("create_add_photo"),
                 contentAlignment = Alignment.Center,
             ) { Icon(FocusIcons.Paperclip, null, tint = FocusPalette.Graphite, modifier = Modifier.size(20.dp)) }
+            callbacks.onDictate?.let { dictate ->
+                Spacer(Modifier.width(Spacing.xs))
+                InputButton(FocusIcons.Mic, "Diktieren", !state.generating, dictate, "create_dictate")
+            }
+            callbacks.onCapturePhoto?.let { capture ->
+                Spacer(Modifier.width(Spacing.xs))
+                InputButton(FocusIcons.Camera, "Foto aufnehmen", !state.preparingPhoto && !state.generating, capture, "create_capture_photo")
+            }
             Spacer(Modifier.width(Spacing.sm))
             val hint = when {
                 state.preparingPhoto -> "Foto wird vorbereitet …"
@@ -289,6 +316,33 @@ private fun GoalInput(state: CreateUiState, callbacks: CreateCallbacks) {
             }
         }
     }
+}
+
+@Composable
+private fun InputButton(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, enabled: Boolean, onClick: () -> Unit, tag: String) {
+    Box(
+        Modifier.size(48.dp).clip(Radii.control).background(FocusPalette.SurfaceMuted)
+            .clickable(enabled = enabled, role = Role.Button, onClickLabel = label, onClick = onClick)
+            .semantics { contentDescription = label }.testTag(tag),
+        contentAlignment = Alignment.Center,
+    ) { Icon(icon, null, tint = FocusPalette.Graphite, modifier = Modifier.size(20.dp)) }
+}
+
+/** Availability of the system camera and speech input, resolved through the narrow `<queries>`. */
+internal object SystemInputs {
+    fun canCapture(context: android.content.Context): Boolean =
+        context.packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_CAMERA_ANY) &&
+            context.packageManager.resolveActivity(android.content.Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE), 0) != null
+
+    fun canDictate(context: android.content.Context): Boolean =
+        context.packageManager.resolveActivity(android.content.Intent(android.speech.RecognizerIntent.ACTION_RECOGNIZE_SPEECH), 0) != null
+
+    /** One explicit utterance in German; the system shows what it heard, the text lands in the field. */
+    fun dictationIntent(): android.content.Intent = android.content.Intent(android.speech.RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+        .putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE_MODEL, android.speech.RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+        .putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE, "de-DE")
+        .putExtra(android.speech.RecognizerIntent.EXTRA_PROMPT, "Beschreibe dein Ziel")
+        .putExtra(android.speech.RecognizerIntent.EXTRA_MAX_RESULTS, 1)
 }
 
 /** Input never grows unbounded; above 6000 characters the plan button explains the limit. */
@@ -317,7 +371,7 @@ private fun ErrorCard(error: GenerationError, requestId: String?, canRetry: Bool
 private fun Notice(text: String, level: ScheduleNoticeLevel, modifier: Modifier = Modifier, onDismiss: (() -> Unit)? = null) {
     val (bg, fg) = when (level) {
         ScheduleNoticeLevel.ERROR -> FocusPalette.DangerTint to FocusPalette.Danger
-        ScheduleNoticeLevel.WARN -> Color(0xFFFFF4E5) to Color(0xFF8A4B0F)
+        ScheduleNoticeLevel.WARN -> Color(0xFFFFF4E5) to FocusPalette.AmberInk
         ScheduleNoticeLevel.INFO -> FocusPalette.PurpleTint to FocusPalette.PurpleInk
     }
     Row(
@@ -647,7 +701,8 @@ private fun PrivacyNote() {
         if (open) {
             Text(
                 "Erst nach „Mission planen“: dein Ziel-Text, ein ausgewähltes Foto sowie Mission-Typ, Sicherheit und der gewählte Zeitplan gehen an den AI-Dienst (unser Server bei Cloudflare, Modell: Google Gemini). Fotos werden vorher verkleinert und ohne Metadaten (z. B. Standort) übertragen. " +
-                    "Missionen, Sitzungsverlauf, Serie, ausgewählte Apps und Einstellungen bleiben auf diesem Gerät.",
+                    "Missionen, Sitzungsverlauf, Serie, ausgewählte Apps und Einstellungen bleiben auf diesem Gerät. " +
+                    "Diktieren nutzt die Spracheingabe deines Geräts: Focus Mode+ erhält nur den erkannten Text, nie eine Aufnahme.",
                 style = MaterialTheme.typography.bodySmall, color = FocusPalette.GraphiteSoft, modifier = Modifier.padding(top = 6.dp),
             )
         }

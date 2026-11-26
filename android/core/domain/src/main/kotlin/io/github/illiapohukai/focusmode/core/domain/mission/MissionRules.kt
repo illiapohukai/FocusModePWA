@@ -109,6 +109,8 @@ object MissionRules {
                 status = if (i == 0) MissionStepStatus.ACTIVE else MissionStepStatus.PENDING,
                 reason = s.reason,
                 scheduledDate = s.scheduledDate,
+                requiredTools = s.requiredTools,
+                recommendedApps = s.recommendedApps,
             )
         }
         val schedule = draft.schedule
@@ -148,9 +150,27 @@ object MissionRules {
             MissionStep(
                 id = newStepId(), missionId = mission.id, position = base + i, title = a.title, task = a.task,
                 durationMinutes = a.durationMinutes, status = if (i == 0) MissionStepStatus.ACTIVE else MissionStepStatus.PENDING, reason = a.reason,
+                requiredTools = a.requiredTools, recommendedApps = a.recommendedApps,
             )
         }
         return mission.copy(steps = completed + fresh, currentStepId = fresh.first().id, updatedAt = at)
+    }
+
+    /** PWA `renameMissionV116`: at most 80 characters, never empty. */
+    const val TITLE_MAX = 80
+    private val CONTROL = Regex("[\\u0000-\\u001F\\u007F]")
+
+    /** The cleaned title, or null when nothing usable remains. */
+    fun cleanTitle(raw: String): String? = raw.replace(CONTROL, " ").trim().take(TITLE_MAX).trim().ifEmpty { null }
+
+    /**
+     * PWA `renameMissionV116`: only the title changes. The Mission id (and therefore its identity
+     * colour, reminders, History links and progress) stays exactly the same.
+     */
+    fun rename(mission: Mission, title: String, at: Instant): Mission? {
+        val clean = cleanTitle(title) ?: return null
+        if (clean == mission.title) return mission
+        return mission.copy(title = clean, updatedAt = at)
     }
 
     /** PWA `archiveMissionV116`: keeps the current step for a later restore. */

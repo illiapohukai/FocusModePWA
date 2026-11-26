@@ -194,7 +194,7 @@ fun MissionGenerateScreen(state: GenerateUiState, onCancel: () -> Unit, onSucces
                 }
                 Text(
                     status,
-                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp), color = if (success) Color(0xFF15803D) else FocusPalette.Purple,
+                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp), color = if (success) FocusPalette.GreenInk else FocusPalette.Purple,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.widthIn(max = 300.dp).heightIn(min = 18.dp).semantics { liveRegion = LiveRegionMode.Polite }.testTag("generate_status"),
                 )
@@ -229,7 +229,7 @@ private fun RouteDots(success: Boolean, reduced: Boolean) {
                         label = "dot$i",
                     ).value
                 }
-                Box(Modifier.size(8.dp).clip(CircleShape).alpha(alpha).background(if (success) Color(0xFF15803D) else FocusPalette.PurpleBright))
+                Box(Modifier.size(8.dp).clip(CircleShape).alpha(alpha).background(if (success) FocusPalette.GreenInk else FocusPalette.PurpleBright))
             }
         }
     }

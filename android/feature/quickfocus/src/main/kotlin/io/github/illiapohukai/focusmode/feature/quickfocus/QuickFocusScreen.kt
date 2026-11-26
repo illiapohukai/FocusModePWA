@@ -167,7 +167,7 @@ fun QuickFocusScreen(
                         IconTile(
                             if (state.protectionReady) FocusIcons.ShieldCheck else FocusIcons.Shield,
                             background = SolidColor(if (state.protectionReady) FocusPalette.GreenTint else FocusPalette.PurpleTint),
-                            tint = if (state.protectionReady) Color(0xFF15803D) else FocusPalette.Purple,
+                            tint = if (state.protectionReady) FocusPalette.GreenInk else FocusPalette.Purple,
                         )
                         Spacer(Modifier.width(Spacing.sm))
                         Column(Modifier.weight(1f)) {

@@ -218,12 +218,14 @@ version.
 
 ## Known limitations
 
-- No camera capture or dictation on the goal input (PWA has both); photos come from the picker.
-- Briefing does not show the PWA "Aus dem Material erkannt" facts (the Android plan keeps only the
-  fields it stores); tools and recommended apps per step are not kept.
-- Mission title rename is not offered (PWA has it).
-- The plotted route is vertical; there is no free-form orbital animation.
-- Adaptation timeout is 60 s (PWA 120 s) to stay below the client's call timeout.
+v20 closed most v19 gaps (see [parity-matrix-v20.md](parity-matrix-v20.md)): the goal field now
+offers the system camera and system speech input; the Briefing shows "Aus dem Material erkannt"
+and the Worker's missing information; per-step tools and recommended apps are stored (Room v4)
+and shown; Missions can be renamed. Still open:
+
+- The plotted route is vertical; there is no free-form orbital animation (kept for readability).
+- Adaptation timeout is 60 s (PWA 120 s); audited in v20 and kept (no documented Worker budget
+  for `/adapt-mission`, the request stays below the 70 s client call timeout).
 - Worker behaviour was verified only against MockWebServer; no live Worker call was made.
 
 ## Verification (JVM only)

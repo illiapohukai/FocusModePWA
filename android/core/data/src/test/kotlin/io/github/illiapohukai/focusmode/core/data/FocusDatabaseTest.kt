@@ -81,6 +81,8 @@ class FocusDatabaseTest {
         override suspend fun setLastSelectedMission(id: String?) { state.value = state.value.copy(lastSelectedMissionId = id) }
         override suspend fun incrementNotificationPermissionRequests() = Unit
         override suspend fun setPwaImportEnabled(enabled: Boolean) = Unit
+        override suspend fun setLastExportAt(at: java.time.Instant) = Unit
+        override suspend fun resetUserPreferences() = Unit
     }
 
     @Before fun setUp() {

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Camera output for the Mission draft photo: one file in the cache (never backed up). It is
+     re-encoded without metadata by AndroidMissionMaterialStore and deleted right afterwards. -->
+<paths>
+    <cache-path name="material_capture" path="material_capture/" />
+</paths>

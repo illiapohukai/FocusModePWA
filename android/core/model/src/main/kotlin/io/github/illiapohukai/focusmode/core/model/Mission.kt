@@ -68,6 +68,10 @@ data class MissionStep(
     val reason: String = "",
     val scheduledDate: LocalDate? = null,
     val completedAt: Instant? = null,
+    /** Worker `requiredTools` (PWA "Du brauchst"): bounded short texts, shown only. */
+    val requiredTools: List<String> = emptyList(),
+    /** Worker `recommendedApps` (PWA "Empfohlene Apps"): text only, never selected or blocked. */
+    val recommendedApps: List<String> = emptyList(),
 )
 
 data class Mission(

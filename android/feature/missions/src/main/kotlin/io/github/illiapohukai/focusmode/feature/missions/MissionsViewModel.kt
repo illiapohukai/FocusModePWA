@@ -151,6 +151,7 @@ class MissionDetailViewModel @Inject constructor(
     fun archive() = write(close = false) { missions.archive(it) }
     fun restore() = write(close = false) { missions.restore(it) }
     fun delete() = write(close = true) { missions.delete(it) }
+    fun rename(title: String) = write(close = false) { missions.rename(it, title) }
 
     private fun write(close: Boolean, block: suspend (MissionId) -> MissionWriteResult) {
         val missionId = id ?: return
@@ -164,6 +165,7 @@ class MissionDetailViewModel @Inject constructor(
                         when (r.reason) {
                             "active_session_exists" -> "Diese Mission hat eine laufende Sitzung. Beende sie zuerst."
                             "active_mission_limit_reached" -> "Du hast bereits zwei aktive Missionen. Schließe eine ab oder archiviere sie."
+                            "title_invalid" -> "Bitte gib einen Titel ein."
                             else -> "Das hat nicht geklappt. Bitte versuche es erneut."
                         },
                     ),

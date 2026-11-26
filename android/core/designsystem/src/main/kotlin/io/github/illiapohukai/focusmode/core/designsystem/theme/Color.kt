@@ -30,6 +30,14 @@ object FocusPalette {
     val AubergineDeep = Color(0xFF160D1B)
     val Green = Color(0xFF16A34A)          // --success
     val GreenTint = Color(0xFFE7F4EC)
+    val GreenInk = Color(0xFF15803D)       // completed text (.history-status.status-completed)
+    /** Restrained warm amber for partial outcomes and gentle warnings (`.home-activity-row.outcome-partial`). */
+    val AmberInk = Color(0xFF8A4B0F)
+    /** Open outcome node border (`.outcome-aborted .home-activity-node`). */
+    val NodeOpen = Color(0xFFB3A897)
+    /** Light text on aubergine summary surfaces (Fokus-Bilanz, Settings hero). */
+    val HeroText = Color(0xFFE9E2F5)
+    val HeroMuted = Color(0xFFB9ADC9)
     val Danger = Color(0xFFB42318)
     val DangerTint = Color(0xFFFBE9E7)
     val Shadow = Color(0xFF25162B)         // shadows are aubergine-tinted, never black
@@ -38,6 +46,17 @@ object FocusPalette {
     val HeroCopy = Color(0xFFC0C6D5)       // .mh-empty-copy on aubergine
     val HeroKicker = Color(0xE0FFFFFF)     // .mh-kicker rgba(255,255,255,.88)
     val SurfaceGlass = Color(0xF7FCF9F4)   // floating nav rgba(252,249,244,.97)
+
+    // Fokus-Rhythmus chart and consistency grid (PWA styles/insights.css).
+    val ChartMission = Color(0xFF2E1A3B)   // .fm-chart-seg.is-mission
+    val ChartQuick = Color(0xFF8B5CF6)     // .fm-chart-seg.is-quick
+    val ChartPlaceholder = Color(0xFFE6DED1)
+    val ChartAxis = Color(0xFF8F877D)
+    val ChartBaseline = Color(0x1F2D231E)
+    val ChartAverage = Color(0x526D28D9)
+    val ConsistencyEmpty = Color(0xFFECE5D8)
+    val ConsistencyLow = Color(0xFFDCCDF6)
+    val ConsistencyMid = Color(0xFFA78BFA)
 
     // Cosmic Focus environment (dark).
     val Space = Color(0xFF05050A)

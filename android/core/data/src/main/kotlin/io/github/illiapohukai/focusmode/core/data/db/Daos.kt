@@ -87,6 +87,9 @@ interface SessionDao {
     @Query("SELECT * FROM session_results ORDER BY finished_at DESC, session_id DESC")
     fun observeResults(): Flow<List<SessionResultEntity>>
 
+    @Query("SELECT * FROM session_results ORDER BY finished_at DESC, session_id DESC")
+    suspend fun allResults(): List<SessionResultEntity>
+
     @Query("SELECT * FROM session_results WHERE session_id = :id")
     fun observeResult(id: String): Flow<SessionResultEntity?>
 

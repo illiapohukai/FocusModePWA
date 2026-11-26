@@ -71,6 +71,7 @@ import io.github.illiapohukai.focusmode.feature.focus.FocusDestination
 import io.github.illiapohukai.focusmode.feature.focus.focusScreen
 import io.github.illiapohukai.focusmode.feature.history.HistoryActions
 import io.github.illiapohukai.focusmode.feature.history.HistoryDestination
+import io.github.illiapohukai.focusmode.feature.history.InsightsDestination
 import io.github.illiapohukai.focusmode.feature.history.historyScreen
 import io.github.illiapohukai.focusmode.feature.home.HomeActions
 import io.github.illiapohukai.focusmode.feature.home.HomeDestination
@@ -98,6 +99,7 @@ import io.github.illiapohukai.focusmode.feature.result.ResultDestination
 import io.github.illiapohukai.focusmode.feature.result.navigateToResult
 import io.github.illiapohukai.focusmode.feature.result.resultScreen
 import io.github.illiapohukai.focusmode.feature.settings.AppSelectionDestination
+import io.github.illiapohukai.focusmode.feature.settings.DataBackupDestination
 import io.github.illiapohukai.focusmode.feature.settings.DataImportDestination
 import io.github.illiapohukai.focusmode.feature.settings.PermissionCenterDestination
 import io.github.illiapohukai.focusmode.feature.settings.SettingsActions
@@ -281,7 +283,10 @@ fun FocusApp(appViewModel: AppViewModel, window: Window) {
                     nav.missionFlowActions { nav.navigateRoot(Root.MISSIONS) },
                     { rootPadding }, snackbar,
                 )
-                historyScreen(HistoryActions(onOpenResult = { nav.navigateToResult(it) }, onQuickFocus = openQuickFocus), { rootPadding })
+                historyScreen(
+                    HistoryActions(onOpenResult = { nav.navigateToResult(it) }, onQuickFocus = openQuickFocus, onOpenInsights = { nav.navigate(InsightsDestination) }),
+                    { rootPadding }, onBack = { nav.popBackStack() },
+                )
                 settingsScreens(
                     SettingsActions(
                         onPermissions = { nav.navigate(PermissionCenterDestination) },
@@ -290,6 +295,7 @@ fun FocusApp(appViewModel: AppViewModel, window: Window) {
                         onImport = { nav.navigate(DataImportDestination) },
                         appVersion = BuildConfig.VERSION_NAME,
                         debugBuild = BuildConfig.DEBUG,
+                        onDataBackup = { nav.navigate(DataBackupDestination) },
                     ),
                     onBack = { nav.popBackStack() }, contentPadding = { rootPadding }, snackbar = snackbar,
                 )

@@ -1,8 +1,10 @@
-# PWA ↔ Android parity (v19)
+# PWA ↔ Android parity (v20)
 
 The PWA (repository root, v17.17) is the reference for product behavior. This file tracks every
-material difference. The screen-by-screen visual comparison of v18.1 is in
-[visual-parity-v18.1.md](visual-parity-v18.1.md); the v19 Mission slice is described in
+material difference. The full v20 audit with every screen, workflow and status is
+[parity-matrix-v20.md](parity-matrix-v20.md); visuals are in [visual-parity-v20.md](visual-parity-v20.md)
+(and [visual-parity-v18.1.md](visual-parity-v18.1.md) for unchanged screens); open items are in
+[remaining-gaps-after-v20.md](remaining-gaps-after-v20.md); the Mission slice is described in
 [missions-v19.md](missions-v19.md).
 
 ## Implemented
@@ -37,23 +39,32 @@ material difference. The screen-by-screen visual comparison of v18.1 is in
 | Home Mission states (v19) | first-time hero until the first Mission ever, returning card, one-Mission hero (progress left, start right), two-Mission carousel | `resolveHomeEmptyStateV1716`, `renderMissionHeroV116`, `renderHomeCarouselV116` |
 | Home Mission calendar (v19) | deadlines, starts, completions, focus days; compact empty note; events open their Mission | `mission-calendar.js` |
 | Archive / restore / delete (v19) | archive keeps the current step; restore respects the limit; delete keeps History | `archiveMissionV116`, `restoreMissionV116` |
+| Mission rename (v20) | title only (cleaned, 1–80 characters); id, identity colour, steps, History and reminder keys unchanged | `renameMissionV116` |
+| Material facts (v20) | Worker `sourceAnalysis` kept in the draft (Room v4): "Aus dem Material erkannt" / "Aus deinem Ziel erkannt", "Geschätzt", "AI-Erkennung", missing information under "Noch unklar", unreadable-photo note | `renderAIConfirmation` |
+| Step tools and apps (v20) | `requiredTools` / `recommendedApps` stored per step (Room v4), Briefing chips, Plan "Du brauchst"; apps are text only | `normalizeAIPlan`, `renderAIPlan` |
+| Camera (v20) | system camera into a FileProvider cache target, same re-encoding, original deleted; no CAMERA permission | `openRealFilePicker(true)` |
+| Fokus-Rhythmus (v20) | 7 Tage / 4 Wochen, Mission/Quick split, average, best period, trend, accessible bars | `FocusInsights.buildSeries`, `renderChart` |
+| Dein Fokusverlauf (v20) | total, average, completion rate, today, Konstanz grid, Bestwerte, Sitzungsarten | `computeInsights`, `refreshStatsScreen` |
+| History rows and Activity (v20) | Mission title and step, outcome node shapes, day-grouped Activity with Mission tone, PWA empty states | `createHistoryCard`, `renderHomeActivityTimelineV173` |
+| Backup export (v20) | `focusmode-backup` v1, full or "Nur Missionen & Einstellungen", SHA-256 over the canonical payload (byte-compatible both ways), safe file name, self-check before writing | `data-export.js` |
+| Backup integrity on import (v20) | mismatch and malformed digests rejected; verified / absent shown in the preview | `verifyBundleIntegrity` |
+| Delete all local data (v20) | Session dropped without History, one Room transaction, preferences reset (technical metadata kept), draft photo, reminders cancelled, notifications removed | `deleteAllLocalData` |
 
 ## Partially implemented
 
 | Area | State |
 |---|---|
-| Goal input | no camera capture and no dictation (the PWA offers both); photos come from the system picker. |
-| Briefing details | the PWA's "Aus dem Material erkannt" facts, open questions and per-step tools/apps are not kept on Android. |
-| Mission editing | renaming a Mission is not offered; changing a plan is done through the optional adaptation. |
+| Backup content | selected apps, Geplanter Fokus, reminder state and a running Session are not part of the file (stated on the export screen). |
+| Settings import | an imported backup never changes this device's settings (merge import). |
 | Reminders for Missions | from the stored deadline and preparation start of active Missions with open steps (both are set by v19 Mission Creation). |
-| Data export | not implemented (import only). |
 
 ## Deferred
 
-Leagues and score (server-authoritative in the future), Focus insights screen and Fokus-Rhythmus
-chart, home pull-refresh (coffee operator), managed-device enforcement, an explicit
+Leagues, score and the League links on Home and in Insights (server-authoritative in the future),
+AI Coach, Premium, language switch (German stays authoritative), home pull-refresh (coffee
+operator), the free-form orbital Mission route, managed-device enforcement, an explicit
 `AutomaticZenRule` DND integration, instrumented and device tests, a formatting check in CI
-(`.editorconfig` only), camera capture and dictation on the goal input, Mission rename.
+(`.editorconfig` only).
 
 ## Intentionally different
 
@@ -75,7 +86,15 @@ chart, home pull-refresh (coffee operator), managed-device enforcement, an expli
 | Markup in AI text | escaped at render time | the plan or adaptation is rejected as a whole | it is stored and exported, not only rendered |
 | Briefing primary action | "Plan übernehmen" | "Mission übernehmen" | v19 task wording; same behavior |
 | Leaving the generation screen | any route change cancels | Back or "Abbrechen" cancels; backgrounding keeps the one request running and its result lands in the draft | a native screen survives backgrounding; process death marks the draft interrupted |
-| Adaptation timeout | 120 s | 60 s | stays below the Android client's 70 s call timeout |
+| Adaptation timeout | 120 s | 60 s | audited in v20: below the client's 70 s call timeout; no Worker budget for `/adapt-mission` is documented (create-mission: 35 s / 47 s) |
+| Dictation | `mockVoiceInput()` re-types the existing text (demo) | real system speech input on an explicit tap; text lands in the editable field; no RECORD_AUDIO | native equivalent of a placeholder control |
+| Outcome indicators | coloured pills with check / x icons | node shapes (filled / half / open) with a German label | outcome never by colour alone, no crosses |
+| Import policy | replaces local data | merges, never overwrites an existing id | an import can never destroy local data |
+| Reserved server fields in a backup | file rejected | values ignored (never imported) | same outcome without failing legacy files |
+| Android backups | — | keep up to 5 000 Sessions (web backups: newest 500, as in the PWA) | Android History is not capped at 500 |
+| Duration format | "1h 5m" | "1 Std. 5 Min." | German wording, kept from v18 |
+| Mission rename UI | bottom sheet | dialog from the Plan top bar | Material pattern |
+| Delete-all confirmation | inline card | alert dialog | Material pattern, explicit destructive button |
 | Review default outcome | "Teilweise" preselected | "Abgeschlossen" when the planned time elapsed, otherwise "Teilweise" | matches what the Session already measured |
 | Backup step ids | n/a | colliding step ids are remapped with their History links | prevents overwriting another Mission's step |
 | Home calendar and reminders | calendar only | calendar plus the upcoming-reminders card | Android delivers real reminders |

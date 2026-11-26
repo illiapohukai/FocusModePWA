@@ -49,5 +49,26 @@ object Migrations {
         }
     }
 
-    val ALL = arrayOf(MIGRATION_1_2, MIGRATION_2_3)
+    /**
+     * v3 -> v4 (v20 parity): the verified Worker fields the PWA keeps but v19 dropped. Per step:
+     * `requiredTools` and `recommendedApps` (Missions and the draft); per draft: the plan's
+     * `sourceAnalysis` for the Briefing. Columns only; every existing row keeps its values and
+     * gets empty lists.
+     */
+    val MIGRATION_3_4 = object : Migration(3, 4) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `mission_steps` ADD COLUMN `required_tools` TEXT NOT NULL DEFAULT ''")
+            db.execSQL("ALTER TABLE `mission_steps` ADD COLUMN `recommended_apps` TEXT NOT NULL DEFAULT ''")
+            db.execSQL("ALTER TABLE `mission_draft_steps` ADD COLUMN `required_tools` TEXT NOT NULL DEFAULT ''")
+            db.execSQL("ALTER TABLE `mission_draft_steps` ADD COLUMN `recommended_apps` TEXT NOT NULL DEFAULT ''")
+            db.execSQL("ALTER TABLE `mission_drafts` ADD COLUMN `source_detected_tasks` TEXT NOT NULL DEFAULT ''")
+            db.execSQL("ALTER TABLE `mission_drafts` ADD COLUMN `source_detected_pages` TEXT NOT NULL DEFAULT ''")
+            db.execSQL("ALTER TABLE `mission_drafts` ADD COLUMN `source_confidence` INTEGER")
+            db.execSQL("ALTER TABLE `mission_drafts` ADD COLUMN `source_missing` TEXT NOT NULL DEFAULT ''")
+            db.execSQL("ALTER TABLE `mission_drafts` ADD COLUMN `source_facts` TEXT NOT NULL DEFAULT ''")
+            db.execSQL("ALTER TABLE `mission_drafts` ADD COLUMN `source_estimates` TEXT NOT NULL DEFAULT ''")
+        }
+    }
+
+    val ALL = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
 }

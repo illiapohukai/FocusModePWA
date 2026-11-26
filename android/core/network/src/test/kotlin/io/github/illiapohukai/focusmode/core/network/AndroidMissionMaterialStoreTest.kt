@@ -79,4 +79,29 @@ class AndroidMissionMaterialStoreTest {
         val r = store.prepare("file:///sdcard/secret.jpg") as MaterialPreparation.Rejected
         assertEquals(GenerationError.ImageProcessingFailed, r.error)
     }
+
+    /** v20 camera path: one FileProvider-style target; the original is deleted right after re-encoding. */
+    @Test fun cameraCaptureTargetIsProcessedLikeAPickedPhotoAndThenDeleted() = runBlocking {
+        val captureDir = File(context.cacheDir, "material_capture_test").apply { deleteRecursively() }
+        val camera = AndroidMissionMaterialStore(
+            context.contentResolver, File(context.noBackupFilesDir, "mission_material_camera_test"),
+            AndroidMissionMaterialStore.CaptureFiles(captureDir) { android.net.Uri.parse("content://io.github.illiapohukai.focusmode.test.materialcapture/material_capture/" + it.name) },
+        )
+        val target = camera.captureTarget()!!
+        val captured = File(captureDir, "capture.jpg")
+        assertTrue("an empty target exists for the camera app", captured.isFile)
+        org.robolectric.Shadows.shadowOf(context.contentResolver).registerInputStream(android.net.Uri.parse(target), java.io.ByteArrayInputStream(encode(1600, 1200, Bitmap.CompressFormat.JPEG)))
+        val r = camera.prepare(target)
+        assertTrue(r is MaterialPreparation.Ready)
+        assertTrue("the camera original (with its metadata) is gone", !captured.exists())
+        assertTrue(camera.load() != null)
+        camera.captureTarget()
+        camera.clear()
+        assertNull(camera.load())
+        assertTrue(captureDir.listFiles().isNullOrEmpty())
+    }
+
+    @Test fun storesWithoutACaptureDirectoryOfferNoCamera() = runBlocking {
+        assertNull(store.captureTarget())
+    }
 }

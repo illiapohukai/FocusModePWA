@@ -28,9 +28,10 @@ abstract class FocusDatabase : RoomDatabase() {
     abstract fun dndOverrideDao(): DndOverrideDao
     abstract fun missionDraftDao(): MissionDraftDao
     abstract fun missionProgressDao(): MissionProgressDao
+    abstract fun personalDataDao(): PersonalDataDao
 
     companion object {
-        const val VERSION = 3
+        const val VERSION = 4
         const val NAME = "focus-mode.db"
     }
 }

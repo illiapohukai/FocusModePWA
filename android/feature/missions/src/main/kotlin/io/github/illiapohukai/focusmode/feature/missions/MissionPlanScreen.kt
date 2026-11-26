@@ -75,6 +75,7 @@ import io.github.illiapohukai.focusmode.core.designsystem.theme.MissionTones
 import io.github.illiapohukai.focusmode.core.designsystem.theme.Radii
 import io.github.illiapohukai.focusmode.core.designsystem.theme.Spacing
 import io.github.illiapohukai.focusmode.core.domain.mission.MissionCalendar
+import io.github.illiapohukai.focusmode.core.domain.mission.MissionRules
 import io.github.illiapohukai.focusmode.core.domain.mission.StepState
 import io.github.illiapohukai.focusmode.core.model.Mission
 import io.github.illiapohukai.focusmode.core.model.MissionStatus
@@ -103,7 +104,7 @@ fun MissionPlanRoute(actions: MissionDetailActions, snackbar: SnackbarHostState,
     }
     MissionPlanScreen(
         state, actions.onBack,
-        PlanCallbacks(viewModel::startCurrentStep, viewModel::openSession, viewModel::openReview, viewModel::archive, viewModel::restore, viewModel::delete),
+        PlanCallbacks(viewModel::startCurrentStep, viewModel::openSession, viewModel::openReview, viewModel::archive, viewModel::restore, viewModel::delete, viewModel::rename),
     )
 }
 
@@ -114,6 +115,8 @@ data class PlanCallbacks(
     val onArchive: () -> Unit = {},
     val onRestore: () -> Unit = {},
     val onDelete: () -> Unit = {},
+    /** PWA "Umbenennen": the title only; id, colour, steps, History and reminders stay. */
+    val onRename: (String) -> Unit = {},
 )
 
 private val PLAN_DATE: DateTimeFormatter = DateTimeFormatter.ofPattern("d. MMM yyyy", Locale.GERMAN)
@@ -130,13 +133,22 @@ internal fun planStatus(m: Mission): String = when {
 fun MissionPlanScreen(state: MissionDetailUiState, onBack: () -> Unit, callbacks: PlanCallbacks) {
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
     var confirmArchive by rememberSaveable { mutableStateOf(false) }
+    var renaming by rememberSaveable { mutableStateOf(false) }
     ReadableWidth(Modifier.fillMaxSize().background(FocusPalette.Cream)) {
         LazyColumn(
             Modifier.fillMaxSize().systemBarsPadding().testTag("mission_detail"),
             contentPadding = PaddingValues(start = Spacing.screenHorizontal, end = Spacing.screenHorizontal, top = Spacing.sm, bottom = Spacing.xl),
             verticalArrangement = Arrangement.spacedBy(Spacing.sm),
         ) {
-            item { FocusTopBar(onBack = onBack, title = "Focus Mission") }
+            item {
+                FocusTopBar(onBack = onBack, title = "Focus Mission") {
+                    if (state.mission != null) {
+                        androidx.compose.material3.IconButton(onClick = { renaming = true }, enabled = !state.busy, modifier = Modifier.size(48.dp).testTag("plan_rename")) {
+                            Icon(FocusIcons.Pencil, contentDescription = "Mission umbenennen", tint = FocusPalette.Graphite)
+                        }
+                    }
+                }
+            }
             val item = state.item
             if (state.notFound || item == null) {
                 if (!state.loading) item { EmptyState(FocusIcons.Info, "Mission nicht gefunden", "Diese Mission existiert auf diesem Gerät nicht (mehr).") }
@@ -191,6 +203,9 @@ fun MissionPlanScreen(state: MissionDetailUiState, onBack: () -> Unit, callbacks
             confirmButton = { TextButton(onClick = { confirmArchive = false; callbacks.onArchive() }, Modifier.testTag("plan_archive_confirm")) { Text("Archivieren") } },
             dismissButton = { TextButton(onClick = { confirmArchive = false }) { Text("Abbrechen") } },
         )
+    }
+    if (renaming) {
+        state.mission?.let { m -> RenameDialog(m.title, onDismiss = { renaming = false }, onSave = { renaming = false; callbacks.onRename(it) }) }
     }
     if (confirmDelete) {
         AlertDialog(
@@ -339,6 +354,19 @@ private fun RouteStep(index: Int, total: Int, step: MissionStep, state: StepStat
                         if (step.task.isNotBlank()) Text(step.task, style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.78f))
                         Text("ca. ${step.durationMinutes} Min.", style = MaterialTheme.typography.labelMedium, color = tone.accent, modifier = Modifier.padding(top = 4.dp))
                     }
+                    if (step.requiredTools.isNotEmpty()) {
+                        // PWA `mp-tools` ("Du brauchst"): the Worker's tools for this step, text only.
+                        Spacer(Modifier.height(Spacing.sm))
+                        Column(Modifier.semantics(mergeDescendants = true) {}.testTag("plan_step_tools")) {
+                            Text("DU BRAUCHST", style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = tone.accent)
+                            Spacer(Modifier.height(4.dp))
+                            androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                step.requiredTools.forEach {
+                                    Text(it, style = MaterialTheme.typography.labelMedium, color = Color.White, modifier = Modifier.clip(Radii.pill).background(Color.White.copy(alpha = 0.12f)).padding(horizontal = 10.dp, vertical = 5.dp))
+                                }
+                            }
+                        }
+                    }
                     Spacer(Modifier.height(Spacing.sm))
                     when (state) {
                         StepState.IN_PROGRESS -> PrimaryButton("Sitzung öffnen", callbacks.onOpenSession, Modifier.fillMaxWidth().testTag("plan_open_session"), icon = FocusIcons.Clock)
@@ -361,7 +389,7 @@ private fun RouteStep(index: Int, total: Int, step: MissionStep, state: StepStat
                             if (step.task.isNotBlank() && state != StepState.COMPLETED) Text(step.task, style = MaterialTheme.typography.bodySmall, color = FocusPalette.GraphiteSoft, maxLines = 2, overflow = TextOverflow.Ellipsis)
                         }
                         Spacer(Modifier.width(Spacing.xs))
-                        Text(if (state == StepState.COMPLETED) "Erledigt" else "${step.durationMinutes} Min.", style = MaterialTheme.typography.labelMedium, color = if (state == StepState.COMPLETED) Color(0xFF15803D) else FocusPalette.GraphiteSoft)
+                        Text(if (state == StepState.COMPLETED) "Erledigt" else "${step.durationMinutes} Min.", style = MaterialTheme.typography.labelMedium, color = if (state == StepState.COMPLETED) FocusPalette.GreenInk else FocusPalette.GraphiteSoft)
                     }
                 }
             }
@@ -388,3 +416,26 @@ private fun WhyCard(text: String) {
     }
 }
 
+/** PWA `openRenameMissionV116`: one field (80 characters), "Speichern" only with a usable title. */
+@Composable
+private fun RenameDialog(current: String, onDismiss: () -> Unit, onSave: (String) -> Unit) {
+    var text by rememberSaveable { mutableStateOf(current) }
+    val clean = MissionRules.cleanTitle(text)
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Mission umbenennen") },
+        text = {
+            Column {
+                Text("Der Plan und die bisherige Historie bleiben unverändert.", style = MaterialTheme.typography.bodyMedium, color = FocusPalette.GraphiteSoft)
+                Spacer(Modifier.height(Spacing.sm))
+                androidx.compose.material3.OutlinedTextField(
+                    value = text, onValueChange = { text = it.take(MissionRules.TITLE_MAX) }, singleLine = true,
+                    label = { Text("Titel") }, supportingText = { Text("${text.length} / ${MissionRules.TITLE_MAX}") },
+                    modifier = Modifier.fillMaxWidth().testTag("plan_rename_field"),
+                )
+            }
+        },
+        confirmButton = { TextButton(onClick = { clean?.let(onSave) }, enabled = clean != null && clean != current, modifier = Modifier.testTag("plan_rename_save")) { Text("Speichern") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+    )
+}

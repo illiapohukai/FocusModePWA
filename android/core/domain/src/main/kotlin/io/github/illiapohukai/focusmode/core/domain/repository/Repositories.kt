@@ -118,6 +118,11 @@ interface MissionRepository {
     suspend fun restore(id: MissionId): MissionWriteResult
     /** Deletes the Mission, its steps and progress entries; History keeps its Sessions. */
     suspend fun delete(id: MissionId): MissionWriteResult
+    /**
+     * PWA `renameMissionV116`: changes the title only (cleaned, 1–80 characters). The id, and with
+     * it the identity colour, steps, progress, History links and reminder keys, never change.
+     */
+    suspend fun rename(id: MissionId, title: String): MissionWriteResult
 
     // ---- generation draft (single slot) ----
     fun observeDraft(): Flow<MissionDraft?>
@@ -189,6 +194,14 @@ interface PreferencesRepository {
     suspend fun setLastSelectedMission(id: String?)
     suspend fun incrementNotificationPermissionRequests()
     suspend fun setPwaImportEnabled(enabled: Boolean)
+    suspend fun setLastExportAt(at: java.time.Instant)
+    /**
+     * Full data deletion: every user preference returns to its default (including the one-way
+     * Home onboarding mark). Technical metadata needed at startup stays: the schema version, the
+     * install id (OS-restore detection), the notification-permission request counter (the system
+     * remembers a denial) and development flags.
+     */
+    suspend fun resetUserPreferences()
 }
 
 /** Durable record of a DND change made by Focus Mode+ (restored after the Session or a crash). */

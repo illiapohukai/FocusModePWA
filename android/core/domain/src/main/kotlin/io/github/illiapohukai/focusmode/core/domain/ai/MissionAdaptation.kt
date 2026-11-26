@@ -29,7 +29,14 @@ data class AdaptationRequest(
 )
 
 /** One validated replacement step. Ids are always assigned locally when stored. */
-data class AdaptedStep(val title: String, val task: String, val durationMinutes: Int, val reason: String)
+data class AdaptedStep(
+    val title: String,
+    val task: String,
+    val durationMinutes: Int,
+    val reason: String,
+    val requiredTools: List<String> = emptyList(),
+    val recommendedApps: List<String> = emptyList(),
+)
 
 data class MissionAdaptation(val message: String, val summary: String, val steps: List<AdaptedStep>)
 

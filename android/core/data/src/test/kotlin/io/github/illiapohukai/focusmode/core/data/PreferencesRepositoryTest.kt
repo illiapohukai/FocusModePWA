@@ -12,6 +12,7 @@ import io.github.illiapohukai.focusmode.core.model.AppPreferences
 import io.github.illiapohukai.focusmode.core.model.NotificationDetailLevel
 import io.github.illiapohukai.focusmode.core.model.ProtectionMode
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -70,7 +71,8 @@ class PreferencesRepositoryTest {
             it[intPreferencesKey("quick_focus_minutes")] = 27
             it[stringPreferencesKey("protection_mode")] = "UNKNOWN"
         }
-        legacyScope.cancel()
+        // Wait until the first DataStore has really released the file (cancel() alone returns early).
+        legacyScope.coroutineContext[kotlinx.coroutines.Job]!!.cancelAndJoin()
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         val migrated = store(file, scope)
         val repo = DataStorePreferencesRepository(migrated, FeatureFlagDefaults(false))

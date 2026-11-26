@@ -10,7 +10,10 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.illiapohukai.focusmode.core.designsystem.theme.FocusModeTheme
+import androidx.lifecycle.SavedStateHandle
 import io.github.illiapohukai.focusmode.core.domain.history.HistoryFilter
+import io.github.illiapohukai.focusmode.core.domain.history.PeriodSummary
+import io.github.illiapohukai.focusmode.core.testing.FakeMissionRepository
 import io.github.illiapohukai.focusmode.core.testing.FakeClock
 import io.github.illiapohukai.focusmode.core.testing.FakeSessionStore
 import io.github.illiapohukai.focusmode.core.testing.Fixtures
@@ -36,7 +39,7 @@ class HistoryTest {
         store.finalize(Fixtures.result("a", LocalDate.parse("2026-11-19"), 25, finishedAt = Instant.parse("2026-11-19T08:00:00Z")))
         store.finalize(Fixtures.result("b", LocalDate.parse("2026-11-19"), 10, finishedAt = Instant.parse("2026-11-19T10:00:00Z")))
         store.finalize(Fixtures.result("c", LocalDate.parse("2026-11-12"), 30))
-        val vm = HistoryViewModel(store, clock)
+        val vm = HistoryViewModel(store, FakeMissionRepository(clock), clock, SavedStateHandle())
         vm.uiState.launchIn(backgroundScope)
         val today = vm.uiState.first { !it.loading }
         assertEquals(listOf("b", "a"), today.sections.single().rows.map { it.sessionId })
@@ -62,7 +65,7 @@ class HistoryTest {
         store.finalize(Fixtures.result("a", LocalDate.parse("2026-11-19"), 25, finishedAt = Instant.parse("2026-11-19T08:00:00Z")))
         store.finalize(Fixtures.result("b", LocalDate.parse("2026-11-19"), 10, finishedAt = Instant.parse("2026-11-19T10:00:00Z")))
         store.finalize(Fixtures.result("c", LocalDate.parse("2026-11-12"), 30))
-        val vm = HistoryViewModel(store, clock)
+        val vm = HistoryViewModel(store, FakeMissionRepository(clock), clock, SavedStateHandle())
         vm.uiState.launchIn(backgroundScope)
         val today = vm.uiState.first { !it.loading }
         assertEquals(2, today.period.sessions)

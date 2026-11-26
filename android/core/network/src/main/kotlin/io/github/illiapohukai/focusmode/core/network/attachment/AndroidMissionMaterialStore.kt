@@ -9,6 +9,9 @@ import android.graphics.Color
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.net.Uri
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.scale
+import androidx.core.net.toUri
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.illiapohukai.focusmode.core.domain.ai.GenerationError
 import io.github.illiapohukai.focusmode.core.domain.ai.ImageSniffer
@@ -41,9 +44,32 @@ import kotlin.math.roundToInt
 class AndroidMissionMaterialStore internal constructor(
     private val resolver: ContentResolver,
     private val dir: File,
+    private val capture: CaptureFiles? = null,
 ) : MissionMaterialStore {
 
-    @Inject constructor(@ApplicationContext context: Context) : this(context.contentResolver, File(context.noBackupFilesDir, "mission_material"))
+    /** The system-camera target: one file in [dir] and its FileProvider Uri. */
+    internal class CaptureFiles(val dir: File, val toUri: (File) -> Uri)
+
+    @Inject constructor(@ApplicationContext context: Context) : this(
+        context.contentResolver,
+        File(context.noBackupFilesDir, "mission_material"),
+        CaptureFiles(File(context.cacheDir, "material_capture")) { androidx.core.content.FileProvider.getUriForFile(context, context.packageName + ".materialcapture", it) },
+    )
+
+    private val captureFile get() = capture?.let { File(it.dir, "capture.jpg") }
+
+    override suspend fun captureTarget(): String? = lock.withLock {
+        withContext(Dispatchers.IO) {
+            val c = capture ?: return@withContext null
+            val file = captureFile ?: return@withContext null
+            runCatching {
+                if (!c.dir.isDirectory && !c.dir.mkdirs()) return@withContext null
+                file.delete()
+                file.createNewFile()
+                c.toUri(file).toString()
+            }.getOrNull()
+        }
+    }
 
     private val lock = Mutex()
     private val jpeg get() = File(dir, "draft.jpg")
@@ -51,7 +77,7 @@ class AndroidMissionMaterialStore internal constructor(
 
     override suspend fun prepare(source: String): MaterialPreparation = lock.withLock {
         withContext(Dispatchers.IO) {
-            val uri = runCatching { Uri.parse(source) }.getOrNull()
+            val uri = runCatching { source.toUri() }.getOrNull()
             if (uri == null || uri.scheme != ContentResolver.SCHEME_CONTENT) return@withContext reject(GenerationError.ImageProcessingFailed, READ_FAILED)
             val declared = runCatching { resolver.getType(uri) }.getOrNull()
             val bytes = try {
@@ -74,6 +100,11 @@ class AndroidMissionMaterialStore internal constructor(
                 return@withContext reject(GenerationError.ImageProcessingFailed, READ_FAILED)
             }
             process(bytes, declared)
+        }.also {
+            // The camera original carries EXIF/GPS metadata: it never outlives its processing.
+            val c = capture
+            val file = captureFile
+            if (c != null && file != null && runCatching { c.toUri(file).toString() == source }.getOrDefault(false)) withContext(Dispatchers.IO) { file.delete() }
         }
     }
 
@@ -155,6 +186,7 @@ class AndroidMissionMaterialStore internal constructor(
     override suspend fun clear() = lock.withLock {
         withContext(Dispatchers.IO) {
             dir.listFiles()?.forEach { it.delete() }
+            capture?.dir?.listFiles()?.forEach { it.delete() }
             Unit
         }
     }
@@ -189,7 +221,7 @@ class AndroidMissionMaterialStore internal constructor(
         val long = max(src.width, src.height)
         if (long <= maxSide) return src
         val scale = maxSide.toFloat() / long
-        return Bitmap.createScaledBitmap(src, max(1, (src.width * scale).roundToInt()), max(1, (src.height * scale).roundToInt()), true)
+        return src.scale(max(1, (src.width * scale).roundToInt()), max(1, (src.height * scale).roundToInt()), filter = true)
     }
 
     /** PWA canvas `alpha: false` with a white fill: transparent areas never turn black in JPEG. */
@@ -199,7 +231,7 @@ class AndroidMissionMaterialStore internal constructor(
             src.compress(Bitmap.CompressFormat.PNG, 100, out)
             return Triple(out.toByteArray(), src.width, src.height)
         }
-        val opaque = Bitmap.createBitmap(src.width, src.height, Bitmap.Config.ARGB_8888)
+        val opaque = createBitmap(src.width, src.height, Bitmap.Config.ARGB_8888)
         try {
             Canvas(opaque).apply {
                 drawColor(Color.WHITE)

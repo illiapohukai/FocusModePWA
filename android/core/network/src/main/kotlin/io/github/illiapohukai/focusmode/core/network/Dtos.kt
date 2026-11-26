@@ -21,6 +21,8 @@ internal data class PlanDto(
     val estimate: EstimateDto? = null,
     val scheduleWarning: String? = null,
     val warning: String? = null,
+    /** `{detectedTasks, detectedPages, confidence, missingInformation, facts, estimates}`; read leniently. */
+    val sourceAnalysis: JsonElement? = null,
 )
 
 @Serializable
@@ -40,6 +42,8 @@ internal data class StepDto(
     val durationMinutes: Double? = null,
     val scheduledDate: String? = null,
     val date: String? = null,
+    val requiredTools: JsonElement? = null,
+    val recommendedApps: JsonElement? = null,
 )
 
 @Serializable

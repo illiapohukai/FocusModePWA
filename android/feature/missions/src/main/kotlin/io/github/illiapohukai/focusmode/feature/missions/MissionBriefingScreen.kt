@@ -106,6 +106,8 @@ data class BriefingUiState(
     val today: LocalDate = LocalDate.of(2026, 1, 1),
     val activeCount: Int = 0,
     val accepting: Boolean = false,
+    /** A photo was sent with the request (PWA `hasMissionImageAttached`). */
+    val hadPhoto: Boolean = false,
 ) {
     val limitReached: Boolean get() = !MissionRules.canCreateActive(activeCount)
     val totalMinutes: Int get() = plan?.let { p -> p.estimateTotalMinutes.takeIf { it > 0 } ?: p.steps.sumOf { it.durationMinutes } } ?: 0
@@ -147,6 +149,7 @@ class MissionBriefingViewModel @Inject constructor(
             schedule = draft.schedule,
             theme = MissionThemes.preview(all, draft.missionId, clock.now()),
             today = clock.today(),
+            hadPhoto = draft.attachment != null,
             activeCount = all.count { it.status == MissionStatus.ACTIVE },
             accepting = busy,
         )
@@ -278,10 +281,12 @@ fun MissionBriefingScreen(
                     }
                 }
                 if (deadline != null) BriefingRoute(state, deadline)
-                plan.scheduleWarning?.let { warning ->
-                    FocusCard(Modifier.fillMaxWidth(), color = Color(0xFFFFF7EB), contentPadding = PaddingValues(Spacing.md)) {
-                        Text("Noch unklar", style = MaterialTheme.typography.titleSmall, color = Color(0xFF8A4B0F))
-                        Text(warning, style = MaterialTheme.typography.bodySmall, color = FocusPalette.Graphite)
+                // PWA "Noch unklar": the schedule warning plus the Worker's `missingInformation`.
+                val unclear = listOfNotNull(plan.scheduleWarning) + plan.source.missingInformation
+                if (unclear.isNotEmpty()) {
+                    FocusCard(Modifier.fillMaxWidth().testTag("briefing_unclear"), color = Color(0xFFFFF7EB), contentPadding = PaddingValues(Spacing.md)) {
+                        Text("Noch unklar", style = MaterialTheme.typography.titleSmall, color = FocusPalette.AmberInk, modifier = Modifier.semantics { heading() })
+                        unclear.forEach { Text("• $it", style = MaterialTheme.typography.bodySmall, color = FocusPalette.Graphite) }
                         Text("Ergänze es über „Angaben ändern“ oder passe den Plan später an.", style = MaterialTheme.typography.bodySmall, color = FocusPalette.GraphiteSoft)
                     }
                 }
@@ -398,7 +403,7 @@ private fun BriefingStep(index: Int, step: io.github.illiapohukai.focusmode.core
                 step.scheduledDate?.let { Text(BRIEF_DATE.format(it), style = MaterialTheme.typography.bodySmall, color = FocusPalette.PurpleInk) }
             }
         }
-        if (step.reason.isNotBlank()) {
+        if (step.reason.isNotBlank() || step.requiredTools.isNotEmpty() || step.recommendedApps.isNotEmpty()) {
             Row(
                 Modifier.padding(start = 40.dp).heightIn(min = 44.dp).clip(Radii.sm).clickable(role = Role.Button, onClickLabel = "Begründung anzeigen") { open = !open }
                     .semantics { stateDescription = if (open) "geöffnet" else "geschlossen" },
@@ -407,7 +412,14 @@ private fun BriefingStep(index: Int, step: io.github.illiapohukai.focusmode.core
                 Text("Warum so?", style = MaterialTheme.typography.labelMedium, color = FocusPalette.Purple)
                 Icon(FocusIcons.ChevronDown, null, tint = FocusPalette.Purple, modifier = Modifier.size(14.dp))
             }
-            if (open) Text(step.reason, style = MaterialTheme.typography.bodySmall, color = FocusPalette.Graphite, modifier = Modifier.padding(start = 40.dp))
+            if (open) {
+                Column(Modifier.padding(start = 40.dp), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                    if (step.reason.isNotBlank()) Text(step.reason, style = MaterialTheme.typography.bodySmall, color = FocusPalette.Graphite)
+                    if (step.requiredTools.isNotEmpty()) StepTags("Brauchst du", step.requiredTools)
+                    // Text only: recommended apps are never selected, opened or blocked.
+                    if (step.recommendedApps.isNotEmpty()) StepTags("Empfohlene Apps", step.recommendedApps)
+                }
+            }
         }
     }
 }
@@ -424,7 +436,8 @@ private fun SourceCard(state: BriefingUiState) {
         state.schedule.preferredWeekdays.takeIf { it.isNotEmpty() }?.let { "Lerntage: ${MissionSchedulePlanner.weekdayLabel(it)}" },
         state.schedule.preferredSessionMinutes?.let { "Sitzungsdauer: $it Min." },
     )
-    val estimated = listOfNotNull(
+    val recognized = plan.source.recognized
+    val estimated = plan.source.estimates + listOfNotNull(
         state.totalMinutes.takeIf { it > 0 }?.let { "Gesamtaufwand ca. ${formatTotal(it)}" },
         plan.explanation.takeIf { it.isNotBlank() },
     )
@@ -436,14 +449,40 @@ private fun SourceCard(state: BriefingUiState) {
         ) {
             Column(Modifier.weight(1f)) {
                 Text("So wurde der Plan erstellt", style = MaterialTheme.typography.titleSmall, color = FocusPalette.Graphite)
-                Text("Angaben und Schätzungen", style = MaterialTheme.typography.bodySmall, color = FocusPalette.GraphiteSoft)
+                Text(
+                    plan.source.confidenceLabel?.let { "AI-Erkennung: $it" } ?: "Angaben, Erkanntes und Schätzungen",
+                    style = MaterialTheme.typography.bodySmall, color = FocusPalette.GraphiteSoft,
+                )
             }
             Icon(if (open) FocusIcons.ChevronDown else FocusIcons.ChevronRight, null, tint = FocusPalette.GraphiteSoft, modifier = Modifier.size(18.dp))
         }
         if (open) {
             if (user.isNotEmpty()) SourceGroup("Aus deinen Angaben", user)
+            when {
+                // PWA: a photo whose content the AI could not read is said plainly, never invented.
+                state.hadPhoto && recognized.isEmpty() -> SourceGroup("Material", listOf("Im Foto wurde nichts eindeutig erkannt. Der Plan stützt sich auf deine Beschreibung."))
+                recognized.isNotEmpty() -> SourceGroup(if (state.hadPhoto) "Aus dem Material erkannt" else "Aus deinem Ziel erkannt", recognized)
+            }
             if (estimated.isNotEmpty()) SourceGroup("Geschätzt", estimated)
             Text("Zeiten und Umfang sind Schätzungen und werden nach deinen Sitzungen genauer.", style = MaterialTheme.typography.bodySmall, color = FocusPalette.GraphiteSoft, modifier = Modifier.padding(top = Spacing.xs))
+        }
+    }
+}
+
+/** PWA `mb-step-tags`: a small label and wrapped text chips. */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+internal fun StepTags(label: String, items: List<String>, modifier: Modifier = Modifier) {
+    Column(modifier.semantics(mergeDescendants = true) {}) {
+        Text(label.uppercase(), style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = FocusPalette.GraphiteSoft)
+        Spacer(Modifier.height(4.dp))
+        androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            items.forEach {
+                Text(
+                    it, style = MaterialTheme.typography.labelMedium, color = FocusPalette.Graphite,
+                    modifier = Modifier.clip(Radii.pill).background(FocusPalette.SurfaceMuted).padding(horizontal = 10.dp, vertical = 5.dp),
+                )
+            }
         }
     }
 }

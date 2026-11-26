@@ -7,6 +7,10 @@ import kotlinx.serialization.Serializable
 
 @Serializable data object HistoryDestination
 
-fun NavGraphBuilder.historyScreen(actions: HistoryActions, contentPadding: () -> PaddingValues) {
+/** PWA `app-screen-stats` ("Dein Fokusverlauf"), a child of History. */
+@Serializable data object InsightsDestination
+
+fun NavGraphBuilder.historyScreen(actions: HistoryActions, contentPadding: () -> PaddingValues, onBack: () -> Unit = {}) {
     composable<HistoryDestination> { HistoryRoute(actions, contentPadding()) }
+    composable<InsightsDestination> { InsightsRoute(onBack, actions.onQuickFocus) }
 }

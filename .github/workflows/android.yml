@@ -1,5 +1,5 @@
 # Android CI for the native Focus Mode+ app (android/). The PWA is not built or changed here.
-# No signing secrets, no Play upload: this produces a debug APK artifact only.
+# No signing secrets, no Play upload: this produces a debug APK and an unsigned release APK only.
 name: Android
 
 on:
@@ -19,23 +19,24 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 50
     defaults:
       run:
         working-directory: android
     steps:
-      - uses: actions/checkout@v4
+      # Node 24 action majors (the v4/v3 majors were forced from the deprecated Node 20 runtime).
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "21"
 
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v5
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
-      - uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@v4
         with:
           packages: "platforms;android-37.2 build-tools;36.0.0 platform-tools"
 
@@ -48,20 +49,31 @@ jobs:
       - name: Assemble debug APK
         run: ./gradlew --no-configuration-cache :app:assembleDebug
 
+      - name: Assemble release APK (R8, unsigned)
+        run: ./gradlew --no-configuration-cache :app:assembleRelease
+
       - name: Upload debug APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: focus-mode-plus-debug-apk
           path: android/app/build/outputs/apk/debug/*.apk
           retention-days: 14
 
+      - name: Upload unsigned release APK
+        uses: actions/upload-artifact@v6
+        with:
+          name: focus-mode-plus-release-unsigned-apk
+          path: android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Upload test and lint reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: android-reports
           path: |
             android/**/build/reports/tests/
             android/app/build/reports/lint-results-debug.html
-            android/app/build/screenshots/
+            android/**/build/screenshots/
           retention-days: 14

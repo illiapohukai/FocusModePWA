@@ -1,4 +1,4 @@
-# Device smoke test (v18.1, Missions added in v19)
+# Device smoke test (v18.1, Missions added in v19, parity items added in v20)
 
 Manual checks for a **physical Android device**. Robolectric and the emulator are not a device: OEM
 battery managers, real notification shades, Doze, reboots and Usage Access timing only show up on
@@ -194,6 +194,25 @@ Interpretation: `am_anr ... com.android.systemui` or `system` means the ANR belo
 to Focus Mode+. Only an `am_anr` line naming `io.github.illiapohukai.focusmode(.debug)` is an app ANR;
 then attach the main-thread stack from the bugreport.
 
+## 20. Parity items (v20)
+
+a. Mission Creation: tap the camera button, take a photo, confirm. The photo card appears; no
+   camera permission dialog from Focus Mode+. Repeat and cancel the camera: the draft is unchanged.
+   Kill the app while the camera is open, take the photo, return: the photo is still processed.
+b. Tap the microphone, say a sentence: the recognized text is appended to the goal field and can
+   be edited before "Mission planen". Without a speech service the button is absent.
+c. Briefing with a photo: "So wurde der Plan erstellt" shows "Aus dem Material erkannt" (or the
+   honest "Im Foto wurde nichts eindeutig erkannt" note); "Warum so?" shows tools and apps.
+d. Mission Plan → pencil → rename. The colour, steps, History rows and reminders stay.
+e. History: Fokus-Rhythmus 7 Tage / 4 Wochen, tap bars (TalkBack reads each bar), open
+   "Statistik" → Dein Fokusverlauf. Check 130 % and 160 % font.
+f. Settings → Daten & Backup → "Daten exportieren": save to Downloads and to a cloud provider.
+   Import the file on a second device (and in the web app: Daten & Backup → Daten importieren;
+   the preview must say "Backup geprüft").
+g. Start a Quick Focus, then "Alle persönlichen und nutzergenerierten Daten löschen": the ongoing
+   notification disappears, DND (if set by the app) is restored, Home shows the first-time card,
+   no reminder arrives afterwards (also after a reboot).
+
 ## Results
 
 | # | Step | Device / Android | Result | Notes |
@@ -217,3 +236,4 @@ then attach the main-thread stack from the bugreport.
 | 17 | Airplane mode | — | PENDING | |
 | 18 | App update over existing data | — | PENDING | |
 | 19 | Missions (v19) | — | PENDING | |
+| 20 | Parity items (v20) | — | PENDING | |

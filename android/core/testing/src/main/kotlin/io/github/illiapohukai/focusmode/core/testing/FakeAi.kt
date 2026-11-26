@@ -73,6 +73,9 @@ class FakeMaterialStore : MissionMaterialStore {
     }
     override suspend fun load(): MissionMaterial? = stored
     override suspend fun clear() { stored = null; cleared++ }
+    var captureTargetValue: String? = "content://io.github.illiapohukai.focusmode.test.materialcapture/material_capture/capture.jpg"
+    var captureRequests = 0
+    override suspend fun captureTarget(): String? { captureRequests++; return captureTargetValue }
 }
 
 class FakeNetworkStatus(online: Boolean = true) : NetworkStatus {

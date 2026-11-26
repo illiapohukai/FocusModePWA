@@ -1,0 +1,816 @@
+{
+  "exportVersion": 1,
+  "applicationVersion": "v16 Data Stability",
+  "exportedAt": "2026-11-20T10:00:00.000Z",
+  "timestamp": 1795685023098,
+  "reason": "user_export",
+  "schemaVersions": {
+    "bundle": 1,
+    "missions": 1,
+    "missionSteps": 1,
+    "sessions": 1,
+    "sessionHistory": 1,
+    "preferences": 1,
+    "recovery": 1
+  },
+  "integrity": {
+    "missionCount": 4,
+    "activeMissionCount": 2,
+    "sessionCount": 12,
+    "hasActiveSession": false,
+    "algorithm": "SHA-256",
+    "canonicalization": "focusmode-canonical-json-v1",
+    "covers": [
+      "format",
+      "exportVersion",
+      "schemaVersions",
+      "scope",
+      "data"
+    ],
+    "digest": "2f97b777e74ec03587ad405fd68bb76cbfe72a9cc757bf24d5f6c62eb1fdb23c",
+    "status": "present"
+  },
+  "data": {
+    "missions": {
+      "schemaVersion": 1,
+      "stepSchemaVersion": 1,
+      "missions": [
+        {
+          "id": "mission_11111111-1111-4111-8111-111111111111",
+          "missionSchemaVersion": 1,
+          "title": "Biologie Klausur",
+          "subject": "Biologie",
+          "type": "exam",
+          "deadlineText": "2026-12-15",
+          "status": "active",
+          "createdAt": 1790841600000,
+          "updatedAt": 1791273600000,
+          "completedAt": null,
+          "archivedAt": null,
+          "currentStepId": "step_00000001-1111-4000-8000-000000000000",
+          "estimate": {
+            "totalMinutes": 100,
+            "difficulty": "medium",
+            "explanation": "Erste Schätzung"
+          },
+          "sourceAnalysis": {
+            "detectedTasks": "3 Kapitel",
+            "detectedPages": "S. 10-40",
+            "confidence": 0.8,
+            "missingInformation": [
+              "Genaues Prüfungsformat"
+            ],
+            "facts": [
+              "Kapitel 1-3"
+            ],
+            "estimates": [
+              "ca. 100 Min."
+            ]
+          },
+          "steps": [
+            {
+              "id": "step_00000000-1111-4000-8000-000000000000",
+              "missionId": "mission_11111111-1111-4111-8111-111111111111",
+              "stepSchemaVersion": 1,
+              "title": "Schritt 1: Kapitel 1 lesen",
+              "task": "Kapitel 1 zusammenfassen und Fragen notieren",
+              "durationMinutes": 25,
+              "status": "completed",
+              "reason": "Baut auf dem vorherigen Schritt auf",
+              "requiredTools": [
+                "Lehrbuch",
+                "Notizen"
+              ],
+              "recommendedApps": [
+                "Notizen"
+              ],
+              "createdAt": 1790841600000,
+              "updatedAt": 1790841600000,
+              "completedAt": 1790845200000
+            },
+            {
+              "id": "step_00000001-1111-4000-8000-000000000000",
+              "missionId": "mission_11111111-1111-4111-8111-111111111111",
+              "stepSchemaVersion": 1,
+              "title": "Schritt 2: Kapitel 2 lesen",
+              "task": "Kapitel 2 zusammenfassen und Fragen notieren",
+              "durationMinutes": 30,
+              "status": "active",
+              "reason": "Baut auf dem vorherigen Schritt auf",
+              "requiredTools": [
+                "Lehrbuch",
+                "Notizen"
+              ],
+              "recommendedApps": [
+                "Notizen"
+              ],
+              "createdAt": 1790841600000,
+              "updatedAt": 1790928000000,
+              "completedAt": null
+            },
+            {
+              "id": "step_00000002-1111-4000-8000-000000000000",
+              "missionId": "mission_11111111-1111-4111-8111-111111111111",
+              "stepSchemaVersion": 1,
+              "title": "Schritt 3: Kapitel 3 lesen",
+              "task": "Kapitel 3 zusammenfassen und Fragen notieren",
+              "durationMinutes": 45,
+              "status": "pending",
+              "reason": "Baut auf dem vorherigen Schritt auf",
+              "requiredTools": [
+                "Lehrbuch",
+                "Notizen"
+              ],
+              "recommendedApps": [
+                "Notizen"
+              ],
+              "createdAt": 1790841600000,
+              "updatedAt": 1791014400000,
+              "completedAt": null
+            }
+          ],
+          "progress": {
+            "completedStepIds": [
+              "step_00000000-1111-4000-8000-000000000000"
+            ],
+            "history": [
+              {
+                "outcome": "completed",
+                "rating": 4,
+                "feedback": "gut",
+                "stepId": "step_00000000-1111-4000-8000-000000000000",
+                "completedAt": 1790845200000
+              }
+            ],
+            "initialStepCount": 3
+          }
+        },
+        {
+          "id": "mission_22222222-2222-4222-8222-222222222222",
+          "missionSchemaVersion": 1,
+          "title": "Mathe Hausaufgabe",
+          "subject": "Biologie",
+          "type": "assignment",
+          "deadlineText": "Nicht angegeben",
+          "status": "active",
+          "createdAt": 1790841600000,
+          "updatedAt": 1791273600000,
+          "completedAt": null,
+          "archivedAt": null,
+          "currentStepId": "step_00000000-2222-4000-8000-000000000000",
+          "estimate": {
+            "totalMinutes": 100,
+            "difficulty": "medium",
+            "explanation": "Erste Schätzung"
+          },
+          "sourceAnalysis": {
+            "detectedTasks": "3 Kapitel",
+            "detectedPages": "S. 10-40",
+            "confidence": 0.8,
+            "missingInformation": [
+              "Genaues Prüfungsformat"
+            ],
+            "facts": [
+              "Kapitel 1-3"
+            ],
+            "estimates": [
+              "ca. 100 Min."
+            ]
+          },
+          "steps": [
+            {
+              "id": "step_00000000-2222-4000-8000-000000000000",
+              "missionId": "mission_22222222-2222-4222-8222-222222222222",
+              "stepSchemaVersion": 1,
+              "title": "Schritt 1: Kapitel 1 lesen",
+              "task": "Kapitel 1 zusammenfassen und Fragen notieren",
+              "durationMinutes": 25,
+              "status": "active",
+              "reason": "Baut auf dem vorherigen Schritt auf",
+              "requiredTools": [
+                "Lehrbuch",
+                "Notizen"
+              ],
+              "recommendedApps": [
+                "Notizen"
+              ],
+              "createdAt": 1790841600000,
+              "updatedAt": 1790841600000,
+              "completedAt": null
+            },
+            {
+              "id": "step_00000001-2222-4000-8000-000000000000",
+              "missionId": "mission_22222222-2222-4222-8222-222222222222",
+              "stepSchemaVersion": 1,
+              "title": "Schritt 2: Kapitel 2 lesen",
+              "task": "Kapitel 2 zusammenfassen und Fragen notieren",
+              "durationMinutes": 30,
+              "status": "pending",
+              "reason": "Baut auf dem vorherigen Schritt auf",
+              "requiredTools": [
+                "Lehrbuch",
+                "Notizen"
+              ],
+              "recommendedApps": [
+                "Notizen"
+              ],
+              "createdAt": 1790841600000,
+              "updatedAt": 1790928000000,
+              "completedAt": null
+            }
+          ],
+          "progress": {
+            "completedStepIds": [],
+            "history": [],
+            "initialStepCount": 2
+          }
+        },
+        {
+          "id": "mission_33333333-3333-4333-8333-333333333333",
+          "missionSchemaVersion": 1,
+          "title": "Referat Geschichte",
+          "subject": "Biologie",
+          "type": "exam",
+          "deadlineText": "2026-12-15",
+          "status": "completed",
+          "createdAt": 1790841600000,
+          "updatedAt": 1791273600000,
+          "completedAt": 1791360000000,
+          "archivedAt": null,
+          "currentStepId": null,
+          "estimate": {
+            "totalMinutes": 100,
+            "difficulty": "medium",
+            "explanation": "Erste Schätzung"
+          },
+          "sourceAnalysis": {
+            "detectedTasks": "3 Kapitel",
+            "detectedPages": "S. 10-40",
+            "confidence": 0.8,
+            "missingInformation": [
+              "Genaues Prüfungsformat"
+            ],
+            "facts": [
+              "Kapitel 1-3"
+            ],
+            "estimates": [
+              "ca. 100 Min."
+            ]
+          },
+          "steps": [
+            {
+              "id": "step_00000000-3333-4000-8000-000000000000",
+              "missionId": "mission_33333333-3333-4333-8333-333333333333",
+              "stepSchemaVersion": 1,
+              "title": "Schritt 1: Kapitel 1 lesen",
+              "task": "Kapitel 1 zusammenfassen und Fragen notieren",
+              "durationMinutes": 25,
+              "status": "completed",
+              "reason": "Baut auf dem vorherigen Schritt auf",
+              "requiredTools": [
+                "Lehrbuch",
+                "Notizen"
+              ],
+              "recommendedApps": [
+                "Notizen"
+              ],
+              "createdAt": 1790841600000,
+              "updatedAt": 1790841600000,
+              "completedAt": 1790845200000
+            },
+            {
+              "id": "step_00000001-3333-4000-8000-000000000000",
+              "missionId": "mission_33333333-3333-4333-8333-333333333333",
+              "stepSchemaVersion": 1,
+              "title": "Schritt 2: Kapitel 2 lesen",
+              "task": "Kapitel 2 zusammenfassen und Fragen notieren",
+              "durationMinutes": 30,
+              "status": "completed",
+              "reason": "Baut auf dem vorherigen Schritt auf",
+              "requiredTools": [
+                "Lehrbuch",
+                "Notizen"
+              ],
+              "recommendedApps": [
+                "Notizen"
+              ],
+              "createdAt": 1790841600000,
+              "updatedAt": 1790928000000,
+              "completedAt": 1790931600000
+            }
+          ],
+          "progress": {
+            "completedStepIds": [
+              "step_00000000-3333-4000-8000-000000000000",
+              "step_00000001-3333-4000-8000-000000000000"
+            ],
+            "history": [
+              {
+                "outcome": "completed",
+                "rating": 4,
+                "feedback": "gut",
+                "stepId": "step_00000000-3333-4000-8000-000000000000",
+                "completedAt": 1790845200000
+              },
+              {
+                "outcome": "completed",
+                "rating": 4,
+                "feedback": "gut",
+                "stepId": "step_00000001-3333-4000-8000-000000000000",
+                "completedAt": 1790931600000
+              }
+            ],
+            "initialStepCount": 2
+          }
+        },
+        {
+          "id": "mission_44444444-4444-4444-8444-444444444444",
+          "missionSchemaVersion": 1,
+          "title": "Alte Mission",
+          "subject": "Biologie",
+          "type": "exam",
+          "deadlineText": "2026-12-15",
+          "status": "archived",
+          "createdAt": 1790841600000,
+          "updatedAt": 1791273600000,
+          "completedAt": null,
+          "archivedAt": 1791446400000,
+          "currentStepId": null,
+          "archivedCurrentStepId": "step_00000001-4444-4000-8000-000000000000",
+          "estimate": {
+            "totalMinutes": 100,
+            "difficulty": "medium",
+            "explanation": "Erste Schätzung"
+          },
+          "sourceAnalysis": {
+            "detectedTasks": "3 Kapitel",
+            "detectedPages": "S. 10-40",
+            "confidence": 0.8,
+            "missingInformation": [
+              "Genaues Prüfungsformat"
+            ],
+            "facts": [
+              "Kapitel 1-3"
+            ],
+            "estimates": [
+              "ca. 100 Min."
+            ]
+          },
+          "steps": [
+            {
+              "id": "step_00000000-4444-4000-8000-000000000000",
+              "missionId": "mission_44444444-4444-4444-8444-444444444444",
+              "stepSchemaVersion": 1,
+              "title": "Schritt 1: Kapitel 1 lesen",
+              "task": "Kapitel 1 zusammenfassen und Fragen notieren",
+              "durationMinutes": 25,
+              "status": "completed",
+              "reason": "Baut auf dem vorherigen Schritt auf",
+              "requiredTools": [
+                "Lehrbuch",
+                "Notizen"
+              ],
+              "recommendedApps": [
+                "Notizen"
+              ],
+              "createdAt": 1790841600000,
+              "updatedAt": 1790841600000,
+              "completedAt": 1790845200000
+            },
+            {
+              "id": "step_00000001-4444-4000-8000-000000000000",
+              "missionId": "mission_44444444-4444-4444-8444-444444444444",
+              "stepSchemaVersion": 1,
+              "title": "Schritt 2: Kapitel 2 lesen",
+              "task": "Kapitel 2 zusammenfassen und Fragen notieren",
+              "durationMinutes": 30,
+              "status": "pending",
+              "reason": "Baut auf dem vorherigen Schritt auf",
+              "requiredTools": [
+                "Lehrbuch",
+                "Notizen"
+              ],
+              "recommendedApps": [
+                "Notizen"
+              ],
+              "createdAt": 1790841600000,
+              "updatedAt": 1790928000000,
+              "completedAt": null
+            }
+          ],
+          "progress": {
+            "completedStepIds": [
+              "step_00000000-4444-4000-8000-000000000000"
+            ],
+            "history": [
+              {
+                "outcome": "completed",
+                "rating": 4,
+                "feedback": "gut",
+                "stepId": "step_00000000-4444-4000-8000-000000000000",
+                "completedAt": 1790845200000
+              }
+            ],
+            "initialStepCount": 2
+          }
+        }
+      ],
+      "selectedMissionId": "mission_11111111-1111-4111-8111-111111111111",
+      "primaryMissionId": "mission_11111111-1111-4111-8111-111111111111",
+      "updatedAt": 1791273600000
+    },
+    "selectedMissionId": "mission_11111111-1111-4111-8111-111111111111",
+    "primaryMissionId": "mission_11111111-1111-4111-8111-111111111111",
+    "sessionHistory": {
+      "schemaVersion": 1,
+      "sessions": [
+        {
+          "id": "session_00000011-0000-4000-8000-000000000000",
+          "type": "mission",
+          "status": "completed",
+          "lifecycleState": "completed",
+          "title": "Schritt 1: Kapitel 1 lesen",
+          "task": "Kapitel 1 zusammenfassen und Fragen notieren",
+          "plannedMinutes": 25,
+          "actualMinutes": 25,
+          "elapsedMs": 1500000,
+          "startedAt": 1791792000000,
+          "finishedAt": 1791793500000,
+          "missionId": "mission_11111111-1111-4111-8111-111111111111",
+          "missionStepId": "step_00000000-1111-4000-8000-000000000000",
+          "result": {
+            "reason": null,
+            "outcome": "completed",
+            "feedback": null,
+            "rating": 4
+          },
+          "ui": {
+            "modeLabel": "Mission",
+            "progressCurrent": 1,
+            "progressTotal": 1
+          },
+          "finalizationState": "saved",
+          "schemaVersion": 1
+        },
+        {
+          "id": "session_00000010-0000-4000-8000-000000000000",
+          "type": "mission",
+          "status": "completed",
+          "lifecycleState": "completed",
+          "title": "Schritt 1: Kapitel 1 lesen",
+          "task": "Kapitel 1 zusammenfassen und Fragen notieren",
+          "plannedMinutes": 25,
+          "actualMinutes": 25,
+          "elapsedMs": 1500000,
+          "startedAt": 1791705600000,
+          "finishedAt": 1791707100000,
+          "missionId": "mission_33333333-3333-4333-8333-333333333333",
+          "missionStepId": "step_00000000-3333-4000-8000-000000000000",
+          "result": {
+            "reason": null,
+            "outcome": "completed",
+            "feedback": null,
+            "rating": 4
+          },
+          "ui": {
+            "modeLabel": "Mission",
+            "progressCurrent": 1,
+            "progressTotal": 1
+          },
+          "finalizationState": "saved",
+          "schemaVersion": 1
+        },
+        {
+          "id": "session_00000009-0000-4000-8000-000000000000",
+          "type": "quick",
+          "status": "completed",
+          "lifecycleState": "completed",
+          "title": "Konzentriert arbeiten",
+          "task": "Konzentriert arbeiten",
+          "plannedMinutes": 25,
+          "actualMinutes": 25,
+          "elapsedMs": 1500000,
+          "startedAt": 1791619200000,
+          "finishedAt": 1791620700000,
+          "missionId": null,
+          "missionStepId": null,
+          "result": {
+            "reason": null,
+            "outcome": null,
+            "feedback": null,
+            "rating": null
+          },
+          "ui": {
+            "modeLabel": "Kurzer Fokus",
+            "progressCurrent": 1,
+            "progressTotal": 1
+          },
+          "finalizationState": "saved",
+          "schemaVersion": 1
+        },
+        {
+          "id": "session_00000008-0000-4000-8000-000000000000",
+          "type": "mission",
+          "status": "completed",
+          "lifecycleState": "completed",
+          "title": "Schritt 1: Kapitel 1 lesen",
+          "task": "Kapitel 1 zusammenfassen und Fragen notieren",
+          "plannedMinutes": 25,
+          "actualMinutes": 25,
+          "elapsedMs": 1500000,
+          "startedAt": 1791532800000,
+          "finishedAt": 1791534300000,
+          "missionId": "mission_33333333-3333-4333-8333-333333333333",
+          "missionStepId": "step_00000000-3333-4000-8000-000000000000",
+          "result": {
+            "reason": null,
+            "outcome": "completed",
+            "feedback": null,
+            "rating": 4
+          },
+          "ui": {
+            "modeLabel": "Mission",
+            "progressCurrent": 1,
+            "progressTotal": 1
+          },
+          "finalizationState": "saved",
+          "schemaVersion": 1
+        },
+        {
+          "id": "session_00000007-0000-4000-8000-000000000000",
+          "type": "mission",
+          "status": "completed",
+          "lifecycleState": "completed",
+          "title": "Schritt 1: Kapitel 1 lesen",
+          "task": "Kapitel 1 zusammenfassen und Fragen notieren",
+          "plannedMinutes": 25,
+          "actualMinutes": 25,
+          "elapsedMs": 1500000,
+          "startedAt": 1791446400000,
+          "finishedAt": 1791447900000,
+          "missionId": "mission_11111111-1111-4111-8111-111111111111",
+          "missionStepId": "step_00000000-1111-4000-8000-000000000000",
+          "result": {
+            "reason": null,
+            "outcome": "completed",
+            "feedback": null,
+            "rating": 4
+          },
+          "ui": {
+            "modeLabel": "Mission",
+            "progressCurrent": 1,
+            "progressTotal": 1
+          },
+          "finalizationState": "saved",
+          "schemaVersion": 1
+        },
+        {
+          "id": "session_00000006-0000-4000-8000-000000000000",
+          "type": "quick",
+          "status": "completed",
+          "lifecycleState": "completed",
+          "title": "Konzentriert arbeiten",
+          "task": "Konzentriert arbeiten",
+          "plannedMinutes": 25,
+          "actualMinutes": 25,
+          "elapsedMs": 1500000,
+          "startedAt": 1791360000000,
+          "finishedAt": 1791361500000,
+          "missionId": null,
+          "missionStepId": null,
+          "result": {
+            "reason": null,
+            "outcome": null,
+            "feedback": null,
+            "rating": null
+          },
+          "ui": {
+            "modeLabel": "Kurzer Fokus",
+            "progressCurrent": 1,
+            "progressTotal": 1
+          },
+          "finalizationState": "saved",
+          "schemaVersion": 1
+        },
+        {
+          "id": "session_00000005-0000-4000-8000-000000000000",
+          "type": "mission",
+          "status": "cancelled",
+          "lifecycleState": "cancelled",
+          "title": "Schritt 1: Kapitel 1 lesen",
+          "task": "Kapitel 1 zusammenfassen und Fragen notieren",
+          "plannedMinutes": 25,
+          "actualMinutes": 0,
+          "elapsedMs": 20000,
+          "startedAt": 1791273600000,
+          "finishedAt": 1791275100000,
+          "missionId": "mission_11111111-1111-4111-8111-111111111111",
+          "missionStepId": "step_00000000-1111-4000-8000-000000000000",
+          "result": {
+            "reason": null,
+            "outcome": "completed",
+            "feedback": null,
+            "rating": 4
+          },
+          "ui": {
+            "modeLabel": "Mission",
+            "progressCurrent": 1,
+            "progressTotal": 1
+          },
+          "finalizationState": "saved",
+          "schemaVersion": 1
+        },
+        {
+          "id": "session_00000004-0000-4000-8000-000000000000",
+          "type": "mission",
+          "status": "completed",
+          "lifecycleState": "completed",
+          "title": "Schritt 1: Kapitel 1 lesen",
+          "task": "Kapitel 1 zusammenfassen und Fragen notieren",
+          "plannedMinutes": 25,
+          "actualMinutes": 25,
+          "elapsedMs": 1500000,
+          "startedAt": 1791187200000,
+          "finishedAt": 1791188700000,
+          "missionId": "mission_33333333-3333-4333-8333-333333333333",
+          "missionStepId": "step_00000000-3333-4000-8000-000000000000",
+          "result": {
+            "reason": null,
+            "outcome": "completed",
+            "feedback": null,
+            "rating": 4
+          },
+          "ui": {
+            "modeLabel": "Mission",
+            "progressCurrent": 1,
+            "progressTotal": 1
+          },
+          "finalizationState": "saved",
+          "schemaVersion": 1
+        },
+        {
+          "id": "session_00000003-0000-4000-8000-000000000000",
+          "type": "quick",
+          "status": "completed",
+          "lifecycleState": "completed",
+          "title": "Konzentriert arbeiten",
+          "task": "Konzentriert arbeiten",
+          "plannedMinutes": 25,
+          "actualMinutes": 25,
+          "elapsedMs": 1500000,
+          "startedAt": 1791100800000,
+          "finishedAt": 1791102300000,
+          "missionId": null,
+          "missionStepId": null,
+          "result": {
+            "reason": null,
+            "outcome": null,
+            "feedback": null,
+            "rating": null
+          },
+          "ui": {
+            "modeLabel": "Kurzer Fokus",
+            "progressCurrent": 1,
+            "progressTotal": 1
+          },
+          "finalizationState": "saved",
+          "schemaVersion": 1
+        },
+        {
+          "id": "session_00000002-0000-4000-8000-000000000000",
+          "type": "mission",
+          "status": "completed",
+          "lifecycleState": "completed",
+          "title": "Schritt 1: Kapitel 1 lesen",
+          "task": "Kapitel 1 zusammenfassen und Fragen notieren",
+          "plannedMinutes": 25,
+          "actualMinutes": 25,
+          "elapsedMs": 1500000,
+          "startedAt": 1791014400000,
+          "finishedAt": 1791015900000,
+          "missionId": "mission_33333333-3333-4333-8333-333333333333",
+          "missionStepId": "step_00000000-3333-4000-8000-000000000000",
+          "result": {
+            "reason": null,
+            "outcome": "completed",
+            "feedback": null,
+            "rating": 4
+          },
+          "ui": {
+            "modeLabel": "Mission",
+            "progressCurrent": 1,
+            "progressTotal": 1
+          },
+          "finalizationState": "saved",
+          "schemaVersion": 1
+        },
+        {
+          "id": "session_00000001-0000-4000-8000-000000000000",
+          "type": "mission",
+          "status": "completed",
+          "lifecycleState": "completed",
+          "title": "Schritt 1: Kapitel 1 lesen",
+          "task": "Kapitel 1 zusammenfassen und Fragen notieren",
+          "plannedMinutes": 25,
+          "actualMinutes": 25,
+          "elapsedMs": 1500000,
+          "startedAt": 1790928000000,
+          "finishedAt": 1790929500000,
+          "missionId": "mission_11111111-1111-4111-8111-111111111111",
+          "missionStepId": "step_00000000-1111-4000-8000-000000000000",
+          "result": {
+            "reason": null,
+            "outcome": "completed",
+            "feedback": null,
+            "rating": 4
+          },
+          "ui": {
+            "modeLabel": "Mission",
+            "progressCurrent": 1,
+            "progressTotal": 1
+          },
+          "finalizationState": "saved",
+          "schemaVersion": 1
+        },
+        {
+          "id": "session_00000000-0000-4000-8000-000000000000",
+          "type": "quick",
+          "status": "completed",
+          "lifecycleState": "completed",
+          "title": "Konzentriert arbeiten",
+          "task": "Konzentriert arbeiten",
+          "plannedMinutes": 25,
+          "actualMinutes": 25,
+          "elapsedMs": 1500000,
+          "startedAt": 1790841600000,
+          "finishedAt": 1790843100000,
+          "missionId": null,
+          "missionStepId": null,
+          "result": {
+            "reason": null,
+            "outcome": null,
+            "feedback": null,
+            "rating": null
+          },
+          "ui": {
+            "modeLabel": "Kurzer Fokus",
+            "progressCurrent": 1,
+            "progressTotal": 1
+          },
+          "finalizationState": "saved",
+          "schemaVersion": 1
+        }
+      ]
+    },
+    "lastSession": {
+      "id": "session_00000011-0000-4000-8000-000000000000",
+      "type": "mission",
+      "status": "completed",
+      "lifecycleState": "completed",
+      "title": "Schritt 1: Kapitel 1 lesen",
+      "task": "Kapitel 1 zusammenfassen und Fragen notieren",
+      "plannedMinutes": 25,
+      "actualMinutes": 25,
+      "elapsedMs": 1500000,
+      "startedAt": 1791792000000,
+      "finishedAt": 1791793500000,
+      "missionId": "mission_11111111-1111-4111-8111-111111111111",
+      "missionStepId": "step_00000000-1111-4000-8000-000000000000",
+      "result": {
+        "reason": null,
+        "outcome": "completed",
+        "feedback": null,
+        "rating": 4
+      },
+      "ui": {
+        "modeLabel": "Mission",
+        "progressCurrent": 1,
+        "progressTotal": 1
+      },
+      "finalizationState": "saved",
+      "schemaVersion": 1
+    },
+    "activeSession": null,
+    "recovery": {
+      "schemaVersion": 1,
+      "hasRecoverableSession": false,
+      "activeSessionId": null,
+      "lifecycleState": null
+    },
+    "preferences": {
+      "schemaVersion": 1,
+      "language": "de",
+      "pwaInstallHelpDismissed": "1"
+    },
+    "lastAiPlan": null,
+    "legacyCompatibility": {
+      "missionsMigrated": "1",
+      "activeMission": null,
+      "missionProgress": null
+    }
+  },
+  "format": "focusmode-backup",
+  "appVersion": "v17.17",
+  "scope": "full",
+  "trust": "local_backup_unverified"
+}

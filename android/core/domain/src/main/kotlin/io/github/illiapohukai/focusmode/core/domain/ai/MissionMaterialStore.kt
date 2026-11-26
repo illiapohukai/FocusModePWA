@@ -18,5 +18,13 @@ sealed interface MaterialPreparation {
 interface MissionMaterialStore {
     suspend fun prepare(source: String): MaterialPreparation
     suspend fun load(): MissionMaterial?
+    /** Deletes the processed photo and any camera capture that was not processed yet. */
     suspend fun clear()
+
+    /**
+     * A fresh `content://` write target for the system camera (one cache file shared through a
+     * FileProvider; no camera or storage permission). [prepare] with this target re-encodes the
+     * photo like a picked one and deletes the capture file right afterwards. Null if unavailable.
+     */
+    suspend fun captureTarget(): String? = null
 }

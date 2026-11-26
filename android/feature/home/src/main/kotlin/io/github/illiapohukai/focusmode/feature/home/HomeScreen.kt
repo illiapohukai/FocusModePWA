@@ -70,7 +70,11 @@ import io.github.illiapohukai.focusmode.core.designsystem.theme.LabelType
 import io.github.illiapohukai.focusmode.core.designsystem.theme.MissionTones
 import io.github.illiapohukai.focusmode.core.designsystem.theme.Radii
 import io.github.illiapohukai.focusmode.core.designsystem.theme.Spacing
-import io.github.illiapohukai.focusmode.core.domain.history.OutcomeBadge
+import io.github.illiapohukai.focusmode.core.domain.history.HistoryQueries
+import io.github.illiapohukai.focusmode.core.domain.history.OutcomeNode
+import io.github.illiapohukai.focusmode.core.designsystem.component.OutcomeColors
+import io.github.illiapohukai.focusmode.core.designsystem.component.OutcomeDot
+import io.github.illiapohukai.focusmode.core.designsystem.component.isTextCompact
 import io.github.illiapohukai.focusmode.core.domain.mission.CalendarDayInfo
 import io.github.illiapohukai.focusmode.core.domain.mission.CalendarEventKind
 import io.github.illiapohukai.focusmode.core.domain.mission.HomeMissionMode
@@ -141,10 +145,10 @@ fun HomeScreen(
             item { QuickFocusRow(state.quickMinutes, actions.onQuickFocus) }
             item {
                 SectionHeader("Heute", Modifier.padding(top = Spacing.xs)) {
-                    Text("Woche: ${state.progress.weekSessions} ${if (state.progress.weekSessions == 1) "Sitzung" else "Sitzungen"} · ${state.progress.weekMinutes} Min.", style = MaterialTheme.typography.bodySmall, color = FocusPalette.GraphiteSoft)
+                    Text("Woche: ${state.progress.weekSessions} ${if (state.progress.weekSessions == 1) "Sitzung" else "Sitzungen"} · ${HistoryQueries.formatMinutes(state.progress.weekMinutes)}", style = MaterialTheme.typography.bodySmall, color = FocusPalette.GraphiteSoft)
                 }
             }
-            item { TodayCard(state) }
+            item { TodayCard(state, actions.onOpenHistory) }
             item {
                 SectionHeader("Missionskalender", Modifier.padding(top = Spacing.xs)) {
                     if (!state.calendar.empty && (state.calendar.selected != state.calendar.today || state.calendar.month != java.time.YearMonth.from(state.calendar.today))) {
@@ -156,11 +160,7 @@ fun HomeScreen(
             item { SectionHeader("Erinnerungen", Modifier.padding(top = Spacing.xs)) }
             item { RemindersCard(state, actions.onOpenSchedules) }
             item { SectionHeader("Aktivität", Modifier.padding(top = Spacing.xs)) { TextAction("Alle anzeigen", actions.onOpenHistory) } }
-            if (state.activity.isEmpty()) {
-                item { Text("Noch keine Sitzungen. Deine erste Fokuszeit erscheint hier.", style = MaterialTheme.typography.bodyMedium, color = FocusPalette.GraphiteSoft, modifier = Modifier.padding(horizontal = 2.dp)) }
-            } else {
-                items(state.activity, key = { it.sessionId }) { ActivityRow(it) { actions.onOpenResult(it.sessionId) } }
-            }
+            item { ActivityTimeline(state.activity, actions.onOpenResult) }
         }
     }
 }
@@ -516,9 +516,9 @@ private fun QuickFocusRow(minutes: Int, onClick: () -> Unit) {
 
 /** PWA `.home-today`: three centred cells divided by hairlines. */
 @Composable
-private fun TodayCard(state: HomeUiState) {
+private fun TodayCard(state: HomeUiState, onOpenHistory: () -> Unit) {
     val p = state.progress
-    FocusCard(Modifier.fillMaxWidth().testTag("home_today"), contentPadding = PaddingValues(vertical = 16.dp, horizontal = 6.dp)) {
+    FocusCard(Modifier.fillMaxWidth().testTag("home_today"), onClick = onOpenHistory, onClickLabel = "Verlauf öffnen", contentPadding = PaddingValues(vertical = 16.dp, horizontal = 6.dp)) {
         Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), verticalAlignment = Alignment.CenterVertically) {
             Stat("${p.todayMinutes}m", "Fokus", "${p.todayMinutes} Minuten Fokus heute", Modifier.weight(1f))
             VerticalDivider(Modifier.fillMaxHeight(0.7f), color = FocusPalette.Outline)
@@ -571,31 +571,78 @@ private fun RemindersCard(state: HomeUiState, onOpen: () -> Unit) {
     }
 }
 
+/**
+ * PWA Home Activity (v17.16): one quiet card, grouped by day. The node shape shows the outcome
+ * (filled = abgeschlossen, half = teilweise, open = abgebrochen) next to its text label; Mission
+ * rows carry their stable Mission tone, Quick Focus rows the app purple. A thin rail joins the
+ * rows of one day.
+ */
 @Composable
-internal fun ActivityRow(item: ActivityItem, onClick: () -> Unit) {
-    Row(
-        Modifier.fillMaxWidth().heightIn(min = 60.dp).clip(Radii.lg).background(FocusPalette.Surface).border(BorderStroke(1.dp, FocusPalette.Outline), Radii.lg)
-            .clickable(role = Role.Button, onClickLabel = "Ergebnis öffnen", onClick = onClick).padding(horizontal = Spacing.md, vertical = Spacing.sm)
-            .semantics(mergeDescendants = true) {},
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(Modifier.weight(1f)) {
-            Text(item.title, style = MaterialTheme.typography.titleSmall, color = FocusPalette.Graphite, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(item.time, style = MaterialTheme.typography.bodySmall, color = FocusPalette.GraphiteSoft)
+internal fun ActivityTimeline(items: List<ActivityItem>, onOpen: (String) -> Unit) {
+    FocusCard(Modifier.fillMaxWidth().testTag("home_activity"), contentPadding = PaddingValues(horizontal = Spacing.md, vertical = 6.dp)) {
+        if (items.isEmpty()) {
+            Column(Modifier.fillMaxWidth().padding(vertical = Spacing.sm), horizontalAlignment = Alignment.CenterHorizontally) {
+                IconTile(FocusIcons.Clock, background = SolidColor(FocusPalette.SurfaceMuted), tint = FocusPalette.GraphiteSoft)
+                Spacer(Modifier.height(Spacing.sm))
+                Text("Noch keine Aktivität", style = MaterialTheme.typography.titleSmall, color = FocusPalette.Graphite, textAlign = TextAlign.Center)
+                Text("Deine Fokus-Sitzungen erscheinen hier.", style = MaterialTheme.typography.bodySmall, color = FocusPalette.GraphiteSoft, textAlign = TextAlign.Center)
+            }
+            return@FocusCard
         }
-        Column(horizontalAlignment = Alignment.End) {
-            Text(item.minutes, style = MaterialTheme.typography.labelLarge, color = FocusPalette.Graphite)
-            BadgeText(item.badge)
+        items.forEachIndexed { i, item ->
+            if (i == 0 || items[i - 1].day != item.day) {
+                Text(
+                    item.day.uppercase(), style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = FocusPalette.GraphiteSoft,
+                    modifier = Modifier.padding(top = if (i == 0) 8.dp else 12.dp, bottom = 2.dp).semantics { heading() },
+                )
+            }
+            ActivityRow(item, joinsNext = items.getOrNull(i + 1)?.day == item.day) { onOpen(item.sessionId) }
         }
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun BadgeText(badge: OutcomeBadge) {
-    val color = when (badge) {
-        OutcomeBadge.COMPLETED -> Color(0xFF15803D)
-        OutcomeBadge.PARTIAL -> FocusPalette.PurpleInk
-        OutcomeBadge.CANCELLED, OutcomeBadge.INTERRUPTED -> FocusPalette.GraphiteSoft
+internal fun ActivityRow(item: ActivityItem, joinsNext: Boolean, onClick: () -> Unit) {
+    val tone = item.theme?.let { MissionTones.of(it).accentStrong } ?: FocusPalette.Purple
+    val open = item.node == OutcomeNode.OPEN
+    val fontScale = androidx.compose.ui.platform.LocalDensity.current.fontScale
+    androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxWidth()) {
+        // 320 dp at 130–160 %: duration and outcome move under the task instead of squeezing it.
+        val compact = isTextCompact(maxWidth.value, fontScale, 260f)
+        Row(
+            Modifier.fillMaxWidth().heightIn(min = 48.dp).height(IntrinsicSize.Min).clip(Radii.sm)
+                .clickable(role = Role.Button, onClickLabel = "Ergebnis öffnen", onClick = onClick)
+                .semantics(mergeDescendants = true) {}.testTag("home_activity_${item.sessionId}"),
+            verticalAlignment = Alignment.Top,
+        ) {
+            Box(Modifier.width(14.dp).fillMaxHeight()) {
+                if (joinsNext) Box(Modifier.align(Alignment.TopCenter).padding(top = 24.dp).width(1.5.dp).fillMaxHeight().background(FocusPalette.Outline))
+                OutcomeDot(item.node.fill, if (open) FocusPalette.NodeOpen else tone, Modifier.padding(top = 11.dp))
+            }
+            Spacer(Modifier.width(Spacing.sm))
+            Column(Modifier.weight(1f).padding(vertical = 9.dp)) {
+                Text(item.title, style = MaterialTheme.typography.titleSmall, color = if (open) FocusPalette.GraphiteSoft else FocusPalette.Graphite, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                if (compact) {
+                    androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), itemVerticalAlignment = Alignment.CenterVertically) {
+                        Text(item.minutes, style = MaterialTheme.typography.titleSmall, color = if (open) FocusPalette.GraphiteSoft else FocusPalette.Graphite, maxLines = 1)
+                        Text(item.badge.label, style = MaterialTheme.typography.labelMedium, color = OutcomeColors.ink(item.node.fill), maxLines = 1)
+                    }
+                    Text(item.context + " · " + item.time, style = MaterialTheme.typography.bodySmall, color = FocusPalette.GraphiteSoft, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                } else {
+                    Row {
+                        Text(item.context, style = MaterialTheme.typography.bodySmall, color = FocusPalette.GraphiteSoft, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                        Text(" · " + item.time, style = MaterialTheme.typography.bodySmall, color = FocusPalette.GraphiteSoft, maxLines = 1)
+                    }
+                }
+            }
+            if (!compact) {
+                Spacer(Modifier.width(Spacing.xs))
+                Column(Modifier.padding(vertical = 9.dp), horizontalAlignment = Alignment.End) {
+                    Text(item.minutes, style = MaterialTheme.typography.titleSmall, color = if (open) FocusPalette.GraphiteSoft else FocusPalette.Graphite, maxLines = 1)
+                    Text(item.badge.label, style = MaterialTheme.typography.labelMedium, color = OutcomeColors.ink(item.node.fill), maxLines = 1)
+                }
+            }
+        }
     }
-    Text(badge.label, style = MaterialTheme.typography.labelMedium, color = color, modifier = Modifier.clearAndSetSemantics { contentDescription = badge.label })
 }

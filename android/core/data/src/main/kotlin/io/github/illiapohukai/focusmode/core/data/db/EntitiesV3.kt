@@ -50,6 +50,13 @@ data class MissionDraftEntity(
     @ColumnInfo(name = "plan_warning") val planWarning: String?,
     @ColumnInfo(name = "created_at") val createdAt: Instant,
     @ColumnInfo(name = "updated_at") val updatedAt: Instant,
+    /* v4 (v20): Worker `plan.sourceAnalysis` for the Briefing ("Aus dem Material erkannt"); lists one item per line. */
+    @ColumnInfo(name = "source_detected_tasks", defaultValue = "''") val sourceDetectedTasks: String = "",
+    @ColumnInfo(name = "source_detected_pages", defaultValue = "''") val sourceDetectedPages: String = "",
+    @ColumnInfo(name = "source_confidence") val sourceConfidence: Int? = null,
+    @ColumnInfo(name = "source_missing", defaultValue = "''") val sourceMissing: String = "",
+    @ColumnInfo(name = "source_facts", defaultValue = "''") val sourceFacts: String = "",
+    @ColumnInfo(name = "source_estimates", defaultValue = "''") val sourceEstimates: String = "",
 )
 
 /** Steps of the Briefing plan, in order. Ids here are transport ids; stored Missions get local ids. */
@@ -67,6 +74,8 @@ data class MissionDraftStepEntity(
     @ColumnInfo(name = "duration_minutes") val durationMinutes: Int,
     val reason: String,
     @ColumnInfo(name = "scheduled_date") val scheduledDate: LocalDate?,
+    @ColumnInfo(name = "required_tools", defaultValue = "''") val requiredTools: String = "",
+    @ColumnInfo(name = "recommended_apps", defaultValue = "''") val recommendedApps: String = "",
 )
 
 data class MissionDraftWithSteps(

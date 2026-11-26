@@ -57,7 +57,48 @@ data class GeneratedStep(
     val durationMinutes: Int,
     val reason: String,
     val scheduledDate: LocalDate?,
+    val requiredTools: List<String> = emptyList(),
+    val recommendedApps: List<String> = emptyList(),
 )
+
+/**
+ * Worker `plan.sourceAnalysis` (docs/API_CONTRACTS.md §2.3), bounded like the PWA
+ * (`AI_TEXT_LIMITS`). Shown in the Briefing under "So wurde der Plan erstellt" ("Aus dem Material
+ * erkannt" when a photo was sent). Nothing here is invented on the device: an empty analysis
+ * simply shows nothing.
+ */
+data class SourceAnalysis(
+    val detectedTasks: String = "",
+    val detectedPages: String = "",
+    /** 0–100, or null when the Worker gave no usable confidence. */
+    val confidencePercent: Int? = null,
+    val missingInformation: List<String> = emptyList(),
+    val facts: List<String> = emptyList(),
+    val estimates: List<String> = emptyList(),
+) {
+    /** PWA "Aus dem Material erkannt" / "Aus deinem Ziel erkannt" items. */
+    val recognized: List<String>
+        get() = listOfNotNull(detectedTasks.takeIf { it.isNotBlank() }?.let { "Aufgaben: $it" }, detectedPages.takeIf { it.isNotBlank() }?.let { "Seiten: $it" }) + facts
+
+    /** PWA `briefConfidence`: hoch ≥ 75 %, mittel ≥ 45 %, otherwise niedrig; none without a value. */
+    val confidenceLabel: String?
+        get() = confidencePercent?.takeIf { it > 0 }?.let { if (it >= 75) "hoch" else if (it >= 45) "mittel" else "niedrig" }
+
+    val isEmpty: Boolean get() = recognized.isEmpty() && missingInformation.isEmpty() && estimates.isEmpty() && confidencePercent == null
+
+    companion object {
+        /** PWA `AI_TEXT_LIMITS`: 20 list items of 500 characters. */
+        const val LIST_ITEMS = 20
+        const val ITEM_MAX = 500
+
+        /** PWA `briefConfidence` input: 0–1 or 0–100, anything else is no confidence. */
+        fun percentOf(raw: Double?): Int? {
+            var n = raw?.takeIf { it.isFinite() && it > 0 } ?: return null
+            if (n > 1) n /= 100
+            return Math.round(n.coerceIn(0.0, 1.0) * 100).toInt()
+        }
+    }
+}
 
 data class GeneratedMissionPlan(
     val title: String,
@@ -71,6 +112,7 @@ data class GeneratedMissionPlan(
     val difficulty: String? = null,
     /** PWA `estimate.explanation`: why the plan is built this way. */
     val explanation: String = "",
+    val source: SourceAnalysis = SourceAnalysis(),
 )
 
 /** Safe, user-facing errors (PWA `parseMissionErrorResponseCore` wording). Internal text never shown. */
@@ -146,4 +188,6 @@ object MissionPlanRules {
     const val SHORT_MAX = 120
     const val TEXT_MAX = 2000
     const val ITEM_MAX = 500
+    /** PWA `AI_TEXT_LIMITS.tools`: at most 12 tools or apps per step, 120 characters each. */
+    const val TOOLS_MAX = 12
 }

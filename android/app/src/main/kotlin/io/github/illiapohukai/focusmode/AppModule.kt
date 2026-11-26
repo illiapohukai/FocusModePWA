@@ -5,6 +5,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import io.github.illiapohukai.focusmode.core.data.prefs.FeatureFlagDefaults
+import io.github.illiapohukai.focusmode.core.domain.di.AppVersionName
 import io.github.illiapohukai.focusmode.core.domain.di.WorkerBaseUrl
 
 @Module
@@ -12,6 +13,9 @@ import io.github.illiapohukai.focusmode.core.domain.di.WorkerBaseUrl
 object AppModule {
     @Provides @WorkerBaseUrl
     fun workerBaseUrl(): String = BuildConfig.WORKER_BASE_URL
+
+    @Provides @AppVersionName
+    fun appVersionName(): String = BuildConfig.VERSION_NAME
 
     /** Development-only features default to off in release builds. */
     @Provides

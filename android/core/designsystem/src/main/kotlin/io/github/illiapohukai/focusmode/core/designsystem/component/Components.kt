@@ -419,3 +419,16 @@ fun ReadableWidth(modifier: Modifier = Modifier, content: @Composable () -> Unit
         Box(Modifier.widthIn(max = Spacing.maxContentWidth).fillMaxWidth()) { content() }
     }
 }
+
+/**
+ * True when a container is too narrow for side-by-side text at the current font scale (for
+ * example 320 dp at 160 %): callers then stack label and value instead of breaking words.
+ * [widthDp] is the container width; [minScaledWidthDp] the width it needs at 100 % font.
+ */
+fun isTextCompact(widthDp: Float, fontScale: Float, minScaledWidthDp: Float): Boolean = widthDp / fontScale.coerceAtLeast(1f) < minScaledWidthDp
+
+/** Keeps a duration ("1 Std. 52 Min.") on one line; long rows then break at the " · " separators. */
+fun String.keepDurationsTogether(): String = replace(DURATION_UNIT, "$1\u00A0$2").replace(HOURS_MINUTES, "$1\u00A0$2")
+
+private val DURATION_UNIT = Regex("(\\d+) (Std\\.|Min\\.)")
+private val HOURS_MINUTES = Regex("(Std\\.) (\\d)")

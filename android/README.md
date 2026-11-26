@@ -1,10 +1,13 @@
-# Focus Mode+ — Android (v19 Android Missions)
+# Focus Mode+ — Android (v20 Android Parity Completion)
 
 A native Android app for Focus Mode+, written in Kotlin with Jetpack Compose. It is **not** a
 WebView, a Trusted Web Activity or a wrapper around the PWA. The PWA in the repository root is
 unchanged and stays the reference for product terms, Mission and Session behavior, timer semantics,
 History, Recovery, colors, typography, the Cosmic Core identity, backups and the AI Worker contract.
 
+- [Parity matrix v20](docs/parity-matrix-v20.md): every PWA screen and workflow, compared and classified
+- [Visual parity v20](docs/visual-parity-v20.md): History, Insights, Activity, Briefing, Data & Backup
+- [Remaining gaps after v20](docs/remaining-gaps-after-v20.md): device validation, deferred scope, open items
 - [Missions v19](docs/missions-v19.md): Mission architecture, generation lifecycle, validation, review, adaptation
 - [Protection capabilities](docs/protection-capabilities.md): what consumer Android can and cannot do
 - [PWA parity](docs/pwa-parity.md): what is implemented, partial, deferred or intentionally different
@@ -54,8 +57,9 @@ export ANDROID_HOME=/path/to/sdk      # or sdk.dir in local.properties (never co
 ./gradlew :app:assembleRelease        # R8-minified, unsigned (no signing config in the repo)
 ```
 
-CI: `.github/workflows/android.yml` (tests, lint, debug APK artifact, Gradle caching). No signing
-secrets, no Play upload.
+CI: `.github/workflows/android.yml` (Node 24 action majors; tests, lint, debug and unsigned
+release builds, both APKs and the test/lint reports with screenshots as artifacts, Gradle
+caching). No signing secrets, no Play upload.
 
 ## Architecture
 
@@ -71,7 +75,7 @@ android/
 │   ├── model/           (JVM) domain models + data-trust classification
 │   ├── domain/          (JVM) business rules, repository/gateway contracts, PWA backup parser
 │   ├── testing/         (JVM) fakes and fixtures (tests only; never shipped)
-│   ├── data/            Room (v3, migrations 1→2→3), DataStore, repositories, backup import, RestoreGuard
+│   ├── data/            Room (v4, migrations 1→2→3→4), DataStore, repositories, backup import/snapshot, data wipe, RestoreGuard
 │   ├── network/         Cloudflare Worker client (Retrofit/OkHttp), DTO validation, error mapping, draft photo store
 │   ├── designsystem/    tokens, Inter typography, components, icons, Cosmic Core renderer
 │   ├── notifications/   channels, capability reader, the single notifier, PendingIntents
@@ -92,6 +96,10 @@ Each feature owns its UI state, ViewModel, actions, navigation contract (`…Des
 - Calendar events: `MissionCalendar`. Zeitplan: `MissionSchedulePlanner`. Draft photo: `AndroidMissionMaterialStore`.
 - Notifications: `FocusNotifier`. Reminders: `AndroidReminderScheduler`.
 - Protection capability: `ProtectionCapabilityOwner`.
+- Statistics: `ProgressCalculator` (Today, week, streak) and `FocusInsights` (Fokus-Rhythmus, Dein
+  Fokusverlauf); History order and labels: `HistoryQueries` / `HistoryFormat` (v20).
+- Backup: `PwaBackupImporter` validates every file (incl. `BackupIntegrity`); `AndroidBackupExporter`
+  / `BackupExportOwner` write; `BackupImportRepository` applies. Data deletion: `PersonalDataEraser` (v20).
 
 ## First vertical slice (fully implemented)
 
@@ -112,7 +120,28 @@ Home → Quick Focus setup → active Focus Session → Result → History, pers
 - **History**: Heute/Woche/Alle filters (PWA), grouped by local day, local statistics.
 
 Also implemented: Scheduled Focus (list and editor), Settings, Permission Center, distracting-app
-selection, PWA backup import (behind a development flag).
+selection, Daten & Backup (export, import, full deletion).
+
+## v20 Android Parity Completion
+
+See [docs/parity-matrix-v20.md](docs/parity-matrix-v20.md). In short:
+
+- **History**: Fokus-Rhythmus (7 Tage / 4 Wochen, Mission/Quick split, average, best period,
+  trend; every bar is an accessible button), Mission title and step on rows, outcome node shapes
+  (filled / half / open + German label), PWA empty states, one stable order (end, then Session id).
+- **Dein Fokusverlauf** (History → Statistik): total, Ø pro Sitzung, Abschlussquote, Heute,
+  Konstanz with the 28-day grid, Bestwerte, Sitzungsarten — all from local History, labelled unverified.
+- **Home Activity**: one card grouped by day, six rows, nodes in the Mission tone, Mission title
+  as context; the Today card opens History.
+- **Missions**: rename (title only; id, colour, steps, History and reminders unchanged); the
+  Worker's `sourceAnalysis` ("Aus dem Material erkannt", "Noch unklar") and per-step
+  `requiredTools` / `recommendedApps` are kept (Room v4) and shown in Briefing and Plan; system
+  camera and system speech input on the goal field (no camera or microphone permission).
+- **Daten & Backup**: export in the PWA envelope (full or "Nur Missionen & Einstellungen"),
+  SHA-256 integrity that the PWA verifies and vice versa, import for web and Android backups,
+  and "Alle persönlichen und nutzergenerierten Daten löschen".
+- **Settings**: Daten & Backup row with "Letztes Backup", a privacy section (what stays local,
+  what goes to the AI).
 
 ## Mission vertical slice (v19)
 
@@ -208,6 +237,9 @@ Declared permissions: `POST_NOTIFICATIONS`, `FOREGROUND_SERVICE`, `FOREGROUND_SE
 `RECEIVE_BOOT_COMPLETED`, `INTERNET`, `ACCESS_NETWORK_STATE` (plus `WAKE_LOCK` from WorkManager).
 Not requested: exact alarms, `SYSTEM_ALERT_WINDOW`, `QUERY_ALL_PACKAGES`, accessibility service,
 device admin, notification listener, SMS, contacts, call log, location, microphone, camera.
+The goal field hands off to the system camera (`ACTION_IMAGE_CAPTURE` into one FileProvider cache
+file, deleted after re-encoding) and to system speech input (`RECOGNIZE_SPEECH`); both are
+visible only through two narrow `<queries>` intents and need no permission of their own.
 
 ## App selection, Usage Access, DND, managed devices
 
@@ -234,17 +266,38 @@ a validated support request id, a 512 KB body cap and error mapping (400/401/402
 backs the optional adaptation (60 s). No redirects, no automatic retries, no logging interceptor,
 no cache. No live Worker call is made by any test.
 
-## PWA migration boundary
+## Backup import, export and data deletion
 
-Settings → "Web-Backup übernehmen" (default on in debug builds, off in release; toggle in debug
-Settings) reads a Focus Mode+ backup through the Storage Access Framework. It is never read from
-browser storage. It accepts `format: "focusmode-backup"` with exportVersion 1, and the legacy
+Settings → "Daten & Backup" (all builds). **Import** reads a Focus Mode+ backup from the web app or
+from Android through the Storage Access Framework (`OpenDocument`); it is never read from browser
+storage. (The development flag now only controls a shortcut on the Missions screen.) It accepts `format: "focusmode-backup"` with exportVersion 1, and the legacy
 root-array shape. The v17.17 limits apply: 5 MB, depth 20 (checked before parsing), 250 000 nodes,
 200 keys, 10 000 array items, 250 Missions, 100 steps, 5 000 Sessions (newest 500 kept), string
 bounds, safe ids, sane timestamps. There is a preview (new vs. existing, archived by the
 two-active limit, everything not imported), then one Room transaction: all or nothing, existing ids
 never overwritten. Imported Sessions stay `LOCAL_UNVERIFIED`; streak, League and score values are
 never imported. The web app's app selection has no Android package names and is not mapped.
+A SHA-256 digest (PWA canonical form `focusmode-canonical-json-v1`) is verified when present: a
+changed or truncated file is rejected; older files without a digest are shown as such. Android
+backups (`platform: "android"`) also restore the Zeitplan, step tools, review notes, the stored
+local day, the protection mode and Mission progress entries, and keep up to 5 000 Sessions.
+
+**Export** builds the same `focusmode-backup` v1 envelope (full, or "Nur Missionen &
+Einstellungen" without History), timestamps in epoch milliseconds, `trust:
+local_backup_unverified`, a digest over `{format, exportVersion, schemaVersions, scope, data}`.
+Before anything is written the file is read back by the import validator; a file this app could
+not restore is never handed out. The user picks the place (`CreateDocument`, no storage
+permission); the name is `focus-mode-backup[-missionen]-YYYY-MM-DD.json` (never user content).
+Not included: a running Session, selected apps, Geplanter Fokus, reminder state. The PWA's own
+importer accepts these files (verified in v20 with the PWA security harness).
+
+**Delete all** ("Alle persönlichen und nutzergenerierten Daten löschen", confirmed in a dialog):
+the Session owner drops a running or frozen Session without History (service, alarm and DND
+restored), then one Room transaction removes Missions, steps, the draft, progress, History,
+Activity, selected apps, schedules, distraction counts and the DND record; user preferences
+return to defaults (the install id, schema version and permission-request counter stay); the
+draft photo is deleted; the reminder scheduler cancels every scheduled occurrence before the
+remaining rows go; all app notifications are removed. Android system permissions are not changed.
 
 ## Data trust and privacy
 
@@ -299,7 +352,7 @@ frames, never up. Session timing never depends on it. See [performance](docs/per
 
 ## Testing
 
-`./gradlew testDebugUnitTest :core:domain:test` runs 299 JVM tests (domain rules, Room DAO,
+`./gradlew testDebugUnitTest :core:domain:test` runs the JVM suite (v20: 364 tests; v19.1: 299) (domain rules, Room DAO,
 relationships, transactions, rollback and the 1→2 and 2→3 migrations, DataStore defaults and
 migration, the Session owner incl. process recreation and reboot, the reminder scheduler,
 notifications under Robolectric, protection gateways, the Worker client against MockWebServer,
@@ -311,6 +364,11 @@ calendar, the generation and adaptation owners (cancel and late-answer races), t
 migration and draft repository, the Worker v19 mapping and photo pipeline, Mission Session
 recovery, the Creation, generation, Briefing, Plan, review and Home Mission screens, and an app flow
 that runs a Mission step as a real Session (screenshots also in `feature/*/build/screenshots/`).
+v20 adds the insights owner, History order and labels, backup integrity against a digest written
+by the PWA exporter, the export round trip, the Room 3→4 migration, the data wipe and the eraser
+with the real Session owner, rename, the Worker `sourceAnalysis`/tools mapping, the camera target,
+dictation and capture recovery, the History/Insights/Data screens, and an app flow that checks
+Activity, Fokus-Rhythmus, Insights and full deletion on the real graph (screenshots 22–34).
 There are no instrumented or emulator tests yet; the physical-device checklist is
 [device-smoke-test.md](docs/device-smoke-test.md).
 

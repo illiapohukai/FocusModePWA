@@ -208,6 +208,14 @@ class FocusSessionManager @Inject constructor(
         true
     }
 
+    override suspend fun abandonForDataDeletion() = mutex.withLock {
+        _state.value.activeSession?.let { store.clear(it.id) }
+        stopRuntime()
+        dnd.restoreIfChanged()
+        notifications.clearSessionNotifications()
+        _state.value = SessionState.Idle()
+    }
+
     override suspend fun onRuntimeTick() = mutex.withLock {
         val session = (_state.value as? SessionState.Running)?.session ?: return@withLock
         val reading = SessionTimeline.read(session, clock)

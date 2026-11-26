@@ -42,6 +42,13 @@ internal object PrefKeys {
     val LAST_MISSION = stringPreferencesKey("last_selected_mission")
     val NOTIFICATION_REQUESTS = intPreferencesKey("notification_permission_requests")
     val FLAG_PWA_IMPORT = booleanPreferencesKey("flag_pwa_import")
+    val LAST_EXPORT_AT = androidx.datastore.preferences.core.longPreferencesKey("last_export_at")
+
+    /** User preferences removed by full data deletion (everything except technical metadata). */
+    val USER_KEYS = listOf(
+        QUICK_MINUTES, MOTION, NOTIFICATIONS, NOTIFICATION_DETAIL, MISSION_REMINDERS, DAILY_PLANNING, DAILY_PLANNING_MINUTE,
+        PROTECTION_MODE, USAGE_MONITORING, DND, ONBOARDING, HOME_ONBOARDING_DONE, LAST_MISSION, LAST_EXPORT_AT,
+    )
 }
 
 /** v0 -> v1: snaps a stored Quick Focus duration onto the 5-minute contract. */
@@ -86,6 +93,7 @@ class DataStorePreferencesRepository @Inject constructor(
             lastSelectedMissionId = p[PrefKeys.LAST_MISSION]?.takeIf(EntityIds::isSafe),
             notificationPermissionRequests = (p[PrefKeys.NOTIFICATION_REQUESTS] ?: 0).coerceAtLeast(0),
             featureFlags = FeatureFlags(pwaImportEnabled = p[PrefKeys.FLAG_PWA_IMPORT] ?: flagDefaults.pwaImportEnabled),
+            lastExportAt = p[PrefKeys.LAST_EXPORT_AT]?.takeIf { it > 0 }?.let(java.time.Instant::ofEpochMilli),
         )
     }
 
@@ -117,4 +125,7 @@ class DataStorePreferencesRepository @Inject constructor(
         store.edit { it[PrefKeys.NOTIFICATION_REQUESTS] = (it[PrefKeys.NOTIFICATION_REQUESTS] ?: 0) + 1 }
     }
     override suspend fun setPwaImportEnabled(enabled: Boolean) { store.edit { it[PrefKeys.FLAG_PWA_IMPORT] = enabled } }
+    override suspend fun setLastExportAt(at: java.time.Instant) { store.edit { it[PrefKeys.LAST_EXPORT_AT] = at.toEpochMilli() } }
+    /** One edit, so a crash never leaves half of the user settings behind. */
+    override suspend fun resetUserPreferences() { store.edit { p -> PrefKeys.USER_KEYS.forEach { p.remove(it) } } }
 }

@@ -80,4 +80,6 @@ abstract class DataBindsModule {
     @Binds abstract fun dndOverride(impl: RoomDndOverrideStore): DndOverrideStore
     @Binds abstract fun preferences(impl: DataStorePreferencesRepository): PreferencesRepository
     @Binds abstract fun backupImport(impl: io.github.illiapohukai.focusmode.core.data.backup.BackupImportRepository): io.github.illiapohukai.focusmode.core.domain.backup.BackupImportGateway
+    @Binds abstract fun backupSnapshot(impl: io.github.illiapohukai.focusmode.core.data.backup.RoomBackupSnapshotSource): io.github.illiapohukai.focusmode.core.domain.backup.BackupSnapshotSource
+    @Binds abstract fun personalData(impl: io.github.illiapohukai.focusmode.core.data.backup.RoomPersonalDataStore): io.github.illiapohukai.focusmode.core.domain.backup.PersonalDataStore
 }

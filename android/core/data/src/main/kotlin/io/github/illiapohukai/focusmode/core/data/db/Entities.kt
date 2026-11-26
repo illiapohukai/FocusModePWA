@@ -53,6 +53,9 @@ data class MissionStepEntity(
     val reason: String,
     @ColumnInfo(name = "scheduled_date") val scheduledDate: LocalDate?,
     @ColumnInfo(name = "completed_at") val completedAt: Instant?,
+    /* v4 (v20): Worker `requiredTools` / `recommendedApps`, one item per line (items never contain line breaks). */
+    @ColumnInfo(name = "required_tools", defaultValue = "''") val requiredTools: String = "",
+    @ColumnInfo(name = "recommended_apps", defaultValue = "''") val recommendedApps: String = "",
 )
 
 data class MissionWithSteps(

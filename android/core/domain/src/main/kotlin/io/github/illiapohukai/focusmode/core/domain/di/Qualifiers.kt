@@ -7,3 +7,6 @@ import javax.inject.Qualifier
 
 /** Public base URL of the existing Cloudflare Worker (from BuildConfig, never a secret). */
 @Qualifier @Retention(AnnotationRetention.BINARY) annotation class WorkerBaseUrl
+
+/** The app's user-visible version name (BuildConfig), written into backup files. */
+@Qualifier @Retention(AnnotationRetention.BINARY) annotation class AppVersionName

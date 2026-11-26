@@ -3,4 +3,29 @@
     <!-- Only the existing Cloudflare Worker is contacted (HTTPS). -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- The Mission goal input can hand off to the system camera and the system speech input.
+         Both run in other apps chosen by the user; Focus Mode+ declares neither CAMERA nor
+         RECORD_AUDIO. Narrow visibility of just these two intents (no package inventory). -->
+    <queries>
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE" />
+        </intent>
+        <intent>
+            <action android:name="android.speech.action.RECOGNIZE_SPEECH" />
+        </intent>
+    </queries>
+
+    <application>
+        <!-- Write target for the system camera (one cache file, granted per capture only). -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.materialcapture"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/material_capture_paths" />
+        </provider>
+    </application>
 </manifest>

@@ -3,6 +3,7 @@ package io.github.illiapohukai.focusmode.core.data.backup
 import androidx.room.withTransaction
 import io.github.illiapohukai.focusmode.core.data.db.ActivityEntity
 import io.github.illiapohukai.focusmode.core.data.db.FocusDatabase
+import io.github.illiapohukai.focusmode.core.data.db.MissionProgressEntity
 import io.github.illiapohukai.focusmode.core.data.db.toEntity
 import io.github.illiapohukai.focusmode.core.domain.backup.BackupImportGateway
 import io.github.illiapohukai.focusmode.core.domain.backup.BackupParseResult
@@ -85,14 +86,22 @@ class BackupImportRepository @Inject constructor(
             db.activityDao().insert(ActivityEntity(type = ActivityType.MISSION_IMPORTED.name, refId = mission.id.value, occurredAt = now, localDate = today))
             missions++
         }
+        // Applied Mission results of the Missions inserted above, following any step-id remap.
+        val inserted = HashSet<String>().apply { plan.missions.filter { it.id.value !in existing }.forEach { add(it.id.value) } }
+        plan.progress.filter { it.missionId.value in inserted }.forEach { p ->
+            val step = remap[p.missionId.value to p.stepId.value] ?: p.stepId
+            db.missionProgressDao().insert(
+                MissionProgressEntity(p.sessionId.value, p.missionId.value, step.value, p.outcome.wire, p.rating, p.actualMinutes, p.plannedMinutes, p.appliedAt),
+            )
+        }
         val results = plan.results.map { r ->
             val link = r.missionLink ?: return@map r
             remap[link.missionId.value to link.stepId.value]?.let { r.copy(missionLink = link.copy(stepId = it)) } ?: r
         }
-        val inserted = db.sessionDao().insertResults(results.map { it.toEntity(savedAt = now) }).count { it != -1L }
-        if (missions + inserted > 0) {
+        val sessions = db.sessionDao().insertResults(results.map { it.toEntity(savedAt = now) }).count { it != -1L }
+        if (missions + sessions > 0) {
             db.activityDao().insert(ActivityEntity(type = ActivityType.DATA_IMPORTED.name, refId = "import:${now.toEpochMilli()}", occurredAt = now, localDate = today))
         }
-        ImportApplyResult(missions, inserted)
+        ImportApplyResult(missions, sessions)
     }
 }

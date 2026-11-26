@@ -1,5 +1,10 @@
 # Visual parity v18.1 (Android ↔ PWA)
 
+> **v20 update:** History (Fokus-Rhythmus, header chart button, Mission rows, outcome nodes),
+> the new "Dein Fokusverlauf" screen, Home Activity, Mission Briefing material facts and tools,
+> the Plan rename and tools, and "Daten & Backup" are compared in
+> [visual-parity-v20.md](visual-parity-v20.md). Rows below marked "(v20)" changed since v18.1.
+
 The authoritative reference is the **current PWA** in this repository, rendered with Playwright
 (Chromium, 390 × 844 CSS px, DPR 2, `de-DE`) from `index.html` served locally, with computed styles
 read from the live DOM (`getComputedStyle`). Tailwind's CDN is blocked in the build container, so
@@ -47,7 +52,7 @@ v18 behavior that already matched or must not change.
 | Quick Focus | section label outside, 44 px gradient lightning tile, 13.5/800 prompt, muted "25 MIN →" chip | eyebrow inside card, tinted play icon, accent pill | as PWA | Done |
 | Heute | section label + "Woche: … Sitzungen · … Min.", three centred cells with hairlines (`0m` / FOKUS …) | inline title, left-aligned stats | as PWA; streak labelled "TAGE SERIE" (local, days) | Done / Adapted (no weekly goal "von 4") |
 | Calendar / reminders | "MISSIONSKALENDER" card with empty tile | "Erinnerungen" card | section label outside; empty state with calendar tile; rows with bell tiles | Adapted (Android shows real reminders, not a Mission calendar) |
-| Activity | label + "Alle anzeigen" | same | rows with hairline, 22 dp radius | Done |
+| Activity | label + "Alle anzeigen" | same | one card grouped by day, outcome nodes in the Mission tone (v20) | Done (v20) |
 | Density | 18 px side padding, 8–12 px rhythm | 20 dp, 16 dp gaps | 18 dp sides, 8 dp list rhythm | Done |
 
 ### Quick Focus
@@ -92,11 +97,11 @@ v18 behavior that already matched or must not change.
 
 | Aspect | PWA | Android v18.1 | Status |
 |---|---|---|---|
-| Header | "SITZUNGSVERLAUF" / "Deine Fokuszeit" + chart button | `ScreenHeader`, no chart button | Done / Adapted (no insights screen) |
+| Header | "SITZUNGSVERLAUF" / "Deine Fokuszeit" + chart button | `ScreenHeader` + round "Statistik" button → Dein Fokusverlauf (v20) | Done (v20) |
 | Summary | aubergine "Fokus-Bilanz" with period chip, big minutes, "gezählte Fokuszeit", Sessions, week line, green/lavender/amber outcome counts | same, computed for the selected filter; streak in the week line | Done |
-| Rhythm chart | "Fokus-Rhythmus" 7 Tage / 4 Wochen | not implemented | Deferred |
+| Rhythm chart | "Fokus-Rhythmus" 7 Tage / 4 Wochen | `FocusRhythmCard` (Compose Canvas) (v20) | Done (v20) |
 | Filter | Heute / Diese Woche / Alle Sitzungen | Heute / Woche / Alle | Kept (short labels fit 320 dp) |
-| Rows | time range, "QUICK FOCUS" chip, title, minutes, green "✓ Abgeschlossen" pill | same; Mission chip in purple | Done |
+| Rows | time range, "QUICK FOCUS" chip, title, minutes, green "✓ Abgeschlossen" pill | Mission title · Schritt NN in the Mission tone; outcome node + label instead of icon pills (v20) | Done / Adapted (v20) |
 
 ### Settings (Profil)
 

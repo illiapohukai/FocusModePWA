@@ -54,18 +54,29 @@ import io.github.illiapohukai.focusmode.core.designsystem.theme.Radii
 import io.github.illiapohukai.focusmode.core.designsystem.theme.Spacing
 import io.github.illiapohukai.focusmode.core.domain.history.HistoryFilter
 import io.github.illiapohukai.focusmode.core.domain.history.HistoryQueries
-import io.github.illiapohukai.focusmode.core.domain.history.OutcomeBadge
+import io.github.illiapohukai.focusmode.core.domain.history.OutcomeNode
+import io.github.illiapohukai.focusmode.core.domain.history.RhythmRange
+import io.github.illiapohukai.focusmode.core.designsystem.component.OutcomeLabel
+import io.github.illiapohukai.focusmode.core.designsystem.component.isTextCompact
+import io.github.illiapohukai.focusmode.core.designsystem.theme.MissionTones
+import androidx.compose.ui.semantics.contentDescription
 
-data class HistoryActions(val onOpenResult: (String) -> Unit, val onQuickFocus: () -> Unit)
+data class HistoryActions(val onOpenResult: (String) -> Unit, val onQuickFocus: () -> Unit, val onOpenInsights: () -> Unit = {})
 
 @Composable
 fun HistoryRoute(actions: HistoryActions, contentPadding: PaddingValues, viewModel: HistoryViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    HistoryScreen(state, actions, viewModel::setFilter, contentPadding)
+    HistoryScreen(state, actions, viewModel::setFilter, contentPadding, viewModel::setRange)
 }
 
 @Composable
-fun HistoryScreen(state: HistoryUiState, actions: HistoryActions, onFilter: (HistoryFilter) -> Unit, contentPadding: PaddingValues = PaddingValues()) {
+fun HistoryScreen(
+    state: HistoryUiState,
+    actions: HistoryActions,
+    onFilter: (HistoryFilter) -> Unit,
+    contentPadding: PaddingValues = PaddingValues(),
+    onRange: (RhythmRange) -> Unit = {},
+) {
     ReadableWidth(Modifier.fillMaxSize().background(FocusPalette.Cream)) {
         LazyColumn(
             Modifier.fillMaxSize().testTag("history"),
@@ -75,18 +86,27 @@ fun HistoryScreen(state: HistoryUiState, actions: HistoryActions, onFilter: (His
             ),
             verticalArrangement = Arrangement.spacedBy(Spacing.sm),
         ) {
-            item { ScreenHeader("Sitzungsverlauf", "Deine Fokuszeit", Modifier.padding(bottom = Spacing.xs)) }
+            item {
+                ScreenHeader("Sitzungsverlauf", "Deine Fokuszeit", Modifier.padding(bottom = Spacing.xs)) {
+                    HeaderIconButton(FocusIcons.BarChart, "Statistik", actions.onOpenInsights, Modifier.testTag("history_open_insights"))
+                }
+            }
             item { Summary(state) }
+            state.rhythm?.let { series -> item { FocusRhythmCard(series, onRange) } }
             item {
                 ChoiceChips(HistoryFilter.entries.map { ChoiceOption(it, it.label) }, state.filter, onFilter, Modifier.fillMaxWidth().testTag("history_filter"))
             }
             if (!state.loading && state.sections.isEmpty()) {
                 item {
-                    EmptyState(
-                        FocusIcons.History,
-                        when (state.filter) { HistoryFilter.TODAY -> "Heute noch keine Sitzung"; HistoryFilter.WEEK -> "Diese Woche noch keine Sitzung"; HistoryFilter.ALL -> "Noch keine Sitzungen" },
-                        if (state.totalCount > 0) "Wähle einen anderen Zeitraum, um frühere Sitzungen zu sehen." else "Abgeschlossene Fokus-Sitzungen erscheinen hier.",
-                    ) { PrimaryButton("Quick Focus starten", actions.onQuickFocus, icon = FocusIcons.PlayFilled) }
+                    val (title, body) = when {
+                        state.totalCount == 0 -> "Dein Sitzungsverlauf ist noch leer." to "Deine Fokus-Sitzungen erscheinen hier."
+                        state.filter == HistoryFilter.TODAY -> "Heute noch keine Sitzung" to "Starte einen Quick Focus oder setze deine Mission fort."
+                        state.filter == HistoryFilter.WEEK -> "Diese Woche noch keine Sitzung" to "Deine nächste abgeschlossene Sitzung erscheint hier."
+                        else -> "Keine Sitzung gefunden" to "Für diesen Filter gibt es noch keine Einträge."
+                    }
+                    EmptyState(FocusIcons.Clock, title, body) {
+                        PrimaryButton(if (state.totalCount == 0) "Erste Sitzung starten" else "Fokus starten", actions.onQuickFocus, icon = FocusIcons.PlayFilled)
+                    }
                 }
             }
             state.sections.forEach { section ->
@@ -108,6 +128,16 @@ fun HistoryScreen(state: HistoryUiState, actions: HistoryActions, onFilter: (His
     }
 }
 
+/** PWA `.fm-root-header-btn`: a 48 dp round surface button in a root header. */
+@Composable
+internal fun HeaderIconButton(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    androidx.compose.foundation.layout.Box(
+        modifier.size(48.dp).clip(Radii.pill).background(FocusPalette.Surface).border(BorderStroke(1.dp, FocusPalette.Outline), Radii.pill)
+            .clickable(role = Role.Button, onClick = onClick).semantics { contentDescription = label },
+        contentAlignment = Alignment.Center,
+    ) { Icon(icon, null, tint = FocusPalette.Graphite, modifier = Modifier.size(20.dp)) }
+}
+
 /** PWA "Fokus-Bilanz": aubergine summary of the selected period, outcomes in their state colours. */
 @Composable
 private fun Summary(state: HistoryUiState) {
@@ -119,7 +149,7 @@ private fun Summary(state: HistoryUiState) {
             Spacer(Modifier.width(Spacing.xs))
             Text("Fokus-Bilanz", style = MaterialTheme.typography.titleSmall, color = FocusPalette.Lavender, modifier = Modifier.weight(1f))
             Text(
-                state.filter.label, style = MaterialTheme.typography.labelMedium, color = Color(0xFFE9E2F5),
+                state.filter.label, style = MaterialTheme.typography.labelMedium, color = FocusPalette.HeroText,
                 modifier = Modifier.clip(Radii.pill).background(Color.White.copy(alpha = 0.08f)).border(BorderStroke(1.dp, Color.White.copy(alpha = 0.14f)), Radii.pill)
                     .padding(horizontal = 12.dp, vertical = 6.dp),
             )
@@ -128,23 +158,43 @@ private fun Summary(state: HistoryUiState) {
         Row(verticalAlignment = Alignment.Bottom) {
             Column(Modifier.weight(1f).semantics(mergeDescendants = true) {}) {
                 Text(HistoryQueries.formatMinutes(p.countedMinutes), style = MaterialTheme.typography.displayLarge.copy(fontSize = 44.sp), color = Color.White, maxLines = 1)
-                Text("gezählte Fokuszeit", style = MaterialTheme.typography.titleSmall, color = Color(0xFFE9E2F5))
+                Text("gezählte Fokuszeit", style = MaterialTheme.typography.titleSmall, color = FocusPalette.HeroText)
             }
             Column(horizontalAlignment = Alignment.End, modifier = Modifier.semantics(mergeDescendants = true) {}) {
                 Text("${p.sessions}", style = MaterialTheme.typography.headlineMedium, color = Color.White)
-                Text(if (p.sessions == 1) "Sitzung" else "Sitzungen", style = MaterialTheme.typography.bodySmall, color = Color(0xFFB9ADC9))
+                Text(if (p.sessions == 1) "Sitzung" else "Sitzungen", style = MaterialTheme.typography.bodySmall, color = FocusPalette.HeroMuted)
             }
         }
         Spacer(Modifier.height(Spacing.xs))
-        Text("Diese Woche: ${local.weekMinutes} Min. · Serie ${local.streak.current} (beste ${local.streak.best})", style = MaterialTheme.typography.bodySmall, color = Color(0xFFE9E2F5))
+        Text("Diese Woche: ${HistoryQueries.formatMinutes(local.weekMinutes)} · Serie ${local.streak.current} (beste ${local.streak.best})", style = MaterialTheme.typography.bodySmall, color = FocusPalette.HeroText)
         HorizontalDivider(Modifier.padding(vertical = Spacing.sm), color = Color.White.copy(alpha = 0.12f))
-        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
-            Outcome("${p.completed}", "Abgeschlossen", Color(0xFF86EFAC), Modifier.weight(1f))
-            VerticalDivider(color = Color.White.copy(alpha = 0.12f))
-            Outcome("${p.partial}", "Teilweise", FocusPalette.Lavender, Modifier.weight(1f).padding(start = Spacing.sm))
-            VerticalDivider(color = Color.White.copy(alpha = 0.12f))
-            Outcome("${p.cancelled}", "Abgebrochen", Color(0xFFFCD34D), Modifier.weight(1f).padding(start = Spacing.sm))
+        val fontScale = androidx.compose.ui.platform.LocalDensity.current.fontScale
+        androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxWidth()) {
+            if (isTextCompact(maxWidth.value, fontScale, 240f)) {
+                // Large font on a narrow phone: one outcome per line instead of clipped words.
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    OutcomeLine("${p.completed}", "Abgeschlossen", Color(0xFF86EFAC))
+                    OutcomeLine("${p.partial}", "Teilweise", FocusPalette.Lavender)
+                    OutcomeLine("${p.cancelled}", "Abgebrochen", Color(0xFFFCD34D))
+                }
+            } else {
+                Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+                    Outcome("${p.completed}", "Abgeschlossen", Color(0xFF86EFAC), Modifier.weight(1f))
+                    VerticalDivider(color = Color.White.copy(alpha = 0.12f))
+                    Outcome("${p.partial}", "Teilweise", FocusPalette.Lavender, Modifier.weight(1f).padding(start = Spacing.sm))
+                    VerticalDivider(color = Color.White.copy(alpha = 0.12f))
+                    Outcome("${p.cancelled}", "Abgebrochen", Color(0xFFFCD34D), Modifier.weight(1f).padding(start = Spacing.sm))
+                }
+            }
         }
+    }
+}
+
+@Composable
+private fun OutcomeLine(value: String, label: String, color: Color) {
+    Row(Modifier.fillMaxWidth().semantics(mergeDescendants = true) {}, verticalAlignment = Alignment.CenterVertically) {
+        Text(value, style = MaterialTheme.typography.titleLarge, color = color, modifier = Modifier.padding(end = Spacing.sm))
+        Text(label, style = MaterialTheme.typography.bodySmall, color = FocusPalette.HeroMuted)
     }
 }
 
@@ -154,7 +204,7 @@ private fun Outcome(value: String, label: String, color: Color, modifier: Modifi
         Text(value, style = MaterialTheme.typography.headlineSmall, color = color)
         // One word per label ("Abgeschlossen"): shrink to fit a 320–360 dp column instead of truncating.
         BasicText(
-            label, style = MaterialTheme.typography.bodySmall.copy(color = Color(0xFFB9ADC9)), maxLines = 1,
+            label, style = MaterialTheme.typography.bodySmall.copy(color = FocusPalette.HeroMuted), maxLines = 1,
             autoSize = TextAutoSize.StepBased(minFontSize = 9.sp, maxFontSize = MaterialTheme.typography.bodySmall.fontSize),
         )
     }
@@ -162,48 +212,54 @@ private fun Outcome(value: String, label: String, color: Color, modifier: Modifi
 
 @Composable
 private fun Row(row: HistoryRow, onClick: () -> Unit) {
-    Row(
-        Modifier.fillMaxWidth().heightIn(min = 72.dp).clip(Radii.lg).background(FocusPalette.Surface).border(BorderStroke(1.dp, FocusPalette.Outline), Radii.lg)
-            .clickable(role = Role.Button, onClickLabel = "Ergebnis öffnen", onClick = onClick)
-            .padding(horizontal = Spacing.md, vertical = Spacing.sm)
-            .semantics(mergeDescendants = true) {},
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(row.timeRange, style = MaterialTheme.typography.bodySmall, color = FocusPalette.GraphiteSoft)
-                Spacer(Modifier.width(6.dp))
-                Text(
-                    if (row.mission) "MISSION" else "QUICK FOCUS", style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.5.sp),
-                    color = if (row.mission) FocusPalette.PurpleInk else FocusPalette.Graphite, maxLines = 1,
-                    modifier = Modifier.clip(Radii.pill).background(if (row.mission) FocusPalette.PurpleTint else FocusPalette.SurfaceMuted).padding(horizontal = 8.dp, vertical = 3.dp),
-                )
+    val tone = row.theme?.let(MissionTones::of)
+    val fontScale = androidx.compose.ui.platform.LocalDensity.current.fontScale
+    androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val compact = isTextCompact(maxWidth.value, fontScale, 290f)
+        Row(
+            Modifier.fillMaxWidth().heightIn(min = 72.dp).clip(Radii.lg).background(FocusPalette.Surface).border(BorderStroke(1.dp, FocusPalette.Outline), Radii.lg)
+                .clickable(role = Role.Button, onClickLabel = "Ergebnis öffnen", onClick = onClick)
+                .padding(horizontal = Spacing.md, vertical = Spacing.sm)
+                .semantics(mergeDescendants = true) {}
+                .testTag("history_row_${row.sessionId}"),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(row.timeRange, style = MaterialTheme.typography.bodySmall, color = FocusPalette.GraphiteSoft)
+                    Text(
+                        if (row.mission) "MISSION" else "QUICK FOCUS", style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.5.sp),
+                        color = if (row.mission) (tone?.ink ?: FocusPalette.PurpleInk) else FocusPalette.Graphite, maxLines = 1,
+                        modifier = Modifier.clip(Radii.pill).background(if (row.mission) (tone?.tint ?: FocusPalette.PurpleTint) else FocusPalette.SurfaceMuted).padding(horizontal = 8.dp, vertical = 3.dp),
+                    )
+                }
+                Spacer(Modifier.height(4.dp))
+                Text(row.title, style = MaterialTheme.typography.titleMedium, color = FocusPalette.Graphite, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                row.missionContext?.let { context ->
+                    Spacer(Modifier.height(2.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        androidx.compose.foundation.layout.Box(Modifier.size(7.dp).clip(Radii.pill).background(tone?.accentStrong ?: FocusPalette.Purple))
+                        Spacer(Modifier.width(6.dp))
+                        Text(context, style = MaterialTheme.typography.bodySmall, color = FocusPalette.GraphiteSoft, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    }
+                }
+                if (compact) {
+                    Spacer(Modifier.height(4.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(row.minutes, style = MaterialTheme.typography.titleSmall, color = if (row.node == OutcomeNode.OPEN) FocusPalette.GraphiteSoft else FocusPalette.Graphite)
+                        Spacer(Modifier.width(Spacing.xs))
+                        OutcomeLabel(row.node.fill, row.badge.label)
+                    }
+                }
             }
-            Spacer(Modifier.height(4.dp))
-            Text(row.title, style = MaterialTheme.typography.titleMedium, color = FocusPalette.Graphite, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            if (!compact) {
+                Spacer(Modifier.width(Spacing.xs))
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(row.minutes, style = MaterialTheme.typography.titleMedium, color = if (row.node == OutcomeNode.OPEN) FocusPalette.GraphiteSoft else FocusPalette.Graphite)
+                    Spacer(Modifier.height(4.dp))
+                    OutcomeLabel(row.node.fill, row.badge.label)
+                }
+            }
         }
-        Spacer(Modifier.width(Spacing.xs))
-        Column(horizontalAlignment = Alignment.End) {
-            Text(row.minutes, style = MaterialTheme.typography.titleMedium, color = FocusPalette.Graphite)
-            Spacer(Modifier.height(4.dp))
-            OutcomePill(row.badge)
-        }
-    }
-}
-
-/** Outcome pill: restrained green only for completed Sessions. */
-@Composable
-private fun OutcomePill(badge: OutcomeBadge) {
-    val (bg, fg) = when (badge) {
-        OutcomeBadge.COMPLETED -> FocusPalette.GreenTint to Color(0xFF15803D)
-        OutcomeBadge.PARTIAL -> FocusPalette.PurpleTint to FocusPalette.PurpleInk
-        else -> FocusPalette.SurfaceMuted to FocusPalette.GraphiteSoft
-    }
-    Row(Modifier.clip(Radii.pill).background(bg).padding(horizontal = 10.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-        if (badge == OutcomeBadge.COMPLETED) {
-            Icon(FocusIcons.Check, null, tint = fg, modifier = Modifier.size(13.dp))
-            Spacer(Modifier.width(4.dp))
-        }
-        Text(badge.label, style = MaterialTheme.typography.labelMedium, color = fg, maxLines = 1)
     }
 }

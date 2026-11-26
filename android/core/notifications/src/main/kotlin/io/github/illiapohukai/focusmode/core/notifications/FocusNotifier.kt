@@ -117,6 +117,9 @@ class FocusNotifier @Inject constructor(
         post(FocusChannel.SESSION_FINISHED, NotificationIds.SESSION_FROZEN, n)
     }
 
+    /** Full data deletion: reminders and hints in the shade may name Missions; remove them all. */
+    override fun clearAll() = manager.cancelAll()
+
     override fun clearSessionNotifications() {
         manager.cancel(NotificationIds.SESSION_FROZEN)
         manager.cancel(NotificationIds.DISTRACTION_HINT)

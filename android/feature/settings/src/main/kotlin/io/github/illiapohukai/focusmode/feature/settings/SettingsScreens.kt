@@ -99,6 +99,8 @@ data class SettingsActions(
     val onImport: () -> Unit,
     val appVersion: String,
     val debugBuild: Boolean,
+    /** PWA "Daten & Backup": export, import and full deletion. */
+    val onDataBackup: () -> Unit = {},
 )
 
 @Composable
@@ -181,20 +183,44 @@ fun SettingsRoute(actions: SettingsActions, contentPadding: PaddingValues, snack
             item {
                 ChoiceChips(listOf(ChoiceOption(MotionPreference.SYSTEM, "Wie System"), ChoiceOption(MotionPreference.REDUCED, "Reduziert")), prefs.motion, viewModel::setMotion, Modifier.fillMaxWidth())
             }
-            item { SectionHeader("Daten & Datenschutz") }
+            item { SectionHeader("Daten & Backup") }
             item {
-                FocusCard(Modifier.fillMaxWidth(), contentPadding = PaddingValues(Spacing.md)) {
-                    Text(
-                        "Missionen, Verlauf, App-Auswahl und Einstellungen bleiben auf diesem Gerät. Keine Analyse, kein Tracking, keine Werbung. " +
-                            "AI-Planung läuft nur über den bestehenden Focus-Mode+-Dienst; dein Ziel wird dafür gesendet, deine Apps und Nutzungsdaten nie.",
-                        style = MaterialTheme.typography.bodySmall, color = FocusPalette.Graphite,
+                FocusCard(Modifier.fillMaxWidth(), contentPadding = PaddingValues(horizontal = Spacing.sm, vertical = Spacing.xxs)) {
+                    NavigationRow(
+                        "Daten & Backup", actions.onDataBackup, Modifier.testTag("settings_data_backup"),
+                        subtitle = "Lokale Daten sichern, importieren oder löschen", icon = FocusIcons.Download,
                     )
-                    TextAction("Ablenkungsdaten löschen", viewModel::deleteDistractionData)
-                    if (prefs.featureFlags.pwaImportEnabled) NavigationRow("Web-Backup übernehmen", actions.onImport, subtitle = "Focus-Mode+-Backup (JSON) prüfen und importieren", icon = FocusIcons.Download)
-                    if (actions.debugBuild) ToggleRow("Backup-Import (Entwicklung)", prefs.featureFlags.pwaImportEnabled, viewModel::setPwaImport)
+                    Text(
+                        "Letztes Backup: " + (prefs.lastExportAt?.let { LAST_BACKUP.format(java.time.ZonedDateTime.ofInstant(it, java.time.ZoneId.systemDefault())) } ?: "Kein Backup"),
+                        style = MaterialTheme.typography.bodySmall, color = FocusPalette.GraphiteSoft, modifier = Modifier.padding(start = Spacing.xxs, bottom = Spacing.xs),
+                    )
                 }
             }
-            item { Text("Focus Mode+ ${actions.appVersion}", style = MaterialTheme.typography.bodySmall, color = FocusPalette.GraphiteSoft, modifier = Modifier.padding(top = Spacing.sm)) }
+            item { SectionHeader("Datenschutz") }
+            item {
+                FocusCard(Modifier.fillMaxWidth().testTag("settings_privacy"), contentPadding = PaddingValues(Spacing.md)) {
+                    Text("Was auf diesem Gerät bleibt", style = MaterialTheme.typography.titleSmall, color = FocusPalette.Graphite, modifier = Modifier.semantics { heading() })
+                    Text(
+                        "Missionen, Verlauf, Serie, App-Auswahl, Erinnerungen und Einstellungen bleiben auf diesem Gerät. Keine Analyse, kein Tracking, keine Werbung.",
+                        style = MaterialTheme.typography.bodySmall, color = FocusPalette.Graphite,
+                    )
+                    Spacer(Modifier.height(Spacing.xs))
+                    Text("Was an die AI geht", style = MaterialTheme.typography.titleSmall, color = FocusPalette.Graphite, modifier = Modifier.semantics { heading() })
+                    Text(
+                        "Nur wenn du „Mission planen“ tippst: dein Ziel, Typ, Sicherheit, Zeitplan und ein optionales, neu kodiertes Foto ohne Metadaten. " +
+                            "Nur bei „Plan mit AI anpassen“: die Daten dieser einen Mission. Nie: andere Missionen, dein Verlauf, deine Serie, deine App-Auswahl oder Gerätedaten.",
+                        style = MaterialTheme.typography.bodySmall, color = FocusPalette.Graphite,
+                    )
+                    Spacer(Modifier.height(Spacing.xs))
+                    Text(
+                        "Benachrichtigungen auf dem Sperrbildschirm steuerst du oben unter „Inhalt auf dem Sperrbildschirm“. Löschen kannst du alles unter „Daten & Backup“.",
+                        style = MaterialTheme.typography.bodySmall, color = FocusPalette.GraphiteSoft,
+                    )
+                    TextAction("Ablenkungsdaten löschen", viewModel::deleteDistractionData)
+                    if (actions.debugBuild) ToggleRow("Web-Backup-Abkürzung in Missionen (Entwicklung)", prefs.featureFlags.pwaImportEnabled, viewModel::setPwaImport)
+                }
+            }
+            item { Text("Focus Mode+ ${actions.appVersion} · Offline-fähig · Lokale Speicherung", style = MaterialTheme.typography.bodySmall, color = FocusPalette.GraphiteSoft, modifier = Modifier.padding(top = Spacing.sm)) }
         }
     }
 }
@@ -282,7 +308,7 @@ private fun SystemHero(summary: SystemSummary, selectedApps: Int) {
 private fun HeroStat(value: String, label: String, modifier: Modifier) {
     Column(modifier.semantics(mergeDescendants = true) {}) {
         Text(value, style = MaterialTheme.typography.headlineSmall, color = Color.White, maxLines = 1)
-        Text(label, style = MaterialTheme.typography.bodySmall, color = Color(0xFFE9E2F5))
+        Text(label, style = MaterialTheme.typography.bodySmall, color = FocusPalette.HeroText)
     }
 }
 
@@ -355,10 +381,10 @@ private fun SelectionSummary(selected: List<AppRow>, count: Int) {
                 Text(if (count == 1) "1 App ausgewählt" else "$count Apps ausgewählt", style = MaterialTheme.typography.titleMedium, color = FocusPalette.Graphite)
                 Text(
                     if (count == 0) "Noch keine Auswahl" else "Hinweise in geschützten Sitzungen · nicht blockiert",
-                    style = MaterialTheme.typography.bodySmall, color = if (count == 0) FocusPalette.GraphiteSoft else Color(0xFF15803D),
+                    style = MaterialTheme.typography.bodySmall, color = if (count == 0) FocusPalette.GraphiteSoft else FocusPalette.GreenInk,
                 )
             }
-            IconTile(FocusIcons.ShieldCheck, background = SolidColor(if (count == 0) FocusPalette.SurfaceMuted else FocusPalette.GreenTint), tint = if (count == 0) FocusPalette.GraphiteSoft else Color(0xFF15803D))
+            IconTile(FocusIcons.ShieldCheck, background = SolidColor(if (count == 0) FocusPalette.SurfaceMuted else FocusPalette.GreenTint), tint = if (count == 0) FocusPalette.GraphiteSoft else FocusPalette.GreenInk)
         }
     }
 }
@@ -402,11 +428,11 @@ fun DataImportRoute(onBack: () -> Unit, viewModel: DataImportViewModel = hiltVie
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> if (uri != null) viewModel.onFilePicked(resolver, uri) }
     ReadableWidth(Modifier.fillMaxSize().background(FocusPalette.Cream)) {
         LazyColumn(Modifier.fillMaxSize().systemBarsPadding().testTag("data_import"), contentPadding = PaddingValues(horizontal = Spacing.screenHorizontal, vertical = Spacing.sm), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-            item { FocusTopBar(onBack, title = "Web-Backup übernehmen") }
+            item { FocusTopBar(onBack, title = "Backup importieren") }
             item {
                 Text(
-                    "Wähle eine Focus-Mode+-Backupdatei (.json) aus der Web-App. Du siehst zuerst eine Vorschau. Bestehende Einträge werden nie überschrieben. " +
-                        "Übernommene Serien gelten nicht als verifiziert.",
+                    "Wähle eine Focus-Mode+-Backupdatei (.json) aus der Web-App oder von Android. Du siehst zuerst eine Vorschau. Bestehende Einträge werden nie überschrieben. " +
+                        "Lokales Backup: Verlauf, Serie und Fortschritt stammen aus einer Datei und sind keine verifizierten Nachweise.",
                     style = MaterialTheme.typography.bodyMedium, color = FocusPalette.GraphiteSoft,
                 )
             }
@@ -424,6 +450,8 @@ fun DataImportRoute(onBack: () -> Unit, viewModel: DataImportViewModel = hiltVie
                             Text("Vorschau", style = MaterialTheme.typography.titleMedium, color = FocusPalette.Graphite, modifier = Modifier.semantics { heading() })
                             Text("${p.newMissions} neue Missionen (${p.plan.report.stepsAccepted} Schritte), ${p.duplicateMissions} bereits vorhanden", style = MaterialTheme.typography.bodyMedium, color = FocusPalette.Graphite)
                             Text("${p.newSessions} neue Sitzungen, ${p.duplicateSessions} bereits vorhanden", style = MaterialTheme.typography.bodyMedium, color = FocusPalette.Graphite)
+                            Text("Herkunft: " + if (p.plan.report.platform == "android") "Focus Mode+ Android" else "Focus Mode+ Web-App", style = MaterialTheme.typography.bodySmall, color = FocusPalette.GraphiteSoft)
+                            Text("Prüfsumme: " + p.plan.report.integrity.label, style = MaterialTheme.typography.bodySmall, color = FocusPalette.GraphiteSoft, modifier = Modifier.testTag("import_integrity"))
                             if (p.missionsArchivedByLimit > 0) Text("${p.missionsArchivedByLimit} aktive Missionen werden archiviert (höchstens zwei aktiv).", style = MaterialTheme.typography.bodySmall, color = FocusPalette.GraphiteSoft)
                         }
                     }
@@ -448,3 +476,5 @@ fun DataImportRoute(onBack: () -> Unit, viewModel: DataImportViewModel = hiltVie
         }
     }
 }
+
+private val LAST_BACKUP: java.time.format.DateTimeFormatter = java.time.format.DateTimeFormatter.ofPattern("d. MMM yyyy, HH:mm", java.util.Locale.GERMAN)

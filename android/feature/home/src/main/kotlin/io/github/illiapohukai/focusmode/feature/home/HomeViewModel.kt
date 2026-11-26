@@ -3,7 +3,9 @@ package io.github.illiapohukai.focusmode.feature.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.illiapohukai.focusmode.core.domain.history.HistoryFormat
 import io.github.illiapohukai.focusmode.core.domain.history.HistoryQueries
+import io.github.illiapohukai.focusmode.core.domain.history.OutcomeNode
 import io.github.illiapohukai.focusmode.core.domain.history.OutcomeBadge
 import io.github.illiapohukai.focusmode.core.domain.mission.CalendarDayInfo
 import io.github.illiapohukai.focusmode.core.domain.mission.CalendarEventKind
@@ -71,7 +73,22 @@ data class MissionCard(
     val primary: Boolean = true,
 )
 
-data class ActivityItem(val sessionId: String, val title: String, val time: String, val minutes: String, val badge: OutcomeBadge)
+/**
+ * One Home Activity row (PWA `renderHomeActivityTimelineV173`): task first, then the Mission title
+ * or "Quick Focus" with the start time, duration and outcome. [day] groups rows under one label.
+ */
+data class ActivityItem(
+    val sessionId: String,
+    val title: String,
+    val time: String,
+    val minutes: String,
+    val badge: OutcomeBadge,
+    val context: String = "Quick Focus",
+    val theme: MissionTheme? = null,
+    val day: String = "",
+) {
+    val node: OutcomeNode get() = HistoryQueries.node(badge)
+}
 
 data class ReminderItem(val whenLabel: String, val title: String)
 
@@ -174,17 +191,31 @@ class HomeViewModel @Inject constructor(
             progress = ProgressCalculator.compute(results, today),
             reminders = sup.upcoming.map { ReminderItem(whenLabel(it.triggerAt, today), it.title) },
             remindersDeliverable = sup.deliverable,
-            activity = results.take(3).map {
-                ActivityItem(
-                    it.sessionId.value, it.title,
-                    TIME.format(ZonedDateTime.ofInstant(it.finishedAt, clock.zone())) + " · " + dayLabel(it.localDate, today),
-                    HistoryQueries.formatMinutes(it.actualMinutes), HistoryQueries.badge(it),
-                )
-            },
+            activity = activity(results, all, themes, today),
             calendar = calendar(all, results, themes, today, sup.view),
             loading = state is SessionState.Loading,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
+
+    /** The six most recent Sessions, newest first, grouped by local day (PWA Home Activity). */
+    private fun activity(
+        results: List<io.github.illiapohukai.focusmode.core.model.FocusSessionResult>, all: List<Mission>,
+        themes: Map<MissionId, MissionTheme>, today: LocalDate,
+    ): List<ActivityItem> {
+        val byId = all.associateBy { it.id }
+        return HistoryQueries.ordered(results).take(ACTIVITY_ROWS).map {
+            ActivityItem(
+                sessionId = it.sessionId.value,
+                title = it.title,
+                time = HistoryFormat.time(it, clock.zone()),
+                minutes = HistoryFormat.minutes(it),
+                badge = HistoryQueries.badge(it),
+                context = HistoryFormat.activityContext(it, byId),
+                theme = it.missionLink?.let { l -> themes[l.missionId] },
+                day = HistoryFormat.activityDayLabel(it.localDate, today),
+            )
+        }
+    }
 
     private fun card(m: Mission, theme: MissionTheme, primary: Boolean): MissionCard {
         val step = m.currentStep
@@ -281,6 +312,7 @@ class HomeViewModel @Inject constructor(
     }
 
     private companion object {
+        const val ACTIVITY_ROWS = 6
         val DATE: DateTimeFormatter = DateTimeFormatter.ofPattern("EEEE, d. MMM", Locale.GERMAN)
         val TIME: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm", Locale.GERMAN)
         val SHORT_DAY: DateTimeFormatter = DateTimeFormatter.ofPattern("EE, d. MMM", Locale.GERMAN)
