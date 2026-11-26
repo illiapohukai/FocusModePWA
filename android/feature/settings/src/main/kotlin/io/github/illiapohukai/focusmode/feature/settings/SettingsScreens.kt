@@ -101,12 +101,15 @@ data class SettingsActions(
     val debugBuild: Boolean,
     /** PWA "Daten & Backup": export, import and full deletion. */
     val onDataBackup: () -> Unit = {},
+    /** v21: "Konto & Synchronisierung". */
+    val onAccount: () -> Unit = {},
 )
 
 @Composable
 fun SettingsRoute(actions: SettingsActions, contentPadding: PaddingValues, snackbar: SnackbarHostState, viewModel: SettingsViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val summary by viewModel.summary.collectAsStateWithLifecycle()
+    val account by viewModel.account.collectAsStateWithLifecycle()
     val context = LocalContext.current
     LifecycleResumeEffect(viewModel) { viewModel.refresh(context.notificationRationale()); onPauseOrDispose { } }
     LaunchedEffect(viewModel) { viewModel.messages.collect { snackbar.showSnackbar(it) } }
@@ -128,7 +131,9 @@ fun SettingsRoute(actions: SettingsActions, contentPadding: PaddingValues, snack
             }
             if (state == null || prefs == null) return@LazyColumn
             val s = state!!
-            item { SystemHero(summary, s.selectedApps.size) }
+            item { SystemHero(summary, s.selectedApps.size, AccountCopy.storageChip(account.sync)) }
+            item { SectionHeader("Konto & Synchronisierung") }
+            item { AccountSettingsCard(account, actions.onAccount) }
             item { SectionHeader("Fokus-Schutz") }
             item {
                 FocusCard(Modifier.fillMaxWidth(), contentPadding = PaddingValues(Spacing.md)) {
@@ -199,10 +204,21 @@ fun SettingsRoute(actions: SettingsActions, contentPadding: PaddingValues, snack
             item { SectionHeader("Datenschutz") }
             item {
                 FocusCard(Modifier.fillMaxWidth().testTag("settings_privacy"), contentPadding = PaddingValues(Spacing.md)) {
-                    Text("Was auf diesem Gerät bleibt", style = MaterialTheme.typography.titleSmall, color = FocusPalette.Graphite, modifier = Modifier.semantics { heading() })
+                    Text("Nur auf diesem Gerät", style = MaterialTheme.typography.titleSmall, color = FocusPalette.Graphite, modifier = Modifier.semantics { heading() })
                     Text(
-                        "Missionen, Verlauf, Serie, App-Auswahl, Erinnerungen und Einstellungen bleiben auf diesem Gerät. Keine Analyse, kein Tracking, keine Werbung.",
+                        "Installierte und ausgewählte Apps, Nutzungsdaten, Berechtigungen, die laufende Sitzung, Erinnerungen, Geplanter Fokus, Entwürfe, Fotos und Anhänge. Keine Analyse, kein Tracking, keine Werbung.",
                         style = MaterialTheme.typography.bodySmall, color = FocusPalette.Graphite,
+                    )
+                    Spacer(Modifier.height(Spacing.xs))
+                    Text("Mit deinem Konto synchronisiert", style = MaterialTheme.typography.titleSmall, color = FocusPalette.Graphite, modifier = Modifier.semantics { heading() })
+                    Text(
+                        when (account.sync.phase) {
+                            io.github.illiapohukai.focusmode.core.model.SyncPhase.UNAVAILABLE -> "Nichts. ${AccountCopy.UNCONFIGURED} Missionen, Verlauf, Serie und Einstellungen bleiben auf diesem Gerät."
+                            io.github.illiapohukai.focusmode.core.model.SyncPhase.SIGNED_OUT, io.github.illiapohukai.focusmode.core.model.SyncPhase.DECISION_REQUIRED, io.github.illiapohukai.focusmode.core.model.SyncPhase.ACCOUNT_MISMATCH ->
+                                "Nichts. Erst nach Anmeldung und deiner Bestätigung: Missionen mit Schritten, abgeschlossene Fokus-Sitzungen und ausgewählte Einstellungen."
+                            else -> "Missionen mit Schritten, abgeschlossene Fokus-Sitzungen (Verlauf), Quick-Focus-Dauer, Bewegung, Sperrbildschirm-Inhalt und Synchronisierungsdaten. Serie und Statistiken werden daraus neu berechnet und nicht verifiziert."
+                        },
+                        style = MaterialTheme.typography.bodySmall, color = FocusPalette.Graphite, modifier = Modifier.testTag("settings_privacy_synced"),
                     )
                     Spacer(Modifier.height(Spacing.xs))
                     Text("Was an die AI geht", style = MaterialTheme.typography.titleSmall, color = FocusPalette.Graphite, modifier = Modifier.semantics { heading() })
@@ -274,9 +290,29 @@ private fun PermissionCard(row: PermissionRow, onAction: () -> Unit) {
     }
 }
 
-/** PWA `.st-summary`: aubergine hero with three local counts. Data is local; the chip says so. */
+/** v21 Settings account section: one row into "Konto & Synchronisierung". */
 @Composable
-private fun SystemHero(summary: SystemSummary, selectedApps: Int) {
+private fun AccountSettingsCard(summary: AccountSummary, onOpen: () -> Unit) {
+    val user = summary.account.user
+    val (label, tone) = AccountCopy.phase(summary.sync)
+    FocusCard(Modifier.fillMaxWidth().testTag("settings_account"), contentPadding = PaddingValues(horizontal = Spacing.sm, vertical = Spacing.xxs)) {
+        NavigationRow(
+            title = user?.let { it.displayName ?: "Google-Konto" } ?: AccountCopy.GUEST_TITLE,
+            onClick = onOpen,
+            subtitle = when {
+                summary.account == io.github.illiapohukai.focusmode.core.model.AccountState.FirebaseUnconfigured -> AccountCopy.UNCONFIGURED
+                user != null -> user.email
+                else -> "Optional: mit Google anmelden, synchronisieren und wiederherstellen"
+            },
+            icon = FocusIcons.User,
+        )
+        StatusPill(label, Modifier.padding(start = Spacing.xxs, bottom = Spacing.xs).semantics(mergeDescendants = true) {}.testTag("settings_account_pill"), tone = tone, maxLines = 3)
+    }
+}
+
+/** PWA `.st-summary`: aubergine hero with three local counts. The chip says where the data lives. */
+@Composable
+private fun SystemHero(summary: SystemSummary, selectedApps: Int, storageChip: String = "Lokal gespeichert") {
     AubergineSurface(Modifier.fillMaxWidth().testTag("settings_summary"), contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = 18.dp, bottom = 16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(FocusIcons.Sparkle, null, tint = FocusPalette.Lavender, modifier = Modifier.size(18.dp))
@@ -288,7 +324,7 @@ private fun SystemHero(summary: SystemSummary, selectedApps: Int) {
             ) {
                 Box(Modifier.size(7.dp).clip(Radii.pill).background(FocusPalette.ProtectDot))
                 Spacer(Modifier.width(6.dp))
-                Text("Lokal gespeichert", style = MaterialTheme.typography.labelMedium, color = Color.White)
+                Text(storageChip, style = MaterialTheme.typography.labelMedium, color = Color.White)
             }
         }
         Spacer(Modifier.height(Spacing.sm))

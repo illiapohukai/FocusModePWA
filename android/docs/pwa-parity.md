@@ -1,4 +1,4 @@
-# PWA ↔ Android parity (v20)
+# PWA ↔ Android parity (v20, v21 account addendum)
 
 The PWA (repository root, v17.17) is the reference for product behavior. This file tracks every
 material difference. The full v20 audit with every screen, workflow and status is
@@ -91,6 +91,9 @@ operator), the free-form orbital Mission route, managed-device enforcement, an e
 | Outcome indicators | coloured pills with check / x icons | node shapes (filled / half / open) with a German label | outcome never by colour alone, no crosses |
 | Import policy | replaces local data | merges, never overwrites an existing id | an import can never destroy local data |
 | Reserved server fields in a backup | file rejected | values ignored (never imported) | same outcome without failing legacy files |
+| Account and cloud sync (v21) | none (local only, backups) | optional Google account (Credential Manager + Firebase Auth), Firestore sync of Missions, steps, finalized Sessions and three settings after explicit confirmation; guest mode unchanged | Android-only v21 scope; the PWA is not changed and keeps backups as its only transfer path. Android backups remain readable by the PWA (envelope unchanged) |
+| Settings privacy section (v21) | "Was auf diesem Gerät bleibt" | three categories: only on this device / with the account / to the AI on request | the statement "everything stays local" is no longer true once an account is linked |
+| Full local deletion (v21) | local data only | local data only, and a signed-in device is signed out; cloud data stays | prevents an immediate re-download of the deleted data |
 | Android backups | — | keep up to 5 000 Sessions (web backups: newest 500, as in the PWA) | Android History is not capped at 500 |
 | Duration format | "1h 5m" | "1 Std. 5 Min." | German wording, kept from v18 |
 | Mission rename UI | bottom sheet | dialog from the Plan top bar | Material pattern |

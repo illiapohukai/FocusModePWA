@@ -5,13 +5,35 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+// v21 Firebase configuration boundary. The repository never contains google-services.json; the
+// owner places it at android/app/google-services.json (see android/docs/firebase-setup-v21.md).
+// Without it the build is complete and works in guest mode: the Google Services plugin is not
+// applied, FIREBASE_CONFIGURED is false and Firebase is never initialized.
+val googleServicesFile = layout.projectDirectory.file("google-services.json").asFile
+val firebaseConfigured = googleServicesFile.isFile
+if (firebaseConfigured) apply(plugin = libs.plugins.google.services.get().pluginId)
+
+/** The public OAuth web client id (client_type 3) for Sign in with Google; not a secret. */
+fun googleServerClientId(): String {
+    if (!firebaseConfigured) return ""
+    @Suppress("UNCHECKED_CAST")
+    val root = groovy.json.JsonSlurper().parse(googleServicesFile) as Map<String, Any?>
+    val clients = (root["client"] as? List<Map<String, Any?>>).orEmpty()
+    return clients.asSequence()
+        .flatMap { (it["oauth_client"] as? List<Map<String, Any?>>).orEmpty().asSequence() }
+        .firstOrNull { (it["client_type"] as? Number)?.toInt() == 3 }
+        ?.get("client_id") as? String ?: ""
+}
+
 android {
     defaultConfig {
         applicationId = "io.github.illiapohukai.focusmode"
-        versionCode = 1900
-        versionName = "19.0.0"
+        versionCode = 2100
+        versionName = "21.0.0"
         // Public URL of the existing Cloudflare Worker. Not a secret; no API key exists on Android.
         buildConfigField("String", "WORKER_BASE_URL", "\"https://focusmodedemoai.illia-pohukai.workers.dev/\"")
+        buildConfigField("boolean", "FIREBASE_CONFIGURED", firebaseConfigured.toString())
+        buildConfigField("String", "GOOGLE_SERVER_CLIENT_ID", "\"${googleServerClientId()}\"")
     }
     buildFeatures {
         buildConfig = true
@@ -43,6 +65,7 @@ dependencies {
     implementation(project(":core:protection"))
     implementation(project(":core:session"))
     implementation(project(":core:reminders"))
+    implementation(project(":core:account"))
 
     implementation(project(":feature:home"))
     implementation(project(":feature:quickfocus"))
@@ -63,6 +86,13 @@ dependencies {
     implementation(libs.androidx.hilt.work)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.android)
+
+    // App Check providers per build type (versions from the Firebase BoM): Play Integrity in
+    // release, the debug provider only in debug builds. No debug token is stored anywhere.
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.appcheck)
+    releaseImplementation(libs.firebase.appcheck.playintegrity)
+    debugImplementation(libs.firebase.appcheck.debug)
 
     testImplementation(project(":core:testing"))
     testImplementation(libs.robolectric)

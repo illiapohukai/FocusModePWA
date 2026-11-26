@@ -1,0 +1,262 @@
+{
+    "uid": "aliceUid0001",
+    "profile": {
+        "ownerUid": "aliceUid0001",
+        "schemaVersion": 1,
+        "createdAt": 1795165200000,
+        "updatedAt": 1795165200000,
+        "serverUpdatedAt": {
+            "__serverTimestamp": true
+        }
+    },
+    "missionCreate": {
+        "id": "mission_bio",
+        "ownerUid": "aliceUid0001",
+        "schemaVersion": 1,
+        "title": "Biologie-Klausur",
+        "subject": "Biologie",
+        "type": "exam",
+        "deadlineText": "2026-12-10",
+        "deadlineDate": "2026-12-10",
+        "preparationStartDate": "2026-11-26",
+        "status": "active",
+        "origin": "local",
+        "createdAt": 1795165200000,
+        "updatedAt": 1795168800000,
+        "completedAt": null,
+        "archivedAt": null,
+        "currentStepId": "step_b",
+        "archivedStepId": null,
+        "startMode": "two_weeks_before",
+        "preferredWeekdays": 10,
+        "preferredSessionMinutes": 30,
+        "estimateMinutes": 55,
+        "summary": "Erst Grundlagen, dann Übung.",
+        "scheduleWarning": null,
+        "stepIds": [
+            "step_a",
+            "step_b"
+        ],
+        "progress": [
+            {
+                "sessionId": "session_m1",
+                "stepId": "step_a",
+                "outcome": "completed",
+                "rating": 4,
+                "actualMinutes": 25,
+                "plannedMinutes": 25,
+                "appliedAt": 1795167000000
+            }
+        ],
+        "syncVersion": 1,
+        "deviceMutationId": "0123456789abcdef0123456789abcdef",
+        "serverUpdatedAt": {
+            "__serverTimestamp": true
+        }
+    },
+    "missionUpdate": {
+        "id": "mission_bio",
+        "ownerUid": "aliceUid0001",
+        "schemaVersion": 1,
+        "title": "Bio-Klausur",
+        "subject": "Biologie",
+        "type": "exam",
+        "deadlineText": "2026-12-10",
+        "deadlineDate": "2026-12-10",
+        "preparationStartDate": "2026-11-26",
+        "status": "active",
+        "origin": "local",
+        "createdAt": 1795165200000,
+        "updatedAt": 1795172400000,
+        "completedAt": null,
+        "archivedAt": null,
+        "currentStepId": "step_b",
+        "archivedStepId": null,
+        "startMode": "two_weeks_before",
+        "preferredWeekdays": 10,
+        "preferredSessionMinutes": 30,
+        "estimateMinutes": 55,
+        "summary": "Erst Grundlagen, dann Übung.",
+        "scheduleWarning": null,
+        "stepIds": [
+            "step_a",
+            "step_b"
+        ],
+        "progress": [
+            {
+                "sessionId": "session_m1",
+                "stepId": "step_a",
+                "outcome": "completed",
+                "rating": 4,
+                "actualMinutes": 25,
+                "plannedMinutes": 25,
+                "appliedAt": 1795167000000
+            }
+        ],
+        "syncVersion": 2,
+        "deviceMutationId": "fedcba9876543210fedcba9876543210",
+        "serverUpdatedAt": {
+            "__serverTimestamp": true
+        }
+    },
+    "steps": [
+        {
+            "id": "step_a",
+            "ownerUid": "aliceUid0001",
+            "missionId": "mission_bio",
+            "schemaVersion": 1,
+            "position": 0,
+            "title": "Zellbiologie",
+            "task": "Kapitel 1 lesen",
+            "durationMinutes": 25,
+            "status": "completed",
+            "reason": "Grundlagen zuerst",
+            "scheduledDate": null,
+            "completedAt": 1795167000000,
+            "requiredTools": [
+                "Lehrbuch S. 40–52"
+            ],
+            "recommendedApps": [],
+            "syncVersion": 1,
+            "deviceMutationId": "0123456789abcdef0123456789abcdef",
+            "updatedAt": 1795168800000,
+            "serverUpdatedAt": {
+                "__serverTimestamp": true
+            }
+        },
+        {
+            "id": "step_b",
+            "ownerUid": "aliceUid0001",
+            "missionId": "mission_bio",
+            "schemaVersion": 1,
+            "position": 1,
+            "title": "Genetik",
+            "task": "Aufgaben 1–5",
+            "durationMinutes": 30,
+            "status": "active",
+            "reason": "",
+            "scheduledDate": "2026-11-28",
+            "completedAt": null,
+            "requiredTools": [],
+            "recommendedApps": [
+                "Karteikarten-App"
+            ],
+            "syncVersion": 1,
+            "deviceMutationId": "0123456789abcdef0123456789abcdef",
+            "updatedAt": 1795168800000,
+            "serverUpdatedAt": {
+                "__serverTimestamp": true
+            }
+        }
+    ],
+    "session": {
+        "id": "session_m1",
+        "ownerUid": "aliceUid0001",
+        "schemaVersion": 1,
+        "type": "mission",
+        "status": "completed",
+        "outcome": "completed",
+        "endReason": "user_reviewed",
+        "title": "Zellbiologie",
+        "task": "Kapitel 1 lesen",
+        "plannedMinutes": 25,
+        "actualMinutes": 25,
+        "elapsedMs": 1500000,
+        "countsAsFocus": true,
+        "startedAt": 1795165500000,
+        "finishedAt": 1795167000000,
+        "localDate": "2026-11-20",
+        "zoneId": "Europe/Berlin",
+        "missionId": "mission_bio",
+        "missionStepId": "step_a",
+        "protectionMode": "protected",
+        "endNote": "task_done",
+        "rating": 4,
+        "origin": "local",
+        "reviewNote": "Gut verstanden",
+        "createdAt": 1795167000000,
+        "updatedAt": 1795165200000,
+        "syncVersion": 1,
+        "deviceMutationId": "0123456789abcdef0123456789abcdef",
+        "serverUpdatedAt": {
+            "__serverTimestamp": true
+        }
+    },
+    "settings": {
+        "ownerUid": "aliceUid0001",
+        "schemaVersion": 1,
+        "defaultQuickFocusMinutes": 45,
+        "motion": "reduced",
+        "notificationDetail": "generic",
+        "updatedAt": 1795165200000,
+        "deviceMutationId": "0123456789abcdef0123456789abcdef",
+        "serverUpdatedAt": {
+            "__serverTimestamp": true
+        }
+    },
+    "tombstone": {
+        "id": "mission_mission_gone",
+        "ownerUid": "aliceUid0001",
+        "schemaVersion": 1,
+        "entityType": "mission",
+        "entityId": "mission_gone",
+        "deletedAt": 1795165200000,
+        "syncVersion": 2,
+        "deviceMutationId": "0123456789abcdef0123456789abcdef",
+        "serverUpdatedAt": {
+            "__serverTimestamp": true
+        }
+    },
+    "migration": {
+        "ownerUid": "aliceUid0001",
+        "schemaVersion": 1,
+        "migrationId": "migration0001",
+        "status": "in_progress",
+        "missionCount": 1,
+        "sessionCount": 1,
+        "startedAt": 1795165200000,
+        "completedAt": null,
+        "updatedAt": 1795165200000,
+        "serverUpdatedAt": {
+            "__serverTimestamp": true
+        }
+    },
+    "migrationComplete": {
+        "ownerUid": "aliceUid0001",
+        "schemaVersion": 1,
+        "migrationId": "migration0001",
+        "status": "complete",
+        "missionCount": 1,
+        "sessionCount": 1,
+        "startedAt": 1795165200000,
+        "completedAt": 1795165260000,
+        "updatedAt": 1795165260000,
+        "serverUpdatedAt": {
+            "__serverTimestamp": true
+        }
+    },
+    "reservedFields": [
+        "verifiedFocusMinutes",
+        "verifiedSessionCount",
+        "verifiedStreak",
+        "verifiedSession",
+        "leaguePoints",
+        "leagueRank",
+        "leagueTier",
+        "leagueSeason",
+        "subscriptionTier",
+        "entitlement",
+        "aiQuota",
+        "moderationStatus",
+        "adminRole",
+        "serverTrust"
+    ],
+    "limits": {
+        "TITLE_MAX": 300,
+        "TEXT_MAX": 2000,
+        "NOTE_MAX": 1000,
+        "MINUTES_MAX": 1440,
+        "STEPS_MAX": 100,
+        "PROGRESS_MAX": 500
+    }
+}

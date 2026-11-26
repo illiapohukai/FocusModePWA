@@ -6,6 +6,7 @@ import io.github.illiapohukai.focusmode.core.data.db.MissionProgressEntity
 import io.github.illiapohukai.focusmode.core.data.db.FocusDatabase
 import io.github.illiapohukai.focusmode.core.data.db.toEntity
 import io.github.illiapohukai.focusmode.core.data.db.toModel
+import io.github.illiapohukai.focusmode.core.data.sync.SyncOutboxWriter
 import io.github.illiapohukai.focusmode.core.domain.mission.MissionRules
 import io.github.illiapohukai.focusmode.core.domain.mission.StepCompletion
 import io.github.illiapohukai.focusmode.core.domain.repository.ActiveSessionLoad
@@ -22,6 +23,8 @@ import io.github.illiapohukai.focusmode.core.model.Mission
 import io.github.illiapohukai.focusmode.core.model.MissionReview
 import io.github.illiapohukai.focusmode.core.model.SessionEndReason
 import io.github.illiapohukai.focusmode.core.model.SessionId
+import io.github.illiapohukai.focusmode.core.model.SyncEntityType
+import io.github.illiapohukai.focusmode.core.model.SyncOperation
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
@@ -40,6 +43,7 @@ class RoomSessionRepository @Inject constructor(
 
     private val sessions get() = db.sessionDao()
     private val activity get() = db.activityDao()
+    private val outbox = SyncOutboxWriter(db)
 
     override suspend fun load(): ActiveSessionLoad {
         val row = sessions.getActive() ?: return ActiveSessionLoad.None
@@ -74,6 +78,8 @@ class RoomSessionRepository @Inject constructor(
         sessions.deleteActive(result.sessionId.value)
         if (created) {
             activity.insert(ActivityEntity(type = ActivityType.SESSION_FINISHED.name, refId = result.sessionId.value, occurredAt = result.finishedAt, localDate = result.localDate))
+            // v21: only a final record synchronizes; a Mission Session waits for its review.
+            if (result.endReason != SessionEndReason.AWAITING_USER_REVIEW) outbox.record(SyncEntityType.SESSION, result.sessionId.value, SyncOperation.UPSERT, clock.now())
         }
         val stored = sessions.getResult(result.sessionId.value)?.toModel() ?: error("finalize_read_back_failed")
         FinalizeOutcome(stored, created)
@@ -123,6 +129,8 @@ class RoomSessionRepository @Inject constructor(
                     }
                 }
             }
+            outbox.record(SyncEntityType.SESSION, id.value, SyncOperation.UPSERT, now)
+            if (mission != null) outbox.record(SyncEntityType.MISSION, mission.id.value, SyncOperation.UPSERT, now)
             ReviewApplication(sessions.getResult(id.value)!!.toModel()!!, mission, applied = true)
         }
 

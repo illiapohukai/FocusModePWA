@@ -44,6 +44,8 @@ include(":core:notifications")
 include(":core:protection")
 include(":core:session")
 include(":core:reminders")
+// v21: the only module that talks to Firebase (Auth, Firestore, App Check) and Credential Manager.
+include(":core:account")
 
 // Features: each owns UI state, ViewModel, actions, navigation contract and UI.
 include(":feature:home")

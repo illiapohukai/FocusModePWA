@@ -39,6 +39,12 @@ import java.io.ByteArrayOutputStream
 import java.time.LocalTime
 import javax.inject.Inject
 
+/** v21: what the Settings account section shows (never tokens or ids). */
+data class AccountSummary(
+    val account: io.github.illiapohukai.focusmode.core.model.AccountState = io.github.illiapohukai.focusmode.core.model.AccountState.FirebaseUnconfigured,
+    val sync: io.github.illiapohukai.focusmode.core.model.SyncState = io.github.illiapohukai.focusmode.core.model.SyncState(phase = io.github.illiapohukai.focusmode.core.model.SyncPhase.UNAVAILABLE),
+)
+
 /** Local summary for the Settings hero (PWA "Dein Fokus-System"); counts only, nothing leaves the device. */
 data class SystemSummary(val activeMissions: Int = 0, val maxActiveMissions: Int = io.github.illiapohukai.focusmode.core.model.Mission.MAX_ACTIVE, val savedSessions: Int = 0)
 
@@ -50,8 +56,12 @@ class SettingsViewModel @Inject constructor(
     private val distractions: DistractionLog,
     missions: io.github.illiapohukai.focusmode.core.domain.repository.MissionRepository,
     history: io.github.illiapohukai.focusmode.core.domain.repository.SessionHistoryRepository,
+    accounts: io.github.illiapohukai.focusmode.core.domain.account.AccountRepository,
+    sync: io.github.illiapohukai.focusmode.core.domain.sync.SyncRepository,
 ) : ViewModel() {
     val state: StateFlow<ProtectionState?> = protection.state
+    val account: StateFlow<AccountSummary> = combine(accounts.accountState, sync.syncState, ::AccountSummary)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AccountSummary(accounts.accountState.value, sync.syncState.value))
     val summary: StateFlow<SystemSummary> = kotlinx.coroutines.flow.combine(missions.observeMissions(), history.observeResults()) { m, r ->
         SystemSummary(activeMissions = m.count { it.status == io.github.illiapohukai.focusmode.core.model.MissionStatus.ACTIVE }, savedSessions = r.size)
     }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5_000), SystemSummary())

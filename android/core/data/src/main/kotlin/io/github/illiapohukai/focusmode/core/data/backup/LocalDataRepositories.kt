@@ -46,6 +46,12 @@ class RoomPersonalDataStore @Inject constructor(private val db: FocusDatabase) :
         d.clearSchedules()
         d.clearDistractions()
         d.clearDndOverride()
+        // v21: the account binding, outbox and sync metadata go with the data; cloud data stays.
+        d.clearSyncOutbox()
+        d.clearSyncEntityStates()
+        d.clearSyncTombstones()
+        d.clearSyncConflicts()
+        d.clearAccountBinding()
     }
 
     override suspend fun clearReminderRows() = db.personalDataDao().clearReminders()

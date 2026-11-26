@@ -98,6 +98,7 @@ import io.github.illiapohukai.focusmode.feature.result.ResultActions
 import io.github.illiapohukai.focusmode.feature.result.ResultDestination
 import io.github.illiapohukai.focusmode.feature.result.navigateToResult
 import io.github.illiapohukai.focusmode.feature.result.resultScreen
+import io.github.illiapohukai.focusmode.feature.settings.AccountDestination
 import io.github.illiapohukai.focusmode.feature.settings.AppSelectionDestination
 import io.github.illiapohukai.focusmode.feature.settings.DataBackupDestination
 import io.github.illiapohukai.focusmode.feature.settings.DataImportDestination
@@ -296,6 +297,7 @@ fun FocusApp(appViewModel: AppViewModel, window: Window) {
                         appVersion = BuildConfig.VERSION_NAME,
                         debugBuild = BuildConfig.DEBUG,
                         onDataBackup = { nav.navigate(DataBackupDestination) },
+                        onAccount = { nav.navigate(AccountDestination) },
                     ),
                     onBack = { nav.popBackStack() }, contentPadding = { rootPadding }, snackbar = snackbar,
                 )

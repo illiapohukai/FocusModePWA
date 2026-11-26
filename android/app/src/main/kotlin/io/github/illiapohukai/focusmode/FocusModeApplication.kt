@@ -12,6 +12,7 @@ import io.github.illiapohukai.focusmode.core.domain.platform.ReminderSyncReason
 import io.github.illiapohukai.focusmode.core.domain.repository.DistractionLog
 import io.github.illiapohukai.focusmode.core.domain.session.FocusSessionController
 import io.github.illiapohukai.focusmode.core.domain.session.RestoreTrigger
+import io.github.illiapohukai.focusmode.core.domain.sync.SyncEngine
 import io.github.illiapohukai.focusmode.core.domain.time.FocusClock
 import io.github.illiapohukai.focusmode.core.notifications.NotificationChannels
 import io.github.illiapohukai.focusmode.core.reminders.ReminderSyncCoordinator
@@ -31,6 +32,7 @@ class FocusModeApplication : Application(), Configuration.Provider {
     @Inject lateinit var distractions: DistractionLog
     @Inject lateinit var clock: FocusClock
     @Inject lateinit var missionGeneration: MissionGenerationOwner
+    @Inject lateinit var sync: SyncEngine
     @Inject @ApplicationScope lateinit var appScope: CoroutineScope
 
     override val workManagerConfiguration: Configuration
@@ -49,5 +51,7 @@ class FocusModeApplication : Application(), Configuration.Provider {
             distractions.purgeOlderThan(clock.now().minus(30, ChronoUnit.DAYS))
         }
         reminderSync.start(appScope)
+        // v21: account-aware synchronization (does nothing in guest mode or unconfigured builds).
+        sync.start(appScope)
     }
 }

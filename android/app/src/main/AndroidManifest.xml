@@ -9,6 +9,11 @@
          QUERY_ALL_PACKAGES, BIND_ACCESSIBILITY_SERVICE, BIND_DEVICE_ADMIN, notification listener,
          SMS, contacts, call log, location, microphone, camera. -->
 
+    <!-- v21: Credential Manager's passkey support would add biometric permissions. Passkeys are
+         not a v21 flow (Sign in with Google only), so they are removed. -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" tools:node="remove" />
+    <uses-permission android:name="android.permission.USE_FINGERPRINT" tools:node="remove" />
+
     <application
         android:name=".FocusModeApplication"
         android:allowBackup="true"
@@ -51,6 +56,18 @@
                 <action android:name="android.intent.action.TIME_SET" />
             </intent-filter>
         </receiver>
+
+        <!-- v21: Firebase Auth's browser-redirect (GenericIdp) and reCAPTCHA activities serve web
+             OAuth providers and phone sign-in. Sign in with Google uses Credential Manager and
+             signInWithCredential, so these exported activities are not needed and are removed. -->
+        <activity
+            android:name="com.google.firebase.auth.internal.GenericIdpActivity"
+            tools:ignore="MissingClass"
+            tools:node="remove" />
+        <activity
+            android:name="com.google.firebase.auth.internal.RecaptchaActivity"
+            tools:ignore="MissingClass"
+            tools:node="remove" />
 
         <!-- WorkManager is initialized on demand with the Hilt worker factory. -->
         <provider

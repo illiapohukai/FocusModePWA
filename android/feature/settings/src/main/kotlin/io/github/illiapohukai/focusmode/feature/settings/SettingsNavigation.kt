@@ -12,6 +12,8 @@ import kotlinx.serialization.Serializable
 @Serializable data object DataImportDestination
 /** PWA `app-screen-data`: export, import and deletion of local data. */
 @Serializable data object DataBackupDestination
+/** v21: optional Google account, synchronization, sign-out and account deletion. */
+@Serializable data object AccountDestination
 
 fun NavGraphBuilder.settingsScreens(actions: SettingsActions, onBack: () -> Unit, contentPadding: () -> PaddingValues, snackbar: SnackbarHostState) {
     composable<SettingsDestination> { SettingsRoute(actions, contentPadding(), snackbar) }
@@ -19,4 +21,5 @@ fun NavGraphBuilder.settingsScreens(actions: SettingsActions, onBack: () -> Unit
     composable<AppSelectionDestination> { AppSelectionRoute(onBack) }
     composable<DataImportDestination> { DataImportRoute(onBack) }
     composable<DataBackupDestination> { DataBackupRoute(onBack, actions.onImport) }
+    composable<AccountDestination> { AccountRoute(onBack, actions.onDataBackup) }
 }

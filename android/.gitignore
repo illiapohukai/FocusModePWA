@@ -21,3 +21,11 @@ keystore.properties
 *.avd/
 logcat*.txt
 screenshots/
+# v21 Firebase: the owner's project configuration and any emulator or service-account material
+# never enter the repository.
+google-services.json
+**/google-services.json
+service-account*.json
+firebase-debug.log
+firestore-debug.log
+ui-debug.log

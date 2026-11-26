@@ -1,0 +1,213 @@
+rules_version = '2';
+
+// Focus Mode+ v21 — Cloud Firestore Security Rules.
+//
+// Deny by default: only the paths matched below are reachable, and only by the signed-in owner
+// of /users/{uid}. Every write is validated: exact field sets (unknown fields are refused), types,
+// text lengths, ranges, ISO dates, epoch-millisecond times, schema version 1, the owner's uid,
+// immutable ids and creation times, a strictly increasing Mission version (optimistic
+// concurrency) and the server commit time. Future server-authoritative fields (verified History,
+// League, subscription, entitlement, quota, moderation, admin, trust) can never be written by a
+// client. Names and bounds mirror android/core/domain/.../sync/RemoteSchema.kt; the payloads the
+// app writes are replayed from test/fixtures/client-payloads.json by the Rules tests.
+//
+// Lists cannot be iterated in Rules: list sizes are bounded here, list items are bounded by the
+// client codec and the 1 MiB document limit.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ------------------------------------------------------------------ helpers
+
+    function signedIn() { return request.auth != null; }
+    function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
+    function d() { return request.resource.data; }
+
+    function reservedFields() {
+      return ['verifiedFocusMinutes', 'verifiedSessionCount', 'verifiedStreak', 'verifiedSession',
+              'leaguePoints', 'leagueRank', 'leagueTier', 'leagueSeason',
+              'subscriptionTier', 'entitlement', 'aiQuota', 'moderationStatus', 'adminRole', 'serverTrust'];
+    }
+    function noReservedFields() { return !d().keys().hasAny(reservedFields()); }
+    function exactKeys(keys) { return d().keys().hasAll(keys) && d().keys().hasOnly(keys); }
+    function unchanged(keys) { return !d().diff(resource.data).affectedKeys().hasAny(keys); }
+
+    function safeId(v) { return v is string && v.matches('^[A-Za-z0-9_.:-]{2,160}$') && v != '..' && !v.matches('^__.*__$'); }
+    function optSafeId(v) { return v == null || safeId(v); }
+    function mutationId(v) { return v is string && v.matches('^[A-Za-z0-9_-]{8,64}$'); }
+    function epochMs(v) { return v is int && v >= 946684800000 && v <= 4102444800000; }
+    function optEpochMs(v) { return v == null || epochMs(v); }
+    function text(v, max) { return v is string && v.size() <= max; }
+    function nonBlank(v, max) { return text(v, max) && v.trim().size() > 0; }
+    function optText(v, max) { return v == null || text(v, max); }
+    function isoDate(v) { return v is string && v.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$'); }
+    function optIsoDate(v) { return v == null || isoDate(v); }
+    function intIn(v, lo, hi) { return v is int && v >= lo && v <= hi; }
+    function optIntIn(v, lo, hi) { return v == null || intIn(v, lo, hi); }
+    function boundedList(v, max) { return v is list && v.size() <= max; }
+    function version(v) { return intIn(v, 1, 1000000000); }
+
+    // Owner, schema, server time and no reserved field: true for every document the app writes.
+    function common(uid) {
+      return d().ownerUid == uid && d().schemaVersion == 1 && d().serverUpdatedAt == request.time && noReservedFields();
+    }
+
+    // ------------------------------------------------------------------ validators
+
+    function validProfile(uid) {
+      return exactKeys(['ownerUid', 'schemaVersion', 'createdAt', 'updatedAt', 'serverUpdatedAt'])
+        && common(uid) && epochMs(d().createdAt) && epochMs(d().updatedAt);
+    }
+
+    function validMission(uid, missionId) {
+      let m = d();
+      return exactKeys(['id', 'ownerUid', 'schemaVersion', 'title', 'subject', 'type', 'deadlineText', 'deadlineDate',
+          'preparationStartDate', 'status', 'origin', 'createdAt', 'updatedAt', 'completedAt', 'archivedAt', 'currentStepId',
+          'archivedStepId', 'startMode', 'preferredWeekdays', 'preferredSessionMinutes', 'estimateMinutes', 'summary',
+          'scheduleWarning', 'stepIds', 'progress', 'syncVersion', 'deviceMutationId', 'serverUpdatedAt'])
+        && common(uid) && safeId(missionId) && m.id == missionId
+        && nonBlank(m.title, 300) && text(m.subject, 300) && text(m.deadlineText, 300)
+        && m.type in ['exam', 'assignment', 'project', 'custom']
+        && m.status in ['active', 'completed', 'archived']
+        && m.origin in ['local', 'imported_pwa']
+        && optIsoDate(m.deadlineDate) && optIsoDate(m.preparationStartDate)
+        && epochMs(m.createdAt) && epochMs(m.updatedAt) && optEpochMs(m.completedAt) && optEpochMs(m.archivedAt)
+        && optSafeId(m.currentStepId) && optSafeId(m.archivedStepId)
+        && (m.startMode == null || m.startMode in ['immediate', 'one_week_before', 'two_weeks_before', 'custom'])
+        && intIn(m.preferredWeekdays, 0, 127) && optIntIn(m.preferredSessionMinutes, 1, 1440) && optIntIn(m.estimateMinutes, 0, 200000)
+        && text(m.summary, 2000) && optText(m.scheduleWarning, 500)
+        && boundedList(m.stepIds, 100) && boundedList(m.progress, 500)
+        && version(m.syncVersion) && mutationId(m.deviceMutationId);
+    }
+
+    function validStep(uid, missionId, stepId) {
+      let s = d();
+      return exactKeys(['id', 'ownerUid', 'missionId', 'schemaVersion', 'position', 'title', 'task', 'durationMinutes', 'status',
+          'reason', 'scheduledDate', 'completedAt', 'requiredTools', 'recommendedApps', 'syncVersion', 'deviceMutationId',
+          'updatedAt', 'serverUpdatedAt'])
+        && common(uid) && safeId(stepId) && s.id == stepId && s.missionId == missionId
+        && intIn(s.position, 0, 999) && nonBlank(s.title, 300) && text(s.task, 2000) && text(s.reason, 2000)
+        && intIn(s.durationMinutes, 1, 1440) && s.status in ['pending', 'active', 'completed']
+        && optIsoDate(s.scheduledDate) && optEpochMs(s.completedAt)
+        && boundedList(s.requiredTools, 20) && boundedList(s.recommendedApps, 20)
+        && version(s.syncVersion) && mutationId(s.deviceMutationId) && epochMs(s.updatedAt);
+    }
+
+    // A completed step stays completed with the same content (completion is never undone).
+    function completedStepKept() {
+      return resource == null || resource.data.status != 'completed'
+        || (d().status == 'completed' && unchanged(['title', 'task', 'durationMinutes', 'completedAt']));
+    }
+
+    function validSession(uid, sessionId) {
+      let s = d();
+      return exactKeys(['id', 'ownerUid', 'schemaVersion', 'type', 'status', 'outcome', 'endReason', 'title', 'task',
+          'plannedMinutes', 'actualMinutes', 'elapsedMs', 'countsAsFocus', 'startedAt', 'finishedAt', 'localDate', 'zoneId',
+          'missionId', 'missionStepId', 'protectionMode', 'endNote', 'rating', 'origin', 'reviewNote', 'createdAt', 'updatedAt',
+          'syncVersion', 'deviceMutationId', 'serverUpdatedAt'])
+        && common(uid) && safeId(sessionId) && s.id == sessionId
+        && s.type in ['quick', 'mission']
+        && s.status in ['completed', 'cancelled', 'interrupted']
+        && s.outcome in ['completed', 'partial', 'aborted']
+        // Only final records synchronize: never a Session still awaiting its review.
+        && s.endReason in ['timer_finished', 'timer_finished_while_away', 'user_finished', 'ended_too_early', 'user_cancelled',
+                           'emergency_exit', 'recovery_confirmed', 'user_reviewed', 'imported']
+        && text(s.title, 300) && text(s.task, 2000)
+        && intIn(s.plannedMinutes, 1, 1440) && intIn(s.actualMinutes, 0, 1440) && intIn(s.elapsedMs, 0, 172800000)
+        && s.countsAsFocus is bool
+        && epochMs(s.startedAt) && epochMs(s.finishedAt) && s.finishedAt >= s.startedAt
+        && isoDate(s.localDate) && s.zoneId is string && s.zoneId.size() > 0 && s.zoneId.size() <= 64
+        && ((s.missionId == null && s.missionStepId == null) || (safeId(s.missionId) && safeId(s.missionStepId)))
+        && (s.type != 'mission' || s.missionId != null)
+        && s.protectionMode in ['standard', 'protected', 'strict_managed']
+        && (s.endNote == null || s.endNote in ['task_done', 'need_break', 'distracted', 'other', 'emergency'])
+        && optIntIn(s.rating, 1, 5) && s.origin in ['local', 'imported_pwa'] && optText(s.reviewNote, 1000)
+        && epochMs(s.createdAt) && epochMs(s.updatedAt) && s.syncVersion == 1 && mutationId(s.deviceMutationId);
+    }
+
+    function validSettings(uid) {
+      let s = d();
+      return exactKeys(['ownerUid', 'schemaVersion', 'defaultQuickFocusMinutes', 'motion', 'notificationDetail', 'updatedAt',
+          'deviceMutationId', 'serverUpdatedAt'])
+        && common(uid) && intIn(s.defaultQuickFocusMinutes, 5, 60) && s.defaultQuickFocusMinutes % 5 == 0
+        && s.motion in ['system', 'reduced'] && s.notificationDetail in ['full_task', 'generic', 'hidden']
+        && epochMs(s.updatedAt) && mutationId(s.deviceMutationId);
+    }
+
+    function validMigration(uid) {
+      let m = d();
+      return exactKeys(['ownerUid', 'schemaVersion', 'migrationId', 'status', 'missionCount', 'sessionCount', 'startedAt',
+          'completedAt', 'updatedAt', 'serverUpdatedAt'])
+        && common(uid) && mutationId(m.migrationId) && m.status in ['in_progress', 'complete']
+        && intIn(m.missionCount, 0, 100000) && intIn(m.sessionCount, 0, 100000)
+        && epochMs(m.startedAt) && optEpochMs(m.completedAt) && epochMs(m.updatedAt)
+        && (m.status != 'complete' || m.completedAt != null);
+    }
+
+    function validTombstone(uid, tombstoneId) {
+      let t = d();
+      return exactKeys(['id', 'ownerUid', 'schemaVersion', 'entityType', 'entityId', 'deletedAt', 'syncVersion',
+          'deviceMutationId', 'serverUpdatedAt'])
+        && common(uid) && t.entityType == 'mission' && safeId(t.entityId)
+        && tombstoneId == 'mission_' + t.entityId && t.id == tombstoneId
+        && epochMs(t.deletedAt) && version(t.syncVersion) && mutationId(t.deviceMutationId);
+    }
+
+    // ------------------------------------------------------------------ paths
+
+    match /users/{uid} {
+      allow read, delete: if isOwner(uid);
+      allow create: if isOwner(uid) && validProfile(uid);
+      allow update: if isOwner(uid) && validProfile(uid) && unchanged(['ownerUid', 'createdAt']);
+
+      match /missions/{missionId} {
+        allow read, delete: if isOwner(uid);
+        // A deleted Mission is never resurrected: its tombstone blocks a new document.
+        allow create: if isOwner(uid) && validMission(uid, missionId) && d().syncVersion == 1
+          && !exists(/databases/$(database)/documents/users/$(uid)/tombstones/$('mission_' + missionId));
+        // Optimistic concurrency: a stale device (not exactly the next version) is refused and merges first.
+        allow update: if isOwner(uid) && validMission(uid, missionId)
+          && d().syncVersion == resource.data.syncVersion + 1 && unchanged(['id', 'ownerUid', 'createdAt']);
+
+        match /steps/{stepId} {
+          allow read, delete: if isOwner(uid);
+          allow create, update: if isOwner(uid) && validStep(uid, missionId, stepId) && completedStepKept()
+            && existsAfter(/databases/$(database)/documents/users/$(uid)/missions/$(missionId))
+            && (resource == null || unchanged(['id', 'ownerUid', 'missionId']));
+        }
+      }
+
+      match /sessions/{sessionId} {
+        allow read, delete: if isOwner(uid);
+        allow create: if isOwner(uid) && validSession(uid, sessionId);
+        // Finalized Sessions are append-only: only the note and sync metadata may change.
+        allow update: if isOwner(uid) && validSession(uid, sessionId)
+          && d().diff(resource.data).affectedKeys().hasOnly(['reviewNote', 'updatedAt', 'deviceMutationId', 'serverUpdatedAt']);
+      }
+
+      match /settings/{docId} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid) && docId == 'profile' && validSettings(uid);
+      }
+
+      // One document per migration ("migration_<migrationId>"): several devices can each link their own local data.
+      match /syncMeta/{docId} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid) && validMigration(uid) && docId == 'migration_' + d().migrationId
+          && (resource == null || unchanged(['ownerUid', 'migrationId', 'startedAt']));
+      }
+
+      match /tombstones/{tombstoneId} {
+        allow read, delete: if isOwner(uid);
+        allow create: if isOwner(uid) && validTombstone(uid, tombstoneId);
+        allow update: if isOwner(uid) && validTombstone(uid, tombstoneId) && unchanged(['id', 'entityType', 'entityId']);
+      }
+
+      // Any other subcollection below /users/{uid} (verified History, League, entitlements,
+      // quotas, moderation, admin) has no rule and is therefore denied to every client.
+    }
+
+    // Everything outside /users/{uid} (server-only ledgers, leagues, admin data) is denied by
+    // default. Server code uses the Admin SDK, which is not subject to these Rules.
+  }
+}

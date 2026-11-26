@@ -5,6 +5,7 @@ import io.github.illiapohukai.focusmode.core.data.db.ActivityEntity
 import io.github.illiapohukai.focusmode.core.data.db.FocusDatabase
 import io.github.illiapohukai.focusmode.core.data.db.MissionProgressEntity
 import io.github.illiapohukai.focusmode.core.data.db.toEntity
+import io.github.illiapohukai.focusmode.core.data.sync.SyncOutboxWriter
 import io.github.illiapohukai.focusmode.core.domain.backup.BackupImportGateway
 import io.github.illiapohukai.focusmode.core.domain.backup.BackupParseResult
 import io.github.illiapohukai.focusmode.core.domain.backup.ImportApplyResult
@@ -19,6 +20,8 @@ import io.github.illiapohukai.focusmode.core.model.Mission
 import io.github.illiapohukai.focusmode.core.model.MissionStepId
 import io.github.illiapohukai.focusmode.core.domain.mission.MissionRules
 import io.github.illiapohukai.focusmode.core.model.MissionStatus
+import io.github.illiapohukai.focusmode.core.model.SyncEntityType
+import io.github.illiapohukai.focusmode.core.model.SyncOperation
 import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -33,6 +36,7 @@ class BackupImportRepository @Inject constructor(
     private val clock: FocusClock,
 ) : BackupImportGateway {
     private val importer = PwaBackupImporter()
+    private val outbox = SyncOutboxWriter(db)
 
     override suspend fun preview(bytes: ByteArray): ImportPreviewResult {
         val plan = when (val r = importer.parse(bytes, clock.zone(), clock.now())) {
@@ -84,6 +88,7 @@ class BackupImportRepository @Inject constructor(
             db.missionDao().insert(mission.toEntity())
             db.missionDao().insertSteps(mission.steps.map { it.toEntity() })
             db.activityDao().insert(ActivityEntity(type = ActivityType.MISSION_IMPORTED.name, refId = mission.id.value, occurredAt = now, localDate = today))
+            outbox.record(SyncEntityType.MISSION, mission.id.value, SyncOperation.UPSERT, now) // only when this dataset is linked to an account
             missions++
         }
         // Applied Mission results of the Missions inserted above, following any step-id remap.
@@ -98,7 +103,10 @@ class BackupImportRepository @Inject constructor(
             val link = r.missionLink ?: return@map r
             remap[link.missionId.value to link.stepId.value]?.let { r.copy(missionLink = link.copy(stepId = it)) } ?: r
         }
-        val sessions = db.sessionDao().insertResults(results.map { it.toEntity(savedAt = now) }).count { it != -1L }
+        val rowIds = db.sessionDao().insertResults(results.map { it.toEntity(savedAt = now) })
+        val sessions = rowIds.count { it != -1L }
+        // Imported History synchronizes as ordinary, unverified History (never verified League data).
+        results.zip(rowIds).filter { it.second != -1L }.forEach { (r, _) -> outbox.record(SyncEntityType.SESSION, r.sessionId.value, SyncOperation.UPSERT, now) }
         if (missions + sessions > 0) {
             db.activityDao().insert(ActivityEntity(type = ActivityType.DATA_IMPORTED.name, refId = "import:${now.toEpochMilli()}", occurredAt = now, localDate = today))
         }

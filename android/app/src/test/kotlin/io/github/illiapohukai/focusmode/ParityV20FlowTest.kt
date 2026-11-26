@@ -15,6 +15,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -153,7 +154,8 @@ class ParityV20FlowTest {
         rule.onNodeWithTag("nav_settings").performClick()
         waitFor("settings")
         rule.onNodeWithTag("settings").performScrollToNode(hasTestTag("settings_data_backup"))
-        rule.onNodeWithTag("settings_data_backup").performClick()
+        // The row can end under the floating bar after scrolling; click it semantically, as TalkBack does (see AppFlowTest).
+        rule.onNodeWithTag("settings_data_backup").performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.OnClick)
         waitFor("data_backup")
         rule.onNodeWithText("Daten & Backup").assertIsDisplayed()
         waitForText("1 / 2 (1)")

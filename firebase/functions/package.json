@@ -1,0 +1,15 @@
+{
+  "name": "focus-mode-functions",
+  "version": "21.0.0",
+  "private": true,
+  "description": "Focus Mode+ v21 trusted server boundary: recursive deletion of /users/{uid} after a Firebase account is deleted. Not deployed automatically.",
+  "license": "UNLICENSED",
+  "main": "index.js",
+  "engines": {
+    "node": "22"
+  },
+  "dependencies": {
+    "firebase-admin": "14.5.1",
+    "firebase-functions": "7.4.0"
+  }
+}

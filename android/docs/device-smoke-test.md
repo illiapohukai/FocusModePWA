@@ -237,3 +237,23 @@ g. Start a Quick Focus, then "Alle persönlichen und nutzergenerierten Daten lö
 | 18 | App update over existing data | — | PENDING | |
 | 19 | Missions (v19) | — | PENDING | |
 | 20 | Parity items (v20) | — | PENDING | |
+
+## v21 account and synchronization (results pending; needs the owner's Firebase project)
+
+Use a build with `android/app/google-services.json` and a Google Play emulator image or a device.
+Use test Google accounts only.
+
+| # | Check | Expected | Result |
+|---|---|---|---|
+| A1 | Fresh install, Settings → Konto | "Lokaler Gastmodus", benefits, "Mit Google anmelden", "Ohne Konto fortfahren" | pending |
+| A2 | Sign in, close the chooser | "Anmeldung abgebrochen", nothing changed | pending |
+| A3 | Sign in on a device without a Google account | "Kein Google-Konto gefunden" | pending |
+| A4 | Guest data → sign in | preview with counts and range; nothing uploaded before "Verbinden" | pending |
+| A5 | "Verbinden" in airplane mode, then online | "Datenübernahme läuft weiter", completes automatically; Firestore holds every Mission/Session | pending |
+| A6 | Second device, same account, empty install | data restored without a question | pending |
+| A7 | Edit on both devices offline, then online | conflict resolved, completed steps kept, both devices converge | pending |
+| A8 | Delete a Mission on device 1 while device 2 edits it offline | Mission stays deleted everywhere | pending |
+| A9 | Sign out, sign in with another account | "Daten eines anderen Kontos"; nothing synchronized until a choice | pending |
+| A10 | Konto löschen | Google confirmation, `/users/{uid}` empty, Auth user gone, app in guest mode | pending |
+| A11 | Signed release APK (R8) sign-in | works; App Check metrics show verified requests | pending |
+| A12 | Unconfigured build | "Cloud-Synchronisierung ist in diesem Build noch nicht eingerichtet."; everything else works | pending |

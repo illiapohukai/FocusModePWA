@@ -1,5 +1,6 @@
 package io.github.illiapohukai.focusmode.core.domain.backup
 
+import io.github.illiapohukai.focusmode.core.domain.account.LocalEraseAccountHook
 import io.github.illiapohukai.focusmode.core.domain.ai.MissionMaterialStore
 import io.github.illiapohukai.focusmode.core.domain.di.AppVersionName
 import io.github.illiapohukai.focusmode.core.domain.mission.AdaptationRun
@@ -90,6 +91,8 @@ enum class EraseOutcome { COMPLETE, INCOMPLETE }
  * 5. the reminder scheduler re-syncs (nothing is wanted any more, so every scheduled occurrence
  *    is cancelled), then any remaining reminder rows are removed so nothing can be delivered;
  * 6. every notification the app posted is removed and the Session state is re-derived.
+ * v21: before step 1 synchronization stops and the account binding, outbox and sync metadata are
+ * removed with the data (in the same Room transaction as step 2); cloud data is not touched.
  * OS-level permissions the user granted (notifications, Usage Access, DND) are system settings
  * and are not changed; the app says so.
  */
@@ -103,10 +106,17 @@ class PersonalDataEraser @Inject constructor(
     private val material: MissionMaterialStore,
     private val scheduler: ReminderScheduler,
     private val notifications: ReminderNotifications,
+    /** v21: stops synchronization (and signs out) first, so nothing is re-downloaded or re-uploaded. */
+    private val accountHook: LocalEraseAccountHook = LocalEraseAccountHook.None,
 ) {
     private val mutex = Mutex()
 
-    suspend fun eraseAll(): EraseOutcome = mutex.withLock {
+    /**
+     * [keepAccountSignedIn]: the caller continues with an account (account switch, after account
+     * deletion). Otherwise a signed-in account is signed out on this device; its cloud data stays.
+     */
+    suspend fun eraseAll(keepAccountSignedIn: Boolean = false): EraseOutcome = mutex.withLock {
+        accountHook.beforeLocalErase(signOut = !keepAccountSignedIn)
         if (generation.run.value is GenerationRun.Running) generation.cancel()
         if (adaptation.run.value is AdaptationRun.Running) adaptation.cancel()
         session.abandonForDataDeletion()

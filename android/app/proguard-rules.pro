@@ -7,3 +7,7 @@
     kotlinx.serialization.KSerializer serializer(...);
 }
 -keep,includedescriptorclasses class io.github.illiapohukai.focusmode.**$$serializer { *; }
+
+# v21 Credential Manager: keep the Play services provider that CredentialManager loads reflectively.
+-if class androidx.credentials.CredentialManager
+-keep class androidx.credentials.playservices.** { *; }

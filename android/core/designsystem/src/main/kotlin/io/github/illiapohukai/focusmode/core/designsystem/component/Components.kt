@@ -197,7 +197,7 @@ enum class PillTone { NEUTRAL, READY, ACCENT, WARNING, ON_DARK, SURFACE }
  * [SURFACE] is the floating cream pill of the Home header (`.home-status-pill`).
  */
 @Composable
-fun StatusPill(text: String, modifier: Modifier = Modifier, tone: PillTone = PillTone.NEUTRAL, icon: ImageVector? = null, dot: Color? = null) {
+fun StatusPill(text: String, modifier: Modifier = Modifier, tone: PillTone = PillTone.NEUTRAL, icon: ImageVector? = null, dot: Color? = null, maxLines: Int = 1) {
     val (bg, fg) = when (tone) {
         PillTone.NEUTRAL -> FocusPalette.SurfaceMuted to FocusPalette.GraphiteSoft
         PillTone.READY -> FocusPalette.GreenTint to Color(0xFF15803D)
@@ -224,7 +224,7 @@ fun StatusPill(text: String, modifier: Modifier = Modifier, tone: PillTone = Pil
             Icon(icon, null, tint = fg, modifier = Modifier.size(13.dp))
             Spacer(Modifier.width(5.dp))
         }
-        Text(text.uppercase(), style = MaterialTheme.typography.labelSmall, color = fg, maxLines = 1)
+        Text(text.uppercase(), style = MaterialTheme.typography.labelSmall, color = fg, maxLines = maxLines)
     }
 }
 

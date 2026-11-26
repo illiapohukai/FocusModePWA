@@ -1,10 +1,15 @@
-# Focus Mode+ — Android (v20 Android Parity Completion)
+# Focus Mode+ — Android (v21 Google Account & Secure Sync Foundation)
 
 A native Android app for Focus Mode+, written in Kotlin with Jetpack Compose. It is **not** a
 WebView, a Trusted Web Activity or a wrapper around the PWA. The PWA in the repository root is
 unchanged and stays the reference for product terms, Mission and Session behavior, timer semantics,
 History, Recovery, colors, typography, the Cosmic Core identity, backups and the AI Worker contract.
 
+- [Account & sync v21](docs/account-and-sync-v21.md): optional Google account, synchronization, migration, account switching
+- [Firebase setup v21](docs/firebase-setup-v21.md): owner checklist (local development, staging, pilot, production)
+- [Sync conflict policy v21](docs/sync-conflict-policy-v21.md) · [Account deletion v21](docs/account-deletion-v21.md) · [App Check v21](docs/firebase-app-check-v21.md)
+- [Future verified League](docs/future-verified-league.md): reserved server-authoritative fields (no League in v21)
+- [Privacy draft: account & sync](docs/privacy-account-sync-v21.md): technical draft, not legal advice
 - [Parity matrix v20](docs/parity-matrix-v20.md): every PWA screen and workflow, compared and classified
 - [Visual parity v20](docs/visual-parity-v20.md): History, Insights, Activity, Briefing, Data & Backup
 - [Remaining gaps after v20](docs/remaining-gaps-after-v20.md): device validation, deferred scope, open items
@@ -39,6 +44,9 @@ History, Recovery, colors, typography, the Cosmic Core identity, backups and the
 | Coroutines / Serialization | 1.11.0 / 1.13.0 | |
 | Retrofit / OkHttp | 3.0.0 / 5.5.1 | the only networking stack |
 | JUnit / Robolectric / Turbine | 4.13.2 / 4.18.1 / 1.2.1 | Robolectric runs the Android 17 (SDK 37) runtime |
+| Firebase Android BoM | 35.2.0 | v21: Auth, Firestore, App Check (Play Integrity / debug); no other Firebase library |
+| Credential Manager / googleid | 1.6.0 / 1.2.1 | v21: Sign in with Google (`GetSignInWithGoogleOption`); no legacy Google Sign-In |
+| Google Services plugin | 4.6.0 | applied only when `app/google-services.json` exists (never committed) |
 
 All versions live in `gradle/libs.versions.toml`. Shared build logic is in `build-logic/`
 (convention plugins `focus.android.application|library|compose|hilt|feature`, `focus.jvm.library`).
@@ -75,13 +83,14 @@ android/
 │   ├── model/           (JVM) domain models + data-trust classification
 │   ├── domain/          (JVM) business rules, repository/gateway contracts, PWA backup parser
 │   ├── testing/         (JVM) fakes and fixtures (tests only; never shipped)
-│   ├── data/            Room (v4, migrations 1→2→3→4), DataStore, repositories, backup import/snapshot, data wipe, RestoreGuard
+│   ├── data/            Room (v5, migrations 1→2→3→4→5), DataStore, repositories, backup import/snapshot, data wipe, RestoreGuard, sync store + outbox
 │   ├── network/         Cloudflare Worker client (Retrofit/OkHttp), DTO validation, error mapping, draft photo store
 │   ├── designsystem/    tokens, Inter typography, components, icons, Cosmic Core renderer
 │   ├── notifications/   channels, capability reader, the single notifier, PendingIntents
 │   ├── protection/      the single capability owner, Usage Access, DND, managed-device boundary, app catalog
 │   ├── session/         the single Focus Session owner, foreground service, end alarm
-│   └── reminders/       the single reminder scheduler (WorkManager + AlarmManager)
+│   ├── reminders/       the single reminder scheduler (WorkManager + AlarmManager)
+│   └── account/         v21: the only Firebase/Credential Manager module (account owner, Firestore store, App Check, sync worker)
 └── feature/             home, quickfocus, focus, result, history, missions, reminders, settings
 ```
 
@@ -100,6 +109,9 @@ Each feature owns its UI state, ViewModel, actions, navigation contract (`…Des
   Fokusverlauf); History order and labels: `HistoryQueries` / `HistoryFormat` (v20).
 - Backup: `PwaBackupImporter` validates every file (incl. `BackupIntegrity`); `AndroidBackupExporter`
   / `BackupExportOwner` write; `BackupImportRepository` applies. Data deletion: `PersonalDataEraser` (v20).
+- v21 account: `AccountRepository` (`FirebaseAccountRepository` / `UnconfiguredAccountRepository`);
+  synchronization and local-data migration: `SyncEngine`; sign-out, switching, deletion:
+  `AccountLifecycle`; background: `AndroidSyncScheduler` (one unique job); Room side: `RoomSyncLocalStore`.
 
 ## First vertical slice (fully implemented)
 
@@ -121,6 +133,31 @@ Home → Quick Focus setup → active Focus Session → Result → History, pers
 
 Also implemented: Scheduled Focus (list and editor), Settings, Permission Center, distracting-app
 selection, Daten & Backup (export, import, full deletion).
+
+## v21 Google Account & Secure Sync Foundation
+
+See [docs/account-and-sync-v21.md](docs/account-and-sync-v21.md). In short:
+
+- **Optional**: guest mode keeps every feature; no login wall; "Ohne Konto fortfahren".
+- **Google only**: Sign in with Google via Credential Manager → Firebase Authentication. Guest
+  mode is not Firebase anonymous auth.
+- **Builds without Firebase**: no `google-services.json` in the repository or CI; the app then
+  says "Cloud-Synchronisierung ist in diesem Build noch nicht eingerichtet." and never
+  initializes Firebase. With the owner's file at `android/app/google-services.json` the same
+  code signs in and synchronizes. Application id: `io.github.illiapohukai.focusmode` (debug
+  `io.github.illiapohukai.focusmode.debug`).
+- **Synchronized**: Missions with steps and progress, finalized (reviewed) Sessions, three
+  device-independent settings, tombstones and sync metadata. **Local only**: app selection,
+  UsageStats, permissions, reminders, Geplanter Fokus, the running Session, drafts and photos.
+  Streak, totals and Insights are recalculated from the synchronized records.
+- **Explicit migration**: preview → "Lokale Daten mit diesem Konto verbinden" → verified upload
+  (resumable, idempotent); "Später", "Cloud-Daten verwenden", backup export.
+- **Room v5** outbox in the same transaction as each change; one WorkManager job; deterministic
+  conflicts; tombstones; account switching without leakage; sign-out never deletes data;
+  in-app account deletion with reauthentication (server function in `firebase/functions`, not deployed).
+- **Rules**: `firebase/firestore.rules`, deny by default, owner-only, strict fields, reserved
+  League/verified/entitlement fields refused; tested on the Firestore emulator in CI.
+- No achievements, no League UI or points.
 
 ## v20 Android Parity Completion
 
@@ -306,23 +343,34 @@ remaining rows go; all app notifications are removed. Android system permissions
 - Future server-authoritative (no producer exists): verified Sessions and streak, League, rank,
   subscription, entitlements, AI quota (`ServerAuthoritative` types).
 
-Everything stays on the device except: the goal text, Mission type, confidence, Zeitplan and an
+Without an account everything stays on the device except: the goal text, Mission type, confidence, Zeitplan and an
 optional re-encoded photo, sent to the Worker only when the user taps "Mission planen"; and, only on
 "Plan mit AI anpassen", this Mission's title, subject, deadline text, open steps, the reviewed
-step's result, rating and note and this Mission's progress entries. Never sent: other Missions,
+step's result, rating and note and this Mission's progress entries. Never sent to the AI: other Missions,
 History, streak, selected apps, settings, device data. No analytics, crash reporting, ads or trackers.
+
+v21: with a signed-in and linked Google account (configured builds only), Missions with steps,
+finalized Sessions, three settings and sync metadata are also stored in the account's Cloud
+Firestore documents. App selection, UsageStats, permission states, reminders, the running Session
+and attachments are never uploaded. Settings → Datenschutz shows the three categories (only on
+this device / with the account / to the AI on request). See [privacy draft](docs/privacy-account-sync-v21.md).
 
 ## Backup policy
 
 `data_extraction_rules.xml` / `backup_rules.xml` include the Room database (Missions, History,
 schedules, selected apps) and the preferences DataStore in OS backup and device transfer. Caches and
-`no_backup` (install marker, WorkManager's database) are excluded. Device-bound transient state is
+`no_backup` (install marker, WorkManager's database) are excluded. v21: the Room database also holds
+the account binding (Firebase UID only) and sync metadata; Firebase Auth's session state and the
+account flags are not included, so a restored device must sign in again. Device-bound transient state is
 neutralized after a restore by `RestoreGuard` (see above). No tokens or API secrets exist.
 
 ## Security
 
 HTTPS only via Network Security Config (no cleartext; system CAs only). Every component is
-non-exported except the launcher activity. Receivers listen only to protected system broadcasts.
+non-exported except the launcher activity (v21: Firebase Auth's browser-redirect and reCAPTCHA
+activities and the passkey biometric permissions are removed from the merged manifest; Google Play
+services adds the normal `READ_GSERVICES` permission and its `RevocationBoundService`, which only a
+Google-signed caller can bind). Receivers listen only to protected system broadcasts.
 PendingIntents are immutable and explicit. Deep links (`focusmode://…`, not BROWSABLE) are strictly
 parsed: ids must match the safe-id policy, and anything unknown goes to Home. They carry no task
 text. Narrow package queries. DTO and backup validation. No sensitive logs (there is no logging of
@@ -352,7 +400,7 @@ frames, never up. Session timing never depends on it. See [performance](docs/per
 
 ## Testing
 
-`./gradlew testDebugUnitTest :core:domain:test` runs the JVM suite (v20: 364 tests; v19.1: 299) (domain rules, Room DAO,
+`./gradlew testDebugUnitTest :core:domain:test` runs the JVM suite (v21: 451 tests; v20: 364; v19.1: 299) (domain rules, Room DAO,
 relationships, transactions, rollback and the 1→2 and 2→3 migrations, DataStore defaults and
 migration, the Session owner incl. process recreation and reboot, the reminder scheduler,
 notifications under Robolectric, protection gateways, the Worker client against MockWebServer,
@@ -369,6 +417,11 @@ by the PWA exporter, the export round trip, the Room 3→4 migration, the data w
 with the real Session owner, rename, the Worker `sourceAnalysis`/tools mapping, the camera target,
 dictation and capture recovery, the History/Insights/Data screens, and an app flow that checks
 Activity, Fokus-Rhythmus, Insights and full deletion on the real graph (screenshots 22–34).
+v21 adds the remote codec and its golden payload fixture, the conflict policy, the sync engine and
+account lifecycle on real Room databases against a server stand-in (two-device scenarios), the
+Room 4→5 migration, the Firebase boundary (error mapping, unconfigured selection, the unique
+worker), the Account screens (screenshots `acc01`–`acc18`, 40–41) and, outside Gradle, 40
+Firestore Rules and deletion tests on the Firebase Emulator Suite (`firebase/`, `npm run test:emulator`).
 There are no instrumented or emulator tests yet; the physical-device checklist is
 [device-smoke-test.md](docs/device-smoke-test.md).
 
@@ -385,4 +438,7 @@ There are no instrumented or emulator tests yet; the physical-device checklist i
   `AutomaticZenRule` integration is future work.
 - The `specialUse` foreground-service type needs a Play Console declaration; Play eligibility has
   not been reviewed.
-- `applicationId` `io.github.illiapohukai.focusmode` (debug: `.debug`) may be changed before any store release.
+- `applicationId` `io.github.illiapohukai.focusmode` (debug: `.debug`) may be changed before any store release
+  — but only before it is registered in Firebase and uploaded to Play.
+- v21: live Google sign-in, a real Firebase project, deployed Rules, App Check enforcement and the
+  deletion function were not set up or tested by this repository (see the setup guide).

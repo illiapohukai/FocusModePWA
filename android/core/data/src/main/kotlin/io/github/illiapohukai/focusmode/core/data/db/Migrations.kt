@@ -70,5 +70,23 @@ object Migrations {
         }
     }
 
-    val ALL = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+    /**
+     * v4 -> v5 (v21 Google Account & Secure Sync Foundation): new tables only. No existing table
+     * or row changes; there is no binding row afterwards, so every existing dataset stays guest
+     * data until the user explicitly links it to an account.
+     */
+    val MIGRATION_4_5 = object : Migration(4, 5) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("CREATE TABLE IF NOT EXISTS `account_binding` (`slot` INTEGER NOT NULL, `uid` TEXT NOT NULL, `status` TEXT NOT NULL, `migration_id` TEXT, `bound_at` INTEGER NOT NULL, `migration_started_at` INTEGER, `migration_completed_at` INTEGER, `last_sync_at` INTEGER, `last_failure` TEXT, `settings_fingerprint` TEXT, `settings_remote_ms` INTEGER, `cursor_missions_ms` INTEGER, `cursor_sessions_ms` INTEGER, `cursor_tombstones_ms` INTEGER, `conflicts_resolved` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`slot`))")
+            db.execSQL("CREATE TABLE IF NOT EXISTS `sync_outbox` (`mutation_id` TEXT NOT NULL, `account_uid` TEXT NOT NULL, `entity_type` TEXT NOT NULL, `entity_id` TEXT NOT NULL, `operation` TEXT NOT NULL, `schema_version` INTEGER NOT NULL, `local_version` INTEGER NOT NULL, `created_at` INTEGER NOT NULL, `retry_count` INTEGER NOT NULL DEFAULT 0, `last_failure` TEXT, `next_attempt_at` INTEGER NOT NULL, `state` TEXT NOT NULL DEFAULT 'pending', PRIMARY KEY(`mutation_id`))")
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_sync_outbox_account_uid_entity_type_entity_id` ON `sync_outbox` (`account_uid`, `entity_type`, `entity_id`)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_sync_outbox_next_attempt_at` ON `sync_outbox` (`next_attempt_at`)")
+            db.execSQL("CREATE TABLE IF NOT EXISTS `sync_entity_state` (`entity_type` TEXT NOT NULL, `entity_id` TEXT NOT NULL, `account_uid` TEXT NOT NULL, `remote_version` INTEGER NOT NULL, `remote_step_ids` TEXT NOT NULL DEFAULT '', `last_mutation_id` TEXT, PRIMARY KEY(`entity_type`, `entity_id`))")
+            db.execSQL("CREATE TABLE IF NOT EXISTS `sync_tombstones` (`entity_type` TEXT NOT NULL, `entity_id` TEXT NOT NULL, `account_uid` TEXT NOT NULL, `deleted_at` INTEGER NOT NULL, `origin` TEXT NOT NULL, PRIMARY KEY(`entity_type`, `entity_id`))")
+            db.execSQL("CREATE TABLE IF NOT EXISTS `sync_conflicts` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `entity_type` TEXT NOT NULL, `entity_id` TEXT NOT NULL, `detected_at` INTEGER NOT NULL, `resolution` TEXT NOT NULL)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_sync_conflicts_detected_at` ON `sync_conflicts` (`detected_at`)")
+        }
+    }
+
+    val ALL = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
 }

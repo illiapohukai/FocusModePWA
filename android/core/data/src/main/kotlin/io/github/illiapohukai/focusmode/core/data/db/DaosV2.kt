@@ -117,13 +117,21 @@ interface PersonalDataDao {
     @Query("DELETE FROM session_distractions") suspend fun clearDistractions()
     @Query("DELETE FROM dnd_override") suspend fun clearDndOverride()
     @Query("DELETE FROM reminders") suspend fun clearReminders()
+    /* v21: the account binding and sync metadata go with the data (cloud data is not touched). */
+    @Query("DELETE FROM sync_outbox") suspend fun clearSyncOutbox()
+    @Query("DELETE FROM sync_entity_state") suspend fun clearSyncEntityStates()
+    @Query("DELETE FROM sync_tombstones") suspend fun clearSyncTombstones()
+    @Query("DELETE FROM sync_conflicts") suspend fun clearSyncConflicts()
+    @Query("DELETE FROM account_binding") suspend fun clearAccountBinding()
 
     /** Rows that would survive a deletion; 0 after a complete one. */
     @Query(
         "SELECT (SELECT COUNT(*) FROM missions) + (SELECT COUNT(*) FROM mission_steps) + (SELECT COUNT(*) FROM mission_drafts) + " +
             "(SELECT COUNT(*) FROM mission_progress) + (SELECT COUNT(*) FROM session_results) + (SELECT COUNT(*) FROM active_session) + " +
             "(SELECT COUNT(*) FROM activity_log) + (SELECT COUNT(*) FROM selected_apps) + (SELECT COUNT(*) FROM focus_schedules) + " +
-            "(SELECT COUNT(*) FROM session_distractions) + (SELECT COUNT(*) FROM dnd_override) + (SELECT COUNT(*) FROM reminders)",
+            "(SELECT COUNT(*) FROM session_distractions) + (SELECT COUNT(*) FROM dnd_override) + (SELECT COUNT(*) FROM reminders) + " +
+            "(SELECT COUNT(*) FROM sync_outbox) + (SELECT COUNT(*) FROM sync_entity_state) + (SELECT COUNT(*) FROM sync_tombstones) + " +
+            "(SELECT COUNT(*) FROM sync_conflicts) + (SELECT COUNT(*) FROM account_binding)",
     )
     suspend fun remainingRows(): Int
 }

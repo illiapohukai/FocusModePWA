@@ -31,3 +31,14 @@ playwright-report/
 
 # Tooling that must not appear in this no-build project
 node_modules/
+
+# v21 Firebase (android/ and firebase/): project configuration, emulator logs and exported emulator data
+google-services.json
+GoogleService-Info.plist
+firebase-debug.log
+firestore-debug.log
+database-debug.log
+ui-debug.log
+pubsub-debug.log
+firebase/emulator-data/
+.firebase/

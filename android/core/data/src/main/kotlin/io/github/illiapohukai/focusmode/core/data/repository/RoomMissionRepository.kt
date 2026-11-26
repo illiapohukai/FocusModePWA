@@ -2,6 +2,7 @@ package io.github.illiapohukai.focusmode.core.data.repository
 
 import androidx.room.withTransaction
 import io.github.illiapohukai.focusmode.core.data.db.FocusDatabase
+import io.github.illiapohukai.focusmode.core.data.sync.SyncOutboxWriter
 import io.github.illiapohukai.focusmode.core.data.db.stepEntities
 import io.github.illiapohukai.focusmode.core.data.db.toEntity
 import io.github.illiapohukai.focusmode.core.data.db.toModel
@@ -20,6 +21,8 @@ import io.github.illiapohukai.focusmode.core.model.Mission
 import io.github.illiapohukai.focusmode.core.model.MissionId
 import io.github.illiapohukai.focusmode.core.model.MissionStatus
 import io.github.illiapohukai.focusmode.core.model.MissionStepId
+import io.github.illiapohukai.focusmode.core.model.SyncEntityType
+import io.github.illiapohukai.focusmode.core.model.SyncOperation
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -29,7 +32,8 @@ import javax.inject.Singleton
 
 /**
  * The one Mission owner (PWA `mission-repository.js` rules: max two active, safe ids, guards).
- * Every write that touches more than one row runs in one Room transaction.
+ * Every write that touches more than one row runs in one Room transaction. v21: every Mission
+ * change also writes its sync outbox mutation inside that transaction (only for account-bound data).
  */
 @Singleton
 class RoomMissionRepository @Inject constructor(
@@ -40,6 +44,10 @@ class RoomMissionRepository @Inject constructor(
 
     private val dao get() = db.missionDao()
     private val drafts get() = db.missionDraftDao()
+    private val outbox = SyncOutboxWriter(db)
+
+    /** Inside the caller's transaction. */
+    private suspend fun recordUpsert(id: MissionId) = outbox.record(SyncEntityType.MISSION, id.value, SyncOperation.UPSERT, clock.now())
 
     override fun observeMissions(): Flow<List<Mission>> = dao.observeAll().map { rows -> rows.mapNotNull { it.toModel() } }
 
@@ -67,6 +75,7 @@ class RoomMissionRepository @Inject constructor(
         }
         dao.insert(mission.toEntity())
         dao.insertSteps(mission.steps.map { it.toEntity() })
+        recordUpsert(mission.id)
         return MissionWriteResult.Ok(dao.get(mission.id.value)!!.toModel()!!)
     }
 
@@ -76,6 +85,7 @@ class RoomMissionRepository @Inject constructor(
             is StepCompletion.Completed -> {
                 dao.update(c.mission.toEntity())
                 dao.upsertSteps(c.mission.steps.map { it.toEntity() })
+                recordUpsert(missionId)
                 MissionWriteResult.Ok(c.mission)
             }
             is StepCompletion.AlreadyCompleted -> MissionWriteResult.Ok(c.mission)
@@ -89,6 +99,7 @@ class RoomMissionRepository @Inject constructor(
         if (mission.status == MissionStatus.ARCHIVED) return@withTransaction MissionWriteResult.Ok(mission)
         val archived = MissionRules.archive(mission, clock.now())
         dao.update(archived.toEntity())
+        recordUpsert(id)
         MissionWriteResult.Ok(archived)
     }.also { clearSelectionIf(id, it) }
 
@@ -100,6 +111,7 @@ class RoomMissionRepository @Inject constructor(
         }
         dao.update(restored.toEntity())
         dao.upsertSteps(restored.steps.map { it.toEntity() })
+        recordUpsert(id)
         MissionWriteResult.Ok(restored)
     }
 
@@ -108,6 +120,7 @@ class RoomMissionRepository @Inject constructor(
         if (db.sessionDao().activeCountForMission(id.value) > 0) return@withTransaction MissionWriteResult.Rejected("active_session_exists")
         val mission = dao.get(id.value)?.toModel() ?: return@withTransaction MissionWriteResult.Rejected("mission_not_found")
         dao.delete(id.value) // steps and progress entries cascade; History keeps the plain mission id
+        outbox.record(SyncEntityType.MISSION, id.value, SyncOperation.DELETE, clock.now()) // tombstone: never resurrected by a download
         MissionWriteResult.Ok(mission)
     }.also { clearSelectionIf(id, it) }
 
@@ -115,7 +128,10 @@ class RoomMissionRepository @Inject constructor(
     override suspend fun rename(id: MissionId, title: String): MissionWriteResult = db.withTransaction {
         val mission = dao.get(id.value)?.toModel() ?: return@withTransaction MissionWriteResult.Rejected("mission_not_found")
         val renamed = MissionRules.rename(mission, title, clock.now()) ?: return@withTransaction MissionWriteResult.Rejected("title_invalid")
-        if (renamed != mission) dao.update(renamed.toEntity())
+        if (renamed != mission) {
+            dao.update(renamed.toEntity())
+            recordUpsert(id)
+        }
         MissionWriteResult.Ok(renamed)
     }
 
@@ -179,6 +195,7 @@ class RoomMissionRepository @Inject constructor(
         dao.deleteOpenSteps(id.value)
         dao.insertSteps(fresh.map { it.toEntity() })
         dao.update(updated.toEntity())
+        recordUpsert(id)
         MissionWriteResult.Ok(dao.get(id.value)!!.toModel()!!)
     }
 

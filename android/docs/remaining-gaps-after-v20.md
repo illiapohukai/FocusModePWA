@@ -41,13 +41,29 @@ commercial feature**, **genuine unfinished parity item**.
 ## Missing backend
 
 Verified Sessions and streaks, server-side Session ids, AI quota and entitlement checks
-(`ServerAuthoritative` types exist, no producer). Backup integrity proves only that a file is
+(`ServerAuthoritative` types exist, no producer). v21 reserves the remote field names and the
+Firestore Rules refuse client writes to them. Backup integrity proves only that a file is
 unchanged; it never proves honest History, streak or progress.
 
 ## Future account feature
 
-Accounts, cloud synchronization between devices, public profiles. Backups remain the only way to
-move data between devices.
+**v21 status**: optional Google account and account-backed synchronization are implemented and
+tested on the JVM and against the Firebase Emulator Suite ([account-and-sync-v21.md](account-and-sync-v21.md)).
+Still open:
+
+| Item | Category | Detail |
+|---|---|---|
+| Firebase project, `google-services.json`, SHA fingerprints, Google provider | owner setup | none exists in the repository; see [firebase-setup-v21.md](firebase-setup-v21.md) |
+| Live Google sign-in | device validation | never run: no Firebase project, no Google Play emulator image, no device in this environment |
+| Firestore deployment | owner setup | Rules are tested on the emulator only; not deployed |
+| App Check | owner setup | providers wired (Play Integrity / debug); registration and metrics pending; enforcement off |
+| Recursive deletion function | missing backend | implemented and emulator-tested in `firebase/functions`; not deployed, so production recursive deletion is not complete |
+| Android emulator / physical device | device validation | account UI, Credential Manager chooser, WorkManager sync and R8 release sign-in unverified on a device |
+| Profile photo | deferred | the Account screen shows initials; the Google profile image is not downloaded (no image library, no extra request) |
+| Cross-device active Session handoff | deferred | an active Session belongs to its device; only finalized Sessions synchronize |
+| Public profiles, friends | deferred | not part of v21 |
+| Verified History and League | missing backend | needs a server-authoritative Session ledger ([future-verified-league.md](future-verified-league.md)) |
+| Legal review, Data Safety form | owner | [privacy-account-sync-v21.md](privacy-account-sync-v21.md) marks open items **[TO BE CONFIRMED]** |
 
 ## Future commercial feature
 

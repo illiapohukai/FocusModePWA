@@ -64,6 +64,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -83,6 +84,8 @@ data class DataBackupUiState(
     val lastBackup: String = "Kein Backup",
     val busy: Boolean = false,
     val feedback: DataFeedback? = null,
+    /** v21: a Google account is signed in or the data is linked to one. */
+    val accountLinked: Boolean = false,
 )
 
 /**
@@ -98,11 +101,17 @@ class DataBackupViewModel @Inject constructor(
     private val exporter: BackupExportOwner,
     private val eraser: PersonalDataEraser,
     private val clock: FocusClock,
+    sync: io.github.illiapohukai.focusmode.core.domain.sync.SyncRepository? = null,
 ) : ViewModel() {
     private val busy = MutableStateFlow(false)
     private val feedback = MutableStateFlow<DataFeedback?>(null)
+    private val linked: kotlinx.coroutines.flow.Flow<Boolean> = sync?.syncState?.map { st ->
+        st.phase !in setOf(io.github.illiapohukai.focusmode.core.model.SyncPhase.UNAVAILABLE, io.github.illiapohukai.focusmode.core.model.SyncPhase.SIGNED_OUT)
+    } ?: kotlinx.coroutines.flow.flowOf(false)
 
-    val uiState: StateFlow<DataBackupUiState> = combine(missions.observeMissions(), history.observeResults(), preferences.preferences, busy, feedback) { m, r, p, b, f ->
+    val uiState: StateFlow<DataBackupUiState> = combine(
+        combine(missions.observeMissions(), history.observeResults(), preferences.preferences, ::Triple), busy, feedback, linked,
+    ) { (m, r, p), b, f, isLinked ->
         DataBackupUiState(
             loading = false,
             activeMissions = m.count { it.status == MissionStatus.ACTIVE },
@@ -111,6 +120,7 @@ class DataBackupViewModel @Inject constructor(
             lastBackup = p.lastExportAt?.let { LAST.format(ZonedDateTime.ofInstant(it, clock.zone())) } ?: "Kein Backup",
             busy = b,
             feedback = f,
+            accountLinked = isLinked,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DataBackupUiState())
 
@@ -252,6 +262,12 @@ fun DataBackupScreen(state: DataBackupUiState, onBack: () -> Unit, onImport: () 
                             "Ablenkungsdaten und deine Einstellungen werden von diesem Gerät entfernt. Eine laufende Sitzung endet ohne Speichern.",
                     )
                     Text("Das kann nicht rückgängig gemacht werden. Exportiere vorher ein Backup, wenn du die Daten behalten möchtest.")
+                    if (state.accountLinked) {
+                        Text(
+                            "Dein Konto: Du wirst auf diesem Gerät abgemeldet. Die Daten in deinem Konto bleiben erhalten; löschen kannst du sie unter „Konto & Synchronisierung“ → „Konto löschen“.",
+                            modifier = Modifier.testTag("data_erase_account_note"),
+                        )
+                    }
                     Text("Systemberechtigungen wie Benachrichtigungen oder Nutzungszugriff änderst du in den Android-Einstellungen.", style = MaterialTheme.typography.bodySmall, color = FocusPalette.GraphiteSoft)
                 }
             },

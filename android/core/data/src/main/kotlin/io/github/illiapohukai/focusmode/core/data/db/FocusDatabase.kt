@@ -14,6 +14,8 @@ import androidx.room.TypeConverters
         ScheduleEntity::class, ScheduleAppEntity::class, DistractionEntity::class, DndOverrideEntity::class,
         // v3
         MissionDraftEntity::class, MissionDraftStepEntity::class, MissionProgressEntity::class,
+        // v5 (v21 account & sync)
+        AccountBindingEntity::class, SyncOutboxEntity::class, SyncEntityStateEntity::class, SyncTombstoneEntity::class, SyncConflictEntity::class,
     ],
 )
 @TypeConverters(Converters::class)
@@ -29,9 +31,10 @@ abstract class FocusDatabase : RoomDatabase() {
     abstract fun missionDraftDao(): MissionDraftDao
     abstract fun missionProgressDao(): MissionProgressDao
     abstract fun personalDataDao(): PersonalDataDao
+    abstract fun syncDao(): SyncDao
 
     companion object {
-        const val VERSION = 4
+        const val VERSION = 5
         const val NAME = "focus-mode.db"
     }
 }
