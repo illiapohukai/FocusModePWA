@@ -166,6 +166,9 @@ class MissionRepositoryV3Test {
         assertEquals(m.steps[0].id, p.mission!!.currentStepId)
         assertEquals(0, p.mission!!.progressPercent)
         assertTrue(p.result.countsAsFocus) // real focused time counts
+        // The retry starts after the partial review. Without time passing both reviews would share
+        // applied_at and the history order would fall back to comparing random session ids.
+        clock.advanceMinutes(30)
         val aborted = finishedMissionSession(missions.getMission(m.id)!!, 0, minutes = 5)
         val a = sessions.applyMissionReview(aborted, MissionReview(SessionOutcome.CANCELED, null))!!
         assertEquals(SessionOutcome.CANCELED, a.result.outcome) // never a false completion
