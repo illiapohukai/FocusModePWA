@@ -44,7 +44,7 @@ class HomeScreenTest {
         rule.onNodeWithText("Mathe-Klausur").assertIsDisplayed()
         rule.onNodeWithContentDescription("Offline. Fokus funktioniert ohne Internet.").assertIsDisplayed()
         rule.onNodeWithText("Noch 18 Min. · Lineare Funktionen").assertIsDisplayed()
-        rule.onNodeWithText("Schritt starten · 25 Min.").performClick()
+        rule.onNodeWithTag("home_start_step").performClick()
         assertEquals("mission_a" to "step_a", started)
         rule.onNodeWithTag("home_session_banner").performClick()
         assertEquals(listOf("session"), opened)
@@ -54,7 +54,7 @@ class HomeScreenTest {
         rule.setContent { FocusModeTheme { HomeScreen(HomeUiState(loading = false), actions, { _, _ -> }) } }
         rule.onNodeWithTag("home_mission_empty").assertIsDisplayed()
         rule.onNodeWithText("Was möchtest du heute fokussiert schaffen?").assertIsDisplayed()
-        rule.onNodeWithText("Missionen ansehen").performClick()
+        rule.onNodeWithTag("home_create_mission").performClick() // HomeActions default: creation opens via onOpenMissions here
         assertEquals(listOf("missions"), opened)
         rule.onNodeWithTag("home_quick_focus").performClick()
         assertEquals(listOf("missions", "quick"), opened)
@@ -65,13 +65,15 @@ class HomeScreenTest {
 
     @Test fun homeStatesAreDistinctForOneAndSeveralMissions() {
         val mission = MissionCard("mission_a", "Mathe-Klausur", "Mathematik", "SCHRITT 01 / 03", "Kapitel 1", "Lesen", 25, "step_a", 33, MissionTheme.AUBERGINE)
-        val count = mutableStateOf(1)
-        rule.setContent { FocusModeTheme { HomeScreen(HomeUiState(loading = false, mission = mission, activeMissionCount = count.value), actions, { _, _ -> }) } }
+        val second = MissionCard("mission_b", "Referat", "Geschichte", "SCHRITT 02 / 04", "Quellen", "Lesen", 30, "step_b", 25, MissionTheme.FOREST, primary = false)
+        val missions = mutableStateOf(listOf(mission))
+        rule.setContent { FocusModeTheme { HomeScreen(HomeUiState(loading = false, mission = mission, activeMissionCount = missions.value.size, missions = missions.value), actions, { _, _ -> }) } }
         rule.onNodeWithTag("home_mission").assertIsDisplayed()
         rule.onNodeWithTag("home_mission_more").assertDoesNotExist()
-        count.value = 2
+        missions.value = listOf(mission, second)
+        rule.onNodeWithTag("home_mission_carousel").assertIsDisplayed()
         rule.onNodeWithTag("home").performScrollToNode(hasTestTag("home_mission_more"))
-        rule.onNodeWithText("1 von 2 aktiven Missionen · Alle ansehen").assertIsDisplayed().performClick()
+        rule.onNodeWithTag("home_mission_more").assertIsDisplayed().performClick()
         assertEquals(listOf("missions"), opened)
     }
 

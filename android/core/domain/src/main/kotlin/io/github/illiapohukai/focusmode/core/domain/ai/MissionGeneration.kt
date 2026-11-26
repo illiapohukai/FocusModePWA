@@ -67,6 +67,10 @@ data class GeneratedMissionPlan(
     val steps: List<GeneratedStep>,
     val estimateTotalMinutes: Int,
     val scheduleWarning: String?,
+    /** PWA `briefDifficulty` source value (easy/medium/hard …), already bounded. */
+    val difficulty: String? = null,
+    /** PWA `estimate.explanation`: why the plan is built this way. */
+    val explanation: String = "",
 )
 
 /** Safe, user-facing errors (PWA `parseMissionErrorResponseCore` wording). Internal text never shown. */
@@ -74,8 +78,13 @@ sealed class GenerationError(val code: String, val retryable: Boolean, val messa
     data object Timeout : GenerationError("AI_TIMEOUT", true, "Die Analyse hat zu lange gedauert. Deine Eingaben bleiben erhalten – bitte versuche es erneut.")
     data object RateLimited : GenerationError("AI_RATE_LIMITED", true, "Der AI-Dienst ist kurzzeitig ausgelastet. Bitte warte einen Moment und versuche es erneut.")
     data object Unavailable : GenerationError("AI_UNAVAILABLE", true, "Der AI-Dienst ist momentan nicht erreichbar. Bitte versuche es gleich erneut.")
-    /** HTTP 402: reserved for a future server-authoritative AI quota or entitlement. */
-    data object QuotaRequired : GenerationError("AI_QUOTA_REQUIRED", false, "Dein AI-Kontingent ist aufgebraucht. Du kannst ohne AI weiterplanen.")
+    /**
+     * HTTP 402: AI billing is unavailable on the Worker side (reserved for a future
+     * server-authoritative quota or entitlement). Not retried: a retry cannot succeed now.
+     */
+    data object QuotaRequired : GenerationError("AI_QUOTA_REQUIRED", false, "Die AI-Planung ist momentan nicht verfügbar. Deine Eingaben bleiben erhalten; Quick Focus funktioniert weiter.")
+    /** HTTP 401/403: the Worker refused this client. Not retried. */
+    data object Refused : GenerationError("AI_REFUSED", false, "Der AI-Dienst hat die Anfrage abgelehnt. Bitte versuche es später erneut.")
     data object InvalidRequest : GenerationError("INVALID_REQUEST", false, "Bitte prüfe deine Eingabe und den gewählten Zeitplan.")
     data object UnsupportedFile : GenerationError("UNSUPPORTED_FILE_TYPE", false, "Nicht unterstütztes Dateiformat. Bitte verwende JPEG, PNG oder WEBP.")
     data object FileTooLarge : GenerationError("FILE_TOO_LARGE", false, "Das Bild ist zu groß. Bitte wähle ein kleineres Foto aus.")
@@ -84,8 +93,29 @@ sealed class GenerationError(val code: String, val retryable: Boolean, val messa
     data object Offline : GenerationError("OFFLINE", true, "Keine Internetverbindung. Deine Eingaben bleiben erhalten.")
     data object Cancelled : GenerationError("CANCELLED", true, "Die Analyse wurde abgebrochen.")
     data object AlreadyInFlight : GenerationError("IN_FLIGHT", false, "Eine Analyse läuft bereits.")
-    data object EmptyInput : GenerationError("EMPTY_INPUT", false, "Beschreibe dein Ziel oder füge Material hinzu.")
+    data object EmptyInput : GenerationError("EMPTY_INPUT", false, "Beschreibe dein Ziel oder füge ein Foto hinzu.")
+    data object GoalTooLong : GenerationError("GOAL_TOO_LONG", false, "Bitte kürze deine Beschreibung (max. 6000 Zeichen). Deine Eingabe bleibt erhalten.")
+    data object ScheduleInvalid : GenerationError("SCHEDULE_INVALID", false, "Bitte prüfe den gewählten Zeitplan.")
+    /** The active-Mission limit (two) is reached; no paid request is sent. */
+    data object MissionLimitReached : GenerationError("ACTIVE_MISSION_LIMIT", false, "Du hast bereits zwei aktive Missionen. Schließe eine ab oder archiviere sie, um eine neue zu planen.")
+    /** The app was closed while a request ran; the result is unknown and never retried automatically. */
+    data object Interrupted : GenerationError("INTERRUPTED", true, "Die Analyse wurde unterbrochen. Deine Eingaben bleiben erhalten – bitte versuche es erneut.")
+    /** A local database write failed; nothing partial was stored. */
+    data object StorageFailed : GenerationError("STORAGE_FAILED", true, "Die Mission konnte nicht gespeichert werden. Bitte versuche es erneut.")
     data class Unknown(val serverCode: String?) : GenerationError(serverCode ?: "INTERNAL_ERROR", true, "AI-Analyse momentan nicht verfügbar. Bitte versuche es erneut.")
+
+    companion object {
+        private val KNOWN: List<GenerationError> by lazy {
+            listOf(
+                Timeout, RateLimited, Unavailable, QuotaRequired, Refused, InvalidRequest, UnsupportedFile, FileTooLarge,
+                ImageProcessingFailed, InvalidResponse, Offline, Cancelled, AlreadyInFlight, EmptyInput, GoalTooLong,
+                ScheduleInvalid, MissionLimitReached, Interrupted, StorageFailed,
+            )
+        }
+
+        /** Restores a persisted error code (draft table). Unknown codes stay a safe generic error. */
+        fun fromCode(code: String?): GenerationError? = code?.let { c -> KNOWN.firstOrNull { it.code == c } ?: Unknown(null) }
+    }
 }
 
 sealed interface GenerationResult {
@@ -102,9 +132,15 @@ interface MissionGenerationRepository {
     suspend fun generate(request: MissionGenerationRequest): GenerationResult
 }
 
-/** Output bounds mirrored from the PWA (`normalizeAIPlan`, `AI_TEXT_LIMITS`). */
+/**
+ * Output bounds mirrored from the PWA (`normalizeAIPlan`, `AI_TEXT_LIMITS`). Android rejects a plan
+ * with more than [MAX_STEPS] steps instead of truncating it (a truncated plan would silently lose
+ * its final steps); the Worker contract already promises at most six.
+ */
 object MissionPlanRules {
     const val MAX_STEPS = 6
+    /** PWA `normalizeUpdatedSessions` accepts at most 20 adapted steps. */
+    const val MAX_ADAPTED_STEPS = 20
     val STEP_MINUTES = 5..60
     const val TITLE_MAX = 200
     const val SHORT_MAX = 120

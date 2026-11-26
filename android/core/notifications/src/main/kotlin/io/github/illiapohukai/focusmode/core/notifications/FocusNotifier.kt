@@ -129,7 +129,10 @@ class FocusNotifier @Inject constructor(
         val channel = if (reminder.type == ReminderType.MISSION_DEADLINE || reminder.type == ReminderType.PREPARATION_START) FocusChannel.MISSION_DEADLINES else FocusChannel.REMINDERS
         if (!canPost(channel)) return false
         val target = DeepLinks.parse(reminder.deepLink)
-        val text = NotificationText(reminder.title, reminder.body, reminder.title, genericBody(reminder.type))
+        // "Nur Fokus-Status" and "Ausblenden" never show Mission text, not even in the shade.
+        val missionText = reminder.type == ReminderType.MISSION_DEADLINE || reminder.type == ReminderType.PREPARATION_START
+        val body = if (missionText && prefs.notificationDetail != NotificationDetailLevel.FULL_TASK) genericBody(reminder.type) else reminder.body
+        val text = NotificationText(reminder.title, body, reminder.title, genericBody(reminder.type))
         val builder = base(channel, text, prefs.notificationDetail)
             .setAutoCancel(true)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)

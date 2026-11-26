@@ -1,10 +1,11 @@
-# Focus Mode+ — Android (v18.1 Android Stability & Visual Parity)
+# Focus Mode+ — Android (v19 Android Missions)
 
 A native Android app for Focus Mode+, written in Kotlin with Jetpack Compose. It is **not** a
 WebView, a Trusted Web Activity or a wrapper around the PWA. The PWA in the repository root is
 unchanged and stays the reference for product terms, Mission and Session behavior, timer semantics,
 History, Recovery, colors, typography, the Cosmic Core identity, backups and the AI Worker contract.
 
+- [Missions v19](docs/missions-v19.md): Mission architecture, generation lifecycle, validation, review, adaptation
 - [Protection capabilities](docs/protection-capabilities.md): what consumer Android can and cannot do
 - [PWA parity](docs/pwa-parity.md): what is implemented, partial, deferred or intentionally different
 - [Visual parity v18.1](docs/visual-parity-v18.1.md): screen-by-screen comparison with the live PWA
@@ -70,8 +71,8 @@ android/
 │   ├── model/           (JVM) domain models + data-trust classification
 │   ├── domain/          (JVM) business rules, repository/gateway contracts, PWA backup parser
 │   ├── testing/         (JVM) fakes and fixtures (tests only; never shipped)
-│   ├── data/            Room (v2, migration 1→2), DataStore, repositories, backup import, RestoreGuard
-│   ├── network/         Cloudflare Worker client (Retrofit/OkHttp), DTO validation, error mapping
+│   ├── data/            Room (v3, migrations 1→2→3), DataStore, repositories, backup import, RestoreGuard
+│   ├── network/         Cloudflare Worker client (Retrofit/OkHttp), DTO validation, error mapping, draft photo store
 │   ├── designsystem/    tokens, Inter typography, components, icons, Cosmic Core renderer
 │   ├── notifications/   channels, capability reader, the single notifier, PendingIntents
 │   ├── protection/      the single capability owner, Usage Access, DND, managed-device boundary, app catalog
@@ -86,7 +87,9 @@ Each feature owns its UI state, ViewModel, actions, navigation contract (`…Des
 
 **Single owners**
 - Session: `FocusSessionManager` (`core:session`), behind `FocusSessionController`.
-- Missions: `RoomMissionRepository`. History: `RoomSessionRepository`.
+- Missions (persistence, draft, progress): `RoomMissionRepository`. History: `RoomSessionRepository`.
+- Mission rules: `MissionRules`. Generation request: `MissionGenerationOwner`. Adaptation: `MissionAdaptationOwner`.
+- Calendar events: `MissionCalendar`. Zeitplan: `MissionSchedulePlanner`. Draft photo: `AndroidMissionMaterialStore`.
 - Notifications: `FocusNotifier`. Reminders: `AndroidReminderScheduler`.
 - Protection capability: `ProtectionCapabilityOwner`.
 
@@ -108,9 +111,25 @@ Home → Quick Focus setup → active Focus Session → Result → History, pers
   nicht verifiziert"), Mission step review for Mission Sessions.
 - **History**: Heute/Woche/Alle filters (PWA), grouped by local day, local statistics.
 
-Also implemented: Missions list/detail (identity tones, start the current step, archive/delete
-guards), Scheduled Focus (list and editor), Settings, Permission Center, distracting-app selection,
-PWA backup import (behind a development flag).
+Also implemented: Scheduled Focus (list and editor), Settings, Permission Center, distracting-app
+selection, PWA backup import (behind a development flag).
+
+## Mission vertical slice (v19)
+
+Home → Mission Creation → AI generation (pixel operator) → Mission Briefing → Mission Plan → next
+step → Mission Focus Session → Result review → progress update → optional plan adaptation → Home.
+Missions are real Room data (no production fixtures). See [docs/missions-v19.md](docs/missions-v19.md).
+
+- **Creation**: goal, one photo (system picker), type, confidence, Zeitplan with an inline German
+  calendar that shows existing Mission dates; everything lives in a Room draft and survives process
+  death, a declined picker, failure and cancel.
+- **Generation**: one Worker request per tap, cancel with late-answer protection, safe German errors,
+  success animation only after full validation, nothing stored before "Mission übernehmen".
+- **Briefing → Plan**: one transactional Mission write (two active Missions at most); the Plan makes
+  the current step dominant and starts it through the one Session owner.
+- **Result**: Abgeschlossen / Teilweise / Abgebrochen, rating and note, applied once per Session;
+  the final step completes the Mission; optional adaptation replaces only open steps.
+- **Home**: first-time, returning, one Mission, two-Mission carousel; Mission calendar.
 
 ## Session timing and Recovery
 
@@ -208,10 +227,12 @@ detection boundary with a no-op implementation. **No app is ever blocked.**
 URL, HTTPS enforced). There is no Gemini key on Android. `POST /create-mission` (multipart:
 `goalText`, `missionType`, `confidence`, optional `schedule` JSON and `image` with a generic file
 name) is implemented with PWA-equivalent validation (1–6 steps of 5–60 min, text bounds, safe step
-ids, no step after the deadline), timeouts (38 s text / 52 s image), cancellation, one request at a
-time, a validated support request id, and error mapping (400/402/413/415/429/502/503/504 and
-malformed output). No redirects, no automatic retries, no logging interceptor, no cache. The
-Mission-creation UI is deferred (see parity). `POST /adapt-mission` is declared as a foundation only.
+ids, no step after the deadline) plus v19 rejections (more than six steps, duplicate steps, markup,
+script or executable URLs), timeouts (38 s text / 52 s image), cancellation, one request at a time,
+a validated support request id, a 512 KB body cap and error mapping (400/401/402/403/408/413/415/
+422/429/5xx and malformed output). `POST /adapt-mission` (JSON, PWA payload, this Mission only)
+backs the optional adaptation (60 s). No redirects, no automatic retries, no logging interceptor,
+no cache. No live Worker call is made by any test.
 
 ## PWA migration boundary
 
@@ -232,8 +253,11 @@ never imported. The web app's app selection has no Android package names and is 
 - Future server-authoritative (no producer exists): verified Sessions and streak, League, rank,
   subscription, entitlements, AI quota (`ServerAuthoritative` types).
 
-Everything stays on the device except goal text and optional photo sent to the Worker when the user
-asks for AI planning, which v18's UI does not offer yet. No analytics, crash reporting, ads or trackers.
+Everything stays on the device except: the goal text, Mission type, confidence, Zeitplan and an
+optional re-encoded photo, sent to the Worker only when the user taps "Mission planen"; and, only on
+"Plan mit AI anpassen", this Mission's title, subject, deadline text, open steps, the reviewed
+step's result, rating and note and this Mission's progress entries. Never sent: other Missions,
+History, streak, selected apps, settings, device data. No analytics, crash reporting, ads or trackers.
 
 ## Backup policy
 
@@ -275,15 +299,20 @@ frames, never up. Session timing never depends on it. See [performance](docs/per
 
 ## Testing
 
-`./gradlew testDebugUnitTest :core:domain:test` runs 181 JVM tests (domain rules, Room DAO,
-relationships, transactions, rollback and the 1→2 migration, DataStore defaults and migration, the
-Session owner incl. process recreation and reboot, the reminder scheduler, notifications under
-Robolectric, protection gateways, the Worker client against MockWebServer, Compose screens, and
-end-to-end app flows on Robolectric with the real Hilt graph). The app flow tests write screenshots
-to `app/build/screenshots/`. v18.1 adds tests for the monitor owner, Cosmic Core tiers and reduced
-motion, bottom-bar label fit at 320 dp / 130 % / 160 %, Home states, History period summary, the
-app picker and the Focus screen. There are no instrumented or emulator tests yet; the physical-device
-checklist is [device-smoke-test.md](docs/device-smoke-test.md).
+`./gradlew testDebugUnitTest :core:domain:test` runs 299 JVM tests (domain rules, Room DAO,
+relationships, transactions, rollback and the 1→2 and 2→3 migrations, DataStore defaults and
+migration, the Session owner incl. process recreation and reboot, the reminder scheduler,
+notifications under Robolectric, protection gateways, the Worker client against MockWebServer,
+Compose screens, and end-to-end app flows on Robolectric with the real Hilt graph). The app flow
+tests write screenshots to `app/build/screenshots/`. v18.1 adds tests for the monitor owner, Cosmic
+Core tiers and reduced motion, bottom-bar label fit at 320 dp / 130 % / 160 %, Home states, History
+period summary, the app picker and the Focus screen. v19 adds the Mission rules, Zeitplan and
+calendar, the generation and adaptation owners (cancel and late-answer races), the Room 2→3
+migration and draft repository, the Worker v19 mapping and photo pipeline, Mission Session
+recovery, the Creation, generation, Briefing, Plan, review and Home Mission screens, and an app flow
+that runs a Mission step as a real Session (screenshots also in `feature/*/build/screenshots/`).
+There are no instrumented or emulator tests yet; the physical-device checklist is
+[device-smoke-test.md](docs/device-smoke-test.md).
 
 ## Known limitations and OEM notes
 

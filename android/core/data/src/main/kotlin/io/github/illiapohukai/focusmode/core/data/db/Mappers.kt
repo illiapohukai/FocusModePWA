@@ -1,5 +1,14 @@
 package io.github.illiapohukai.focusmode.core.data.db
 
+import io.github.illiapohukai.focusmode.core.domain.ai.GeneratedMissionPlan
+import io.github.illiapohukai.focusmode.core.domain.ai.GeneratedStep
+import io.github.illiapohukai.focusmode.core.domain.ai.GenerationConfidence
+import io.github.illiapohukai.focusmode.core.domain.ai.GenerationError
+import io.github.illiapohukai.focusmode.core.domain.mission.DraftAttachment
+import io.github.illiapohukai.focusmode.core.domain.mission.MissionDraft
+import io.github.illiapohukai.focusmode.core.domain.mission.MissionDraftPhase
+import io.github.illiapohukai.focusmode.core.domain.mission.ScheduleDraft
+import io.github.illiapohukai.focusmode.core.domain.repository.MissionProgressEntry
 import io.github.illiapohukai.focusmode.core.model.ActivityRecord
 import io.github.illiapohukai.focusmode.core.model.ActivityType
 import io.github.illiapohukai.focusmode.core.model.DataOrigin
@@ -10,6 +19,7 @@ import io.github.illiapohukai.focusmode.core.model.FocusTask
 import io.github.illiapohukai.focusmode.core.model.Mission
 import io.github.illiapohukai.focusmode.core.model.MissionId
 import io.github.illiapohukai.focusmode.core.model.MissionLink
+import io.github.illiapohukai.focusmode.core.model.MissionSchedule
 import io.github.illiapohukai.focusmode.core.model.MissionStatus
 import io.github.illiapohukai.focusmode.core.model.MissionStep
 import io.github.illiapohukai.focusmode.core.model.MissionStepId
@@ -21,6 +31,7 @@ import io.github.illiapohukai.focusmode.core.model.ReminderPrecision
 import io.github.illiapohukai.focusmode.core.model.ReminderType
 import io.github.illiapohukai.focusmode.core.model.Schedule
 import io.github.illiapohukai.focusmode.core.model.ScheduleId
+import io.github.illiapohukai.focusmode.core.model.ScheduleStartMode
 import io.github.illiapohukai.focusmode.core.model.ScheduleZone
 import io.github.illiapohukai.focusmode.core.model.SelectedDistractingApp
 import io.github.illiapohukai.focusmode.core.model.SessionEndReason
@@ -56,6 +67,15 @@ fun MissionWithSteps.toModel(): Mission? = runCatching {
         currentStepId = mission.currentStepId?.let(::MissionStepId),
         steps = steps.sortedBy { it.position }.mapNotNull { it.toModel() },
         origin = enumOrNull<DataOrigin>(mission.origin) ?: DataOrigin.LOCAL,
+        schedule = MissionSchedule(
+            startMode = ScheduleStartMode.fromWire(mission.startMode),
+            preferredWeekdays = maskToWeekdays(mission.preferredWeekdays),
+            preferredSessionMinutes = mission.preferredSessionMinutes?.takeIf { it in MissionSchedule.SESSION_MINUTES },
+        ),
+        summary = mission.summary,
+        estimateTotalMinutes = mission.estimateMinutes?.takeIf { it > 0 },
+        scheduleWarning = mission.scheduleWarning,
+        archivedStepId = mission.archivedStepId?.let(::MissionStepId),
     )
 }.getOrNull()
 
@@ -77,6 +97,9 @@ fun Mission.toEntity() = MissionEntity(
     deadlineDate = deadlineDate, preparationStartDate = preparationStartDate, status = status.wire,
     createdAt = createdAt, updatedAt = updatedAt, completedAt = completedAt, archivedAt = archivedAt,
     currentStepId = currentStepId?.value, origin = origin.name,
+    startMode = schedule.startMode?.wire, preferredWeekdays = weekdaysToMask(schedule.preferredWeekdays),
+    preferredSessionMinutes = schedule.preferredSessionMinutes, estimateMinutes = estimateTotalMinutes, summary = summary,
+    scheduleWarning = scheduleWarning, archivedStepId = archivedStepId?.value,
 )
 
 fun MissionStep.toEntity() = MissionStepEntity(
@@ -152,6 +175,7 @@ fun SessionResultEntity.toModel(): FocusSessionResult? = runCatching {
         rating = rating,
         origin = enumOrNull<DataOrigin>(origin) ?: DataOrigin.LOCAL,
         verification = enumOrNull<Verification>(verification) ?: Verification.LOCAL_UNVERIFIED,
+        reviewNote = reviewNote,
     )
 }.getOrNull()
 
@@ -161,6 +185,7 @@ fun FocusSessionResult.toEntity(savedAt: Instant) = SessionResultEntity(
     countsAsFocus = countsAsFocus, startedAt = startedAt, finishedAt = finishedAt, localDate = localDate, zoneId = zoneId,
     missionId = missionLink?.missionId?.value, missionStepId = missionLink?.stepId?.value, protectionMode = protectionMode.name,
     rating = rating, origin = origin.name, verification = verification.name, savedAt = savedAt, endNote = endNote?.name,
+    reviewNote = reviewNote,
 )
 
 fun ActivityEntity.toModel(): ActivityRecord? =
@@ -203,3 +228,94 @@ fun Schedule.toEntity() = ScheduleEntity(
     zoneId = (zone as? ScheduleZone.Fixed)?.zoneId, protectionMode = protectionMode.name,
     leadTimeMinutes = leadTimeMinutes, skipDate = skipDate, enabled = enabled, createdAt = createdAt, updatedAt = updatedAt,
 )
+
+fun MissionDraftWithSteps.toModel(): MissionDraft? = runCatching {
+    val d = draft
+    val plan = if (d.planTitle != null && steps.isNotEmpty()) {
+        GeneratedMissionPlan(
+            title = d.planTitle,
+            subject = d.planSubject.orEmpty(),
+            type = MissionType.fromWire(d.planType),
+            deadlineText = d.planDeadlineText.orEmpty(),
+            steps = steps.sortedBy { it.position }.map { GeneratedStep(it.stepId, it.title, it.task, it.durationMinutes, it.reason, it.scheduledDate) },
+            estimateTotalMinutes = d.planEstimateMinutes ?: steps.sumOf { it.durationMinutes },
+            scheduleWarning = d.planWarning,
+            difficulty = d.planDifficulty,
+            explanation = d.planExplanation.orEmpty(),
+        )
+    } else null
+    val phase = enumOrNull<MissionDraftPhase>(d.phase) ?: MissionDraftPhase.EDITING
+    MissionDraft(
+        draftId = d.draftId,
+        missionId = MissionId(d.missionId),
+        goalText = d.goalText,
+        type = d.missionType?.let { t -> MissionType.entries.firstOrNull { it.wire == t } },
+        confidence = d.confidence?.let { c -> GenerationConfidence.entries.firstOrNull { it.wire == c } },
+        schedule = ScheduleDraft(
+            deadline = d.deadlineDate,
+            preparationStart = d.preparationStartDate,
+            startMode = ScheduleStartMode.fromWire(d.startMode) ?: ScheduleStartMode.IMMEDIATE,
+            startModeChosen = d.startModeChosen,
+            preferredWeekdays = maskToWeekdays(d.preferredWeekdays),
+            preferredSessionMinutes = d.preferredSessionMinutes?.takeIf { it in MissionSchedule.SESSION_MINUTES },
+            startClamped = d.startClamped,
+        ),
+        attachment = if (d.attachmentBytes != null && d.attachmentMime != null) DraftAttachment(d.attachmentBytes, d.attachmentMime, d.attachmentWidth ?: 0, d.attachmentHeight ?: 0) else null,
+        // A BRIEFING without its plan rows is not a Briefing; it falls back to editing.
+        phase = if (phase == MissionDraftPhase.BRIEFING && plan == null) MissionDraftPhase.EDITING else phase,
+        error = GenerationError.fromCode(d.errorCode),
+        errorRequestId = d.errorRequestId,
+        plan = plan,
+        createdAt = d.createdAt,
+        updatedAt = d.updatedAt,
+    )
+}.getOrNull()
+
+fun MissionDraft.toEntity() = MissionDraftEntity(
+    slot = 0,
+    draftId = draftId,
+    missionId = missionId.value,
+    goalText = goalText,
+    missionType = type?.wire,
+    confidence = confidence?.wire,
+    deadlineDate = schedule.deadline,
+    preparationStartDate = schedule.preparationStart,
+    startMode = schedule.startMode.wire,
+    startModeChosen = schedule.startModeChosen,
+    startClamped = schedule.startClamped,
+    preferredWeekdays = weekdaysToMask(schedule.preferredWeekdays),
+    preferredSessionMinutes = schedule.preferredSessionMinutes,
+    attachmentBytes = attachment?.byteCount,
+    attachmentMime = attachment?.mime,
+    attachmentWidth = attachment?.width,
+    attachmentHeight = attachment?.height,
+    phase = phase.name,
+    errorCode = error?.code,
+    errorRequestId = errorRequestId,
+    planTitle = plan?.title,
+    planSubject = plan?.subject,
+    planType = plan?.type?.wire,
+    planDeadlineText = plan?.deadlineText,
+    planEstimateMinutes = plan?.estimateTotalMinutes,
+    planDifficulty = plan?.difficulty,
+    planExplanation = plan?.explanation,
+    planWarning = plan?.scheduleWarning,
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+)
+
+fun MissionDraft.stepEntities(): List<MissionDraftStepEntity> =
+    plan?.steps.orEmpty().mapIndexed { i, s -> MissionDraftStepEntity(0, i, s.id, s.title, s.task, s.durationMinutes, s.reason, s.scheduledDate) }
+
+fun MissionProgressEntity.toModel(): MissionProgressEntry? = runCatching {
+    MissionProgressEntry(
+        sessionId = SessionId(sessionId),
+        missionId = MissionId(missionId),
+        stepId = MissionStepId(stepId),
+        outcome = SessionOutcome.fromWire(outcome) ?: return null,
+        rating = rating,
+        actualMinutes = actualMinutes,
+        plannedMinutes = plannedMinutes,
+        appliedAt = appliedAt,
+    )
+}.getOrNull()

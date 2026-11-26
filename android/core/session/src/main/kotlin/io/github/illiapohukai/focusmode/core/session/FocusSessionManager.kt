@@ -30,10 +30,10 @@ import io.github.illiapohukai.focusmode.core.model.EndNote
 import io.github.illiapohukai.focusmode.core.model.FocusSession
 import io.github.illiapohukai.focusmode.core.model.MissionId
 import io.github.illiapohukai.focusmode.core.model.MissionLink
+import io.github.illiapohukai.focusmode.core.model.MissionReview
 import io.github.illiapohukai.focusmode.core.model.MissionStepId
 import io.github.illiapohukai.focusmode.core.model.ProtectionMode
 import io.github.illiapohukai.focusmode.core.model.SessionLifecycle
-import io.github.illiapohukai.focusmode.core.model.SessionOutcome
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -195,10 +195,15 @@ class FocusSessionManager @Inject constructor(
         true
     }
 
-    override suspend fun submitMissionReview(stepCompleted: Boolean, rating: Int?): Boolean = mutex.withLock {
+    /**
+     * Applies the pending Mission review exactly once: the History record, the Mission progress
+     * entry and the step transition are one transaction in the History owner; a repeated call
+     * (double tap, process restart) finds no pending review and changes nothing.
+     */
+    override suspend fun submitMissionReview(review: MissionReview): Boolean = mutex.withLock {
         val pending = (_state.value as? SessionState.AwaitingReview)?.result ?: return false
-        val outcome = if (stepCompleted) SessionOutcome.COMPLETED else SessionOutcome.PARTIAL
-        history.applyMissionReview(pending.sessionId, outcome, rating, completeStep = stepCompleted) ?: return false
+        val clean = review.copy(rating = review.rating?.takeIf { it in MissionReview.RATINGS }, note = MissionReview.cleanNote(review.note))
+        history.applyMissionReview(pending.sessionId, clean) ?: return false
         _state.value = SessionState.Idle(lastFinalized = pending.sessionId)
         true
     }

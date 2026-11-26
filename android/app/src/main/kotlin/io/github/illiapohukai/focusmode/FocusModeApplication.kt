@@ -6,6 +6,7 @@ import androidx.work.Configuration
 import dagger.hilt.android.HiltAndroidApp
 import io.github.illiapohukai.focusmode.core.data.RestoreGuard
 import io.github.illiapohukai.focusmode.core.domain.di.ApplicationScope
+import io.github.illiapohukai.focusmode.core.domain.mission.MissionGenerationOwner
 import io.github.illiapohukai.focusmode.core.domain.platform.ReminderScheduler
 import io.github.illiapohukai.focusmode.core.domain.platform.ReminderSyncReason
 import io.github.illiapohukai.focusmode.core.domain.repository.DistractionLog
@@ -29,6 +30,7 @@ class FocusModeApplication : Application(), Configuration.Provider {
     @Inject lateinit var reminderSync: ReminderSyncCoordinator
     @Inject lateinit var distractions: DistractionLog
     @Inject lateinit var clock: FocusClock
+    @Inject lateinit var missionGeneration: MissionGenerationOwner
     @Inject @ApplicationScope lateinit var appScope: CoroutineScope
 
     override val workManagerConfiguration: Configuration
@@ -41,6 +43,8 @@ class FocusModeApplication : Application(), Configuration.Provider {
             restoreGuard.check()
             // Recovery: re-derive the Session from durable timestamps (cold start / process death).
             controller.restore(RestoreTrigger.APP_START)
+            // A generation request cannot survive process death; its draft is marked interrupted (never re-sent).
+            missionGeneration.reconcile()
             reminders.sync(ReminderSyncReason.APP_START)
             distractions.purgeOlderThan(clock.now().minus(30, ChronoUnit.DAYS))
         }

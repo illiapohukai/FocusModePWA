@@ -27,6 +27,11 @@ data class AppPreferences(
     val usageMonitoringEnabled: Boolean = false,
     val doNotDisturbDuringFocus: Boolean = false,
     val onboardingCompleted: Boolean = false,
+    /**
+     * PWA `focus-mode-home-onboarding-v17-16`: set once the user has created a Mission (or has
+     * Mission evidence). The large first-time Home card never returns after that.
+     */
+    val homeOnboardingDone: Boolean = false,
     val lastSelectedMissionId: String? = null,
     val notificationPermissionRequests: Int = 0,
     val featureFlags: FeatureFlags = FeatureFlags(),
@@ -39,5 +44,4 @@ data class AppPreferences(
 /** Small feature flags. Development-only features stay off in release builds by default. */
 data class FeatureFlags(
     val pwaImportEnabled: Boolean = false,
-    val missionGenerationEnabled: Boolean = false,
 )

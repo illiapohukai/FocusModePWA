@@ -42,7 +42,7 @@ class MissionsTest {
     }
 
     @Test fun unknownMissionIsSafe() {
-        compose.setContent { FocusModeTheme { MissionDetailScreen(MissionDetailUiState(loading = false, notFound = true), MissionDetailActions({}, {}), {}, {}, {}) } }
+        compose.setContent { FocusModeTheme { MissionPlanScreen(MissionDetailUiState(loading = false, notFound = true), {}, PlanCallbacks()) } }
         compose.onNodeWithText("Mission nicht gefunden").assertIsDisplayed()
     }
 }

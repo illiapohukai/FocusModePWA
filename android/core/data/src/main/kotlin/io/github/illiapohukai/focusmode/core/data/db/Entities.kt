@@ -26,6 +26,15 @@ data class MissionEntity(
     @ColumnInfo(name = "archived_at") val archivedAt: Instant?,
     @ColumnInfo(name = "current_step_id") val currentStepId: String?,
     val origin: String,
+    /* v3 (v19 Missions): Zeitplan, AI plan metadata, restore point. */
+    @ColumnInfo(name = "start_mode") val startMode: String? = null,
+    /** Bit 0 = Monday … bit 6 = Sunday. */
+    @ColumnInfo(name = "preferred_weekdays", defaultValue = "0") val preferredWeekdays: Int = 0,
+    @ColumnInfo(name = "preferred_session_minutes") val preferredSessionMinutes: Int? = null,
+    @ColumnInfo(name = "estimate_minutes") val estimateMinutes: Int? = null,
+    @ColumnInfo(defaultValue = "''") val summary: String = "",
+    @ColumnInfo(name = "schedule_warning") val scheduleWarning: String? = null,
+    @ColumnInfo(name = "archived_step_id") val archivedStepId: String? = null,
 )
 
 @Entity(
@@ -117,6 +126,8 @@ data class SessionResultEntity(
     @ColumnInfo(name = "saved_at") val savedAt: Instant,
     /** v2: reason chosen at the Protected Focus end barrier. */
     @ColumnInfo(name = "end_note") val endNote: String? = null,
+    /** v3: optional Mission review note. */
+    @ColumnInfo(name = "review_note") val reviewNote: String? = null,
 )
 
 /** Local Activity. (type, ref_id) is unique, so one event is never logged twice. */

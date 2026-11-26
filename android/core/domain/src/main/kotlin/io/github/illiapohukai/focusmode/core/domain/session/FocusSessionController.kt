@@ -4,9 +4,11 @@ import io.github.illiapohukai.focusmode.core.model.EndNote
 import io.github.illiapohukai.focusmode.core.model.FocusSession
 import io.github.illiapohukai.focusmode.core.model.FocusSessionResult
 import io.github.illiapohukai.focusmode.core.model.MissionId
+import io.github.illiapohukai.focusmode.core.model.MissionReview
 import io.github.illiapohukai.focusmode.core.model.MissionStepId
 import io.github.illiapohukai.focusmode.core.model.ProtectionMode
 import io.github.illiapohukai.focusmode.core.model.SessionId
+import io.github.illiapohukai.focusmode.core.model.SessionOutcome
 import kotlinx.coroutines.flow.StateFlow
 
 enum class FreezeCause { DEVICE_RESTARTED, STORED_FROZEN }
@@ -58,7 +60,10 @@ interface FocusSessionController {
     suspend fun resumeRecovered(): Boolean
     suspend fun saveRecovered(): FinishResult
     suspend fun discardRecovered(): Boolean
-    suspend fun submitMissionReview(stepCompleted: Boolean, rating: Int?): Boolean
+    /** Applies the pending Mission review once (Abgeschlossen / Teilweise / Abgebrochen). */
+    suspend fun submitMissionReview(review: MissionReview): Boolean
+    suspend fun submitMissionReview(stepCompleted: Boolean, rating: Int?): Boolean =
+        submitMissionReview(MissionReview(if (stepCompleted) SessionOutcome.COMPLETED else SessionOutcome.PARTIAL, rating))
     /** Coarse runtime tick (minute cadence): checkpoint and detect completion. */
     suspend fun onRuntimeTick()
     fun read(): ElapsedReading?

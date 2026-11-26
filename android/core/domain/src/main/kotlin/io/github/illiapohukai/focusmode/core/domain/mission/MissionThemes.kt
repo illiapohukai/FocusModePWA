@@ -4,6 +4,7 @@ import io.github.illiapohukai.focusmode.core.model.Mission
 import io.github.illiapohukai.focusmode.core.model.MissionId
 import io.github.illiapohukai.focusmode.core.model.MissionStatus
 import io.github.illiapohukai.focusmode.core.model.MissionTheme
+import java.time.Instant
 
 /**
  * Stable Mission identity colors, ported from PWA v17.7 (`resolveMissionThemesV177`): an FNV-1a
@@ -24,20 +25,35 @@ object MissionThemes {
         return ((h.toLong() and 0xFFFFFFFFL) % ORDER.size).toInt()
     }
 
-    fun resolve(missions: List<Mission>): Map<MissionId, MissionTheme> {
+    private data class Entry(val id: MissionId, val born: Long, val end: Long)
+
+    fun resolve(missions: List<Mission>): Map<MissionId, MissionTheme> = resolveEntries(missions.map(::entry))
+
+    /**
+     * PWA `previewMissionThemeV177`: the tone a draft Mission created [now] will get, so the
+     * Briefing already shows the identity color the stored Mission keeps.
+     */
+    fun preview(missions: List<Mission>, draftId: MissionId, now: Instant): MissionTheme {
+        val entries = missions.filter { it.id != draftId }.map(::entry) + Entry(draftId, now.toEpochMilli(), Long.MAX_VALUE)
+        return resolveEntries(entries)[draftId] ?: ORDER[hashIndex(draftId.value)]
+    }
+
+    private fun entry(m: Mission) = Entry(
+        m.id, m.createdAt.toEpochMilli(),
+        if (m.status == MissionStatus.ACTIVE) Long.MAX_VALUE else (m.completedAt ?: m.archivedAt ?: m.updatedAt).toEpochMilli(),
+    )
+
+    private fun resolveEntries(entries: List<Entry>): Map<MissionId, MissionTheme> {
         data class Hold(val idx: Int, val end: Long)
         val held = mutableListOf<Hold>()
         val map = LinkedHashMap<MissionId, MissionTheme>()
-        missions.sortedWith(compareBy<Mission>({ it.createdAt.toEpochMilli() }, { it.id.value })).forEach { m ->
-            val born = m.createdAt.toEpochMilli()
-            val taken = held.filter { it.end > born }.map { it.idx }.toSet()
+        entries.sortedWith(compareBy<Entry>({ it.born }, { it.id.value })).forEach { m ->
+            val taken = held.filter { it.end > m.born }.map { it.idx }.toSet()
             var idx = hashIndex(m.id.value)
             var i = 0
             while (i < ORDER.size && idx in taken) { idx = (idx + 1) % ORDER.size; i++ }
             map[m.id] = ORDER[idx]
-            val end = if (m.status == MissionStatus.ACTIVE) Long.MAX_VALUE
-            else (m.completedAt ?: m.archivedAt ?: m.updatedAt).toEpochMilli()
-            held += Hold(idx, end)
+            held += Hold(idx, m.end)
         }
         return map
     }

@@ -19,7 +19,7 @@ interface WorkerApi {
     @POST("create-mission")
     suspend fun createMission(@Part parts: List<MultipartBody.Part>): Response<ResponseBody>
 
-    /** Foundation only in v18 (Mission review adaptation UI is not implemented yet). */
+    /** Optional plan adaptation after a Mission review (v19). */
     @POST("adapt-mission")
     suspend fun adaptMission(@Body body: RequestBody): Response<ResponseBody>
 }

@@ -2,6 +2,7 @@ package io.github.illiapohukai.focusmode.core.data.repository
 
 import androidx.room.withTransaction
 import io.github.illiapohukai.focusmode.core.data.db.ActivityEntity
+import io.github.illiapohukai.focusmode.core.data.db.MissionProgressEntity
 import io.github.illiapohukai.focusmode.core.data.db.FocusDatabase
 import io.github.illiapohukai.focusmode.core.data.db.toEntity
 import io.github.illiapohukai.focusmode.core.data.db.toModel
@@ -10,15 +11,17 @@ import io.github.illiapohukai.focusmode.core.domain.mission.StepCompletion
 import io.github.illiapohukai.focusmode.core.domain.repository.ActiveSessionLoad
 import io.github.illiapohukai.focusmode.core.domain.repository.ActiveSessionStore
 import io.github.illiapohukai.focusmode.core.domain.repository.FinalizeOutcome
+import io.github.illiapohukai.focusmode.core.domain.repository.ReviewApplication
 import io.github.illiapohukai.focusmode.core.domain.repository.SessionHistoryRepository
 import io.github.illiapohukai.focusmode.core.domain.time.FocusClock
 import io.github.illiapohukai.focusmode.core.model.ActivityRecord
 import io.github.illiapohukai.focusmode.core.model.ActivityType
 import io.github.illiapohukai.focusmode.core.model.FocusSession
 import io.github.illiapohukai.focusmode.core.model.FocusSessionResult
+import io.github.illiapohukai.focusmode.core.model.Mission
+import io.github.illiapohukai.focusmode.core.model.MissionReview
 import io.github.illiapohukai.focusmode.core.model.SessionEndReason
 import io.github.illiapohukai.focusmode.core.model.SessionId
-import io.github.illiapohukai.focusmode.core.model.SessionOutcome
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
@@ -76,19 +79,38 @@ class RoomSessionRepository @Inject constructor(
         FinalizeOutcome(stored, created)
     }
 
-    override suspend fun applyMissionReview(id: SessionId, outcome: SessionOutcome, rating: Int?, completeStep: Boolean): FocusSessionResult? =
+    override suspend fun applyMissionReview(id: SessionId, review: MissionReview): ReviewApplication? =
         db.withTransaction {
             val current = sessions.getResult(id.value)?.toModel() ?: return@withTransaction null
-            sessions.updateReview(id.value, outcome.wire, rating?.coerceIn(1, 5), SessionEndReason.USER_REVIEWED.wire)
             val link = current.missionLink
-            if (completeStep && link != null) {
-                val mission = db.missionDao().get(link.missionId.value)?.toModel()
+            val missionDao = db.missionDao()
+            val progressDao = db.missionProgressDao()
+            // Applied before (double tap, restart, retry): nothing changes a second time.
+            if (current.endReason != SessionEndReason.AWAITING_USER_REVIEW || (link != null && progressDao.get(id.value) != null)) {
+                return@withTransaction ReviewApplication(current, link?.let { missionDao.get(it.missionId.value)?.toModel() }, applied = false)
+            }
+            val now = clock.now()
+            sessions.updateReview(id.value, review.outcome.wire, review.rating?.coerceIn(1, 5), SessionEndReason.USER_REVIEWED.wire, review.note)
+            var mission: Mission? = null
+            if (link != null) {
+                mission = missionDao.get(link.missionId.value)?.toModel()
                 if (mission != null) {
-                    val now = clock.now()
-                    when (val c = MissionRules.completeStep(mission, link.stepId, now)) {
-                        is StepCompletion.Completed -> {
-                            db.missionDao().update(c.mission.toEntity())
-                            db.missionDao().upsertSteps(c.mission.steps.map { it.toEntity() })
+                    progressDao.insert(
+                        MissionProgressEntity(
+                            sessionId = id.value, missionId = mission.id.value, stepId = link.stepId.value, outcome = review.outcome.wire,
+                            rating = review.rating?.coerceIn(1, 5), actualMinutes = current.actualMinutes, plannedMinutes = current.plannedMinutes, appliedAt = now,
+                        ),
+                    )
+                    val next = if (review.completesStep) {
+                        (MissionRules.completeStep(mission, link.stepId, now) as? StepCompletion.Completed)?.mission
+                    } else {
+                        MissionRules.keepStepCurrent(mission, link.stepId, now)
+                    }
+                    if (next != null) {
+                        missionDao.update(next.toEntity())
+                        missionDao.upsertSteps(next.steps.map { it.toEntity() })
+                        mission = next
+                        if (review.completesStep) {
                             activity.insert(
                                 ActivityEntity(
                                     type = ActivityType.MISSION_STEP_COMPLETED.name,
@@ -98,11 +120,10 @@ class RoomSessionRepository @Inject constructor(
                                 ),
                             )
                         }
-                        is StepCompletion.AlreadyCompleted, StepCompletion.StepNotFound -> Unit
                     }
                 }
             }
-            sessions.getResult(id.value)?.toModel()
+            ReviewApplication(sessions.getResult(id.value)!!.toModel()!!, mission, applied = true)
         }
 
     override suspend fun pendingReview(): FocusSessionResult? = sessions.pendingReview()?.toModel()

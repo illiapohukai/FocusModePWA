@@ -68,4 +68,19 @@ data class FocusSessionResult(
     val rating: Int? = null,
     val origin: DataOrigin = DataOrigin.LOCAL,
     val verification: Verification = Verification.LOCAL_UNVERIFIED,
+    /** Optional Mission review note ("Was war schwierig?"). Local; sent only to an explicit adaptation. */
+    val reviewNote: String? = null,
 )
+
+/** The user's Mission step review: one of the three PWA outcomes, an optional rating and note. */
+data class MissionReview(val outcome: SessionOutcome, val rating: Int? = null, val note: String? = null) {
+    val completesStep: Boolean get() = outcome == SessionOutcome.COMPLETED
+
+    companion object {
+        const val NOTE_MAX = 1000
+        val RATINGS = 1..5
+        /** Control characters removed, trimmed, bounded (PWA `maxlength="1000"`). */
+        fun cleanNote(raw: String?): String? =
+            raw?.replace(Regex("[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F]"), " ")?.trim()?.take(NOTE_MAX)?.ifEmpty { null }
+    }
+}

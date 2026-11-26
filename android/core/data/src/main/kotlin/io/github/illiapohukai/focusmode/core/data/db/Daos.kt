@@ -39,6 +39,19 @@ interface MissionDao {
     @Upsert
     suspend fun upsertSteps(steps: List<MissionStepEntity>)
 
+    /** ABORT: a step id already used by any Mission is never silently overwritten. */
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insertSteps(steps: List<MissionStepEntity>)
+
+    @Query("SELECT COUNT(*) FROM mission_steps WHERE id IN (:ids)")
+    suspend fun countStepIds(ids: List<String>): Int
+
+    @Query("SELECT id FROM mission_steps WHERE id IN (:ids)")
+    suspend fun existingStepIds(ids: List<String>): List<String>
+
+    @Query("DELETE FROM mission_steps WHERE mission_id = :missionId AND status != 'completed'")
+    suspend fun deleteOpenSteps(missionId: String): Int
+
     @Query("DELETE FROM missions WHERE id = :id")
     suspend fun delete(id: String): Int
 }
@@ -86,8 +99,11 @@ interface SessionDao {
     @Query("SELECT * FROM session_results WHERE end_reason = 'awaiting_user_review' ORDER BY finished_at DESC LIMIT 1")
     suspend fun pendingReview(): SessionResultEntity?
 
-    @Query("UPDATE session_results SET outcome = :outcome, rating = :rating, end_reason = :reason WHERE session_id = :id")
-    suspend fun updateReview(id: String, outcome: String, rating: Int?, reason: String): Int
+    @Query("UPDATE session_results SET outcome = :outcome, rating = :rating, end_reason = :reason, review_note = :note WHERE session_id = :id")
+    suspend fun updateReview(id: String, outcome: String, rating: Int?, reason: String, note: String?): Int
+
+    @Query("SELECT COUNT(*) FROM session_results WHERE type = 'mission'")
+    suspend fun missionResultCount(): Int
 }
 
 @Dao

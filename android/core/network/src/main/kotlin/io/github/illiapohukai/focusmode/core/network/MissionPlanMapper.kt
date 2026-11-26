@@ -1,5 +1,6 @@
 package io.github.illiapohukai.focusmode.core.network
 
+import io.github.illiapohukai.focusmode.core.domain.ai.AiTextSafety
 import io.github.illiapohukai.focusmode.core.domain.ai.GeneratedMissionPlan
 import io.github.illiapohukai.focusmode.core.domain.ai.GeneratedStep
 import io.github.illiapohukai.focusmode.core.domain.ai.GenerationSchedule
@@ -12,10 +13,17 @@ import java.time.LocalDate
 
 internal class InvalidPlanException(reason: String) : Exception(reason)
 
-/** Mirrors the PWA `normalizeAIPlan`: bounded text, 1–6 steps of 5–60 min, no step after the deadline. */
+/**
+ * Mirrors the PWA `normalizeAIPlan`: bounded text, 1–6 steps of 5–60 min, no step after the
+ * deadline, safe unique step ids. Stricter than the PWA where truncation or acceptance would be
+ * unsafe: more than six steps, markup or script in any text, or duplicate steps reject the whole
+ * plan (nothing partial is ever stored; the draft keeps the input for a retry).
+ */
 internal object MissionPlanMapper {
     private val ISO_DATE = Regex("^\\d{4}-\\d{2}-\\d{2}$")
     private val CONTROL = Regex("[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F]")
+    /** PWA `briefDifficulty` keys; anything else is not shown. */
+    private val DIFFICULTIES = setOf("easy", "low", "medium", "moderate", "hard", "high", "difficult")
 
     fun text(v: String?, max: Int): String = v.orEmpty().replace(CONTROL, " ").trim().take(max)
 
@@ -26,9 +34,10 @@ internal object MissionPlanMapper {
         plan ?: throw InvalidPlanException("plan_missing")
         val title = text(plan.goal?.title, MissionPlanRules.TITLE_MAX).ifEmpty { throw InvalidPlanException("title_missing") }
         val rawSteps = plan.sessions?.takeIf { it.isNotEmpty() } ?: throw InvalidPlanException("sessions_missing")
+        if (rawSteps.size > MissionPlanRules.MAX_STEPS) throw InvalidPlanException("too_many_steps")
         val deadline = schedule?.deadlineDate
         val used = HashSet<String>()
-        val steps = rawSteps.take(MissionPlanRules.MAX_STEPS).mapIndexed { i, s ->
+        val steps = rawSteps.mapIndexed { i, s ->
             val stepTitle = text(s.title, MissionPlanRules.TITLE_MAX)
             val task = text(s.task ?: s.reason, MissionPlanRules.TEXT_MAX)
             val minutes = s.durationMinutes?.takeIf { it.isFinite() }?.let { Math.round(it).toInt() }
@@ -42,12 +51,13 @@ internal object MissionPlanMapper {
             while (!used.add(id)) id = EntityIds.newStepId().value
             GeneratedStep(id, stepTitle, task, minutes, text(s.reason, MissionPlanRules.TEXT_MAX), scheduled)
         }
+        if (steps.map { it.title.lowercase() to it.task.lowercase() }.toSet().size != steps.size) throw InvalidPlanException("duplicate_steps")
         val deadlineText = text(plan.goal?.deadlineText, MissionPlanRules.SHORT_MAX)
             .takeIf { it.isNotEmpty() && it != "Nicht angegeben" } ?: deadline?.toString() ?: "Nicht angegeben"
         val warning = text(plan.scheduleWarning ?: plan.estimate?.scheduleWarning ?: plan.warning, MissionPlanRules.ITEM_MAX).ifEmpty { null }
         val total = plan.estimate?.totalMinutes?.takeIf { it.isFinite() && it > 0 }?.toInt()?.coerceAtMost(100_000)
             ?: steps.sumOf { it.durationMinutes }
-        return GeneratedMissionPlan(
+        val result = GeneratedMissionPlan(
             title = title,
             subject = text(plan.goal?.subject, MissionPlanRules.SHORT_MAX).ifEmpty { "Allgemein" },
             type = MissionType.fromWire(plan.goal?.type?.trim()?.lowercase()),
@@ -55,6 +65,12 @@ internal object MissionPlanMapper {
             steps = steps,
             estimateTotalMinutes = total,
             scheduleWarning = warning,
+            difficulty = text(plan.estimate?.difficulty, 40).lowercase().takeIf { it in DIFFICULTIES },
+            explanation = text(plan.estimate?.explanation, MissionPlanRules.TEXT_MAX),
         )
+        val texts = listOf(result.title, result.subject, result.deadlineText, result.scheduleWarning, result.explanation) +
+            result.steps.flatMap { listOf(it.title, it.task, it.reason) }
+        if (texts.any(AiTextSafety::isUnsafe)) throw InvalidPlanException("unsafe_content")
+        return result
     }
 }

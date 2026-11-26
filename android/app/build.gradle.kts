@@ -8,8 +8,8 @@ plugins {
 android {
     defaultConfig {
         applicationId = "io.github.illiapohukai.focusmode"
-        versionCode = 1800
-        versionName = "18.0.0"
+        versionCode = 1900
+        versionName = "19.0.0"
         // Public URL of the existing Cloudflare Worker. Not a secret; no API key exists on Android.
         buildConfigField("String", "WORKER_BASE_URL", "\"https://focusmodedemoai.illia-pohukai.workers.dev/\"")
     }
@@ -70,4 +70,6 @@ dependencies {
     testImplementation(libs.androidx.test.ext.junit)
     testImplementation(libs.androidx.navigation.testing)
     testImplementation(libs.androidx.work.testing)
+    // Seeds the real database file before the activity starts (Mission flow tests).
+    testImplementation(libs.androidx.room.runtime)
 }

@@ -26,7 +26,7 @@ object WorkerClientFactory {
                 chain.proceed(
                     chain.request().newBuilder()
                         .header("Accept", "application/json")
-                        .header("User-Agent", "FocusModePlus-Android/18")
+                        .header("User-Agent", "FocusModePlus-Android/19")
                         .build(),
                 )
             }

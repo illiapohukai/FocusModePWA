@@ -1,5 +1,8 @@
 package io.github.illiapohukai.focusmode.core.testing
 
+import io.github.illiapohukai.focusmode.core.domain.ai.AdaptedStep
+import io.github.illiapohukai.focusmode.core.domain.mission.MissionDraft
+import io.github.illiapohukai.focusmode.core.domain.mission.MissionDraftPhase
 import io.github.illiapohukai.focusmode.core.domain.mission.MissionRules
 import io.github.illiapohukai.focusmode.core.domain.mission.StepCompletion
 import io.github.illiapohukai.focusmode.core.domain.platform.DndApplyResult
@@ -12,6 +15,8 @@ import io.github.illiapohukai.focusmode.core.domain.platform.SystemSettingsNavig
 import io.github.illiapohukai.focusmode.core.domain.repository.ActiveSessionLoad
 import io.github.illiapohukai.focusmode.core.domain.repository.ActiveSessionStore
 import io.github.illiapohukai.focusmode.core.domain.repository.FinalizeOutcome
+import io.github.illiapohukai.focusmode.core.domain.repository.MissionProgressEntry
+import io.github.illiapohukai.focusmode.core.domain.repository.ReviewApplication
 import io.github.illiapohukai.focusmode.core.domain.repository.MissionRepository
 import io.github.illiapohukai.focusmode.core.domain.repository.MissionWriteResult
 import io.github.illiapohukai.focusmode.core.domain.repository.PreferencesRepository
@@ -26,6 +31,7 @@ import io.github.illiapohukai.focusmode.core.model.FocusSession
 import io.github.illiapohukai.focusmode.core.model.FocusSessionResult
 import io.github.illiapohukai.focusmode.core.model.Mission
 import io.github.illiapohukai.focusmode.core.model.MissionId
+import io.github.illiapohukai.focusmode.core.model.MissionReview
 import io.github.illiapohukai.focusmode.core.model.MissionStatus
 import io.github.illiapohukai.focusmode.core.model.MissionStepId
 import io.github.illiapohukai.focusmode.core.model.MotionPreference
@@ -76,13 +82,17 @@ class FakeSessionStore(private val clock: FakeClock) : ActiveSessionStore, Sessi
         activity.value = activity.value + ActivityRecord(activity.value.size + 1L, ActivityType.SESSION_FINISHED, result.sessionId.value, result.finishedAt, result.localDate)
         return FinalizeOutcome(result, true)
     }
-    override suspend fun applyMissionReview(id: SessionId, outcome: SessionOutcome, rating: Int?, completeStep: Boolean): FocusSessionResult? {
+    override suspend fun applyMissionReview(id: SessionId, review: MissionReview): ReviewApplication? {
         val current = getResult(id) ?: return null
-        val updated = current.copy(outcome = outcome, rating = rating, endReason = SessionEndReason.USER_REVIEWED)
-        results.value = results.value.map { if (it.sessionId == id) updated else it }
         val link = current.missionLink
-        if (completeStep && link != null) missions?.completeStep(link.missionId, link.stepId)
-        return updated
+        val repo = missions
+        if (current.endReason != SessionEndReason.AWAITING_USER_REVIEW) {
+            return ReviewApplication(current, link?.let { repo?.getMission(it.missionId) }, applied = false)
+        }
+        val updated = current.copy(outcome = review.outcome, rating = review.rating, endReason = SessionEndReason.USER_REVIEWED, reviewNote = review.note)
+        results.value = results.value.map { if (it.sessionId == id) updated else it }
+        if (link != null && repo != null) repo.applyReview(updated, link, review)
+        return ReviewApplication(updated, link?.let { repo?.getMission(it.missionId) }, applied = true)
     }
     override fun observeActivity(limit: Int): Flow<List<ActivityRecord>> = activity.map { it.reversed().take(limit) }
     override suspend fun pendingReview(): FocusSessionResult? =
@@ -91,29 +101,85 @@ class FakeSessionStore(private val clock: FakeClock) : ActiveSessionStore, Sessi
 
 class FakeMissionRepository(private val clock: FakeClock) : MissionRepository {
     val missions = MutableStateFlow<List<Mission>>(emptyList())
+    val draft = MutableStateFlow<MissionDraft?>(null)
+    val progress = MutableStateFlow<List<MissionProgressEntry>>(emptyList())
+    var acceptCalls = 0
     override fun observeMissions(): Flow<List<Mission>> = missions
     override fun observeMission(id: MissionId): Flow<Mission?> = missions.map { l -> l.firstOrNull { it.id == id } }
     override suspend fun getMission(id: MissionId) = missions.value.firstOrNull { it.id == id }
     override fun observePrimaryMission(): Flow<Mission?> = missions.map { l -> l.firstOrNull { it.status == MissionStatus.ACTIVE } }
     override suspend fun create(mission: Mission): MissionWriteResult {
         if (missions.value.any { it.id == mission.id }) return MissionWriteResult.Rejected("mission_id_duplicate")
+        if (mission.status == MissionStatus.ACTIVE && !MissionRules.canCreateActive(missions.value.count { it.status == MissionStatus.ACTIVE })) {
+            return MissionWriteResult.Rejected("active_mission_limit_reached")
+        }
         missions.value = missions.value + mission
         return MissionWriteResult.Ok(mission)
     }
+    private fun put(m: Mission) { missions.value = missions.value.map { if (it.id == m.id) m else it } }
     override suspend fun completeStep(missionId: MissionId, stepId: MissionStepId): MissionWriteResult {
         val m = getMission(missionId) ?: return MissionWriteResult.Rejected("mission_not_found")
         return when (val c = MissionRules.completeStep(m, stepId, clock.now())) {
-            is StepCompletion.Completed -> { missions.value = missions.value.map { if (it.id == missionId) c.mission else it }; MissionWriteResult.Ok(c.mission) }
+            is StepCompletion.Completed -> { put(c.mission); MissionWriteResult.Ok(c.mission) }
             is StepCompletion.AlreadyCompleted -> MissionWriteResult.Ok(c.mission)
             StepCompletion.StepNotFound -> MissionWriteResult.Rejected("step_not_found")
         }
     }
-    override suspend fun archive(id: MissionId) = MissionWriteResult.Rejected("unsupported_in_fake")
+    /** Same rules as the Room transaction in RoomSessionRepository.applyMissionReview. */
+    fun applyReview(result: FocusSessionResult, link: io.github.illiapohukai.focusmode.core.model.MissionLink, review: MissionReview) {
+        val m = missions.value.firstOrNull { it.id == link.missionId } ?: return
+        if (progress.value.any { it.sessionId == result.sessionId }) return
+        progress.value = progress.value + MissionProgressEntry(result.sessionId, m.id, link.stepId, review.outcome, review.rating, result.actualMinutes, result.plannedMinutes, clock.now())
+        val next = if (review.completesStep) (MissionRules.completeStep(m, link.stepId, clock.now()) as? StepCompletion.Completed)?.mission
+        else MissionRules.keepStepCurrent(m, link.stepId, clock.now())
+        next?.let(::put)
+    }
+    override suspend fun archive(id: MissionId): MissionWriteResult {
+        val m = getMission(id) ?: return MissionWriteResult.Rejected("mission_not_found")
+        val a = MissionRules.archive(m, clock.now()); put(a); return MissionWriteResult.Ok(a)
+    }
+    override suspend fun restore(id: MissionId): MissionWriteResult {
+        val m = getMission(id) ?: return MissionWriteResult.Rejected("mission_not_found")
+        val r = MissionRules.restore(m, clock.now()) ?: return MissionWriteResult.Rejected("mission_not_archived")
+        if (r.status == MissionStatus.ACTIVE && !MissionRules.canCreateActive(missions.value.count { it.status == MissionStatus.ACTIVE })) {
+            return MissionWriteResult.Rejected("active_mission_limit_reached")
+        }
+        put(r); return MissionWriteResult.Ok(r)
+    }
     override suspend fun delete(id: MissionId): MissionWriteResult {
         val m = getMission(id) ?: return MissionWriteResult.Rejected("mission_not_found")
         missions.value = missions.value - m
+        progress.value = progress.value.filterNot { it.missionId == id }
         return MissionWriteResult.Ok(m)
     }
+    override fun observeDraft(): Flow<MissionDraft?> = draft
+    override suspend fun getDraft(): MissionDraft? = draft.value
+    override suspend fun saveDraft(draft: MissionDraft) { this.draft.value = draft }
+    override suspend fun saveDraftIf(draft: MissionDraft, expectedPhase: MissionDraftPhase): Boolean {
+        val current = this.draft.value ?: return false
+        if (current.draftId != draft.draftId || current.phase != expectedPhase) return false
+        this.draft.value = draft
+        return true
+    }
+    override suspend fun discardDraft() { draft.value = null }
+    override suspend fun acceptDraft(draftId: String): MissionWriteResult {
+        acceptCalls++
+        val d = draft.value
+        if (d == null || d.draftId != draftId) return MissionWriteResult.Rejected("draft_missing")
+        getMission(d.missionId)?.let { draft.value = null; return MissionWriteResult.Ok(it) }
+        val plan = d.plan ?: return MissionWriteResult.Rejected("plan_missing")
+        if (d.phase != MissionDraftPhase.BRIEFING) return MissionWriteResult.Rejected("plan_missing")
+        val r = create(MissionRules.missionFromPlan(d, plan, clock.now()))
+        if (r is MissionWriteResult.Ok) draft.value = null
+        return r
+    }
+    override suspend fun replaceRemainingSteps(id: MissionId, steps: List<AdaptedStep>, expectedUpdatedAt: Instant): MissionWriteResult {
+        val m = getMission(id) ?: return MissionWriteResult.Rejected("mission_not_found")
+        if (m.updatedAt != expectedUpdatedAt) return MissionWriteResult.Rejected("mission_changed")
+        val u = MissionRules.replaceRemainingSteps(m, steps, clock.now()) ?: return MissionWriteResult.Rejected("adaptation_invalid")
+        put(u); return MissionWriteResult.Ok(u)
+    }
+    override suspend fun progressHistory(id: MissionId): List<MissionProgressEntry> = progress.value.filter { it.missionId == id }
 }
 
 class FakePreferencesRepository(initial: AppPreferences = AppPreferences()) : PreferencesRepository {
@@ -131,6 +197,7 @@ class FakePreferencesRepository(initial: AppPreferences = AppPreferences()) : Pr
     override suspend fun setUsageMonitoringEnabled(enabled: Boolean) = edit { it.copy(usageMonitoringEnabled = enabled) }
     override suspend fun setDoNotDisturbDuringFocus(enabled: Boolean) = edit { it.copy(doNotDisturbDuringFocus = enabled) }
     override suspend fun setOnboardingCompleted(done: Boolean) = edit { it.copy(onboardingCompleted = done) }
+    override suspend fun markHomeOnboardingDone() = edit { it.copy(homeOnboardingDone = true) }
     override suspend fun setLastSelectedMission(id: String?) = edit { it.copy(lastSelectedMissionId = id) }
     override suspend fun incrementNotificationPermissionRequests() = edit { it.copy(notificationPermissionRequests = it.notificationPermissionRequests + 1) }
     override suspend fun setPwaImportEnabled(enabled: Boolean) = edit { it.copy(featureFlags = it.featureFlags.copy(pwaImportEnabled = enabled)) }

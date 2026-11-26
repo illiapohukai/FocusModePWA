@@ -38,6 +38,7 @@ internal object PrefKeys {
     val USAGE_MONITORING = booleanPreferencesKey("usage_monitoring")
     val DND = booleanPreferencesKey("dnd_during_focus")
     val ONBOARDING = booleanPreferencesKey("onboarding_completed")
+    val HOME_ONBOARDING_DONE = booleanPreferencesKey("home_mission_onboarding_done")
     val LAST_MISSION = stringPreferencesKey("last_selected_mission")
     val NOTIFICATION_REQUESTS = intPreferencesKey("notification_permission_requests")
     val FLAG_PWA_IMPORT = booleanPreferencesKey("flag_pwa_import")
@@ -81,6 +82,7 @@ class DataStorePreferencesRepository @Inject constructor(
             usageMonitoringEnabled = p[PrefKeys.USAGE_MONITORING] ?: d.usageMonitoringEnabled,
             doNotDisturbDuringFocus = p[PrefKeys.DND] ?: d.doNotDisturbDuringFocus,
             onboardingCompleted = p[PrefKeys.ONBOARDING] ?: d.onboardingCompleted,
+            homeOnboardingDone = p[PrefKeys.HOME_ONBOARDING_DONE] ?: d.homeOnboardingDone,
             lastSelectedMissionId = p[PrefKeys.LAST_MISSION]?.takeIf(EntityIds::isSafe),
             notificationPermissionRequests = (p[PrefKeys.NOTIFICATION_REQUESTS] ?: 0).coerceAtLeast(0),
             featureFlags = FeatureFlags(pwaImportEnabled = p[PrefKeys.FLAG_PWA_IMPORT] ?: flagDefaults.pwaImportEnabled),
@@ -106,6 +108,8 @@ class DataStorePreferencesRepository @Inject constructor(
     override suspend fun setUsageMonitoringEnabled(enabled: Boolean) { store.edit { it[PrefKeys.USAGE_MONITORING] = enabled } }
     override suspend fun setDoNotDisturbDuringFocus(enabled: Boolean) { store.edit { it[PrefKeys.DND] = enabled } }
     override suspend fun setOnboardingCompleted(done: Boolean) { store.edit { it[PrefKeys.ONBOARDING] = done } }
+    /** One-way: set once, never cleared by Mission completion, archive or delete. */
+    override suspend fun markHomeOnboardingDone() { store.edit { if (it[PrefKeys.HOME_ONBOARDING_DONE] != true) it[PrefKeys.HOME_ONBOARDING_DONE] = true } }
     override suspend fun setLastSelectedMission(id: String?) {
         store.edit { if (id != null && EntityIds.isSafe(id)) it[PrefKeys.LAST_MISSION] = id else it.remove(PrefKeys.LAST_MISSION) }
     }

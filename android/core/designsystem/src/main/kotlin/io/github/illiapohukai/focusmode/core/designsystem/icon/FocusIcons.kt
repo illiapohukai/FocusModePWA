@@ -66,5 +66,16 @@ object FocusIcons {
     val BarChart = icon("bar_chart", "M6 20v-6", "M12 20V8", "M18 20V4")
     val PlayFilled = solid("play_filled", "M7.5 4.8c0-.8.9-1.3 1.6-.9l10.6 6.9c.6.4.6 1.4 0 1.8L9.1 19.5c-.7.4-1.6-.1-1.6-.9z")
     val StopFilled = solid("stop_filled", "M7 5h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z")
+    // v19 Missions
+    val Flag = icon("flag", "M5 21V4.5", "M5 4.5h11.5l-2 4l2 4H5")
+    val Image = icon("image", "M4.5 5h15v14h-15z", "M9 10.5a1.5 1.5 0 1 0 0-3a1.5 1.5 0 1 0 0 3z", "M19.5 15l-4.5-4.5L6 19")
+    val Paperclip = icon("paperclip", "M20 11.5l-8 8a5 5 0 0 1-7-7l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7L9.7 17.2a1.7 1.7 0 0 1-2.4-2.4L15 7")
+    val Layers = icon("layers", "M12 3.5l8.5 4.5L12 12.5L3.5 8z", "M3.5 12l8.5 4.5l8.5-4.5", "M3.5 16l8.5 4.5l8.5-4.5")
+    val ChevronLeft = icon("chevron_left", "M14.5 5.5L8 12l6.5 6.5")
+    val ChevronDown = icon("chevron_down", "M5.5 9.5L12 16l6.5-6.5")
+    val Wand = icon("wand", "M4 20L15 9", "M14 4.5v3", "M17.5 6h3", "M12.5 6l1.5 1.5", "M18 9.5l1.5 1.5", "M15 9l1 1")
+    val Archive = icon("archive", "M3.5 5h17v4h-17z", "M5 9v10.5h14V9", "M10 13h4")
+    val Rotate = icon("rotate", "M4 12a8 8 0 1 0 2.4-5.7", "M4 4v4.5h4.5")
+    val Gauge = icon("gauge", "M4 17a8 8 0 1 1 16 0", "M12 17l4-5")
     val Flame = icon("flame", "M12 21c-3.6 0-6-2.4-6-5.6c0-3.4 2.6-5 3.6-8.4c1.5 1.2 2 2.7 2 4c1-0.8 1.6-2 1.7-3.5c2.4 2 4.7 4.6 4.7 7.9C18 18.6 15.6 21 12 21z")
 }

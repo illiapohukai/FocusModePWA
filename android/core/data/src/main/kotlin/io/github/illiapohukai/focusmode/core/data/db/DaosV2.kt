@@ -59,3 +59,36 @@ interface DndOverrideDao {
     @Query("DELETE FROM dnd_override")
     suspend fun clear()
 }
+
+@Dao
+interface MissionDraftDao {
+    @Transaction @Query("SELECT * FROM mission_drafts WHERE slot = 0")
+    fun observe(): Flow<MissionDraftWithSteps?>
+
+    @Transaction @Query("SELECT * FROM mission_drafts WHERE slot = 0")
+    suspend fun get(): MissionDraftWithSteps?
+
+    @Upsert suspend fun upsert(entity: MissionDraftEntity)
+
+    @Query("DELETE FROM mission_draft_steps WHERE draft_slot = 0")
+    suspend fun clearSteps()
+
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insertSteps(steps: List<MissionDraftStepEntity>)
+
+    @Query("DELETE FROM mission_drafts")
+    suspend fun clear()
+}
+
+@Dao
+interface MissionProgressDao {
+    /** IGNORE: a Session result already applied returns -1 and changes nothing. */
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insert(entity: MissionProgressEntity): Long
+
+    @Query("SELECT * FROM mission_progress WHERE session_id = :sessionId")
+    suspend fun get(sessionId: String): MissionProgressEntity?
+
+    @Query("SELECT * FROM mission_progress WHERE mission_id = :missionId ORDER BY applied_at ASC, session_id ASC")
+    suspend fun forMission(missionId: String): List<MissionProgressEntity>
+}

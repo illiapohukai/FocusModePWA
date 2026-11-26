@@ -2,10 +2,15 @@ package io.github.illiapohukai.focusmode.core.data.repository
 
 import androidx.room.withTransaction
 import io.github.illiapohukai.focusmode.core.data.db.FocusDatabase
+import io.github.illiapohukai.focusmode.core.data.db.stepEntities
 import io.github.illiapohukai.focusmode.core.data.db.toEntity
 import io.github.illiapohukai.focusmode.core.data.db.toModel
+import io.github.illiapohukai.focusmode.core.domain.ai.AdaptedStep
+import io.github.illiapohukai.focusmode.core.domain.mission.MissionDraft
+import io.github.illiapohukai.focusmode.core.domain.mission.MissionDraftPhase
 import io.github.illiapohukai.focusmode.core.domain.mission.MissionRules
 import io.github.illiapohukai.focusmode.core.domain.mission.StepCompletion
+import io.github.illiapohukai.focusmode.core.domain.repository.MissionProgressEntry
 import io.github.illiapohukai.focusmode.core.domain.repository.MissionRepository
 import io.github.illiapohukai.focusmode.core.domain.repository.MissionWriteResult
 import io.github.illiapohukai.focusmode.core.domain.repository.PreferencesRepository
@@ -18,10 +23,14 @@ import io.github.illiapohukai.focusmode.core.model.MissionStepId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/** The one Mission owner (PWA `mission-repository.js` rules: max two active, safe ids, guards). */
+/**
+ * The one Mission owner (PWA `mission-repository.js` rules: max two active, safe ids, guards).
+ * Every write that touches more than one row runs in one Room transaction.
+ */
 @Singleton
 class RoomMissionRepository @Inject constructor(
     private val db: FocusDatabase,
@@ -30,6 +39,7 @@ class RoomMissionRepository @Inject constructor(
 ) : MissionRepository {
 
     private val dao get() = db.missionDao()
+    private val drafts get() = db.missionDraftDao()
 
     override fun observeMissions(): Flow<List<Mission>> = dao.observeAll().map { rows -> rows.mapNotNull { it.toModel() } }
 
@@ -43,18 +53,21 @@ class RoomMissionRepository @Inject constructor(
             active.firstOrNull { it.id.value == prefs.lastSelectedMissionId } ?: active.firstOrNull()
         }
 
-    override suspend fun create(mission: Mission): MissionWriteResult = db.withTransaction {
-        if (!EntityIds.isSafe(mission.id.value) || mission.steps.any { !EntityIds.isSafe(it.id.value) }) {
-            return@withTransaction MissionWriteResult.Rejected("unsafe_id")
-        }
-        if (mission.steps.map { it.id }.toSet().size != mission.steps.size) return@withTransaction MissionWriteResult.Rejected("step_id_duplicate")
-        if (dao.get(mission.id.value) != null) return@withTransaction MissionWriteResult.Rejected("mission_id_duplicate")
-        if (mission.status == MissionStatus.ACTIVE && dao.countActive() >= Mission.MAX_ACTIVE) {
-            return@withTransaction MissionWriteResult.Rejected("active_mission_limit_reached")
+    override suspend fun create(mission: Mission): MissionWriteResult = db.withTransaction { insertLocked(mission) }
+
+    /** Must run inside a transaction. */
+    private suspend fun insertLocked(mission: Mission): MissionWriteResult {
+        if (!EntityIds.isSafe(mission.id.value) || mission.steps.any { !EntityIds.isSafe(it.id.value) }) return MissionWriteResult.Rejected("unsafe_id")
+        if (mission.steps.map { it.id }.toSet().size != mission.steps.size) return MissionWriteResult.Rejected("step_id_duplicate")
+        if (mission.steps.map { it.position }.toSet().size != mission.steps.size) return MissionWriteResult.Rejected("step_order_invalid")
+        if (dao.get(mission.id.value) != null) return MissionWriteResult.Rejected("mission_id_duplicate")
+        if (mission.steps.isNotEmpty() && dao.countStepIds(mission.steps.map { it.id.value }) > 0) return MissionWriteResult.Rejected("step_id_duplicate")
+        if (mission.status == MissionStatus.ACTIVE && !MissionRules.canCreateActive(dao.countActive())) {
+            return MissionWriteResult.Rejected("active_mission_limit_reached")
         }
         dao.insert(mission.toEntity())
-        dao.upsertSteps(mission.steps.map { it.toEntity() })
-        MissionWriteResult.Ok(dao.get(mission.id.value)!!.toModel()!!)
+        dao.insertSteps(mission.steps.map { it.toEntity() })
+        return MissionWriteResult.Ok(dao.get(mission.id.value)!!.toModel()!!)
     }
 
     override suspend fun completeStep(missionId: MissionId, stepId: MissionStepId): MissionWriteResult = db.withTransaction {
@@ -73,15 +86,94 @@ class RoomMissionRepository @Inject constructor(
     override suspend fun archive(id: MissionId): MissionWriteResult = db.withTransaction {
         if (db.sessionDao().activeCountForMission(id.value) > 0) return@withTransaction MissionWriteResult.Rejected("active_session_exists")
         val mission = dao.get(id.value)?.toModel() ?: return@withTransaction MissionWriteResult.Rejected("mission_not_found")
-        val archived = mission.copy(status = MissionStatus.ARCHIVED, archivedAt = clock.now(), updatedAt = clock.now(), currentStepId = null)
+        if (mission.status == MissionStatus.ARCHIVED) return@withTransaction MissionWriteResult.Ok(mission)
+        val archived = MissionRules.archive(mission, clock.now())
         dao.update(archived.toEntity())
         MissionWriteResult.Ok(archived)
+    }.also { clearSelectionIf(id, it) }
+
+    override suspend fun restore(id: MissionId): MissionWriteResult = db.withTransaction {
+        val mission = dao.get(id.value)?.toModel() ?: return@withTransaction MissionWriteResult.Rejected("mission_not_found")
+        val restored = MissionRules.restore(mission, clock.now()) ?: return@withTransaction MissionWriteResult.Rejected("mission_not_archived")
+        if (restored.status == MissionStatus.ACTIVE && !MissionRules.canCreateActive(dao.countActive())) {
+            return@withTransaction MissionWriteResult.Rejected("active_mission_limit_reached")
+        }
+        dao.update(restored.toEntity())
+        dao.upsertSteps(restored.steps.map { it.toEntity() })
+        MissionWriteResult.Ok(restored)
     }
 
     override suspend fun delete(id: MissionId): MissionWriteResult = db.withTransaction {
+        // A running or frozen Session references the Mission (RESTRICT); it is never deleted under it.
         if (db.sessionDao().activeCountForMission(id.value) > 0) return@withTransaction MissionWriteResult.Rejected("active_session_exists")
         val mission = dao.get(id.value)?.toModel() ?: return@withTransaction MissionWriteResult.Rejected("mission_not_found")
-        dao.delete(id.value) // steps cascade; History keeps the plain mission id
+        dao.delete(id.value) // steps and progress entries cascade; History keeps the plain mission id
         MissionWriteResult.Ok(mission)
+    }.also { clearSelectionIf(id, it) }
+
+    /** The primary/selected Mission preference never points at an inactive or deleted Mission. */
+    private suspend fun clearSelectionIf(id: MissionId, result: MissionWriteResult) {
+        if (result is MissionWriteResult.Ok && preferences.current().lastSelectedMissionId == id.value) preferences.setLastSelectedMission(null)
     }
+
+    // ---------------------------------------------------------------- draft
+
+    override fun observeDraft(): Flow<MissionDraft?> = drafts.observe().map { it?.toModel() }
+
+    override suspend fun getDraft(): MissionDraft? = drafts.get()?.toModel()
+
+    override suspend fun saveDraft(draft: MissionDraft) = db.withTransaction { writeDraftLocked(draft) }
+
+    private suspend fun writeDraftLocked(draft: MissionDraft) {
+        drafts.upsert(draft.toEntity())
+        drafts.clearSteps()
+        val steps = draft.stepEntities()
+        if (steps.isNotEmpty()) drafts.insertSteps(steps)
+    }
+
+    override suspend fun saveDraftIf(draft: MissionDraft, expectedPhase: MissionDraftPhase): Boolean = db.withTransaction {
+        val current = drafts.get()?.toModel() ?: return@withTransaction false
+        if (current.draftId != draft.draftId || current.phase != expectedPhase) return@withTransaction false
+        writeDraftLocked(draft)
+        true
+    }
+
+    override suspend fun discardDraft() = db.withTransaction { drafts.clear() } // steps cascade
+
+    override suspend fun acceptDraft(draftId: String): MissionWriteResult = db.withTransaction {
+        val draft = drafts.get()?.toModel()
+        if (draft == null || draft.draftId != draftId) {
+            return@withTransaction MissionWriteResult.Rejected("draft_missing")
+        }
+        // Double tap or process restart after a successful accept: the same Mission, never a second one.
+        dao.get(draft.missionId.value)?.toModel()?.let { existing ->
+            drafts.clear()
+            return@withTransaction MissionWriteResult.Ok(existing)
+        }
+        val plan = draft.plan
+        if (draft.phase != MissionDraftPhase.BRIEFING || plan == null) return@withTransaction MissionWriteResult.Rejected("plan_missing")
+        val mission = runCatching { MissionRules.missionFromPlan(draft, plan, clock.now()) }.getOrNull()
+            ?: return@withTransaction MissionWriteResult.Rejected("plan_invalid")
+        val inserted = insertLocked(mission)
+        if (inserted is MissionWriteResult.Ok) drafts.clear()
+        inserted
+    }
+
+    // ---------------------------------------------------------------- adaptation and progress
+
+    override suspend fun replaceRemainingSteps(id: MissionId, steps: List<AdaptedStep>, expectedUpdatedAt: Instant): MissionWriteResult = db.withTransaction {
+        val mission = dao.get(id.value)?.toModel() ?: return@withTransaction MissionWriteResult.Rejected("mission_not_found")
+        if (mission.updatedAt != expectedUpdatedAt) return@withTransaction MissionWriteResult.Rejected("mission_changed")
+        if (db.sessionDao().activeCountForMission(id.value) > 0) return@withTransaction MissionWriteResult.Rejected("active_session_exists")
+        val updated = MissionRules.replaceRemainingSteps(mission, steps, clock.now()) ?: return@withTransaction MissionWriteResult.Rejected("adaptation_invalid")
+        val fresh = updated.steps.filter { s -> mission.steps.none { it.id == s.id } }
+        if (dao.countStepIds(fresh.map { it.id.value }) > 0) return@withTransaction MissionWriteResult.Rejected("step_id_duplicate")
+        dao.deleteOpenSteps(id.value)
+        dao.insertSteps(fresh.map { it.toEntity() })
+        dao.update(updated.toEntity())
+        MissionWriteResult.Ok(dao.get(id.value)!!.toModel()!!)
+    }
+
+    override suspend fun progressHistory(id: MissionId): List<MissionProgressEntry> =
+        db.missionProgressDao().forMission(id.value).mapNotNull { it.toModel() }
 }

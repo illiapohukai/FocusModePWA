@@ -23,6 +23,7 @@ import io.github.illiapohukai.focusmode.core.domain.session.QuickFocusRequest
 import io.github.illiapohukai.focusmode.core.domain.session.SessionFactory
 import io.github.illiapohukai.focusmode.core.model.AppPreferences
 import io.github.illiapohukai.focusmode.core.model.MissionLink
+import io.github.illiapohukai.focusmode.core.model.MissionReview
 import io.github.illiapohukai.focusmode.core.model.MissionStatus
 import io.github.illiapohukai.focusmode.core.model.MissionStepStatus
 import io.github.illiapohukai.focusmode.core.model.MotionPreference
@@ -76,6 +77,7 @@ class FocusDatabaseTest {
         override suspend fun setUsageMonitoringEnabled(enabled: Boolean) = Unit
         override suspend fun setDoNotDisturbDuringFocus(enabled: Boolean) = Unit
         override suspend fun setOnboardingCompleted(done: Boolean) = Unit
+        override suspend fun markHomeOnboardingDone() = Unit
         override suspend fun setLastSelectedMission(id: String?) { state.value = state.value.copy(lastSelectedMissionId = id) }
         override suspend fun incrementNotificationPermissionRequests() = Unit
         override suspend fun setPwaImportEnabled(enabled: Boolean) = Unit
@@ -158,13 +160,13 @@ class FocusDatabaseTest {
         assertEquals(MissionWriteResult.Rejected("active_session_exists"), missions.delete(m.id))
         val result = finalResult(s)
         sessions.finalize(result)
-        val reviewed = sessions.applyMissionReview(s.id, SessionOutcome.COMPLETED, 4, completeStep = true)!!
+        val reviewed = sessions.applyMissionReview(s.id, MissionReview(SessionOutcome.COMPLETED, 4))!!.result
         assertEquals(4, reviewed.rating)
         val after = missions.getMission(m.id)!!
         assertEquals(MissionStepStatus.COMPLETED, after.steps[0].status)
         assertEquals(after.steps[1].id, after.currentStepId)
         // Reviewing again never completes a second step.
-        sessions.applyMissionReview(s.id, SessionOutcome.COMPLETED, 4, completeStep = true)
+        sessions.applyMissionReview(s.id, MissionReview(SessionOutcome.COMPLETED, 4))
         assertEquals(MissionStepStatus.ACTIVE, missions.getMission(m.id)!!.steps[1].status)
         assertTrue(missions.delete(m.id) is MissionWriteResult.Ok)
         assertEquals(m.id, sessions.getResult(s.id)!!.missionLink!!.missionId) // History survives deletion

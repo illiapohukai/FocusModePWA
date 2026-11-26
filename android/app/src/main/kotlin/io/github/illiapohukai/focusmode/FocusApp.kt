@@ -75,11 +75,17 @@ import io.github.illiapohukai.focusmode.feature.history.historyScreen
 import io.github.illiapohukai.focusmode.feature.home.HomeActions
 import io.github.illiapohukai.focusmode.feature.home.HomeDestination
 import io.github.illiapohukai.focusmode.feature.home.homeScreen
+import io.github.illiapohukai.focusmode.feature.missions.MissionBriefingDestination
+import io.github.illiapohukai.focusmode.feature.missions.MissionCreateDestination
 import io.github.illiapohukai.focusmode.feature.missions.MissionDetailActions
+import io.github.illiapohukai.focusmode.feature.missions.MissionDetailDestination
+import io.github.illiapohukai.focusmode.feature.missions.MissionFlowActions
+import io.github.illiapohukai.focusmode.feature.missions.MissionGenerateDestination
 import io.github.illiapohukai.focusmode.feature.missions.MissionsActions
 import io.github.illiapohukai.focusmode.feature.missions.MissionsDestination
 import io.github.illiapohukai.focusmode.feature.missions.missionsScreens
 import io.github.illiapohukai.focusmode.feature.missions.navigateToMission
+import io.github.illiapohukai.focusmode.feature.missions.navigateToMissionCreate
 import io.github.illiapohukai.focusmode.feature.quickfocus.QuickFocusActions
 import io.github.illiapohukai.focusmode.feature.quickfocus.navigateToQuickFocus
 import io.github.illiapohukai.focusmode.feature.quickfocus.quickFocusScreen
@@ -156,6 +162,27 @@ private fun AnimatedContentTransitionScope<NavBackStackEntry>.routeExit(motion: 
             slideOutHorizontally(tween(motion.normal, easing = Easings.Exit)) { w -> (if (pop) w else -w) / 14 }
     }
 }
+
+/** Mission creation flow: Creation → Generation → Briefing → the new Mission's Plan. */
+private fun NavHostController.missionFlowActions(openMissions: () -> Unit) = MissionFlowActions(
+    onBack = { popBackStack() },
+    onGenerating = { navigate(MissionGenerateDestination) { launchSingleTop = true } },
+    onBriefing = {
+        navigate(MissionBriefingDestination) {
+            popUpTo<MissionGenerateDestination> { inclusive = true }
+            launchSingleTop = true
+        }
+    },
+    onGenerationEnded = { if (!popBackStack<MissionCreateDestination>(inclusive = false)) navigateToMissionCreate() },
+    onAccepted = { id ->
+        navigate(MissionDetailDestination(id)) {
+            popUpTo<MissionCreateDestination> { inclusive = true }
+            launchSingleTop = true
+        }
+    },
+    onDiscarded = { if (!popBackStack<MissionCreateDestination>(inclusive = true)) openMissions() },
+    onOpenMissions = openMissions,
+)
 
 /** Opens the Session screen; Quick Focus and the start sheet are removed from the back stack. */
 private fun NavHostController.openSession(openEnd: Boolean = false) {
@@ -241,12 +268,17 @@ fun FocusApp(appViewModel: AppViewModel, window: Window) {
                         onOpenHistory = { nav.navigateRoot(Root.HISTORY) },
                         onOpenResult = { nav.navigateToResult(it) },
                         onOpenSchedules = { nav.navigate(SchedulesDestination) },
+                        onCreateMission = { nav.navigateToMissionCreate() },
                     ),
                     { rootPadding }, snackbar,
                 )
                 missionsScreens(
-                    MissionsActions(onOpenMission = { nav.navigateToMission(it) }, onQuickFocus = openQuickFocus, onImport = { nav.navigate(DataImportDestination) }),
-                    MissionDetailActions(onBack = { nav.popBackStack() }, onOpenSession = { nav.openSession() }),
+                    MissionsActions(
+                        onOpenMission = { nav.navigateToMission(it) }, onQuickFocus = openQuickFocus,
+                        onImport = { nav.navigate(DataImportDestination) }, onCreate = { nav.navigateToMissionCreate() },
+                    ),
+                    MissionDetailActions(onBack = { nav.popBackStack() }, onOpenSession = { nav.openSession() }, onOpenResult = { nav.navigateToResult(it) }),
+                    nav.missionFlowActions { nav.navigateRoot(Root.MISSIONS) },
                     { rootPadding }, snackbar,
                 )
                 historyScreen(HistoryActions(onOpenResult = { nav.navigateToResult(it) }, onQuickFocus = openQuickFocus), { rootPadding })
@@ -281,6 +313,7 @@ fun FocusApp(appViewModel: AppViewModel, window: Window) {
                         onDone = { if (!nav.popBackStack()) nav.navigateRoot(Root.HOME) },
                         onHistory = { nav.navigateRoot(Root.HISTORY) },
                         onAgain = { nav.navigateRoot(Root.HOME); openQuickFocus() },
+                        onOpenMission = { id -> nav.navigateRoot(Root.MISSIONS); nav.navigateToMission(id) },
                     ),
                 )
                 scheduleScreens(
@@ -311,6 +344,7 @@ fun FocusApp(appViewModel: AppViewModel, window: Window) {
                 }
                 NavigationRow("Quick Focus", { showStartSheet = false; openQuickFocus() }, subtitle = "Sofort fokussieren, 5–60 Minuten", icon = FocusIcons.Play)
                 NavigationRow("Missionen", { showStartSheet = false; nav.navigateRoot(Root.MISSIONS) }, subtitle = "Nächsten Missionsschritt starten", icon = FocusIcons.Target)
+                NavigationRow("Neue Mission", { showStartSheet = false; nav.navigateToMissionCreate() }, subtitle = "Ziel beschreiben, AI plant die Schritte", icon = FocusIcons.Sparkle)
                 NavigationRow("Geplanter Fokus", { showStartSheet = false; nav.navigate(ScheduleEditorDestination(null)) }, subtitle = "Feste Fokuszeit mit Erinnerung", icon = FocusIcons.Calendar)
             }
         }

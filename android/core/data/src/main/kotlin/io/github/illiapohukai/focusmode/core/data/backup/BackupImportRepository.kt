@@ -13,7 +13,10 @@ import io.github.illiapohukai.focusmode.core.domain.backup.ImportPlan
 import io.github.illiapohukai.focusmode.core.domain.backup.PwaBackupImporter
 import io.github.illiapohukai.focusmode.core.domain.time.FocusClock
 import io.github.illiapohukai.focusmode.core.model.ActivityType
+import io.github.illiapohukai.focusmode.core.model.EntityIds
 import io.github.illiapohukai.focusmode.core.model.Mission
+import io.github.illiapohukai.focusmode.core.model.MissionStepId
+import io.github.illiapohukai.focusmode.core.domain.mission.MissionRules
 import io.github.illiapohukai.focusmode.core.model.MissionStatus
 import java.time.LocalDate
 import javax.inject.Inject
@@ -56,16 +59,37 @@ class BackupImportRepository @Inject constructor(
         val existing = db.missionDao().allIds().toSet()
         var activeSlots = (Mission.MAX_ACTIVE - db.missionDao().countActive()).coerceAtLeast(0)
         var missions = 0
-        plan.missions.filter { it.id.value !in existing }.forEach { m ->
+        // PWA step ids are only unique inside one Mission ("session-1" repeats across Missions), but
+        // Android step ids are global keys. A colliding id gets a fresh local id, and the imported
+        // Sessions that point at it follow, so no existing step is ever overwritten or moved.
+        val usedInBatch = HashSet<String>()
+        val remap = HashMap<Pair<String, String>, MissionStepId>()
+        plan.missions.filter { it.id.value !in existing }.forEach { source ->
+            val ids = source.steps.map { it.id.value }
+            val taken = (if (ids.isEmpty()) emptyList() else db.missionDao().existingStepIds(ids)).toSet() + ids.filter { it in usedInBatch }
+            val m = if (taken.isEmpty()) source else {
+                val map = source.steps.filter { it.id.value in taken }.associate { it.id to EntityIds.newStepId() }
+                map.forEach { (old, new) -> remap[source.id.value to old.value] = new }
+                source.copy(
+                    steps = source.steps.map { s -> map[s.id]?.let { s.copy(id = it) } ?: s },
+                    currentStepId = source.currentStepId?.let { map[it] ?: it },
+                    archivedStepId = source.archivedStepId?.let { map[it] ?: it },
+                )
+            }
+            usedInBatch += m.steps.map { it.id.value }
             val keepActive = m.status == MissionStatus.ACTIVE && activeSlots > 0
             if (keepActive) activeSlots--
-            val mission = if (m.status == MissionStatus.ACTIVE && !keepActive) m.copy(status = MissionStatus.ARCHIVED, archivedAt = now, currentStepId = null) else m
+            val mission = if (m.status == MissionStatus.ACTIVE && !keepActive) MissionRules.archive(m, now) else m
             db.missionDao().insert(mission.toEntity())
-            db.missionDao().upsertSteps(mission.steps.map { it.toEntity() })
+            db.missionDao().insertSteps(mission.steps.map { it.toEntity() })
             db.activityDao().insert(ActivityEntity(type = ActivityType.MISSION_IMPORTED.name, refId = mission.id.value, occurredAt = now, localDate = today))
             missions++
         }
-        val inserted = db.sessionDao().insertResults(plan.results.map { it.toEntity(savedAt = now) }).count { it != -1L }
+        val results = plan.results.map { r ->
+            val link = r.missionLink ?: return@map r
+            remap[link.missionId.value to link.stepId.value]?.let { r.copy(missionLink = link.copy(stepId = it)) } ?: r
+        }
+        val inserted = db.sessionDao().insertResults(results.map { it.toEntity(savedAt = now) }).count { it != -1L }
         if (missions + inserted > 0) {
             db.activityDao().insert(ActivityEntity(type = ActivityType.DATA_IMPORTED.name, refId = "import:${now.toEpochMilli()}", occurredAt = now, localDate = today))
         }

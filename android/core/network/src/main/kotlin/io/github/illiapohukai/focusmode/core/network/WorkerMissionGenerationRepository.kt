@@ -13,6 +13,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
+import java.io.InterruptedIOException
 
 data class WorkerTimeouts(val textMs: Long = 38_000, val imageMs: Long = 52_000)
 
@@ -44,10 +45,16 @@ class WorkerMissionGenerationRepository(
                 withTimeout(timeout) { api.createMission(parts) }
             } catch (_: TimeoutCancellationException) {
                 return GenerationResult.Failure(GenerationError.Timeout)
+            } catch (_: InterruptedIOException) {
+                return GenerationResult.Failure(GenerationError.Timeout) // OkHttp call/read timeout
             } catch (_: IOException) {
                 return GenerationResult.Failure(GenerationError.Offline)
             }
-            val raw = response.body()?.use { it.string() } ?: response.errorBody()?.use { it.string() }
+            val raw = try {
+                WorkerBodies.read(response)
+            } catch (_: IOException) {
+                return GenerationResult.Failure(GenerationError.InvalidResponse)
+            }
             val dto = raw?.let { runCatching { json.decodeFromString(CreateMissionResponseDto.serializer(), it) }.getOrNull() }
             if (!response.isSuccessful || dto?.ok != true) {
                 val error = if (response.isSuccessful) {

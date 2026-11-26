@@ -5,6 +5,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.illiapohukai.focusmode.core.designsystem.theme.FocusModeTheme
 import io.github.illiapohukai.focusmode.core.model.LocalStreak
@@ -21,14 +22,14 @@ class ResultScreenTest {
     private val actions = ResultActions({}, {}, {})
 
     @Test fun unknownSessionIsSafe() {
-        rule.setContent { FocusModeTheme { ResultScreen(ResultUiState(loading = false, notFound = true), actions) { _, _ -> } } }
+        rule.setContent { FocusModeTheme { ResultScreen(ResultUiState(loading = false, notFound = true), actions, ResultCallbacks()) } }
         rule.onNodeWithText("Ergebnis nicht gefunden").assertIsDisplayed()
     }
 
     @Test fun completedResultShowsLocalStreakBoundary() {
         rule.setContent {
             FocusModeTheme {
-                ResultScreen(ResultUiState(loading = false, headline = "Fokus abgeschlossen", eyebrow = "Abgeschlossen", minutes = 25, plannedMinutes = 25, task = "Lesen", streak = LocalStreak(3, 5, true)), actions) { _, _ -> }
+                ResultScreen(ResultUiState(loading = false, headline = "Fokus abgeschlossen", eyebrow = "Abgeschlossen", minutes = 25, plannedMinutes = 25, task = "Lesen", streak = LocalStreak(3, 5, true)), actions, ResultCallbacks())
             }
         }
         rule.onNodeWithText("3 Tage in Folge").assertIsDisplayed()
@@ -36,9 +37,17 @@ class ResultScreenTest {
     }
 
     @Test fun missionReviewSubmitsStepOutcome() {
-        var review: Pair<Boolean, Int?>? = null
-        rule.setContent { FocusModeTheme { ResultScreen(ResultUiState(loading = false, awaitingReview = true, minutes = 25, plannedMinutes = 25, task = "Kapitel 1"), actions) { d, r -> review = d to r } } }
-        rule.onNodeWithTag("review_open").performClick()
-        assertEquals(false to null, review)
+        val calls = mutableListOf<String>()
+        rule.setContent {
+            FocusModeTheme {
+                ResultScreen(
+                    ResultUiState(loading = false, awaitingReview = true, minutes = 25, plannedMinutes = 25, task = "Kapitel 1"), actions,
+                    ResultCallbacks(onOutcome = { calls += "outcome:${it.wire}" }, onSubmit = { calls += "submit" }),
+                )
+            }
+        }
+        rule.onNodeWithTag("review_partial").performClick()
+        rule.onNodeWithTag("review_submit").performScrollTo().performClick()
+        assertEquals(listOf("outcome:partial", "submit"), calls)
     }
 }

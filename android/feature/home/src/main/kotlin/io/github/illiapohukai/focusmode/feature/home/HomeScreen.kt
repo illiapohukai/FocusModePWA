@@ -6,6 +6,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
@@ -21,6 +23,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -67,6 +71,19 @@ import io.github.illiapohukai.focusmode.core.designsystem.theme.MissionTones
 import io.github.illiapohukai.focusmode.core.designsystem.theme.Radii
 import io.github.illiapohukai.focusmode.core.designsystem.theme.Spacing
 import io.github.illiapohukai.focusmode.core.domain.history.OutcomeBadge
+import io.github.illiapohukai.focusmode.core.domain.mission.CalendarDayInfo
+import io.github.illiapohukai.focusmode.core.domain.mission.CalendarEventKind
+import io.github.illiapohukai.focusmode.core.domain.mission.HomeMissionMode
+import io.github.illiapohukai.focusmode.core.designsystem.component.CalendarDay
+import io.github.illiapohukai.focusmode.core.designsystem.component.CalendarMark
+import io.github.illiapohukai.focusmode.core.designsystem.component.CalendarMarkKind
+import io.github.illiapohukai.focusmode.core.designsystem.component.MonthCalendar
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.progressBarRangeInfo
 
 data class HomeActions(
     val onQuickFocus: () -> Unit,
@@ -76,6 +93,14 @@ data class HomeActions(
     val onOpenHistory: () -> Unit,
     val onOpenResult: (String) -> Unit,
     val onOpenSchedules: () -> Unit,
+    val onCreateMission: () -> Unit = onOpenMissions,
+)
+
+/** Home Mission calendar interactions (state lives in [HomeViewModel]). */
+data class HomeCalendarCallbacks(
+    val onSelect: (java.time.LocalDate) -> Unit = {},
+    val onShift: (Long) -> Unit = {},
+    val onToday: () -> Unit = {},
 )
 
 @Composable
@@ -89,11 +114,17 @@ fun HomeRoute(actions: HomeActions, contentPadding: PaddingValues, snackbar: Sna
             }
         }
     }
-    HomeScreen(state, actions, viewModel::startMissionStep, contentPadding)
+    HomeScreen(state, actions, viewModel::startMissionStep, contentPadding, HomeCalendarCallbacks(viewModel::selectDate, viewModel::shiftMonth, viewModel::calendarToday))
 }
 
 @Composable
-fun HomeScreen(state: HomeUiState, actions: HomeActions, onStartStep: (String, String) -> Unit, contentPadding: PaddingValues = PaddingValues()) {
+fun HomeScreen(
+    state: HomeUiState,
+    actions: HomeActions,
+    onStartStep: (String, String) -> Unit,
+    contentPadding: PaddingValues = PaddingValues(),
+    calendar: HomeCalendarCallbacks = HomeCalendarCallbacks(),
+) {
     ReadableWidth(Modifier.fillMaxSize().background(FocusPalette.Cream)) {
         LazyColumn(
             Modifier.fillMaxSize().testTag("home"),
@@ -105,7 +136,7 @@ fun HomeScreen(state: HomeUiState, actions: HomeActions, onStartStep: (String, S
         ) {
             item { Header(state) }
             state.banner?.let { banner -> item { Banner(banner, actions) } }
-            item { MissionSection(state.mission, state.activeMissionCount, actions, onStartStep) }
+            item { MissionSection(state, actions, onStartStep) }
             item { SectionHeader("Quick Focus", Modifier.padding(top = Spacing.xs)) }
             item { QuickFocusRow(state.quickMinutes, actions.onQuickFocus) }
             item {
@@ -114,6 +145,14 @@ fun HomeScreen(state: HomeUiState, actions: HomeActions, onStartStep: (String, S
                 }
             }
             item { TodayCard(state) }
+            item {
+                SectionHeader("Missionskalender", Modifier.padding(top = Spacing.xs)) {
+                    if (!state.calendar.empty && (state.calendar.selected != state.calendar.today || state.calendar.month != java.time.YearMonth.from(state.calendar.today))) {
+                        TextAction("Heute", calendar.onToday, Modifier.testTag("home_calendar_today"))
+                    }
+                }
+            }
+            item { MissionCalendarCard(state.calendar, actions, calendar) }
             item { SectionHeader("Erinnerungen", Modifier.padding(top = Spacing.xs)) }
             item { RemindersCard(state, actions.onOpenSchedules) }
             item { SectionHeader("Aktivität", Modifier.padding(top = Spacing.xs)) { TextAction("Alle anzeigen", actions.onOpenHistory) } }
@@ -168,16 +207,27 @@ private fun Banner(banner: SessionBanner, actions: HomeActions) {
     }
 }
 
-/** PWA hero kicker: live dot, uppercase label, optional outlined chip on the right. */
+/**
+ * PWA hero kicker: live dot, uppercase label, optional outlined chip on the right. With large
+ * fonts on narrow screens the chip wraps below the label instead of squeezing it.
+ */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun HeroKicker(label: String, chip: String?, accent: Color) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.size(8.dp).clip(Radii.pill).background(FocusPalette.Green))
-        Spacer(Modifier.width(8.dp))
-        Text(label.uppercase(), style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 0.14.em), color = FocusPalette.HeroKicker, modifier = Modifier.weight(1f))
+    FlowRow(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+        itemVerticalAlignment = Alignment.CenterVertically,
+    ) {
+        Row(Modifier.padding(end = Spacing.xs), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.size(8.dp).clip(Radii.pill).background(FocusPalette.Green))
+            Spacer(Modifier.width(8.dp))
+            Text(label.uppercase(), style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 0.14.em), color = FocusPalette.HeroKicker, maxLines = 1, softWrap = false)
+        }
         chip?.let {
             Text(
-                it.uppercase(), style = MaterialTheme.typography.labelSmall, color = accent, maxLines = 1,
+                it.uppercase(), style = MaterialTheme.typography.labelSmall, color = accent, maxLines = 1, softWrap = false,
                 modifier = Modifier.clip(Radii.pill).background(Color.White.copy(alpha = 0.06f)).border(BorderStroke(1.dp, Color.White.copy(alpha = 0.14f)), Radii.pill)
                     .padding(horizontal = 10.dp, vertical = 5.dp),
             )
@@ -207,32 +257,80 @@ private fun HeroNextCard(label: String, title: String, detail: String?, accent: 
 }
 
 @Composable
-private fun MissionSection(mission: MissionCard?, activeCount: Int, actions: HomeActions, onStartStep: (String, String) -> Unit) {
-    if (mission == null) {
-        AubergineSurface(Modifier.fillMaxWidth().testTag("home_mission_empty"), contentPadding = PaddingValues(start = 22.dp, end = 22.dp, top = 22.dp, bottom = 20.dp)) {
-            HeroKicker("Focus Mission", "Bereit", FocusPalette.Lavender)
-            Spacer(Modifier.height(Spacing.sm))
-            Text("Was möchtest du heute fokussiert schaffen?", style = MaterialTheme.typography.headlineMedium, color = Color.White, modifier = Modifier.semantics { heading() })
-            Spacer(Modifier.height(Spacing.xs))
-            Text("Plane eine Mission oder starte direkt einen Quick Focus.", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold), color = FocusPalette.HeroCopy)
-            Spacer(Modifier.height(Spacing.md))
-            HeroNextCard("Missionen", "Missionen ansehen", "Aktive, abgeschlossene und archivierte", FocusPalette.Lavender, actions.onOpenMissions) {
-                IconTile(FocusIcons.Target, background = SolidColor(FocusPalette.Surface), tint = FocusPalette.Purple, size = 52.dp, iconSize = 24.dp)
+private fun MissionSection(state: HomeUiState, actions: HomeActions, onStartStep: (String, String) -> Unit) {
+    when (state.mode) {
+        HomeMissionMode.FIRST_TIME -> FirstTimeHero(actions)
+        HomeMissionMode.RETURNING_EMPTY -> ReturningEmpty(actions)
+        HomeMissionMode.ONE -> state.missions.firstOrNull()?.let { MissionHero(it, actions, onStartStep, Modifier.fillMaxWidth().testTag("home_mission")) }
+        HomeMissionMode.TWO -> MissionCarousel(state.missions, actions, onStartStep)
+    }
+}
+
+/** PWA `#emptyMissionCard`: only until the first Mission ever existed. */
+@Composable
+private fun FirstTimeHero(actions: HomeActions) {
+    AubergineSurface(Modifier.fillMaxWidth().testTag("home_mission_empty"), contentPadding = PaddingValues(start = 22.dp, end = 22.dp, top = 22.dp, bottom = 20.dp)) {
+        HeroKicker("Focus Mission", "Bereit", FocusPalette.Lavender)
+        Spacer(Modifier.height(Spacing.sm))
+        Text("Was möchtest du heute fokussiert schaffen?", style = MaterialTheme.typography.headlineMedium, color = Color.White, modifier = Modifier.semantics { heading() })
+        Spacer(Modifier.height(Spacing.xs))
+        Text("Verwandle eine Prüfung, Hausarbeit oder ein Projekt in klare, machbare Fokus-Schritte.", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold), color = FocusPalette.HeroCopy)
+        Spacer(Modifier.height(Spacing.md))
+        HeroNextCard("Erster Schritt", "Ziel beschreiben oder Material hinzufügen", "Automatische Schrittplanung mit realistischer Dauer", FocusPalette.Lavender, actions.onCreateMission) {
+            Column(
+                Modifier.size(52.dp).clip(Radii.tile).background(FocusPalette.Surface),
+                horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center,
+            ) {
+                Text("AI", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Black), color = FocusPalette.Purple)
+                Text("PLAN", style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = FocusPalette.GraphiteSoft)
             }
         }
-        return
+        Spacer(Modifier.height(Spacing.md))
+        PrimaryButton("Mission erstellen", actions.onCreateMission, Modifier.fillMaxWidth().testTag("home_create_mission"), icon = FocusIcons.Sparkle)
     }
+}
+
+/** PWA `#homeReturnEmpty`: a compact, minimal card for a returning user without an active Mission. */
+@Composable
+private fun ReturningEmpty(actions: HomeActions) {
+    AubergineSurface(Modifier.fillMaxWidth().testTag("home_mission_return"), contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = 18.dp, bottom = 16.dp)) {
+        HeroKicker("Focus Mission", null, FocusPalette.Lavender)
+        Spacer(Modifier.height(Spacing.xs))
+        Text("Bereit für ein neues Ziel?", style = MaterialTheme.typography.headlineSmall, color = Color.White, modifier = Modifier.semantics { heading() })
+        Text("Plane es als Mission oder starte direkt einen Quick Focus.", style = MaterialTheme.typography.bodySmall, color = FocusPalette.HeroCopy)
+        Spacer(Modifier.height(Spacing.sm))
+        Row(
+            Modifier.heightIn(min = 48.dp).clip(Radii.pill).background(Color.White.copy(alpha = 0.12f)).border(BorderStroke(1.dp, Color.White.copy(alpha = 0.18f)), Radii.pill)
+                .clickable(role = Role.Button, onClick = actions.onCreateMission).padding(horizontal = 16.dp).testTag("home_create_mission"),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(FocusIcons.Plus, null, tint = Color.White, modifier = Modifier.size(16.dp))
+            Spacer(Modifier.width(6.dp))
+            Text("Neue Mission", style = MaterialTheme.typography.labelLarge, color = Color.White)
+            Spacer(Modifier.width(6.dp))
+            Icon(FocusIcons.ArrowRight, null, tint = Color.White, modifier = Modifier.size(16.dp))
+        }
+    }
+}
+
+/**
+ * One Mission hero (PWA `renderMissionHeroV116`). Hierarchy: kicker and step counter, title,
+ * next-step card, then progress on the left and the primary action on the right.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun MissionHero(mission: MissionCard, actions: HomeActions, onStartStep: (String, String) -> Unit, modifier: Modifier) {
     val tone = MissionTones.of(mission.theme)
     AubergineSurface(
-        Modifier.fillMaxWidth().testTag("home_mission"), tone = tone, onClick = { actions.onOpenMission(mission.missionId) }, onClickLabel = "Mission öffnen",
-        contentPadding = PaddingValues(start = 22.dp, end = 22.dp, top = 22.dp, bottom = 20.dp),
+        modifier, tone = tone, onClick = { actions.onOpenMission(mission.missionId) }, onClickLabel = "Mission ${mission.title} öffnen",
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 18.dp),
     ) {
-        HeroKicker("Aktive Mission", mission.stepLabel, tone.accent)
+        HeroKicker(if (mission.primary) "Hauptmission" else "Aktive Mission", mission.stepLabel, tone.accent)
         Spacer(Modifier.height(Spacing.sm))
         Text(mission.title, style = MaterialTheme.typography.headlineMedium, color = Color.White, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.semantics { heading() })
         if (mission.subtitle.isNotBlank()) {
             Spacer(Modifier.height(Spacing.xxs))
-            Text(mission.subtitle, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold), color = FocusPalette.HeroCopy)
+            Text(mission.subtitle, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold), color = FocusPalette.HeroCopy, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         if (mission.nextStepTitle != null) {
             Spacer(Modifier.height(Spacing.md))
@@ -247,30 +345,152 @@ private fun MissionSection(mission: MissionCard?, activeCount: Int, actions: Hom
             }
         }
         Spacer(Modifier.height(Spacing.md))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            LinearProgressIndicator(
-                progress = { mission.percent / 100f },
-                modifier = Modifier.weight(1f).height(6.dp).clip(Radii.pill),
-                color = tone.accentStrong, trackColor = Color.White.copy(alpha = 0.12f), drawStopIndicator = {},
-            )
-            Spacer(Modifier.width(Spacing.sm))
-            Text("${mission.percent} %", style = MaterialTheme.typography.labelMedium, color = tone.accent)
-        }
-        if (mission.stepId != null) {
-            Spacer(Modifier.height(Spacing.md))
-            PrimaryButton("Schritt starten · ${mission.stepMinutes} Min.", { onStartStep(mission.missionId, mission.stepId) }, Modifier.fillMaxWidth(), icon = FocusIcons.PlayFilled)
-        }
-        if (activeCount > 1) {
-            Spacer(Modifier.height(Spacing.xs))
-            Row(
-                Modifier.fillMaxWidth().heightIn(min = 48.dp).clip(Radii.md).clickable(role = Role.Button, onClickLabel = "Alle Missionen ansehen", onClick = actions.onOpenMissions)
-                    .testTag("home_mission_more"),
-                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center,
+        // v17.16: progress reads first (left), the primary action closes the row (right). With large
+        // fonts on narrow screens the action wraps below instead of squeezing the progress away.
+        FlowRow(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+            itemVerticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(
+                Modifier.padding(end = Spacing.sm).semantics(mergeDescendants = true) {
+                    contentDescription = "Fortschritt ${mission.percent} Prozent, ${mission.completedSteps} von ${mission.totalSteps} Schritten erledigt"
+                    progressBarRangeInfo = ProgressBarRangeInfo(mission.percent / 100f, 0f..1f)
+                }.testTag("home_mission_progress"),
             ) {
-                Text("1 von $activeCount aktiven Missionen · Alle ansehen", style = MaterialTheme.typography.labelMedium, color = tone.accent)
+                Text("${mission.percent}%", style = MaterialTheme.typography.headlineSmall, color = Color.White, maxLines = 1)
+                Text("${mission.completedSteps}/${mission.totalSteps} SCHRITTE", style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = tone.accent, maxLines = 1)
+            }
+            if (mission.stepId != null) {
+                StartStepButton({ onStartStep(mission.missionId, mission.stepId) }, "Schritt starten: ${mission.nextStepTitle}, ${mission.stepMinutes} Minuten")
+            } else {
+                StartStepButton({ actions.onOpenMission(mission.missionId) }, "Mission öffnen", label = "Mission öffnen", icon = FocusIcons.ArrowRight)
             }
         }
     }
+}
+
+/** PWA `.mh-start-btn`: compact gradient pill, filled play, at least 48 dp tall. */
+@Composable
+private fun StartStepButton(onClick: () -> Unit, description: String, label: String = "Schritt starten", icon: androidx.compose.ui.graphics.vector.ImageVector = FocusIcons.PlayFilled) {
+    Row(
+        Modifier.heightIn(min = 48.dp).shadow(10.dp, Radii.pill, ambientColor = FocusPalette.Purple.copy(alpha = 0.3f), spotColor = FocusPalette.Purple.copy(alpha = 0.36f))
+            .clip(Radii.pill).background(PrimaryGradient)
+            .clickable(role = Role.Button, onClick = onClick)
+            .semantics(mergeDescendants = true) { contentDescription = description }
+            .padding(horizontal = 18.dp).testTag("home_start_step"),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        // Shrinks instead of clipping at large font scales on narrow screens; the icon always stays.
+        BasicText(
+            label, style = MaterialTheme.typography.labelLarge.copy(color = Color.White), maxLines = 1,
+            autoSize = TextAutoSize.StepBased(minFontSize = 11.sp, maxFontSize = MaterialTheme.typography.labelLarge.fontSize),
+            modifier = Modifier.weight(1f, fill = false),
+        )
+        Spacer(Modifier.width(6.dp))
+        Icon(icon, null, tint = Color.White, modifier = Modifier.size(16.dp))
+    }
+}
+
+/** Two active Missions: a swipeable pager with a peek of the next card (PWA `missionCarouselV116`). */
+@Composable
+private fun MissionCarousel(missions: List<MissionCard>, actions: HomeActions, onStartStep: (String, String) -> Unit) {
+    val pager = rememberPagerState { missions.size }
+    Column(Modifier.fillMaxWidth().testTag("home_mission_carousel")) {
+        HorizontalPager(
+            state = pager,
+            contentPadding = PaddingValues(end = 28.dp),
+            pageSpacing = 10.dp,
+            key = { missions[it].missionId },
+            modifier = Modifier.fillMaxWidth().semantics { contentDescription = "${missions.size} aktive Missionen, wische für die nächste" },
+        ) { page ->
+            MissionHero(missions[page], actions, onStartStep, Modifier.fillMaxWidth().testTag("home_mission_page_$page"))
+        }
+        Spacer(Modifier.height(Spacing.xs))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.clearAndSetSemantics { contentDescription = "Mission ${pager.currentPage + 1} von ${missions.size}" }, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                repeat(missions.size) { i ->
+                    Box(Modifier.size(if (i == pager.currentPage) 18.dp else 6.dp, 6.dp).clip(Radii.pill).background(if (i == pager.currentPage) FocusPalette.Purple else FocusPalette.OutlineStrong))
+                }
+            }
+            Spacer(Modifier.width(Spacing.sm))
+            TextAction("Alle ansehen", actions.onOpenMissions, Modifier.testTag("home_mission_more"), color = FocusPalette.GraphiteSoft)
+        }
+    }
+}
+
+/** Home Mission calendar (PWA `renderHomeMissionCalendar`); a compact centred note when empty. */
+@Composable
+private fun MissionCalendarCard(calendar: HomeCalendar, actions: HomeActions, callbacks: HomeCalendarCallbacks) {
+    FocusCard(Modifier.fillMaxWidth().testTag("home_calendar"), contentPadding = PaddingValues(Spacing.md)) {
+        if (calendar.empty) {
+            Column(Modifier.fillMaxWidth().padding(vertical = Spacing.xs).testTag("home_calendar_empty"), horizontalAlignment = Alignment.CenterHorizontally) {
+                IconTile(FocusIcons.Calendar, background = SolidColor(FocusPalette.SurfaceMuted), tint = FocusPalette.GraphiteSoft)
+                Spacer(Modifier.height(Spacing.sm))
+                Text("Noch keine Missionstermine", style = MaterialTheme.typography.titleSmall, color = FocusPalette.Graphite, textAlign = TextAlign.Center)
+                Text("Erstelle eine Mission mit Deadline, um Termine hier zu sehen.", style = MaterialTheme.typography.bodySmall, color = FocusPalette.GraphiteSoft, textAlign = TextAlign.Center)
+            }
+            return@FocusCard
+        }
+        MonthCalendar(
+            month = calendar.month,
+            days = calendar.days.map { it.toCell() },
+            today = calendar.today,
+            focused = calendar.selected,
+            onDay = callbacks.onSelect,
+            onPrevious = { callbacks.onShift(-1) },
+            onNext = { callbacks.onShift(1) },
+            subtitle = calendar.nextLine,
+        )
+        Spacer(Modifier.height(Spacing.sm))
+        Column(Modifier.fillMaxWidth().clip(Radii.md).background(FocusPalette.Cream).padding(Spacing.sm).semantics { liveRegion = LiveRegionMode.Polite }) {
+            Text(calendar.selectedTitle, style = MaterialTheme.typography.labelMedium, color = FocusPalette.Graphite)
+            if (calendar.selectedEvents.isEmpty()) {
+                Text("Keine Missionstermine an diesem Tag.", style = MaterialTheme.typography.bodySmall, color = FocusPalette.GraphiteSoft)
+                calendar.nextDeadline?.let { (date, label) -> TextAction(label, { callbacks.onSelect(date) }, Modifier.testTag("home_calendar_jump")) }
+            }
+            calendar.selectedEvents.forEach { e ->
+                Row(
+                    Modifier.fillMaxWidth().heightIn(min = 48.dp).clip(Radii.sm)
+                        .clickable(role = Role.Button, onClickLabel = "Mission öffnen") { actions.onOpenMission(e.missionId) }
+                        .semantics(mergeDescendants = true) {}.testTag("home_calendar_event"),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(Modifier.size(10.dp).clip(Radii.pill).background(MissionTones.of(e.theme).accentStrong))
+                    Spacer(Modifier.width(Spacing.sm))
+                    Column(Modifier.weight(1f)) {
+                        Text(e.title, style = MaterialTheme.typography.titleSmall, color = FocusPalette.Graphite, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text("${e.chip} · ${e.detail}", style = MaterialTheme.typography.bodySmall, color = FocusPalette.GraphiteSoft)
+                    }
+                    Icon(FocusIcons.ChevronRight, null, tint = FocusPalette.GraphiteSoft, modifier = Modifier.size(16.dp))
+                }
+            }
+        }
+    }
+}
+
+/** Domain day → design-system cell: identity tones become colors here. */
+private fun CalendarDayInfo.toCell(): CalendarDay {
+    val deadline = events.firstOrNull { it.kind == CalendarEventKind.DEADLINE }
+    return CalendarDay(
+        date = date,
+        inMonth = inMonth,
+        marks = events.map {
+            CalendarMark(
+                when (it.kind) {
+                    CalendarEventKind.DEADLINE -> CalendarMarkKind.DEADLINE
+                    CalendarEventKind.START -> CalendarMarkKind.START
+                    CalendarEventKind.DONE -> CalendarMarkKind.DONE
+                    CalendarEventKind.FOCUS -> CalendarMarkKind.FOCUS
+                },
+                MissionTones.of(it.theme).accentStrong,
+            )
+        },
+        deadlineColor = deadline?.let { MissionTones.of(it.theme).accentStrong },
+        enabled = enabled,
+        label = label,
+    )
 }
 
 /** PWA `.home-quick-row`: gradient lightning tile, the prompt, a muted duration chip with an arrow. */

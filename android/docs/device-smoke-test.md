@@ -1,4 +1,4 @@
-# Device smoke test (v18.1)
+# Device smoke test (v18.1, Missions added in v19)
 
 Manual checks for a **physical Android device**. Robolectric and the emulator are not a device: OEM
 battery managers, real notification shades, Doze, reboots and Usage Access timing only show up on
@@ -156,6 +156,30 @@ Shorthand used below: `PKG=io.github.illiapohukai.focusmode.debug`.
 2. Expect: data kept (Room migration path), the running Session is restored (`PACKAGE_REPLACED`),
    reminders re-synced, no duplicate notifications.
 
+## 19. Missions (v19)
+
+Requires network for steps a–c only; everything else must also work in airplane mode.
+
+a. Home → "Mission erstellen": type a goal, pick type and confidence, choose a deadline in the inline
+   calendar (check that existing Mission dates are marked and open their details first), add a photo
+   with the system picker (deny once, then allow), tap "Mission planen" once. Expected: one request,
+   the operator works until the plan arrives, then the Briefing. Note the photo is upright.
+b. Repeat and tap "Abbrechen" while the operator works. Expected: back on the form, every input kept,
+   no Briefing appears later, no Mission is created.
+c. Kill the app during generation (Recents → swipe). Reopen. Expected: the form shows "Die Analyse wurde
+   unterbrochen …" and nothing was re-sent.
+d. "Mission übernehmen" (double-tap). Expected: exactly one Mission; Home shows it with progress left and
+   "Schritt starten" right.
+e. Start the step, lock the device, kill the process, reopen from the notification. Expected: the same
+   Mission Session ("Schritt 1 von n"), never Quick Focus.
+f. End after ≥ 1 minute, review "Abgeschlossen". Expected: progress advances once on Home, Plan and
+   Result; History holds one record. Repeat with "Teilweise" and "Abgebrochen": the step stays open.
+g. Create a second Mission: Home shows a swipeable carousel; a third Mission is refused everywhere.
+h. Archive, restore and delete a Mission. Expected: Home and the calendar update, History keeps the
+   Sessions, the Mission's reminders disappear.
+i. TalkBack and 200 % font: Creation, calendar days (spoken dates and Mission dates), Briefing steps,
+   Plan route (ordered, current step announced), review scale.
+
 ## Performance and ANR capture (on any device or emulator)
 
 ```bash
@@ -192,3 +216,4 @@ then attach the main-thread stack from the bugreport.
 | 16 | Battery optimization | — | PENDING | |
 | 17 | Airplane mode | — | PENDING | |
 | 18 | App update over existing data | — | PENDING | |
+| 19 | Missions (v19) | — | PENDING | |
