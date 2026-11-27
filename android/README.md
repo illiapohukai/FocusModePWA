@@ -1,10 +1,14 @@
-# Focus Mode+ — Android (v21 Google Account & Secure Sync Foundation)
+# Focus Mode+ — Android (v22 Identity & Security Hardening)
 
 A native Android app for Focus Mode+, written in Kotlin with Jetpack Compose. It is **not** a
 WebView, a Trusted Web Activity or a wrapper around the PWA. The PWA in the repository root is
 unchanged and stays the reference for product terms, Mission and Session behavior, timer semantics,
 History, Recovery, colors, typography, the Cosmic Core identity, backups and the AI Worker contract.
 
+- [Application identity v22](docs/application-identity-v22.md): `app.focusmodeplus` / `app.focusmodeplus.debug`, consequences, migration path
+- v22 security: [threat model](docs/security/threat-model-v22.md) · [MASVS self-assessment](docs/security/masvs-assessment-v22.md) ·
+  [test plan & report](docs/security/security-test-plan-v22.md) · [findings](docs/security/security-findings-v22.md) ·
+  [residual risks](docs/security/residual-risks-v22.md) · [live validation required](docs/security/live-validation-required-v22.md)
 - [Account & sync v21](docs/account-and-sync-v21.md): optional Google account, synchronization, migration, account switching
 - [Firebase setup v21](docs/firebase-setup-v21.md): owner checklist (local development, staging, pilot, production)
 - [Sync conflict policy v21](docs/sync-conflict-policy-v21.md) · [Account deletion v21](docs/account-deletion-v21.md) · [App Check v21](docs/firebase-app-check-v21.md)
@@ -134,6 +138,23 @@ Home → Quick Focus setup → active Focus Session → Result → History, pers
 Also implemented: Scheduled Focus (list and editor), Settings, Permission Center, distracting-app
 selection, Daten & Backup (export, import, full deletion).
 
+## v22 Identity & Security Hardening
+
+- **Application identity**: `app.focusmodeplus` (label "Focus Mode+"), debug
+  `app.focusmodeplus.debug` ("Focus Mode+ Debug"); namespace and every Kotlin package moved to
+  `app.focusmodeplus`. Old and new builds are separate apps: move test data with backup
+  export/import ([identity v22](docs/application-identity-v22.md)).
+- **Fixed findings** ([findings v22](docs/security/security-findings-v22.md)): a remotely invalid
+  local record no longer blocks the migration (Medium); Quick Sessions cannot carry Mission links
+  and steps must follow their Mission's version in the Rules; backup import bounds times, number
+  literals and URIs and never crashes on extreme dates; foreign apps cannot drive in-app navigation
+  (no VIEW filter, per-install route tags); hostile document providers cannot crash the photo
+  pipeline; debug tooling activities are not exported; `READ_GSERVICES` removed; test-tooling
+  `grpc-js` advisories fixed. No Critical or High finding.
+- **Verification**: threat model, MASVS self-assessment (no certification claimed), adversarial
+  Rules tests on the Emulator Suite only, CI security job. Live Google/Firebase, App Check and
+  physical-device behavior remain to be validated ([live validation](docs/security/live-validation-required-v22.md)).
+
 ## v21 Google Account & Secure Sync Foundation
 
 See [docs/account-and-sync-v21.md](docs/account-and-sync-v21.md). In short:
@@ -144,8 +165,8 @@ See [docs/account-and-sync-v21.md](docs/account-and-sync-v21.md). In short:
 - **Builds without Firebase**: no `google-services.json` in the repository or CI; the app then
   says "Cloud-Synchronisierung ist in diesem Build noch nicht eingerichtet." and never
   initializes Firebase. With the owner's file at `android/app/google-services.json` the same
-  code signs in and synchronizes. Application id: `io.github.illiapohukai.focusmode` (debug
-  `io.github.illiapohukai.focusmode.debug`).
+  code signs in and synchronizes. Application id (v22): `app.focusmodeplus` (debug
+  `app.focusmodeplus.debug`), see [application identity v22](docs/application-identity-v22.md).
 - **Synchronized**: Missions with steps and progress, finalized (reviewed) Sessions, three
   device-independent settings, tombstones and sync metadata. **Local only**: app selection,
   UsageStats, permissions, reminders, Geplanter Fokus, the running Session, drafts and photos.
@@ -368,12 +389,14 @@ neutralized after a restore by `RestoreGuard` (see above). No tokens or API secr
 
 HTTPS only via Network Security Config (no cleartext; system CAs only). Every component is
 non-exported except the launcher activity (v21: Firebase Auth's browser-redirect and reCAPTCHA
-activities and the passkey biometric permissions are removed from the merged manifest; Google Play
-services adds the normal `READ_GSERVICES` permission and its `RevocationBoundService`, which only a
-Google-signed caller can bind). Receivers listen only to protected system broadcasts.
-PendingIntents are immutable and explicit. Deep links (`focusmode://…`, not BROWSABLE) are strictly
-parsed: ids must match the safe-id policy, and anything unknown goes to Home. They carry no task
-text. Narrow package queries. DTO and backup validation. No sensitive logs (there is no logging of
+activities and the passkey biometric permissions are removed from the merged manifest; v22 also
+removes the reCAPTCHA SDK's `READ_GSERVICES` permission; Google Play services adds its
+`RevocationBoundService`, which only a Google-signed caller can bind). Receivers listen only to
+protected system broadcasts. PendingIntents are immutable and explicit. Deep links (`focusmode://…`)
+have no intent filter since v22: only the app's own notifications open them, each route carries a
+per-install HMAC tag (`DeepLinkAuthenticator`), and any other caller just opens the app. Routes are
+strictly parsed: ids must match the safe-id policy, and anything unknown goes to Home. They carry
+no task text. v22 security documentation: [docs/security](docs/security/). Narrow package queries. DTO and backup validation. No sensitive logs (there is no logging of
 tasks, Missions or AI text). No signing material in the repository.
 
 ## Accessibility and adaptive UI
@@ -400,7 +423,7 @@ frames, never up. Session timing never depends on it. See [performance](docs/per
 
 ## Testing
 
-`./gradlew testDebugUnitTest :core:domain:test` runs the JVM suite (v21: 451 tests; v20: 364; v19.1: 299) (domain rules, Room DAO,
+`./gradlew testDebugUnitTest :core:domain:test` runs the JVM suite (v22: 513 tests; v21: 451; v20: 364; v19.1: 299) (domain rules, Room DAO,
 relationships, transactions, rollback and the 1→2 and 2→3 migrations, DataStore defaults and
 migration, the Session owner incl. process recreation and reboot, the reminder scheduler,
 notifications under Robolectric, protection gateways, the Worker client against MockWebServer,
@@ -422,6 +445,11 @@ account lifecycle on real Room databases against a server stand-in (two-device s
 Room 4→5 migration, the Firebase boundary (error mapping, unconfigured selection, the unique
 worker), the Account screens (screenshots `acc01`–`acc18`, 40–41) and, outside Gradle, 40
 Firestore Rules and deletion tests on the Firebase Emulator Suite (`firebase/`, `npm run test:emulator`).
+v22 adds the security regression grouping `SecurityV22*` (62 tests: sync attacks, backup and
+deep-link adversarial cases, route tags, the photo pipeline, network boundary, manifest and
+storage policy), 30 adversarial Rules tests (70 in total) and the CI `security` job with
+`scripts/security/` (APK and merged-manifest audit, source audit, OSV and npm advisories, a
+machine-readable summary); see [the v22 test plan](docs/security/security-test-plan-v22.md).
 There are no instrumented or emulator tests yet; the physical-device checklist is
 [device-smoke-test.md](docs/device-smoke-test.md).
 
@@ -438,7 +466,7 @@ There are no instrumented or emulator tests yet; the physical-device checklist i
   `AutomaticZenRule` integration is future work.
 - The `specialUse` foreground-service type needs a Play Console declaration; Play eligibility has
   not been reviewed.
-- `applicationId` `io.github.illiapohukai.focusmode` (debug: `.debug`) may be changed before any store release
-  — but only before it is registered in Firebase and uploaded to Play.
+- v22 fixed the `applicationId` to `app.focusmodeplus` (debug: `.debug`) before any store release or
+  Firebase registration; it is permanent once published (see the identity document).
 - v21: live Google sign-in, a real Firebase project, deployed Rules, App Check enforcement and the
   deletion function were not set up or tested by this repository (see the setup guide).

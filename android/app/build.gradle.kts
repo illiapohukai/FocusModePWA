@@ -27,9 +27,11 @@ fun googleServerClientId(): String {
 
 android {
     defaultConfig {
-        applicationId = "io.github.illiapohukai.focusmode"
-        versionCode = 2100
-        versionName = "21.0.0"
+        // v22 application identity (android/docs/application-identity-v22.md): permanent once
+        // published on Google Play. Debug builds append ".debug" and install side by side.
+        applicationId = "app.focusmodeplus"
+        versionCode = 2200
+        versionName = "22.0.0"
         // Public URL of the existing Cloudflare Worker. Not a secret; no API key exists on Android.
         buildConfigField("String", "WORKER_BASE_URL", "\"https://focusmodedemoai.illia-pohukai.workers.dev/\"")
         buildConfigField("boolean", "FIREBASE_CONFIGURED", firebaseConfigured.toString())

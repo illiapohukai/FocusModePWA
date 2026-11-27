@@ -10,7 +10,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmCompilerOptions
 
-internal const val BASE_NAMESPACE = "io.github.illiapohukai.focusmode"
+internal const val BASE_NAMESPACE = "app.focusmodeplus"
 internal val JAVA_TARGET = JavaVersion.VERSION_17
 
 internal val Project.libs: VersionCatalog
@@ -23,7 +23,7 @@ internal fun VersionCatalog.int(alias: String): Int =
     findVersion(alias).orElseThrow { IllegalStateException("Missing catalog version: $alias") }
         .requiredVersion.toInt()
 
-/** ":core:data" -> "io.github.illiapohukai.focusmode.core.data" */
+/** ":core:data" -> "app.focusmodeplus.core.data" */
 internal fun Project.focusNamespace(): String =
     BASE_NAMESPACE + path.replace(':', '.').replace('-', '_')
 

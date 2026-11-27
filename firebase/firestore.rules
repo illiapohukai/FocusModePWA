@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Focus Mode+ v21 — Cloud Firestore Security Rules.
+// Focus Mode+ v21 — Cloud Firestore Security Rules (v22: adversarially tested and hardened).
 //
 // Deny by default: only the paths matched below are reachable, and only by the signed-in owner
 // of /users/{uid}. Every write is validated: exact field sets (unknown fields are refused), types,
@@ -93,6 +93,12 @@ service cloud.firestore {
         && version(s.syncVersion) && mutationId(s.deviceMutationId) && epochMs(s.updatedAt);
     }
 
+    // The step carries the version and mutation id of its Mission as it is after this write.
+    function stepMatchesMission(uid, missionId) {
+      let m = getAfter(/databases/$(database)/documents/users/$(uid)/missions/$(missionId)).data;
+      return d().syncVersion == m.syncVersion && d().deviceMutationId == m.deviceMutationId;
+    }
+
     // A completed step stays completed with the same content (completion is never undone).
     function completedStepKept() {
       return resource == null || resource.data.status != 'completed'
@@ -118,7 +124,8 @@ service cloud.firestore {
         && epochMs(s.startedAt) && epochMs(s.finishedAt) && s.finishedAt >= s.startedAt
         && isoDate(s.localDate) && s.zoneId is string && s.zoneId.size() > 0 && s.zoneId.size() <= 64
         && ((s.missionId == null && s.missionStepId == null) || (safeId(s.missionId) && safeId(s.missionStepId)))
-        && (s.type != 'mission' || s.missionId != null)
+        // v22 (V22-F02): a Mission Session has its Mission link and a Quick Session never has one.
+        && ((s.type == 'mission') == (s.missionId != null))
         && s.protectionMode in ['standard', 'protected', 'strict_managed']
         && (s.endNote == null || s.endNote in ['task_done', 'need_break', 'distracted', 'other', 'emergency'])
         && optIntIn(s.rating, 1, 5) && s.origin in ['local', 'imported_pwa'] && optText(s.reviewNote, 1000)
@@ -171,8 +178,12 @@ service cloud.firestore {
 
         match /steps/{stepId} {
           allow read, delete: if isOwner(uid);
+          // v22 (V22-F07): a step is written together with its Mission (the client always writes the
+          // Mission and every step in one batch, with the same version and mutation id). A step on
+          // its own cannot change content behind the Mission's optimistic-concurrency check.
           allow create, update: if isOwner(uid) && validStep(uid, missionId, stepId) && completedStepKept()
             && existsAfter(/databases/$(database)/documents/users/$(uid)/missions/$(missionId))
+            && stepMatchesMission(uid, missionId)
             && (resource == null || unchanged(['id', 'ownerUid', 'missionId']));
         }
       }

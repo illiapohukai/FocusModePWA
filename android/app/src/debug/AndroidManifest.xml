@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- v22 (V22-F09): debug builds only. The Compose tooling and test manifests export two
+     activities. PreviewActivity renders any @Composable named in an intent extra (reflection), so
+     any app on a test device could drive the UI of a debug build; ComponentActivity is an empty
+     test host. Both stay usable inside the app (Robolectric, in-process tests) but are no longer
+     reachable from other apps. Release builds contain neither (asserted by apk_audit.py). -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <application>
+        <activity
+            android:name="androidx.compose.ui.tooling.PreviewActivity"
+            android:exported="false"
+            tools:ignore="MissingClass"
+            tools:replace="android:exported" />
+        <activity
+            android:name="androidx.activity.ComponentActivity"
+            android:exported="false"
+            tools:replace="android:exported" />
+    </application>
+</manifest>

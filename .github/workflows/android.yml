@@ -2,6 +2,9 @@
 # No signing secrets, no Play upload: this produces a debug APK and an unsigned release APK only.
 # v21: no Firebase credentials either. The app builds unconfigured (no google-services.json), and
 # the Firestore Rules run against the Firebase Emulator Suite with the demo project only.
+# v22: application id app.focusmodeplus (debug app.focusmodeplus.debug) and a bounded security job
+# (regression grouping, APK/manifest audit, source audit, OSV and npm advisories). It needs no
+# credentials, contacts no Firebase project and sends only public dependency coordinates to OSV.
 name: Android
 
 on:
@@ -81,6 +84,7 @@ jobs:
           name: android-reports
           path: |
             android/**/build/reports/tests/
+            android/**/build/test-results/
             android/app/build/reports/lint-results-debug.html
             android/**/build/screenshots/
           retention-days: 14
@@ -111,5 +115,111 @@ jobs:
       - name: Install test dependencies (lockfile)
         run: npm ci --no-audit --no-fund
 
-      - name: Firestore Rules and account-deletion tests (Emulator Suite, demo project)
-        run: npm run test:emulator
+      - name: Firestore Rules (incl. v22 adversarial) and account-deletion tests (Emulator Suite, demo project)
+        run: npm run test:emulator:ci
+
+      - name: Upload Rules test report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: firestore-rules-junit
+          path: firebase/test-results/rules-junit.xml
+          if-no-files-found: error
+          retention-days: 14
+
+  # v22: bounded security job. Fails on any red control; nothing here is allowed to be skipped.
+  security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: firebase/package-lock.json
+
+      - uses: gradle/actions/setup-gradle@v5
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: "platforms;android-37.2 build-tools;36.0.0 platform-tools"
+
+      - name: Security tooling self-tests (scanner and advisory parser detect planted cases)
+        run: |
+          python3 scripts/security/apk_audit.py --self-test
+          python3 scripts/security/dependency_audit.py --self-test
+
+      - name: Source audit (logging, TLS, debug flags, identity, secrets, trust boundaries, CI policy)
+        working-directory: .
+        run: python3 android/scripts/security/source_audit.py --out android/build/reports/security/source-audit.json
+
+      - name: Security regression tests (SecurityV22*, per module; a module without them fails)
+        run: >
+          ./gradlew --no-configuration-cache
+          :core:domain:test --tests '*SecurityV22*'
+          :core:data:testDebugUnitTest --tests '*SecurityV22*'
+          :core:network:testDebugUnitTest --tests '*SecurityV22*'
+          :core:notifications:testDebugUnitTest --tests '*SecurityV22*'
+          :app:testDebugUnitTest --tests '*SecurityV22*'
+
+      - name: Build debug and R8 release APKs for inspection
+        run: ./gradlew --no-configuration-cache :app:assembleDebug :app:assembleRelease
+
+      - name: APK and merged-manifest audit (identity, debuggable, exports, permissions, secrets)
+        run: |
+          python3 scripts/security/apk_audit.py --apk app/build/outputs/apk/debug/app-debug.apk --variant debug \
+            --out build/reports/security/apk-debug.json --manifest-out build/reports/security/merged-manifest-debug.xml
+          python3 scripts/security/apk_audit.py --apk app/build/outputs/apk/release/app-release-unsigned.apk --variant release \
+            --out build/reports/security/apk-release.json --manifest-out build/reports/security/merged-manifest-release.xml
+          python3 scripts/security/apk_audit.py --compare-debug build/reports/security/apk-debug.json \
+            --compare-release build/reports/security/apk-release.json --out build/reports/security/apk-separation.json
+          test -f app/build/outputs/mapping/release/mapping.txt
+
+      - name: Dependency advisories (OSV, shipped runtime classpaths)
+        run: |
+          ./gradlew --no-configuration-cache -q :app:dependencies --configuration releaseRuntimeClasspath > build/reports/security/deps-release.txt
+          ./gradlew --no-configuration-cache -q :app:dependencies --configuration debugRuntimeClasspath > build/reports/security/deps-debug.txt
+          python3 scripts/security/dependency_audit.py --gradle-report build/reports/security/deps-release.txt \
+            --gradle-report build/reports/security/deps-debug.txt --out build/reports/security/dependency-audit.json
+
+      - name: Install Firebase test tooling (lockfile)
+        working-directory: firebase
+        run: npm ci --no-audit --no-fund
+
+      - name: npm advisories (Firebase test tooling lockfile; high and critical fail)
+        working-directory: firebase
+        run: npm audit --json --audit-level=high > ../android/build/reports/security/npm-audit.json
+
+      - name: Firestore Rules adversarial suite (Emulator Suite, demo project only)
+        working-directory: firebase
+        run: npm run test:emulator:ci
+
+      - name: Machine-readable security summary
+        run: >
+          python3 scripts/security/security_summary.py --android-root .
+          --rules-junit ../firebase/test-results/rules-junit.xml
+          --report-dir build/reports/security --npm-audit build/reports/security/npm-audit.json
+          --out build/reports/security/security-summary.json
+
+      - name: Upload security reports
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: security-reports
+          path: |
+            android/build/reports/security/
+            android/**/build/test-results/
+            firebase/test-results/rules-junit.xml
+          retention-days: 14

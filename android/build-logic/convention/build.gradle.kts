@@ -2,7 +2,7 @@ plugins {
     `kotlin-dsl`
 }
 
-group = "io.github.illiapohukai.focusmode.buildlogic"
+group = "app.focusmodeplus.buildlogic"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17

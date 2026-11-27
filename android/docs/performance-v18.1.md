@@ -58,7 +58,7 @@ owner; it can only add load (see §2). To classify the user's case, run on that 
 adb logcat -d -b events | grep am_anr        # 3rd field = ANR process
 adb shell dumpsys activity processes | grep -i anr
 adb shell top -b -n 1 -m 10                  # who uses the CPU
-adb shell dumpsys gfxinfo io.github.illiapohukai.focusmode.debug   # app frame stats
+adb shell dumpsys gfxinfo app.focusmodeplus.debug   # app frame stats
 adb bugreport anr.zip                        # /data/anr traces
 ```
 
@@ -68,7 +68,7 @@ Decision table:
 |---|---|---|
 | `am_anr ... com.android.systemui` with the app closed or on Home | A / C | Android or emulator; not caused by the app |
 | the same, but only while the Focus screen is visible | A + app load | the app's rendering adds load on a weak emulator (see §2) |
-| `am_anr ... io.github.illiapohukai.focusmode` | B | app ANR: the main-thread stack in the bugreport names the operation |
+| `am_anr ... app.focusmodeplus` | B | app ANR: the main-thread stack in the bugreport names the operation |
 | no ANR, but `Janky frames` high in `gfxinfo` | D | rendering jank only |
 
 Typical emulator causes of class A/C: no hardware acceleration (KVM/HAXM/Hypervisor framework off),

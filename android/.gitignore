@@ -29,3 +29,7 @@ service-account*.json
 firebase-debug.log
 firestore-debug.log
 ui-debug.log
+
+# v22 security tooling: Python bytecode caches
+__pycache__/
+*.pyc

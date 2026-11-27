@@ -1,4 +1,4 @@
-# Firebase App Check (v21 foundation)
+# Firebase App Check (v21 foundation, v22 application ids)
 
 ## What is implemented
 
@@ -9,7 +9,9 @@
     dependency `firebase-appcheck-playintegrity`, release only);
   - **debug**: `DebugAppCheckProviderFactory` (`app/src/debug/.../AppCheckModule.kt`, dependency
     `firebase-appcheck-debug`, debug only). It prints a per-install debug secret to logcat; the
-    owner registers it in the Console. **No debug token is stored in Git or in the APK.**
+    owner registers it in the Console. **No debug token is stored in Git or in the APK** (v22:
+    `scripts/security/apk_audit.py` asserts that the library's `firebase_app_check_debug_token`
+    resource is empty in debug and absent in release, and that release has no debug provider).
 - Versions come from the Firebase BoM (35.2.0).
 
 ## What App Check is not
@@ -20,7 +22,10 @@ All access control stays in `firebase/firestore.rules`; App Check only adds a si
 
 ## Rollout (owner, not done)
 
-1. Register both Android apps under App Check: Play Integrity for release, debug provider for debug.
+1. Register both Android apps under App Check — `app.focusmodeplus` (Play Integrity, release) and
+   `app.focusmodeplus.debug` (debug provider) — the v22 application ids
+   ([application identity v22](application-identity-v22.md)). Apps registered under any earlier id
+   would never receive tokens from these builds.
 2. Play Integrity needs the **SHA-256** of the signing certificate(s) in the Firebase app settings
    and a Play Console link (App integrity) for Play-distributed builds.
 3. Debug builds: run the app once, copy the debug secret from logcat (`DebugAppCheckProvider`),

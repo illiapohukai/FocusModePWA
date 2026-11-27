@@ -1,4 +1,4 @@
-# Firebase setup for v21 (owner checklist)
+# Firebase setup for v21 (owner checklist, v22 application ids)
 
 Nothing in this list has been done by the repository or by any automated session. The repository
 contains no Firebase project, no `google-services.json`, no OAuth client, no SHA fingerprint, no
@@ -9,17 +9,18 @@ App Check debug token and no service-account key. Every step below is a manual a
 
 | Item | Value | Source |
 |---|---|---|
-| Android `applicationId` (release) | `io.github.illiapohukai.focusmode` | `android/app/build.gradle.kts` |
-| Android `applicationId` (debug) | `io.github.illiapohukai.focusmode.debug` (suffix `.debug`) | same file, `buildTypes.debug.applicationIdSuffix` |
+| Android `applicationId` (release) | `app.focusmodeplus` (v22) | `android/app/build.gradle.kts` |
+| Android `applicationId` (debug) | `app.focusmodeplus.debug` (suffix `.debug`) | same file, `buildTypes.debug.applicationIdSuffix` |
+| Visible labels | `Focus Mode+` (release), `Focus Mode+ Debug` (debug) | `app/src/main` and `app/src/debug` `strings.xml` |
 | Configuration file location | `android/app/google-services.json` (gitignored) | `android/app/build.gradle.kts` |
 | Firebase libraries | Firebase Android BoM 35.2.0: Auth, Firestore, App Check (+ Play Integrity in release, debug provider in debug) | `android/gradle/libs.versions.toml` |
 | Sign in with Google | Credential Manager 1.6.0 + `googleid` 1.2.1 (`GetSignInWithGoogleOption`) | `core/account/FirebaseAccountRepository.kt` |
 | Google Services Gradle plugin | 4.6.0, applied only when the file exists | `android/app/build.gradle.kts` |
 | Emulator project | `demo-focus-mode` (never a real project) | `firebase/.firebaserc` |
 
-Recommendation (not applied): the id is valid for Firebase and Google Play, so it was not changed.
-If the app is ever published under another name, change it **before** the first store upload and
-before registering it in Firebase; afterwards it cannot change without a new Play listing.
+v22 changed the application id once, before any Firebase registration or store upload (see
+[application identity v22](application-identity-v22.md)). Register only the v22 ids below; after the
+first Play upload `app.focusmodeplus` can never change and every update must use the same signing key.
 
 Register **both** package names as Android apps in the same Firebase project. The downloaded
 `google-services.json` then contains both clients; the Google Services plugin fails the build of
@@ -32,8 +33,8 @@ a variant whose package is missing from the file.
    project or any existing Google Cloud project.
 2. Do not enable Google Analytics for the project (the app ships no analytics).
 3. Project settings → General → **Add app → Android**:
-   - package `io.github.illiapohukai.focusmode.debug` (for debug builds);
-   - again for `io.github.illiapohukai.focusmode` (for release builds).
+   - package `app.focusmodeplus.debug` (for debug builds);
+   - again for `app.focusmodeplus` (for release builds).
 4. Generate the debug fingerprints on your machine:
    ```bash
    keytool -list -v -alias androiddebugkey -keystore ~/.android/debug.keystore -storepass android -keypass android

@@ -13,14 +13,14 @@ Record results in the table at the end; never mark a step as passed without runn
 - `adb` from the Android SDK platform-tools, USB debugging on.
 - A debug APK: `cd android && ./gradlew :app:assembleDebug` →
   `android/app/build/outputs/apk/debug/app-debug.apk` (application id
-  `io.github.illiapohukai.focusmode.debug`).
+  `app.focusmodeplus.debug`).
 - In a second terminal keep a filtered log running while you test:
 
 ```bash
 adb logcat -b events -b main -v time | grep -E "am_anr|am_crash|ANR in|FATAL|focusmode"
 ```
 
-Shorthand used below: `PKG=io.github.illiapohukai.focusmode.debug`.
+Shorthand used below: `PKG=app.focusmodeplus.debug`.
 
 ## 1. Install the debug APK
 
@@ -191,7 +191,7 @@ adb bugreport v18.1-bugreport.zip              # full traces (/data/anr) if an A
 ```
 
 Interpretation: `am_anr ... com.android.systemui` or `system` means the ANR belongs to Android, not
-to Focus Mode+. Only an `am_anr` line naming `io.github.illiapohukai.focusmode(.debug)` is an app ANR;
+to Focus Mode+. Only an `am_anr` line naming `app.focusmodeplus(.debug)` is an app ANR;
 then attach the main-thread stack from the bugreport.
 
 ## 20. Parity items (v20)

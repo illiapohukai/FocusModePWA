@@ -1,0 +1,4 @@
+{
+  "_comment": "v22 dependency advisories accepted after review. Every entry needs id (OSV/GHSA/CVE), package (group:artifact), reason (reachability analysis), reviewed (date) and expires (date, at most 90 days ahead). Expired entries stop applying. Keep this list empty unless a reviewed, unreachable advisory has no compatible fix.",
+  "allow": []
+}

@@ -14,6 +14,11 @@
     <uses-permission android:name="android.permission.USE_BIOMETRIC" tools:node="remove" />
     <uses-permission android:name="android.permission.USE_FINGERPRINT" tools:node="remove" />
 
+    <!-- v22: added by the reCAPTCHA SDK that firebase-auth depends on. reCAPTCHA serves phone and
+         email/password sign-in, which this app does not use (Sign in with Google only, and its
+         RecaptchaActivity is removed below), so the Gservices read permission is not requested. -->
+    <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" tools:node="remove" />
+
     <application
         android:name=".FocusModeApplication"
         android:allowBackup="true"
@@ -37,13 +42,11 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <!-- Internal navigation links used by the app's own notifications. Not BROWSABLE:
-                 web pages cannot open them. Every link is validated; unknown links go Home. -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:scheme="focusmode" />
-            </intent-filter>
+            <!-- v22: no VIEW intent filter. The app's own notifications open this activity with
+                 explicit, immutable PendingIntents whose focusmode:// route carries a per-install
+                 tag; routes from any other caller are ignored (DeepLinkAuthenticator). Without the
+                 filter no other app (and no second Focus Mode+ build) can claim or resolve the
+                 scheme implicitly. -->
         </activity>
 
         <receiver
