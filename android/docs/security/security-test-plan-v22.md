@@ -31,9 +31,14 @@ cd ../firebase && npm ci && npm run test:emulator && npm audit
 node tests/security/run-all.js
 ```
 
-CI (`.github/workflows/android.yml`, job `security`) runs the same grouping, both APK audits, the
-source audit, OSV and npm advisories and the Rules suite, and uploads `security-reports` with
-`security-summary.json` (counts and statuses only — no runtime user data).
+CI (`.github/workflows/android.yml`): the `build` job runs the complete JVM suite (which contains
+the `SecurityV22*` grouping), Lint and both builds and checks that R8 wrote its mapping; the
+`security` job (`needs: build`) audits exactly the artifacts `build` produced — it fails unless all
+seven `SecurityV22*` classes reported results without failures — and runs both APK audits, the
+source audit, OSV and npm advisories and the adversarial Rules suite, then uploads
+`security-reports` with `security-summary.json` (counts and statuses only — no runtime user data).
+It does not recompile: a cold Gradle home re-downloads a 165 MB Robolectric artifact that Maven
+Central throttles for CI runners (HTTP 429, observed in the first v22 run).
 
 ## Test inventory
 

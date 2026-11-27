@@ -62,6 +62,9 @@ jobs:
       - name: Assemble release APK (R8, unsigned)
         run: ./gradlew --no-configuration-cache :app:assembleRelease
 
+      - name: R8 mapping produced (release was shrunk and obfuscated)
+        run: test -s app/build/outputs/mapping/release/mapping.txt
+
       - name: Upload debug APK
         uses: actions/upload-artifact@v6
         with:
@@ -128,9 +131,13 @@ jobs:
           retention-days: 14
 
   # v22: bounded security job. Fails on any red control; nothing here is allowed to be skipped.
+  # It audits exactly what the build job produced (its JUnit results, including the SecurityV22*
+  # grouping, and both APKs) instead of compiling and downloading everything a second time: a
+  # cold Gradle home re-downloads large test artifacts that Maven Central throttles (HTTP 429).
   security:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 30
+    needs: build
     defaults:
       run:
         working-directory: android
@@ -165,27 +172,32 @@ jobs:
         working-directory: .
         run: python3 android/scripts/security/source_audit.py --out android/build/reports/security/source-audit.json
 
-      - name: Security regression tests (SecurityV22*, per module; a module without them fails)
-        run: >
-          ./gradlew --no-configuration-cache
-          :core:domain:test --tests '*SecurityV22*'
-          :core:data:testDebugUnitTest --tests '*SecurityV22*'
-          :core:network:testDebugUnitTest --tests '*SecurityV22*'
-          :core:notifications:testDebugUnitTest --tests '*SecurityV22*'
-          :app:testDebugUnitTest --tests '*SecurityV22*'
+      - name: Test results of the build job (full JVM suite incl. SecurityV22*)
+        uses: actions/download-artifact@v7
+        with:
+          name: android-reports
+          path: android
 
-      - name: Build debug and R8 release APKs for inspection
-        run: ./gradlew --no-configuration-cache :app:assembleDebug :app:assembleRelease
+      - name: Debug APK of the build job
+        uses: actions/download-artifact@v7
+        with:
+          name: focus-mode-plus-debug-apk
+          path: android/build/ci-apk/debug
+
+      - name: Release APK of the build job (R8, unsigned)
+        uses: actions/download-artifact@v7
+        with:
+          name: focus-mode-plus-release-unsigned-apk
+          path: android/build/ci-apk/release
 
       - name: APK and merged-manifest audit (identity, debuggable, exports, permissions, secrets)
         run: |
-          python3 scripts/security/apk_audit.py --apk app/build/outputs/apk/debug/app-debug.apk --variant debug \
+          python3 scripts/security/apk_audit.py --apk build/ci-apk/debug/app-debug.apk --variant debug \
             --out build/reports/security/apk-debug.json --manifest-out build/reports/security/merged-manifest-debug.xml
-          python3 scripts/security/apk_audit.py --apk app/build/outputs/apk/release/app-release-unsigned.apk --variant release \
+          python3 scripts/security/apk_audit.py --apk build/ci-apk/release/app-release-unsigned.apk --variant release \
             --out build/reports/security/apk-release.json --manifest-out build/reports/security/merged-manifest-release.xml
           python3 scripts/security/apk_audit.py --compare-debug build/reports/security/apk-debug.json \
             --compare-release build/reports/security/apk-release.json --out build/reports/security/apk-separation.json
-          test -f app/build/outputs/mapping/release/mapping.txt
 
       - name: Dependency advisories (OSV, shipped runtime classpaths)
         run: |

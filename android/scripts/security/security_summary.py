@@ -23,6 +23,13 @@ import sys
 import xml.etree.ElementTree as ET
 
 
+# Every v22 security regression class must report results; a missing class fails the summary.
+EXPECTED_SECURITY_CLASSES = {
+    "SecurityV22SyncTest", "SecurityV22BackupAdversarialTest", "SecurityV22DeepLinkParserTest", "SecurityV22DeepLinkAuthTest",
+    "SecurityV22AttachmentTest", "SecurityV22NetworkTest", "SecurityV22ManifestAndStorageTest",
+}
+
+
 def junit(paths: list[str], only_security: bool) -> dict:
     total = failed = skipped = 0
     classes: dict[str, dict] = {}
@@ -91,6 +98,9 @@ def main() -> int:
         # The JVM total is informational in the security job (it runs the grouping only).
         if s["failed"] or (s["tests"] == 0 and name != "jvmSuite"):
             problems.append(f"{name}: {s['tests']} tests, {s['failed']} failed")
+    missing = sorted(EXPECTED_SECURITY_CLASSES - set(summary["securityRegression"]["classes"]))
+    if missing:
+        problems.append("securityRegression: missing " + ", ".join(missing))
     for key, value in summary["apk"].items():
         if value is None or value["status"] != "pass":
             problems.append(f"apk.{key}: {value}")
