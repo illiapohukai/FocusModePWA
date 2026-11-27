@@ -238,7 +238,11 @@ MASVS-NETWORK-2). Tests: `SecurityV22NetworkTest`, `WorkerMissionGenerationRepos
   `releaseRuntimeClasspath` and `debugRuntimeClasspath` (228 coordinates incl. BOM-managed ones)
   and queries OSV in one batch plus one detail call per advisory. CRITICAL/HIGH fail unless listed
   in `advisory-allowlist.json` with a reason and an expiry (empty today). This container cannot
-  reach api.osv.dev, so the live query result is the CI `security` job's `dependency-audit.json`.
+  reach api.osv.dev, so the live query runs in the CI `security` job (`dependency-audit.json`).
+- **Result**: the first complete CI run (run 45978466624) failed the job on purpose:
+  `HIGH GHSA-xxph-c9ww-hj94 com.google.guava:guava:33.6.0-android fixed=33.7.2` (transitive via
+  grpc-api; 1 advisory in 228 coordinates). Fixed by a same-major dependency constraint to
+  `33.7.2-android` (V22-F17); no allow-list entry was needed.
 - **Rules test tooling (npm)**: 5 high → 0 after V22-F10; `npm audit --audit-level=high` gates CI.
 - **Gradle dependency verification metadata**: not introduced (a verification file for 228
   artifacts would have to be regenerated on every upgrade; deferred). Major upgrades were not made.

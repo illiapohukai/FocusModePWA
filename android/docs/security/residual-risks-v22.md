@@ -24,6 +24,7 @@ is a known Critical or High vulnerability. "Owner" is the repository owner.
 | R17 | Live network interception and OEM-specific behavior (battery managers, backup transports) untested | Low | Needs physical devices and a proxy setup | live-validation L09–L12 |
 | R18 | Old-id test installs keep their own sandbox data | Informational | Package ids cannot share data | Export/import and uninstall the old builds (application-identity-v22.md) |
 | R19 | Gemini key and Worker abuse limits live outside this repository | Medium (external) | Worker code is not changed here by policy | Keep the key in the Worker only; Worker-side rate limits and size limits; never call Gemini from the app |
+| R20 | The guava constraint (V22-F17) overrides what grpc-api requests | Low | Needed until grpc/Firebase depend on a fixed guava | Remove the constraint when the resolved guava is ≥ 33.7.2 without it; the CI OSV audit flags regressions |
 
 Nothing in this list is hidden from the user-facing documentation: R02–R04 are stated in the
 Firebase setup guide, the App Check document and the account-deletion document.

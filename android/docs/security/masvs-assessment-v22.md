@@ -138,7 +138,8 @@ JVM tests and an emulator can show.
 **CODE-3 — No components with known vulnerabilities.** — **Pass**
 - v22 CI: OSV audit of the release and debug runtime classpaths (CRITICAL/HIGH fail unless reviewed
   and allow-listed with an expiry), `npm audit --audit-level=high` for the Rules tooling (fixed
-  V22-F10). Evidence: `scripts/security/dependency_audit.py`, CI `security` job report. (The OSV
+  V22-F10). The first CI run found one HIGH advisory in transitive guava (GHSA-xxph-c9ww-hj94),
+  fixed by a constraint to the patched release (V22-F17). Evidence: `scripts/security/dependency_audit.py`, CI `security` job report. (The OSV
   query runs in CI; this development container cannot reach api.osv.dev.)
 
 **CODE-4 — Untrusted input validated and sanitized.** — **Pass**

@@ -150,7 +150,8 @@ selection, Daten & Backup (export, import, full deletion).
   literals and URIs and never crashes on extreme dates; foreign apps cannot drive in-app navigation
   (no VIEW filter, per-install route tags); hostile document providers cannot crash the photo
   pipeline; debug tooling activities are not exported; `READ_GSERVICES` removed; test-tooling
-  `grpc-js` advisories fixed. No Critical or High finding.
+  `grpc-js` advisories fixed; transitive `guava` constrained to the release that fixes
+  GHSA-xxph-c9ww-hj94 (found by the new CI OSV audit). No Critical or High finding in project code.
 - **Verification**: threat model, MASVS self-assessment (no certification claimed), adversarial
   Rules tests on the Emulator Suite only, CI security job. Live Google/Firebase, App Check and
   physical-device behavior remain to be validated ([live validation](docs/security/live-validation-required-v22.md)).

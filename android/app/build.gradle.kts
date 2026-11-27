@@ -96,6 +96,13 @@ dependencies {
     releaseImplementation(libs.firebase.appcheck.playintegrity)
     debugImplementation(libs.firebase.appcheck.debug)
 
+    // v22 (V22-F17): security constraint, not a new dependency. grpc-api (via firebase-firestore)
+    // requests guava 33.6.0-android, affected by GHSA-xxph-c9ww-hj94 (HIGH); the first patched
+    // release of the same major is enforced for every app classpath. Remove when grpc ships it.
+    constraints {
+        implementation(libs.guava) { because("GHSA-xxph-c9ww-hj94: first patched guava release (same major)") }
+    }
+
     testImplementation(project(":core:testing"))
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.core)

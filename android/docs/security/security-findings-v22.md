@@ -7,8 +7,10 @@ production Google, Firebase, Cloudflare or Gemini systems. This is a structured 
 not a formal penetration test.
 
 Severity scale: Critical, High, Medium, Low, Informational. Severities are not inflated: there was
-**no Critical and no High** finding. Most findings need a user action (choosing a file, installing
-a hostile app) or concern the user's own data.
+**no Critical and no High finding in the project's own code or configuration**. One transitive
+dependency carried an advisory rated High upstream (V22-F17, fixed); its contextual severity here is
+Low. Most findings need a user action (choosing a file, installing a hostile app) or concern the
+user's own data.
 
 | ID | Title | Category | Severity | Status |
 |---|---|---|---|---|
@@ -22,6 +24,7 @@ a hostile app) or concern the user's own data.
 | V22-F08 | A hostile document provider crashes the photo pipeline | Input validation / DoS | Low | Fixed |
 | V22-F09 | Debug builds export Compose `PreviewActivity` and a test host | Platform / debug exposure | Low | Fixed |
 | V22-F10 | `@grpc/grpc-js` 1.9.16 advisories in Rules test tooling | Dependency | Low | Fixed |
+| V22-F17 | Shipped `guava` 33.6.0-android affected by GHSA-xxph-c9ww-hj94 (upstream High) | Dependency | Low in context (upstream High) | Fixed |
 | V22-F11 | Unneeded `READ_GSERVICES` permission from the reCAPTCHA SDK | Least privilege | Informational | Fixed |
 | V22-F12 | Backup import would open any URI scheme passed to it | Defense in depth | Informational | Fixed |
 | V22-F13 | Task hijacking on Android 8–10 (minSdk 26) | Platform | Informational | Accepted (residual) |
@@ -197,6 +200,30 @@ Open findings: none that are fixable without a product decision; accepted residu
   lockfile regenerated; `npm audit`: 0 vulnerabilities; all 70 Rules tests pass with it.
 - **Status**: fixed. **Residual risk**: the override must be revisited when the Firebase JS SDK
   updates its own range (CI `npm audit --audit-level=high` will flag regressions).
+
+## V22-F17 — Shipped `guava` affected by GHSA-xxph-c9ww-hj94
+
+- **Category**: dependency (known vulnerability). **Severity**: upstream **High** (GitHub CVSS 4.0
+  8.2, availability only; the reporter's CVSS 3.1 is 5.9); **contextual severity: Low**.
+- **Evidence**: found by the new CI dependency audit (OSV) in the first complete `security` run:
+  `[FATAL] HIGH GHSA-xxph-c9ww-hj94 com.google.guava:guava:33.6.0-android fixed=33.7.2` (228
+  coordinates checked, 1 advisory). Path: `firebase-firestore 27.2.0 → grpc-android 1.84.0 →
+  grpc-api → guava 33.6.0-android`. Advisory (CVE-2026-102554): `CompactHashMap`, `CompactHashSet`
+  and `MapMakerInternalMap` `readObject()` allocate arrays sized by an unvalidated count from a Java
+  serialization stream; a tiny stream forces a multi-gigabyte allocation (OutOfMemoryError).
+  Affected ≤ 33.7.1 (both `-jre` and `-android`), patched in 33.7.2.
+- **Reachability**: the app never uses `ObjectInputStream`. Java deserialization of untrusted bytes
+  can still happen through intent extras: on Android ≤ 12 reading any extra unparcels every
+  `Serializable` extra of an intent sent to the exported launcher, and both classes are present in
+  the APKs. Impact would be an OOM in Focus Mode+ (local denial of service by a malicious app); no
+  data is exposed or changed. `DeepLinkAuthenticator.routeFrom` already treats unreadable extras as
+  a plain launch.
+- **Fix**: a Gradle dependency constraint in `:app` enforces `com.google.guava:guava:33.7.2-android`
+  (first patched release, same major) on every app classpath; it is not a new dependency. Verified:
+  both runtime classpaths resolve `33.6.0-android -> 33.7.2-android`; all app tests, Lint, debug and
+  R8 release builds and both APK audits pass. The CI OSV audit re-checks it on every run.
+- **Status**: fixed. **Residual risk**: the constraint must be removed (or raised) when grpc/Firebase
+  ship a fixed guava; CI flags any regression.
 
 ## V22-F11 — Unneeded `READ_GSERVICES` permission from the reCAPTCHA SDK
 

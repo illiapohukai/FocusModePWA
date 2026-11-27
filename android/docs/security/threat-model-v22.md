@@ -270,8 +270,10 @@ Risk after v22: **L** low, **M** medium, **H** high. "Test" names the regression
 
 **T28 — Supply-chain advisories in dependencies** (A14 indirectly)
 - Control: v22 OSV audit of the shipped runtime classpaths; npm audit of the test tooling; a
-  CRITICAL/HIGH advisory fails CI unless reviewed and allow-listed. v22 finding V22-F10: test-only
-  grpc-js advisories, pinned to the fixed version. Residual: L.
+  CRITICAL/HIGH advisory fails CI unless reviewed and allow-listed. v22 findings V22-F10 (test-only
+  grpc-js advisories, pinned to the fixed version) and V22-F17 (shipped guava, deserialization OOM
+  reachable at most through intent extras on Android ≤ 12; constrained to the patched release).
+  Residual: L.
 
 ## 6. Out of scope / assumptions
 
